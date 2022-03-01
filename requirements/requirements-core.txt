@@ -1,0 +1,4 @@
+# Packages required for core functionality 
+numpy 
+colorlog
+pyyaml

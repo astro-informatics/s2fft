@@ -1,0 +1,32 @@
+name: Tests
+
+on: [pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+
+    steps:
+    - name: Checkout Source
+      uses: actions/checkout@v2.3.1
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install package
+      run: |
+        sudo apt install pandoc
+        python -m pip install --upgrade pip    
+        bash build_project_name.sh
+    
+    - name: Run tests
+      run: |
+        pytest --cov-report term --cov=project_name --cov-config=.coveragerc 
+        codecov --token 1f998eff-7a78-4160-91c1-3376fb435d21
+

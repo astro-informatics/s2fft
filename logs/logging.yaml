@@ -1,0 +1,58 @@
+# =============================================================
+# Logging setup for LatentWaves Software package (2022)
+# =============================================================
+
+version: 1
+disable_existing_loggers: False
+formatters:
+    simple:
+        format: "[%(asctime)s] [%(name)s] [%(levelname)s]: %(message)s"
+    colored:
+        (): "colorlog.ColoredFormatter"
+        datefmt: "%Y-%m-%d %H:%M:%S"
+        format: "%(log_color)s[%(asctime)s] [%(name)s] [%(levelname)s]: %(message)s%(reset)s"
+        log_colors:
+            DEBUG: blue
+            INFO: cyan
+            WARNING: purple
+            ERROR: orange
+            CRITICAL: red
+
+handlers:
+    console:
+        class: logging.StreamHandler
+        level: INFO
+        formatter: colored
+        stream: ext://sys.stdout
+
+    info_file_handler:
+        class: logging.FileHandler
+        level: INFO
+        formatter: simple
+        filename: /logs/info.log
+        encoding: utf8
+
+    debug_file_handler:
+        class: logging.FileHandler
+        level: DEBUG
+        formatter: simple
+        filename: /logs/debug.log
+        encoding: utf8
+
+    critical_file_handler:
+        class: logging.FileHandler
+        level: CRITICAL
+        formatter: simple
+        filename: /logs/critical.log
+        encoding: utf8
+
+loggers:
+    LatentWaves:
+        level: DEBUG
+        handlers: [console, critical_file_handler, info_file_handler, debug_file_handler]
+        propagate: no
+
+root:
+    level: INFO
+    handlers: [console, info_file_handler, debug_file_handler]
+...
