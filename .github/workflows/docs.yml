@@ -1,9 +1,9 @@
 name: Docs
 
-on:
-  push:
-    branches:        
-    - main
+# on:
+#   push:
+#     branches:        
+#     - main
     # Add following in for testing
     # - feature/deploy_docs
 
@@ -28,7 +28,7 @@ jobs:
       run: |
         sudo apt install pandoc
         python -m pip install --upgrade pip    
-        bash build_project_name.sh
+        bash build_s2harmonic.sh
 
     - name: Build Documentation
       run: |

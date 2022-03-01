@@ -15,4 +15,5 @@ notebooks/.temp.*
 docs/assets/static_notebooks/.ipynb_checkpoints/
 docs/assets/static_notebooks/.temp.*
 dist/
-latentwaves.egg-info/
+s2harmonic.egg-info/
+resources/

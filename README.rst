@@ -19,7 +19,7 @@
    <img src="./docs/assets/placeholder_logo.png" align="center" height="80" width="80">
 
 This is a very loose framework for people to start python projects from. To get up and running, go through the code carefully replacing ``Project-name`` with your 
-desired project name (check all documents!), don't forget to change the directory project_name as well! You will also need to update the links in all badges!
+desired project name (check all documents!), don't forget to change the directory s2harmonic as well! You will also need to update the links in all badges!
 
 
 Auto-formatting code
@@ -34,7 +34,7 @@ or alternatively format everything by running
 
 .. code-block:: bash
 
-    black project_name/*
+    black s2harmonic/*
 
 This is important as the CI enforces black formatting (this can be disabled by removing the --black flag in pytest) so your unit tests will fail if you don't do this!
 
@@ -64,7 +64,7 @@ To deploy the code on PyPi first test the deployment on PyPi's mirror site by, f
 
     python setup.py bdist_wheel --universal
     twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-    pip install -i https://test.pypi.org/simple/ project_name
+    pip install -i https://test.pypi.org/simple/ s2harmonic
 
 From the root directory. Keep in mind that installing from the mirror site won't automatically find dependencies, so if you have an error because the pacakge can't find numpy that's probably why, and may not be an issue on the main PyPi site. To deploy the main PyPi site simply remove the --repostiry-url name, note that you can add multiple wheels to dist/*, to provide a package which may be pip installed for multiple python version, and on multiple machine architectures.
 

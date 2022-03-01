@@ -23,10 +23,10 @@ jobs:
       run: |
         sudo apt install pandoc
         python -m pip install --upgrade pip    
-        bash build_project_name.sh
+        bash build_s2harmonic.sh
     
     - name: Run tests
       run: |
-        pytest --cov-report term --cov=project_name --cov-config=.coveragerc 
+        pytest --cov-report term --cov=s2harmonic --cov-config=.coveragerc 
         codecov --token 1f998eff-7a78-4160-91c1-3376fb435d21
 

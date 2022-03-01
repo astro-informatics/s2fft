@@ -1,2 +1,2 @@
-.. automodule:: project_name.logs
+.. automodule:: s2harmonic.logs
    :members: 

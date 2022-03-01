@@ -5,7 +5,7 @@ from setuptools import setup
 import numpy
 
 # clean previous build
-for root, dirs, files in os.walk("./project_name/", topdown=False):
+for root, dirs, files in os.walk("./s2harmonic/", topdown=False):
     for name in dirs:
         if (name == "build"):
             shutil.rmtree(name)
@@ -36,10 +36,10 @@ setup(
                  'Intended Audience :: Developers',
                  'Intended Audience :: Science/Research'
                  ],
-    name = "project_name",
+    name = "s2harmonic",
     version = "0.0.1",
     prefix='.',
-    url='https://github.com/astro-informatics/project_name',
+    url='https://github.com/astro-informatics/s2harmonic',
     author='Authors & Contributors',
     author_email='primary.author.e-mail@ucl.ac.uk',
     license='GNU General Public License v3 (GPLv3)',
@@ -47,5 +47,5 @@ setup(
     description='A witty project description!',
     long_description_content_type = "text/x-rst",
     long_description = long_description,
-    packages=['project_name']
+    packages=['s2harmonic']
 )
