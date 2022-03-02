@@ -100,7 +100,7 @@ def trapani_halfpi_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     return dl
 
 
-def trapani_fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+def trapani_halfpi_fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """Fill in quarter of Wigner-d plane from eighth.
 
     The Wigner-d plane passed as an argument should be computed for the eighth
@@ -132,7 +132,7 @@ def trapani_fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     return dl
 
 
-def trapani_fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+def trapani_halfpi_fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """Fill in half of Wigner-d plane from quarter.
 
     The Wigner-d plane passed as an argument should be computed for the quarter
@@ -165,7 +165,7 @@ def trapani_fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     return dl
 
 
-def trapani_fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+def trapani_halfpi_fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """Fill in full Wigner-d plane from half.
 
     The Wigner-d plane passed as an argument should be computed for the half
@@ -237,9 +237,9 @@ def trapani_halfpi_full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     _trapani_arg_checks(dl, L, el)
 
     dl = trapani_halfpi_eighth(dl, L, el)
-    dl = trapani_fill_eighth2quarter(dl, L, el)
-    dl = trapani_fill_quarter2half(dl, L, el)
-    dl = trapani_fill_half2full(dl, L, el)
+    dl = trapani_halfpi_fill_eighth2quarter(dl, L, el)
+    dl = trapani_halfpi_fill_quarter2half(dl, L, el)
+    dl = trapani_halfpi_fill_half2full(dl, L, el)
 
     return dl
 
