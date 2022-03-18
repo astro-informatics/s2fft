@@ -2,7 +2,7 @@ import numpy as np
 import logs
 
 
-def trapani_halfpi_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """Compute Wigner-d at argument math:`\pi/2` for eighth of plane using
     Trapani & Navaza recursion.
 
@@ -38,7 +38,7 @@ def trapani_halfpi_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     """
 
-    _trapani_arg_checks(dl, L, el)
+    _arg_checks(dl, L, el)
 
     if el == 0:
 
@@ -100,7 +100,7 @@ def trapani_halfpi_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     return dl
 
 
-def trapani_halfpi_fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+def fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """Fill in quarter of Wigner-d plane from eighth.
 
     The Wigner-d plane passed as an argument should be computed for the eighth
@@ -120,7 +120,7 @@ def trapani_halfpi_fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.nd
         Plane of Wigner-d for `el`, with quarter of plane computed.
     """
 
-    _trapani_arg_checks(dl, L, el)
+    _arg_checks(dl, L, el)
 
     # Diagonal symmetry to fill in quarter.
     for m in range(el + 1):  # 0:el
@@ -132,7 +132,7 @@ def trapani_halfpi_fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.nd
     return dl
 
 
-def trapani_halfpi_fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+def fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """Fill in half of Wigner-d plane from quarter.
 
     The Wigner-d plane passed as an argument should be computed for the quarter
@@ -153,7 +153,7 @@ def trapani_halfpi_fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndar
         Plane of Wigner-d for `el`, with half of plane computed.
     """
 
-    _trapani_arg_checks(dl, L, el)
+    _arg_checks(dl, L, el)
 
     # Symmetry in m to fill in half.
     for mm in range(0, el + 1):  # 0:el
@@ -165,7 +165,7 @@ def trapani_halfpi_fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndar
     return dl
 
 
-def trapani_halfpi_fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+def fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """Fill in full Wigner-d plane from half.
 
     The Wigner-d plane passed as an argument should be computed for the half
@@ -186,7 +186,7 @@ def trapani_halfpi_fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray
         Plane of Wigner-d for `el`, with full plane computed.
     """
 
-    _trapani_arg_checks(dl, L, el)
+    _arg_checks(dl, L, el)
 
     # Symmetry in mm to fill in remaining plane.
     for mm in range(-el, 0):  # -el:-1
@@ -198,7 +198,7 @@ def trapani_halfpi_fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray
     return dl
 
 
-def trapani_halfpi_full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+def compute_full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """Compute Wigner-d at argument math:`\pi/2` for full plane using
     Trapani & Navaza recursion.
 
@@ -234,17 +234,18 @@ def trapani_halfpi_full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         Plane of Wigner-d for `el`, with eighth of plane computed.
 
     """
-    _trapani_arg_checks(dl, L, el)
 
-    dl = trapani_halfpi_eighth(dl, L, el)
-    dl = trapani_halfpi_fill_eighth2quarter(dl, L, el)
-    dl = trapani_halfpi_fill_quarter2half(dl, L, el)
-    dl = trapani_halfpi_fill_half2full(dl, L, el)
+    _arg_checks(dl, L, el)
+
+    dl = compute_eighth(dl, L, el)
+    dl = fill_eighth2quarter(dl, L, el)
+    dl = fill_quarter2half(dl, L, el)
+    dl = fill_half2full(dl, L, el)
 
     return dl
 
 
-def _trapani_arg_checks(dl: np.ndarray, L: int, el: int):
+def _arg_checks(dl: np.ndarray, L: int, el: int):
     """Check arguments of Trapani functions.
 
     Args:
