@@ -59,11 +59,7 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     # Equation (10) of T&N (2006).
     for mm in range(1, el + 1):  # 1:el
         dmm[mm] = (
-            np.sqrt(el)
-            / np.sqrt(2)
-            * np.sqrt(2 * el - 1)
-            / np.sqrt(el + mm)
-            / np.sqrt(el + mm - 1)
+            np.sqrt(el / 2 * (2 * el - 1) / (el + mm) / (el + mm - 1))
             * dl[el - 1 + (L - 1), mm - 1 + (L - 1)]
         )
 
@@ -79,8 +75,7 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         dl[m + (L - 1), mm + (L - 1)] = (
             2
             * mm
-            / np.sqrt(el - m)
-            / np.sqrt(el + m + 1)
+            / np.sqrt((el - m) * (el + m + 1))
             * dl[m + 1 + (L - 1), mm + (L - 1)]
         )
 
@@ -89,15 +84,11 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
             t1 = (
                 2
                 * mm
-                / np.sqrt(el - m)
-                / np.sqrt(el + m + 1)
+                / np.sqrt((el - m) * (el + m + 1))
                 * dl[m + 1 + (L - 1), mm + (L - 1)]
             )
             t2 = (
-                np.sqrt(el - m - 1)
-                * np.sqrt(el + m + 2)
-                / np.sqrt(el - m)
-                / np.sqrt(el + m + 1)
+                np.sqrt((el - m - 1) * (el + m + 2) / (el - m) / (el + m + 1))
                 * dl[m + 2 + (L - 1), mm + (L - 1)]
             )
             dl[m + (L - 1), mm + (L - 1)] = t1 - t2
