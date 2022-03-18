@@ -17,7 +17,7 @@ def test_trapani():
     # Compare to routines in SSHT, which have been validated extensively.
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
     for el in range(L):
-        dl = s2h.dl.trapani_halfpi_full(dl, L, el)
+        dl = s2h.trapani.trapani_halfpi_full(dl, L, el)
         np.testing.assert_allclose(dl_array[el, :, :], dl, atol=1e-15)
 
 
