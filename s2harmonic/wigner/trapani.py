@@ -2,8 +2,19 @@ import numpy as np
 import logs
 
 
+def init(dl: np.ndarray, L: int) -> np.ndarray:
+    """Initialise Wigner-d at argument math:`\pi/2` for :math:`\ell=0` for
+    Trapani & Navaza recursion.
+    """
+
+    el = 0
+    dl[el + L - 1, el + L - 1] = 1.0
+
+    return dl
+
+
 def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
-    """Compute Wigner-d at argument math:`\pi/2` for eighth of plane using
+    """Compute Wigner-d at argument :math:`\pi/2` for eighth of plane using
     Trapani & Navaza recursion.
 
     The Wigner-d plane is computed by recursion over :math:`\ell` (`el`).
@@ -15,8 +26,8 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     computed for the eighth of the plane
     :math:`m^\prime <= m <0 \ell, 0 <= m^\prime <= \ell`.
     Symmetry relations can be used to fill in the remainder of the plane if
-    required (see :func:`~trapani_fill_eighth2quarter`,
-    :func:`~trapani_fill_quarter2half`, :func:`~trapani_fill_half2full`).
+    required (see :func:`~fill_eighth2quarter`,
+    :func:`~fill_quarter2half`, :func:`~fill_half2full`).
 
     Warning:
 
@@ -40,62 +51,56 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     _arg_checks(dl, L, el)
 
-    if el == 0:
+    dmm = np.zeros(L)
 
-        dl[el + L - 1, el + L - 1] = 1.0
+    # Equation (9) of T&N (2006).
+    dmm[0] = -np.sqrt((2 * el - 1) / (2 * el)) * dl[el - 1 + (L - 1), 0 + (L - 1)]
 
-    else:
+    # Equation (10) of T&N (2006).
+    for mm in range(1, el + 1):  # 1:el
+        dmm[mm] = (
+            np.sqrt(el)
+            / np.sqrt(2)
+            * np.sqrt(2 * el - 1)
+            / np.sqrt(el + mm)
+            / np.sqrt(el + mm - 1)
+            * dl[el - 1 + (L - 1), mm - 1 + (L - 1)]
+        )
 
-        dmm = np.zeros(L)
+    # Initialise dl for next el.
+    for mm in range(el + 1):  # 0:el
+        dl[el + (L - 1), mm + (L - 1)] = dmm[mm]
 
-        # Equation (9) of T&N (2006).
-        dmm[0] = -np.sqrt((2 * el - 1) / (2 * el)) * dl[el - 1 + (L - 1), 0 + (L - 1)]
+    # Equation (11) of T&N (2006).
+    for mm in range(el + 1):  # 0:el
 
-        # Equation (10) of T&N (2006).
-        for mm in range(1, el + 1):  # 1:el
-            dmm[mm] = (
-                np.sqrt(el)
-                / np.sqrt(2)
-                * np.sqrt(2 * el - 1)
-                / np.sqrt(el + mm)
-                / np.sqrt(el + mm - 1)
-                * dl[el - 1 + (L - 1), mm - 1 + (L - 1)]
-            )
+        # m = el-1 case (t2 = 0).
+        m = el - 1
+        dl[m + (L - 1), mm + (L - 1)] = (
+            2
+            * mm
+            / np.sqrt(el - m)
+            / np.sqrt(el + m + 1)
+            * dl[m + 1 + (L - 1), mm + (L - 1)]
+        )
 
-        # Initialise dl for next el.
-        for mm in range(el + 1):  # 0:el
-            dl[el + (L - 1), mm + (L - 1)] = dmm[mm]
-
-        # Equation (11) of T&N (2006).
-        for mm in range(el + 1):  # 0:el
-
-            # m = el-1 case (t2 = 0).
-            m = el - 1
-            dl[m + (L - 1), mm + (L - 1)] = (
+        # Remaining m cases.
+        for m in range(el - 2, mm - 1, -1):  # el-2:-1:mm
+            t1 = (
                 2
                 * mm
                 / np.sqrt(el - m)
                 / np.sqrt(el + m + 1)
                 * dl[m + 1 + (L - 1), mm + (L - 1)]
             )
-
-            # Remaining m cases.
-            for m in range(el - 2, mm - 1, -1):  # el-2:-1:mm
-                t1 = (
-                    2
-                    * mm
-                    / np.sqrt(el - m)
-                    / np.sqrt(el + m + 1)
-                    * dl[m + 1 + (L - 1), mm + (L - 1)]
-                )
-                t2 = (
-                    np.sqrt(el - m - 1)
-                    * np.sqrt(el + m + 2)
-                    / np.sqrt(el - m)
-                    / np.sqrt(el + m + 1)
-                    * dl[m + 2 + (L - 1), mm + (L - 1)]
-                )
-                dl[m + (L - 1), mm + (L - 1)] = t1 - t2
+            t2 = (
+                np.sqrt(el - m - 1)
+                * np.sqrt(el + m + 2)
+                / np.sqrt(el - m)
+                / np.sqrt(el + m + 1)
+                * dl[m + 2 + (L - 1), mm + (L - 1)]
+            )
+            dl[m + (L - 1), mm + (L - 1)] = t1 - t2
 
     return dl
 
@@ -204,16 +209,17 @@ def compute_full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     The Wigner-d plane is computed by recursion over :math:`\ell` (`el`).
     Thus, for :math:`\ell > 0` the plane must be computed already for
-    :math:`\ell - 1`. For :math:`\ell = 0` the recusion is initialised.
+    :math:`\ell - 1`. For :math:`\ell = 1` the recusion must already be
+    initialised (see :func:`~init`).
 
     The Wigner-d plane :math:`d^\ell_{mm^\prime}(\pi/2)` (`el`) is indexed for
     :math:`-L < m, m^\prime < L` by `dl[m + L - 1, m' + L - 1]`. The plane is
     computed directly for the eighth of the plane
     :math:`m^\prime <= m <0 \ell, 0 <= m^\prime <= \ell`
-    (see :func:`~trapani_halfpi_eighth`).
+    (see :func:`~compute_eighth`).
     Symmetry relations are then used to fill in the remainder of the plane
-    (see :func:`~trapani_fill_eighth2quarter`,
-    :func:`~trapani_fill_quarter2half`, :func:`~trapani_fill_half2full`).
+    (see :func:`~fill_eighth2quarter`,
+    :func:`~fill_quarter2half`, :func:`~fill_half2full`).
 
     Warning:
 
@@ -257,7 +263,7 @@ def _arg_checks(dl: np.ndarray, L: int, el: int):
         ell: Spherical harmonic degree :math:`\ell`.
     """
 
-    assert 0 <= el < L
+    assert 0 < el < L
     assert dl.shape[0] == dl.shape[1] == 2 * L - 1
     if L > 1024:
         logs.warning_log("Trapani recursion may not be stable for L > 1024")
