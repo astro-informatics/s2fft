@@ -24,10 +24,10 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     The Wigner-d plane :math:`d^\ell_{mm^\prime}(\pi/2)` (`el`) is indexed for
     :math:`-L < m, m^\prime < L` by `dl[m + L - 1, m' + L - 1]` but is only
     computed for the eighth of the plane
-    :math:`m^\prime <= m <0 \ell, 0 <= m^\prime <= \ell`.
+    :math:`m^\prime <= m < \ell, 0 <= m^\prime <= \ell`.
     Symmetry relations can be used to fill in the remainder of the plane if
-    required (see :func:`~fill_eighth2quarter`,
-    :func:`~fill_quarter2half`, :func:`~fill_half2full`).
+    required (see :func:`~fill_eighth2quarter`, :func:`~fill_quarter2half`,
+    :func:`~fill_half2full`).
 
     Warning:
 
@@ -92,6 +92,47 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
                 * dl[m + 2 + (L - 1), mm + (L - 1)]
             )
             dl[m + (L - 1), mm + (L - 1)] = t1 - t2
+
+    return dl
+
+
+def compute_quarter_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+    """TODO"""
+
+    _arg_checks(dl, L, el)
+
+    dmm = np.zeros(L)
+
+    # Equation (9) of T&N (2006).
+    dmm[0] = -np.sqrt((2 * el - 1) / (2 * el)) * dl[el - 1 + (L - 1), 0 + (L - 1)]
+
+    # Equation (10) of T&N (2006).
+    mm = np.arange(1, el + 1)
+    dmm[mm] = (
+        np.sqrt(el / 2 * (2 * el - 1) / (el + mm) / (el + mm - 1))
+        * dl[el - 1 + (L - 1), mm - 1 + (L - 1)]
+    )
+
+    # Initialise dl for next el.
+    mm = np.arange(el + 1)
+    dl[el + (L - 1), mm + (L - 1)] = dmm[mm]
+
+    # Equation (11) of T&N (2006).
+    # m = el-1 case (t2 = 0).
+    m = el - 1
+    dl[m + (L - 1), mm + (L - 1)] = (
+        2 * mm / np.sqrt((el - m) * (el + m + 1)) * dl[m + 1 + (L - 1), mm + (L - 1)]
+    )
+
+    # Equation (11) of T&N (2006).
+    # Remaining m cases.
+    ms = np.arange(el - 2, -1, -1)
+    t1_fact = np.sqrt((el - ms) * (el + ms + 1))
+    t2_fact = np.sqrt((el - ms - 1) * (el + ms + 2) / (el - ms) / (el + ms + 1))
+    for i, m in enumerate(ms):  # compute quarter plane since vectorizes
+        t1 = 2 * mm / t1_fact[i] * dl[m + 1 + (L - 1), mm + (L - 1)]
+        t2 = t2_fact[i] * dl[m + 2 + (L - 1), mm + (L - 1)]
+        dl[m + (L - 1), mm + (L - 1)] = t1 - t2
 
     return dl
 
@@ -161,6 +202,23 @@ def fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     return dl
 
 
+def fill_quarter2half_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+    """TODO"""
+
+    _arg_checks(dl, L, el)
+
+    # Symmetry in m to fill in half.
+    mm = np.arange(0, el + 1)  # 0:el
+    m = np.arange(-el, 0)  # -el:-1
+    m_grid, mm_grid = np.meshgrid(m, mm)
+
+    dl[m_grid + (L - 1), mm_grid + (L - 1)] = (-1) ** (el + mm_grid) * dl[
+        -m_grid + (L - 1), mm_grid + (L - 1)
+    ]
+
+    return dl
+
+
 def fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """Fill in full Wigner-d plane from half.
 
@@ -190,6 +248,23 @@ def fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
             dl[m + (L - 1), mm + (L - 1)] = (-1) ** (el + abs(m)) * dl[
                 m + (L - 1), -mm + (L - 1)
             ]
+
+    return dl
+
+
+def fill_half2full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+    """TODO"""
+
+    _arg_checks(dl, L, el)
+
+    # Symmetry in mm to fill in remaining plane.
+    mm = np.arange(-el, 0)
+    m = np.arange(-el, el + 1)
+    m_grid, mm_grid = np.meshgrid(m, mm)
+
+    dl[m_grid + (L - 1), mm_grid + (L - 1)] = (-1) ** (el + abs(m_grid)) * dl[
+        m_grid + (L - 1), -mm_grid + (L - 1)
+    ]
 
     return dl
 
@@ -238,6 +313,18 @@ def compute_full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     dl = fill_eighth2quarter(dl, L, el)
     dl = fill_quarter2half(dl, L, el)
     dl = fill_half2full(dl, L, el)
+
+    return dl
+
+
+def compute_full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+    """TODO"""
+
+    _arg_checks(dl, L, el)
+
+    dl = compute_quarter_vectorized(dl, L, el)
+    dl = fill_quarter2half_vectorized(dl, L, el)
+    dl = fill_half2full_vectorized(dl, L, el)
 
     return dl
 
