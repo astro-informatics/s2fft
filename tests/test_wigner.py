@@ -36,7 +36,32 @@ def test_trapani_vectorized():
     for el in range(1, L):
         dl = wigner.trapani.compute_full(dl, L, el)
         dl_vect = wigner.trapani.compute_full_vectorized(dl_vect, L, el)
-        np.testing.assert_allclose(dl, dl_vect, atol=1e-15)
+        np.testing.assert_allclose(
+            dl[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            dl_vect[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            atol=1e-15,
+        )
+
+
+def test_trapani_jax():
+    """Test JAX Trapani computation"""
+
+    # Test all dl(pi/2) terms up to L.
+    L = 5
+
+    # Compare to routines in SSHT, which have been validated extensively.
+    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl = wigner.trapani.init(dl, L)
+    dl_jax = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl_jax = wigner.trapani.init(dl_jax, L)
+    for el in range(1, L):
+        dl = wigner.trapani.compute_full(dl, L, el)
+        dl_jax = wigner.trapani.compute_full_jax(dl_jax, L, el)
+        np.testing.assert_allclose(
+            dl[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            dl_jax[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            atol=1e-15,
+        )
 
 
 def test_trapani_checks():

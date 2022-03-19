@@ -137,6 +137,55 @@ def compute_quarter_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     return dl
 
 
+def compute_quarter_jax(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+    """TODO
+
+    writes garbage outside of m,mm range for given el
+
+    """
+
+    _arg_checks(dl, L, el)
+
+    dmm = np.zeros(L)
+
+    # Equation (9) of T&N (2006).
+    dmm[0] = -np.sqrt((2 * el - 1) / (2 * el)) * dl[el - 1 + (L - 1), 0 + (L - 1)]
+
+    # Equation (10) of T&N (2006).
+    mm = np.arange(1, L)
+    dmm[mm] = (
+        np.sqrt(el / 2 * (2 * el - 1) / (el + mm) / (el + mm - 1))
+        * dl[el - 1 + (L - 1), mm - 1 + (L - 1)]
+    )
+
+    # Initialise dl for next el.
+    mm = np.arange(L)
+    dl[el + (L - 1), mm + (L - 1)] = dmm[mm]
+
+    # Equation (11) of T&N (2006).
+    # m = el-1 case (t2 = 0).
+    m = el - 1
+    dl[m + (L - 1), mm + (L - 1)] = (
+        2 * mm / np.sqrt((el - m) * (el + m + 1)) * dl[m + 1 + (L - 1), mm + (L - 1)]
+    )
+
+    # Equation (11) of T&N (2006).
+    # Remaining m cases.
+    # ms = np.arange(el - 2, -1, -1)
+    ms = np.arange((L - 1) - 2, -1, -1) - (L - 1) + el
+    ms_clip = np.where(ms < 0, 0, ms)
+    t1_fact = np.sqrt((el - ms_clip) * (el + ms_clip + 1))
+    t2_fact = np.sqrt(
+        (el - ms_clip - 1) * (el + ms_clip + 2) / (el - ms_clip) / (el + ms_clip + 1)
+    )
+    for i, m in enumerate(ms):  # compute quarter plane since vectorizes
+        t1 = 2 * mm / t1_fact[i] * dl[m + 1 + (L - 1), mm + (L - 1)]
+        t2 = t2_fact[i] * dl[m + 2 + (L - 1), mm + (L - 1)]
+        dl[m + (L - 1), mm + (L - 1)] = t1 - t2
+
+    return dl
+
+
 def fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """Fill in quarter of Wigner-d plane from eighth.
 
@@ -323,6 +372,18 @@ def compute_full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     _arg_checks(dl, L, el)
 
     dl = compute_quarter_vectorized(dl, L, el)
+    dl = fill_quarter2half_vectorized(dl, L, el)
+    dl = fill_half2full_vectorized(dl, L, el)
+
+    return dl
+
+
+def compute_full_jax(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+    """TODO"""
+
+    _arg_checks(dl, L, el)
+
+    dl = compute_quarter_jax(dl, L, el)
     dl = fill_quarter2half_vectorized(dl, L, el)
     dl = fill_half2full_vectorized(dl, L, el)
 
