@@ -1,4 +1,4 @@
-import s2harmonic.logs as lg
+import s2fft.logs as lg
 import pytest
 
 

@@ -2,7 +2,7 @@ import os
 import logging.config
 import logging
 import yaml
-import s2harmonic
+import s2fft
 import colorlog
 
 
@@ -27,7 +27,7 @@ def setup_logging(custom_yaml_path=None, default_level=logging.DEBUG):
     """
     if custom_yaml_path == None:
         path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.realpath(s2harmonic.__file__)))
+            os.path.dirname(os.path.dirname(os.path.realpath(s2fft.__file__)))
             + "/logs/logging.yaml"
         )
     if custom_yaml_path != None:
@@ -40,19 +40,19 @@ def setup_logging(custom_yaml_path=None, default_level=logging.DEBUG):
             config = yaml.safe_load(f.read())
         if custom_yaml_path == None:
             config["handlers"]["info_file_handler"]["filename"] = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.realpath(s2harmonic.__file__)))
+                os.path.dirname(os.path.dirname(os.path.realpath(s2fft.__file__)))
                 + "/logs/info.log"
             )
             config["handlers"]["debug_file_handler"]["filename"] = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.realpath(s2harmonic.__file__)))
+                os.path.dirname(os.path.dirname(os.path.realpath(s2fft.__file__)))
                 + "/logs/debug.log"
             )
             config["handlers"]["critical_file_handler"]["filename"] = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.realpath(s2harmonic.__file__)))
+                os.path.dirname(os.path.dirname(os.path.realpath(s2fft.__file__)))
                 + "/logs/critical.log"
             )
             config["handlers"]["info_file_handler"]["filename"] = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.realpath(s2harmonic.__file__)))
+                os.path.dirname(os.path.dirname(os.path.realpath(s2fft.__file__)))
                 + "/logs/info.log"
             )
         logging.config.dictConfig(config)

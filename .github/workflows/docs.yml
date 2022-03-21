@@ -28,7 +28,7 @@ jobs:
       run: |
         sudo apt install pandoc
         python -m pip install --upgrade pip    
-        bash build_s2harmonic.sh
+        bash build_s2fft.sh
 
     - name: Build Documentation
       run: |

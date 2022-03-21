@@ -1,2 +1,2 @@
-.. automodule:: s2harmonic.logs
+.. automodule:: s2fft.logs
    :members: 

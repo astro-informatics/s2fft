@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-import s2harmonic.wigner as wigner
+import s2fft.wigner as wigner
 import pyssht as ssht
 
 
