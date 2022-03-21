@@ -1,7 +1,12 @@
 import pytest
 import numpy as np
+import jax.numpy as jnp
 import s2fft.wigner as wigner
 import pyssht as ssht
+
+from jax.config import config
+
+config.update("jax_enable_x64", True)
 
 
 def test_trapani_with_ssht():
@@ -52,10 +57,10 @@ def test_trapani_jax():
     # Compare to routines in SSHT, which have been validated extensively.
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
     dl = wigner.trapani.init(dl, L)
-    dl_jax = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-    dl_jax = wigner.trapani.init(dl_jax, L)
+    dl_jax = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
+    dl_jax = wigner.trapani.init_jax(dl_jax, L)
     for el in range(1, L):
-        dl = wigner.trapani.compute_full(dl, L, el)
+        dl = wigner.trapani.compute_full_vectorized(dl, L, el)
         dl_jax = wigner.trapani.compute_full_jax(dl_jax, L, el)
         np.testing.assert_allclose(
             dl[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
