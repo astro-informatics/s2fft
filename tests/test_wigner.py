@@ -13,7 +13,7 @@ def test_trapani_with_ssht():
     """Test Trapani computation against ssht"""
 
     # Test all dl(pi/2) terms up to L.
-    L = 5
+    L = 32
 
     # Compute using SSHT.
     beta = np.pi / 2.0
@@ -24,14 +24,14 @@ def test_trapani_with_ssht():
     dl = wigner.trapani.init(dl, L)
     for el in range(1, L):
         dl = wigner.trapani.compute_full(dl, L, el)
-        np.testing.assert_allclose(dl_array[el, :, :], dl, atol=1e-15)
+        np.testing.assert_allclose(dl_array[el, :, :], dl, atol=1e-10)
 
 
 def test_trapani_vectorized():
     """Test vectorized Trapani computation"""
 
     # Test all dl(pi/2) terms up to L.
-    L = 5
+    L = 32
 
     # Compare to routines in SSHT, which have been validated extensively.
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
@@ -44,7 +44,7 @@ def test_trapani_vectorized():
         np.testing.assert_allclose(
             dl[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
             dl_vect[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
-            atol=1e-15,
+            atol=1e-10,
         )
 
 
@@ -52,7 +52,7 @@ def test_trapani_jax():
     """Test JAX Trapani computation"""
 
     # Test all dl(pi/2) terms up to L.
-    L = 5
+    L = 32
 
     # Compare to routines in SSHT, which have been validated extensively.
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
@@ -65,7 +65,7 @@ def test_trapani_jax():
         np.testing.assert_allclose(
             dl[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
             dl_jax[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
-            atol=1e-15,
+            atol=1e-10,
         )
 
 
