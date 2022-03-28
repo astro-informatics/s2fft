@@ -1,4 +1,7 @@
 import numpy as np
+from jax import jit
+import jax.numpy as jnp
+from functools import partial
 import logs
 
 
@@ -9,6 +12,16 @@ def init(dl: np.ndarray, L: int) -> np.ndarray:
 
     el = 0
     dl[el + L - 1, el + L - 1] = 1.0
+
+    return dl
+
+
+@partial(jit, static_argnums=(1,))
+def init_jax(dl: jnp.ndarray, L: int) -> jnp.ndarray:
+    """TODO"""
+
+    el = 0
+    dl = dl.at[el + L - 1, el + L - 1].set(1.0)
 
     return dl
 
@@ -137,6 +150,7 @@ def compute_quarter_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     return dl
 
 
+@partial(jit, static_argnums=(1,))
 def compute_quarter_jax(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """TODO
 
@@ -146,42 +160,44 @@ def compute_quarter_jax(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     _arg_checks(dl, L, el)
 
-    dmm = np.zeros(L)
+    dmm = jnp.zeros(L)
 
     # Equation (9) of T&N (2006).
-    dmm[0] = -np.sqrt((2 * el - 1) / (2 * el)) * dl[el - 1 + (L - 1), 0 + (L - 1)]
+    dmm = dmm.at[0].set(
+        -jnp.sqrt((2 * el - 1) / (2 * el)) * dl[el - 1 + (L - 1), 0 + (L - 1)]
+    )
 
     # Equation (10) of T&N (2006).
-    mm = np.arange(1, L)
-    dmm[mm] = (
-        np.sqrt(el / 2 * (2 * el - 1) / (el + mm) / (el + mm - 1))
+    mm = jnp.arange(1, L)
+    dmm = dmm.at[mm].set(
+        jnp.sqrt(el / 2 * (2 * el - 1) / (el + mm) / (el + mm - 1))
         * dl[el - 1 + (L - 1), mm - 1 + (L - 1)]
     )
 
     # Initialise dl for next el.
-    mm = np.arange(L)
-    dl[el + (L - 1), mm + (L - 1)] = dmm[mm]
+    mm = jnp.arange(L)
+    dl = dl.at[el + (L - 1), mm + (L - 1)].set(dmm[mm])
 
     # Equation (11) of T&N (2006).
     # m = el-1 case (t2 = 0).
     m = el - 1
-    dl[m + (L - 1), mm + (L - 1)] = (
-        2 * mm / np.sqrt((el - m) * (el + m + 1)) * dl[m + 1 + (L - 1), mm + (L - 1)]
+    dl = dl.at[m + (L - 1), mm + (L - 1)].set(
+        2 * mm / jnp.sqrt((el - m) * (el + m + 1)) * dl[m + 1 + (L - 1), mm + (L - 1)]
     )
 
     # Equation (11) of T&N (2006).
     # Remaining m cases.
-    # ms = np.arange(el - 2, -1, -1)
-    ms = np.arange((L - 1) - 2, -1, -1) - (L - 1) + el
-    ms_clip = np.where(ms < 0, 0, ms)
-    t1_fact = np.sqrt((el - ms_clip) * (el + ms_clip + 1))
-    t2_fact = np.sqrt(
+    # ms = jnp.arange(el - 2, -1, -1)
+    ms = jnp.arange((L - 1) - 2, -1, -1) - (L - 1) + el
+    ms_clip = jnp.where(ms < 0, 0, ms)
+    t1_fact = jnp.sqrt((el - ms_clip) * (el + ms_clip + 1))
+    t2_fact = jnp.sqrt(
         (el - ms_clip - 1) * (el + ms_clip + 2) / (el - ms_clip) / (el + ms_clip + 1)
     )
     for i, m in enumerate(ms):  # compute quarter plane since vectorizes
         t1 = 2 * mm / t1_fact[i] * dl[m + 1 + (L - 1), mm + (L - 1)]
         t2 = t2_fact[i] * dl[m + 2 + (L - 1), mm + (L - 1)]
-        dl[m + (L - 1), mm + (L - 1)] = t1 - t2
+        dl = dl.at[m + (L - 1), mm + (L - 1)].set(t1 - t2)
 
     return dl
 
@@ -268,6 +284,26 @@ def fill_quarter2half_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     return dl
 
 
+@partial(jit, static_argnums=(1,))
+def fill_quarter2half_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
+    """TODO"""
+
+    _arg_checks(dl, L, el)
+
+    # Symmetry in m to fill in half.
+    # mm = jnp.arange(0, el + 1)  # 0:el
+    # m = jnp.arange(-el, 0)  # -el:-1
+    mm = jnp.arange(0, L)  # 0:el
+    m = jnp.arange(-(L - 1), 0)  # -el:-1
+    m_grid, mm_grid = jnp.meshgrid(m, mm)
+
+    dl = dl.at[m_grid + (L - 1), mm_grid + (L - 1)].set(
+        (-1) ** (el + mm_grid) * dl[-m_grid + (L - 1), mm_grid + (L - 1)]
+    )
+
+    return dl
+
+
 def fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """Fill in full Wigner-d plane from half.
 
@@ -314,6 +350,26 @@ def fill_half2full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     dl[m_grid + (L - 1), mm_grid + (L - 1)] = (-1) ** (el + abs(m_grid)) * dl[
         m_grid + (L - 1), -mm_grid + (L - 1)
     ]
+
+    return dl
+
+
+@partial(jit, static_argnums=(1,))
+def fill_half2full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
+    """TODO"""
+
+    _arg_checks(dl, L, el)
+
+    # Symmetry in mm to fill in remaining plane.
+    # mm = jnp.arange(-el, 0)
+    # m = jnp.arange(-el, el + 1)
+    mm = jnp.arange(-(L - 1), 0)
+    m = jnp.arange(-(L - 1), L)
+    m_grid, mm_grid = jnp.meshgrid(m, mm)
+
+    dl = dl.at[m_grid + (L - 1), mm_grid + (L - 1)].set(
+        (-1) ** (el + abs(m_grid)) * dl[m_grid + (L - 1), -mm_grid + (L - 1)]
+    )
 
     return dl
 
@@ -366,6 +422,16 @@ def compute_full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     return dl
 
 
+def compute_quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+
+    _arg_checks(dl, L, el)
+
+    dl = compute_eighth(dl, L, el)
+    dl = fill_eighth2quarter(dl, L, el)
+
+    return dl
+
+
 def compute_full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """TODO"""
 
@@ -378,14 +444,15 @@ def compute_full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     return dl
 
 
-def compute_full_jax(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+@partial(jit, static_argnums=(1,))
+def compute_full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
     """TODO"""
 
     _arg_checks(dl, L, el)
 
     dl = compute_quarter_jax(dl, L, el)
-    dl = fill_quarter2half_vectorized(dl, L, el)
-    dl = fill_half2full_vectorized(dl, L, el)
+    dl = fill_quarter2half_jax(dl, L, el)
+    dl = fill_half2full_jax(dl, L, el)
 
     return dl
 
@@ -402,7 +469,7 @@ def _arg_checks(dl: np.ndarray, L: int, el: int):
         ell: Spherical harmonic degree :math:`\ell`.
     """
 
-    assert 0 < el < L
-    assert dl.shape[0] == dl.shape[1] == 2 * L - 1
-    if L > 1024:
-        logs.warning_log("Trapani recursion may not be stable for L > 1024")
+    # assert 0 < el < L
+    # assert dl.shape[0] == dl.shape[1] == 2 * L - 1
+    # if L > 1024:
+    #     logs.warning_log("Trapani recursion may not be stable for L > 1024")

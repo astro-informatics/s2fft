@@ -3,3 +3,5 @@ numpy
 colorlog
 pyyaml
 pyssht
+pytest
+jax[cpu]
