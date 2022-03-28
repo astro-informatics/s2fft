@@ -1,5 +1,7 @@
 import numpy as np
+from jax import jit
 import jax.numpy as jnp
+from functools import partial
 import logs
 
 
@@ -14,6 +16,7 @@ def init(dl: np.ndarray, L: int) -> np.ndarray:
     return dl
 
 
+@partial(jit, static_argnums=(1,))
 def init_jax(dl: jnp.ndarray, L: int) -> jnp.ndarray:
     """TODO"""
 
@@ -147,6 +150,7 @@ def compute_quarter_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     return dl
 
 
+@partial(jit, static_argnums=(1,))
 def compute_quarter_jax(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """TODO
 
@@ -280,6 +284,7 @@ def fill_quarter2half_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     return dl
 
 
+@partial(jit, static_argnums=(1,))
 def fill_quarter2half_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
     """TODO"""
 
@@ -349,6 +354,7 @@ def fill_half2full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     return dl
 
 
+@partial(jit, static_argnums=(1,))
 def fill_half2full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
     """TODO"""
 
@@ -438,6 +444,7 @@ def compute_full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     return dl
 
 
+@partial(jit, static_argnums=(1,))
 def compute_full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
     """TODO"""
 
