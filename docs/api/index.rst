@@ -9,8 +9,10 @@ Automatically generated documentation for **<Project-name>** APIs. All functiona
 
 		.. include:: logs.rst
 	
-	.. tab:: some
+	.. tab:: Trapani
 
+		.. include:: trapani.rst
+		
 	.. tab:: other
 
 	.. tab:: apis
