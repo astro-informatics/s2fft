@@ -3,6 +3,7 @@ import os
 import pyssht as ssht
 
 import s2fft.logs as lg
+
 lg.setup_logging()
 
 
@@ -149,8 +150,18 @@ def construct_ssht_legendre_matrix_inverse(
 
 
 def compile_warnings(L):
+    """Basic compiler warning for large Legendre precomputes
+
+    Args:
+
+        L (int): Angular bandlimit
+
+    Raises:
+
+        Warning: If the estimated time for precompute is large (L>128).
+    """
     base_value = 10
-    if L >= 128:
+    if L >= 256:
         lg.warning_log(
             "Inverse associated Legendre matrix precomputation currently scales as L^5 -- get a coffee this may take a while."
         )
@@ -161,20 +172,42 @@ def compile_warnings(L):
         )
 
 
-if __name__ == "__main__":
-    L = 32
-    N = 1
+def load_legendre_matrix(
+    L=4, sampling_method="MW", save_dir="../../.matrices", direction="forward"
+):
+    """Constructs associated Legendre inverse matrix for precompute method
 
-    m1 = construct_ssht_legendre_matrix(L=L)
-    m2 = construct_ssht_legendre_matrix_inverse(L=L)
+    Args:
 
-    print(
-        "Forward Legendre Matrix: Total entries = {}, Sparse entries = {}".format(
-            len(m1.flatten("C")), np.count_nonzero(m1)
-        )
+        L (int): Angular bandlimit
+        sampling_method (str): Sampling method to consider
+        save_dir (str): Directory from which to load precomputed matrices
+        direction (str): Whether to load the forward or inverse matrices
+
+    Returns:
+
+        Associated legendre matrix for corresponding ssht transform
+    """
+
+    dir_string = ""
+    if direction == "inverse":
+        dir_string += "_inverse"
+
+    filepath = "{}/ssht_legendre{}_matrix_{}_{}_spin_0.npy".format(
+        save_dir, dir_string, L, sampling_method
     )
-    print(
-        "Inverse Legendre Matrix: Total entries = {}, Sparse entries = {}".format(
-            len(m2.flatten("C")), np.count_nonzero(m2)
-        )
-    )
+
+    if not os.path.isfile(filepath):
+        if direction == "forward":
+            construct_ssht_legendre_matrix(
+                L=L,
+                sampling_method=sampling_method,
+                save_dir=save_dir,
+            )
+        elif direction == "inverse":
+            construct_ssht_legendre_matrix_inverse(
+                L=L,
+                sampling_method=sampling_method,
+                save_dir=save_dir,
+            )
+    return np.load(filepath)
