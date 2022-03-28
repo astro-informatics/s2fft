@@ -6,7 +6,7 @@ import logs
 
 
 def init(dl: np.ndarray, L: int) -> np.ndarray:
-    """Initialise Wigner-d at argument math:`\pi/2` for :math:`\ell=0` for
+    """Initialise Wigner-d at argument :math:`\pi/2` for :math:`\ell=0` for
     Trapani & Navaza recursion.
     """
 
@@ -32,7 +32,8 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     The Wigner-d plane is computed by recursion over :math:`\ell` (`el`).
     Thus, for :math:`\ell > 0` the plane must be computed already for
-    :math:`\ell - 1`. For :math:`\ell = 0` the recusion is initialised.
+    :math:`\ell - 1`. For :math:`\ell = 1` the recusion must already be
+    initialised (see :func:`~init`).
 
     The Wigner-d plane :math:`d^\ell_{mm^\prime}(\pi/2)` (`el`) is indexed for
     :math:`-L < m, m^\prime < L` by `dl[m + L - 1, m' + L - 1]` but is only
@@ -48,13 +49,12 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
 
-        dl: Wigner-d plane for :math:`\ell - 1` at math:`\pi/2`.  If
-        :math:`\ell = 0` the recursion is initialised internally and the `dl`
-        argument is ignored.
+        dl: Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.  If :math:`\ell = 0`
+            the recursion is initialised internally and the `dl` argument is ignored.
 
         L: Harmonic band-limit.
 
-        ell: Spherical harmonic degree :math:`\ell`.
+        el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
 
@@ -211,11 +211,11 @@ def fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
 
-        dl: Eighth of Wigner-d plane for :math:`\ell` at math:`\pi/2`.
+        dl: Eighth of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
 
         L: Harmonic band-limit.
 
-        ell: Spherical harmonic degree :math:`\ell`.
+        el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
 
@@ -244,11 +244,11 @@ def fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
 
-        dl: Quarter of Wigner-d plane for :math:`\ell` at math:`\pi/2`.
+        dl: Quarter of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
 
         L: Harmonic band-limit.
 
-        ell: Spherical harmonic degree :math:`\ell`.
+        el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
 
@@ -314,11 +314,11 @@ def fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
 
-        dl: Quarter of Wigner-d plane for :math:`\ell` at math:`\pi/2`.
+        dl: Quarter of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
 
         L: Harmonic band-limit.
 
-        ell: Spherical harmonic degree :math:`\ell`.
+        el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
 
@@ -375,7 +375,7 @@ def fill_half2full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
 
 
 def compute_full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
-    """Compute Wigner-d at argument math:`\pi/2` for full plane using
+    """Compute Wigner-d at argument :math:`\pi/2` for full plane using
     Trapani & Navaza recursion.
 
     The Wigner-d plane is computed by recursion over :math:`\ell` (`el`).
@@ -398,13 +398,13 @@ def compute_full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
 
-        dl: Wigner-d plane for :math:`\ell - 1` at math:`\pi/2`.  If
+        dl: Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.  If
         :math:`\ell = 0` the recursion is initialised internally and the `dl`
         argument is ignored.
 
         L: Harmonic band-limit.
 
-        ell: Spherical harmonic degree :math:`\ell`.
+        el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
 
@@ -466,7 +466,7 @@ def _arg_checks(dl: np.ndarray, L: int, el: int):
 
         L: Harmonic band-limit.
 
-        ell: Spherical harmonic degree :math:`\ell`.
+        el: Spherical harmonic degree :math:`\ell`.
     """
 
     # assert 0 < el < L
