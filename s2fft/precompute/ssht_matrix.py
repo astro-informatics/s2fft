@@ -57,12 +57,13 @@ def __forward_ssht_transform_cpu(f, legendre_kernel, L):
 def __forward_ssht_transform_gpu(f, legendre_kernel, L):
     fm = jnp.fft.fft(f)
     flm = jnp.einsum("lmi, im->lm", legendre_kernel, fm, optimize=True)
-    return flm
+    return jnp.ravel(jnp.fft.fftshift(flm, axes=1))
     # flm_flat = jnp.zeros(L*L, dtype=np.complex128)
     # for el in range(L):
     #     for m in range(-el, el + 1):
     #         flm_flat = flm_flat.at[el**2 + el + m].set(flm[el, m])
     # return flm_flat
+    
 
 def ssht_inverse_precompute(
     flm, L=4, sampling_method="MW", save_dir="../../.matrices", device="cpu"
@@ -100,16 +101,13 @@ def __inverse_ssht_transform_cpu(flm, legendre_kernel, L):
 
 @partial(jit, static_argnums=(2,))
 def __inverse_ssht_transform_gpu(flm, legendre_kernel, L):
-    # flm_sq = jnp.zeros((L,2*L-1), dtype=np.complex128)
-    # for el in range(L):
-    #     for m in range(-el, el + 1):
-    #         flm_sq = flm_sq.at[el, m].set(flm[el**2 + el + m])
-    fm = jnp.einsum("lmi, lm->im", legendre_kernel, flm, optimize=True)
+    flm_shift = jnp.fft.ifftshift(jnp.reshape(flm, (L, 2*L-1)), axes=1)
+    fm = jnp.einsum("lmi, lm->im", legendre_kernel, flm_shift, optimize=True)
     return float(2*L-1) * jnp.fft.ifft(fm)
 
 
 if __name__ == "__main__":
-    L = 32
+    L = 128
     save_dir="../../.matrices"
     sampling_method="MW"
 
@@ -158,34 +156,34 @@ if __name__ == "__main__":
             f_jax = device_put(f)
             legendre_kernel_forward_jax = device_put(legendre_kernel_forward)
             forward_jit = jit(__forward_ssht_transform_gpu, static_argnums=(2,))
-            flm_est = forward_jit(f_jax, legendre_kernel_forward_jax, L).block_until_ready()
+            flm_est_jax = forward_jit(f_jax, legendre_kernel_forward_jax, L).block_until_ready()
 
             start = timer()
             for i in range(sub_iters):
-                flm_est = forward_jit(f_jax, legendre_kernel_forward_jax, L)
+                flm_est_jax = forward_jit(f_jax, legendre_kernel_forward_jax, L)
             end = timer()
 
-        print("    Device {} || Forward transform time: {}".format(dev, (end-start)/sub_iters))
-        # print("    Device {} || Forward mean absolute error --> real = {}, imag = {}".format(dev, np.nanmean(np.abs(np.real(flm_est - flm_true))),np.nanmean(np.abs(np.imag(flm_est - flm_true)))))
+            flm_est = np.ravel(np.array(flm_est_jax))
+            flm_est = flm_est[np.nonzero(flm_est)]
 
+        print("    Device {} || Forward transform time: {}".format(dev, (end-start)/sub_iters))
+        print("    Device {} || Forward mean absolute error --> real = {}, imag = {}".format(dev, np.nanmean(np.abs(np.real(flm_est - flm_true))),np.nanmean(np.abs(np.imag(flm_est - flm_true)))))
+    
         if dev == "cpu":
             start = timer()
             for i in range(sub_iters):
                 f_est = __inverse_ssht_transform_cpu(flm_est, legendre_kernel_inverse, L)
             end = timer()
         elif dev == "gpu":
-            flm_est_jax = device_put(flm_est)
+            flm_est_jax = device_put(flm_est_jax)
             legendre_kernel_inverse_jax = device_put(legendre_kernel_inverse)
             inverse_jit = jit(__inverse_ssht_transform_gpu, static_argnums=(2,))
             f_est = inverse_jit(flm_est_jax, legendre_kernel_inverse_jax, L).block_until_ready()
 
             start = timer()
             for i in range(sub_iters):
-                f_est = inverse_jit(flm_est_jax, legendre_kernel_inverse_jax, L)
+                f_est_jax = inverse_jit(flm_est_jax, legendre_kernel_inverse_jax, L)
             end = timer()
 
         print("    Device {} || Inverse transform time: {}".format(dev, (end-start)/sub_iters))
         print("    Device {} || Inverse mean absolute error --> real = {}, imag = {}\n".format(dev, np.nanmean(np.abs(np.real(f_est - f))),np.nanmean(np.abs(np.imag(f_est - f)))))
-
-        print(np.nanmean(np.abs(np.real(f_est/f ))))
-        print(np.nanstd(np.abs(np.real(f_est/f ))))
