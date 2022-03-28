@@ -1,11 +1,11 @@
-.. image:: https://img.shields.io/badge/GitHub-<project-name>-brightgreen.svg?style=flat
-    :target: https://github.com/astro-informatics/<project-name>
-.. image:: https://github.com/astro-informatics/<project-name>/actions/workflows/python.yml/badge.svg
-    :target: https://github.com/astro-informatics/<project-name>/actions/workflows/python.yml
+.. image:: https://img.shields.io/badge/GitHub-PyTemplate-brightgreen.svg?style=flat
+    :target: https://github.com/astro-informatics/s2fft
+.. image:: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main
+    :target: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml
 .. image:: https://readthedocs.org/projects/ansicolortags/badge/?version=latest
-    :target: https://astro-informatics.github.io/<project-name>
-.. image:: https://codecov.io/gh/astro-informatics/code_template/branch/main/graph/badge.svg?token=8QMXOZK746
-    :target: https://codecov.io/gh/astro-informatics/code_template
+    :target: https://astro-informatics.github.io/s2fft
+.. image:: https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE
+    :target: https://codecov.io/gh/astro-informatics/s2fft
 .. image:: https://img.shields.io/badge/License-GPL-blue.svg
     :target: http://perso.crans.org/besson/LICENSE.html
 .. image:: http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat

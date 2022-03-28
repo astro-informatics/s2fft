@@ -1,13 +1,13 @@
 .. image:: https://img.shields.io/badge/GitHub-PyTemplate-brightgreen.svg?style=flat
-    :target: https://github.com/astro-informatics/code_template
-.. image:: https://github.com/astro-informatics/code_template/actions/workflows/python.yml/badge.svg?branch=main
-    :target: https://github.com/astro-informatics/code_template/actions/workflows/python.yml
+    :target: https://github.com/astro-informatics/s2fft
+.. image:: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main
+    :target: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml
 .. image:: https://readthedocs.org/projects/ansicolortags/badge/?version=latest
-    :target: https://astro-informatics.github.io/code_template
-.. image:: https://codecov.io/gh/astro-informatics/code_template/branch/main/graph/badge.svg?token=8QMXOZK746
-    :target: https://codecov.io/gh/astro-informatics/code_template
+    :target: https://astro-informatics.github.io/s2fft
+.. image:: https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE
+    :target: https://codecov.io/gh/astro-informatics/s2fft
 .. image:: https://img.shields.io/badge/License-GPL-blue.svg
-    :target: http://perso.crans.org/besson/LICENSE.html
+    :target: http://perso.crans.org/besson/LICENSE.htmlw
 .. image:: http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat
     :target: https://arxiv.org/abs/xxxx.xxxxx
 
@@ -20,6 +20,20 @@
 
 This is a very loose framework for people to start python projects from. To get up and running, go through the code carefully replacing ``Project-name`` with your 
 desired project name (check all documents!), don't forget to change the directory s2fft as well! You will also need to update the links in all badges!
+
+Interface
+=========
+
+Temporary notes on interface to be updated.
+
+flm = forward_transform(f, L, sampling, reality, implementation)
+f = inverse_transform(flm, sampling, reality, implementation, nside=None)
+
+sampling = {"mw", "mwss", "healpix"}; default = mw
+reality = {"real", "complex"}; default = complex
+implementation = {"loopy", "vectorized", "jax"}; default = jax
+nside default = None
+
 
 
 Auto-formatting code

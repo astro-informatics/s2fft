@@ -28,5 +28,5 @@ jobs:
     - name: Run tests
       run: |
         pytest --cov-report term --cov=s2fft --cov-config=.coveragerc 
-        codecov --token 1f998eff-7a78-4160-91c1-3376fb435d21
+        codecov --token 298dc7ee-bb9f-4221-b31f-3576cc6cb702
 
