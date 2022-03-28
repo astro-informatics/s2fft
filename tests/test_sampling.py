@@ -10,7 +10,7 @@ def test_sampling_n_and_angles(L: int, sampling: str):
 
     # Test ntheta and nphi
     ntheta = s2f.sampling.ntheta(L, sampling)
-    nphi = s2f.sampling.nphi_eqiang(L, sampling)
+    nphi = s2f.sampling.nphi_equiang(L, sampling)
     (ntheta_ssht, nphi_ssht) = ssht.sample_shape(L, sampling.upper())
     assert (ntheta, nphi) == pytest.approx((ntheta_ssht, nphi_ssht))
 
@@ -18,7 +18,7 @@ def test_sampling_n_and_angles(L: int, sampling: str):
     t = np.arange(0, ntheta)
     thetas = s2f.sampling.t2theta(L, t, sampling)
     p = np.arange(0, nphi)
-    phis = s2f.sampling.p2phi_eqiang(L, p, sampling)
+    phis = s2f.sampling.p2phi_equiang(L, p, sampling)
     thetas_ssht, phis_ssht = ssht.sample_positions(L, sampling.upper())
     np.testing.assert_allclose(thetas, thetas_ssht, atol=1e-14)
     np.testing.assert_allclose(phis, phis_ssht, atol=1e-14)
@@ -28,11 +28,32 @@ def test_sampling_n_and_angles(L: int, sampling: str):
         s2f.sampling.thetas(L, sampling), thetas_ssht, atol=1e-14
     )
     np.testing.assert_allclose(
-        s2f.sampling.phis_eqiang(L, sampling), phis_ssht, atol=1e-14
+        s2f.sampling.phis_equiang(L, sampling), phis_ssht, atol=1e-14
     )
 
 
-def test_sampling_errors():
+@pytest.mark.parametrize("ind", [15, 16])
+def test_sampling_index_conversion(ind: int):
+
+    (el, m) = s2f.sampling.ind2elm(ind)
+
+    ind_check = s2f.sampling.elm2ind(el, m)
+
+    assert ind == ind_check
+
+
+@pytest.mark.parametrize("L", [15, 16])
+def test_sampling_ncoeff(L: int):
+
+    n = 0
+    for el in range(0, L):
+        for m in range(-el, el + 1):
+            n += 1
+
+    assert s2f.sampling.ncoeff(L) == pytest.approx(n)
+
+
+def test_sampling_exception():
 
     L = 10
 
@@ -40,4 +61,4 @@ def test_sampling_errors():
         s2f.sampling.thetas(L, sampling="healpix")
 
     with pytest.raises(ValueError) as e:
-        s2f.sampling.phis_eqiang(L, sampling="healpix")
+        s2f.sampling.phis_equiang(L, sampling="healpix")
