@@ -20,7 +20,7 @@ def ntheta(L: int, sampling: str = "mw") -> int:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
 
-def nphi_eqiang(L: int, sampling: str = "mw") -> int:
+def nphi_equiang(L: int, sampling: str = "mw") -> int:
 
     if sampling.lower() == "mw":
 
@@ -67,14 +67,14 @@ def t2theta(L: int, t: int, sampling: str = "mw") -> np.ndarray:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
 
-def phis_eqiang(L: int, sampling: str = "mw") -> np.ndarray:
+def phis_equiang(L: int, sampling: str = "mw") -> np.ndarray:
 
-    p = np.arange(0, nphi_eqiang(L, sampling))
+    p = np.arange(0, nphi_equiang(L, sampling))
 
-    return p2phi_eqiang(L, p, sampling)
+    return p2phi_equiang(L, p, sampling)
 
 
-def p2phi_eqiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
+def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
 
     if sampling.lower() == "mw":
 
@@ -91,3 +91,22 @@ def p2phi_eqiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
     else:
 
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+
+
+def elm2ind(el: int, m: int) -> int:
+
+    return el**2 + el + m
+
+
+def ind2elm(ind):
+
+    el = np.floor(np.sqrt(ind))
+
+    m = ind - el**2 - el
+
+    return (el, m)
+
+
+def ncoeff(L):
+
+    return elm2ind(L - 1, L - 1) + 1
