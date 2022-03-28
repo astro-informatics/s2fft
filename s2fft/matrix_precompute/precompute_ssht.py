@@ -6,7 +6,7 @@ from construct_legendre_matrix import (
     construct_ssht_legendre_matrix_inverse,
 )
 
-import jax
+from jax import jit
 import jax.numpy as jnp
 from jax.config import config
 config.update("jax_enable_x64", True)
@@ -46,7 +46,7 @@ def __forward_ssht_transform_cpu(f, legendre_kernel, L):
     flm = np.einsum("lmi, im->lm", legendre_kernel, fm)
     return __square_to_flat(flm, L)
 
-@jax.jit
+@jit
 def __forward_ssht_transform_gpu(f, legendre_kernel, L):
     fm = jnp.fft.fft(f)
     flm = jnp.einsum("lmi, im->lm", legendre_kernel, fm)
@@ -83,11 +83,11 @@ def __inverse_ssht_transform_cpu(flm, legendre_kernel, L):
     fm = np.einsum("lmi, lm->im", legendre_kernel, flm_sq)
     return fm.shape[1] * np.fft.ifft(fm)
 
-@jax.jit
+@jit
 def __inverse_ssht_transform_gpu(flm, legendre_kernel, L):
     # flm_sq = __flat_to_square(flm, L)
     fm = jnp.einsum("lmi, lm->im", legendre_kernel, flm)
-    return fm.shape[1] * jnp.fft.ifft(fm)
+    return (2*L-1) * jnp.fft.ifft(fm)
 
 
 def __square_to_flat(flm_sq, L):
@@ -111,7 +111,7 @@ def __flat_to_square(flm, L):
 
 
 if __name__ == "__main__":
-    L = 128
+    L = 64
     save_dir="../../.matrices"
     sampling_method="MW"
 
@@ -140,39 +140,46 @@ if __name__ == "__main__":
     legendre_kernel_forward = np.load(filepath_for)
 
     devices = ["cpu", "gpu"]
-    # devices = ["cpu"]
 
     f = np.random.randn(L, 2 * L - 1) + 1j * np.random.randn(L, 2 * L - 1)
     f = ssht.inverse(ssht.forward(f, L), L)
     flm_true = ssht.forward(f, L=L)
 
 
-    from matplotlib import pyplot as plt 
-
     from timeit import default_timer as timer
-    
+    sub_iters = 10000
     for dev in devices:
 
         print("\nBenchmarking for device {}".format(dev))
-        start = timer()
-        # flm_est = ssht_forward_precompute(f=f, L=L, device=dev)
-        if dev == "cpu":
-            flm_est = __forward_ssht_transform_cpu(f, legendre_kernel_forward, L)
-        elif dev == "gpu":
-            flm_est = __forward_ssht_transform_gpu(f, legendre_kernel_forward, L)
-        end = timer()
 
-        print("    Device {} || Forward transform time: {}".format(dev, end-start))
+        if dev == "cpu":
+            start = timer()
+            for i in range(sub_iters):
+                flm_est = __forward_ssht_transform_cpu(f, legendre_kernel_forward, L)
+            end = timer()
+        elif dev == "gpu":
+            forward_jit = jit(__forward_ssht_transform_gpu)
+            start = timer()
+            for i in range(sub_iters):
+                flm_est = forward_jit(f, legendre_kernel_forward, L).block_until_ready()
+                # flm_est = __forward_ssht_transform_gpu(f, legendre_kernel_forward, L)
+            end = timer()
+
+        print("    Device {} || Forward transform time: {}".format(dev, (end-start)/sub_iters))
         # print("    Device {} || Forward mean absolute error --> real = {}, imag = {}".format(dev, np.nanmean(np.abs(np.real(flm_est - flm_true))),np.nanmean(np.abs(np.imag(flm_est - flm_true)))))
 
-
-        start = timer()
-        # f_est = ssht_inverse_precompute(flm_est, L=L, device=dev)
         if dev == "cpu":
-            f_est = __inverse_ssht_transform_cpu(flm_est, legendre_kernel_inverse, L)
+            start = timer()
+            for i in range(sub_iters):
+                f_est = __inverse_ssht_transform_cpu(flm_est, legendre_kernel_inverse, L)
+            end = timer()
         elif dev == "gpu":
-            f_est = __inverse_ssht_transform_gpu(flm_est, legendre_kernel_inverse, L)
-        end = timer()
+            inverse_jit = jit(__inverse_ssht_transform_gpu)
+            start = timer()
+            for i in range(sub_iters):
+                f_est = inverse_jit(flm_est, legendre_kernel_inverse, L).block_until_ready()
+                # f_est = __inverse_ssht_transform_gpu(flm_est, legendre_kernel_inverse, L)
+            end = timer()
 
-        print("    Device {} || Inverse transform time: {}".format(dev, end-start))
+        print("    Device {} || Inverse transform time: {}".format(dev, (end-start)/sub_iters))
         print("    Device {} || Inverse mean absolute error --> real = {}, imag = {}\n".format(dev, np.nanmean(np.abs(np.real(f_est - f))),np.nanmean(np.abs(np.imag(f_est - f)))))
