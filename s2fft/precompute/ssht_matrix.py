@@ -145,7 +145,7 @@ if __name__ == "__main__":
     sub_iters = 1
     for dev in devices:
 
-        print("\nBenchmarking for device {}".format(dev))
+        lg.info_log("\nBenchmarking for device {}".format(dev))
 
         if dev == "cpu":
             start = timer()
@@ -166,8 +166,8 @@ if __name__ == "__main__":
             flm_est = np.ravel(np.array(flm_est_jax))
             flm_est = flm_est[np.nonzero(flm_est)]
 
-        print("    Device {} || Forward transform time: {}".format(dev, (end-start)/sub_iters))
-        print("    Device {} || Forward mean absolute error --> real = {}, imag = {}".format(dev, np.nanmean(np.abs(np.real(flm_est - flm_true))),np.nanmean(np.abs(np.imag(flm_est - flm_true)))))
+        lg.info_log("    Device {} || Forward transform time: {}".format(dev, (end-start)/sub_iters))
+        lg.info_log("    Device {} || Forward mean absolute error: {}".format(dev, np.nanmean(np.abs(flm_est - flm_true))))
     
         if dev == "cpu":
             start = timer()
@@ -185,5 +185,5 @@ if __name__ == "__main__":
                 f_est_jax = inverse_jit(flm_est_jax, legendre_kernel_inverse_jax, L)
             end = timer()
 
-        print("    Device {} || Inverse transform time: {}".format(dev, (end-start)/sub_iters))
-        print("    Device {} || Inverse mean absolute error --> real = {}, imag = {}\n".format(dev, np.nanmean(np.abs(np.real(f_est - f))),np.nanmean(np.abs(np.imag(f_est - f)))))
+        lg.info_log("    Device {} || Inverse transform time: {}".format(dev, (end-start)/sub_iters))
+        lg.info_log("    Device {} || Inverse mean absolute error: {}\n".format(dev, np.nanmean(np.abs(f_est - f))))
