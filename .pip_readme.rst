@@ -2,7 +2,7 @@
     :target: https://github.com/astro-informatics/s2fft
 .. image:: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml
-.. image:: https://github.com/astro-informatics/s2fft/actions/workflows/docs.yml/badge.svg?branch=main
+.. image:: https://readthedocs.org/projects/ansicolortags/badge/?version=latest
     :target: https://astro-informatics.github.io/s2fft
 .. image:: https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE
     :target: https://codecov.io/gh/astro-informatics/s2fft
