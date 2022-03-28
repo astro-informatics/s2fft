@@ -17,3 +17,4 @@ docs/assets/static_notebooks/.temp.*
 dist/
 s2fft.egg-info/
 resources/
+.matrices/

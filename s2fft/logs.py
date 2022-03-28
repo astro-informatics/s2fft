@@ -70,7 +70,7 @@ def debug_log(message):
         message: Message to log.
 
     """
-    logger = logging.getLogger("ProjectName")
+    logger = logging.getLogger("s2fft")
     logger.debug(message)
 
 
@@ -83,7 +83,7 @@ def warning_log(message):
         message: Warning to log.
 
     """
-    logger = logging.getLogger("ProjectName")
+    logger = logging.getLogger("s2fft")
     logger.warning(message)
 
 
@@ -95,7 +95,7 @@ def critical_log(message):
         message: Message to log.
 
     """
-    logger = logging.getLogger("ProjectName")
+    logger = logging.getLogger("s2fft")
     logger.critical(message)
 
 
@@ -108,5 +108,5 @@ def info_log(message):
         message: Message to log.
 
     """
-    logger = logging.getLogger("ProjectName")
+    logger = logging.getLogger("s2fft")
     logger.info(message)
