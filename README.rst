@@ -21,6 +21,20 @@
 This is a very loose framework for people to start python projects from. To get up and running, go through the code carefully replacing ``Project-name`` with your 
 desired project name (check all documents!), don't forget to change the directory s2fft as well! You will also need to update the links in all badges!
 
+Interface
+=========
+
+Temporary notes on interface to be updated.
+
+flm = forward_transform(f, L, sampling, reality, implementation)
+f = inverse_transform(flm, sampling, reality, implementation, nside=None)
+
+sampling = {"mw", "mwss", "healpix"}; default = mw
+reality = {"real", "complex"}; default = complex
+implementation = {"loopy", "vectorized", "jax"}; default = jax
+nside default = None
+
+
 
 Auto-formatting code
 ====================
