@@ -4,4 +4,4 @@ colorlog
 pyyaml
 pyssht
 pytest
-"jax[cpu]"
+jax[cpu]
