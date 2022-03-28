@@ -73,3 +73,21 @@ def test_trapani_checks():
     # Check throws exception if don't init
 
     return
+
+
+def test_risbo_with_ssht():
+    """Test Risbo computation against ssht"""
+
+    # Test all dl(pi/2) terms up to L.
+    L = 10
+
+    # Compute using SSHT.
+    beta = np.pi / 2.0
+    dl_array = ssht.generate_dl(beta, L)
+
+    # Compare to routines in SSHT, which have been validated extensively.
+    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    # dl = wigner.trapani.init(dl, L)
+    for el in range(0, L):
+        dl = wigner.risbo.compute_full(dl, beta, L, el)
+        np.testing.assert_allclose(dl_array[el, :, :], dl, atol=1e-15)
