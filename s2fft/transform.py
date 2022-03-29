@@ -51,12 +51,15 @@ def forward_direct(
 
     # TODO: Check f shape consistent with L
 
+    if sampling.lower() != "dh":
+
+        raise ValueError(
+            f"Sampling scheme sampling={sampling} not implement (only DH supported at present)"
+        )
+
     ncoeff = samples.ncoeff(L)
 
-    flm = np.zeros((ncoeff, 1), dtype=np.complex128)
-
-    ntheta = samples.ntheta(L, sampling)
-    nphi = samples.nphi_equiang(L, sampling)
+    flm = np.zeros(ncoeff, dtype=np.complex128)
 
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
@@ -65,7 +68,7 @@ def forward_direct(
 
     for t, theta in enumerate(thetas):
 
-        weight = samples.weight_dh(theta, L)
+        weight = samples.weight_dh(theta, L) * 2 * np.pi / (2 * L - 1)
 
         for el in range(0, L):
 
