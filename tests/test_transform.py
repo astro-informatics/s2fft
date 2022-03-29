@@ -6,7 +6,7 @@ import pyssht as ssht
 
 @pytest.mark.parametrize("L", [15, 16])
 @pytest.mark.parametrize("spin", [0, 2])
-@pytest.mark.parametrize("sampling", ["mw", "mwss"])
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
 def test_transform_inverse_direct(L: int, spin: int, sampling: str):
 
     ncoeff = s2f.sampling.ncoeff(L)
