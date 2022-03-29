@@ -8,7 +8,7 @@ lg.setup_logging()
 
 
 def construct_ssht_legendre_matrix(
-    L=4, sampling_method="MW", save_dir="../../.matrices"
+    L=4, sampling_method="MW", save_dir="../../.matrices", spin=0
 ):
     """Constructs associated Legendre matrix for precompute method
 
@@ -17,6 +17,7 @@ def construct_ssht_legendre_matrix(
         L (int): Angular bandlimit
         sampling_method (str): Sampling method to consider
         save_dir (str): Directory in which to save precomputed matrices
+        spin (int): Spin of the transform to consider
 
     Returns:
 
@@ -28,7 +29,7 @@ def construct_ssht_legendre_matrix(
     input_shape = ssht.sample_shape(L, Method=sampling_method)
 
     lg.info_log(
-        "Ssht sampling {} selected with angular bandlimit {}".format(sampling_method, L)
+        "Ssht sampling {} selected with angular bandlimit {} and spin {}".format(sampling_method, L, spin)
     )
 
     Legendre = np.zeros((L * L, input_shape[0]), dtype=np.complex128)
@@ -42,7 +43,7 @@ def construct_ssht_legendre_matrix(
         in_matrix[i, 0] = 1.0
         # Compute eigenvector and Reshape into a C major 1D column vector of length input_length
         Legendre[:, i] = ssht.forward(
-            f=in_matrix, L=L, Method=sampling_method, Reality=Reality, Spin=0
+            f=in_matrix, L=L, Method=sampling_method, Reality=Reality, Spin=spin
         ).flatten("C")
 
         lg.debug_log("Ending computing for theta index = {}".format(i))
@@ -63,11 +64,11 @@ def construct_ssht_legendre_matrix(
         if not os.path.isdir("{}/".format(save_dir)):
             os.mkdir(save_dir)
         save_dir = save_dir + "/"
-        filename = "{}ssht_legendre_matrix_{}_{}_spin_0".format(
-            save_dir, L, sampling_method
+        filename = "{}ssht_legendre_matrix_{}_{}_spin_{}".format(
+            save_dir, L, sampling_method, spin
         )
     else:
-        filename = "ssht_legendre_matrix_{}_{}_spin_0".format(L, sampling_method)
+        filename = "ssht_legendre_matrix_{}_{}_spin_{}".format(L, sampling_method, spin)
 
     lg.debug_log("Saving matrix binary to {}".format(filename))
 
@@ -76,7 +77,7 @@ def construct_ssht_legendre_matrix(
 
 
 def construct_ssht_legendre_matrix_inverse(
-    L=4, sampling_method="MW", save_dir="../../.matrices"
+    L=4, sampling_method="MW", save_dir="../../.matrices", spin=0
 ):
     """Constructs associated Legendre inverse matrix for precompute method
 
@@ -85,6 +86,7 @@ def construct_ssht_legendre_matrix_inverse(
         L (int): Angular bandlimit
         sampling_method (str): Sampling method to consider
         save_dir (str): Directory in which to save precomputed matrices
+        spin (int): Spin of the transform to consider
 
     Returns:
 
@@ -98,7 +100,7 @@ def construct_ssht_legendre_matrix_inverse(
     input_shape = ssht.sample_shape(L, Method=sampling_method)
 
     lg.info_log(
-        "Ssht sampling {} selected with angular bandlimit {}".format(sampling_method, L)
+        "Ssht sampling {} selected with angular bandlimit {} and spin {}".format(sampling_method, L, spin)
     )
 
     Legendre_inverse = np.zeros((L * L, input_shape[0]), dtype=np.complex128)
@@ -113,7 +115,7 @@ def construct_ssht_legendre_matrix_inverse(
             alm[:] = 0.0
             alm[ind] = 1.0
             Legendre_inverse[ind, :] = ssht.inverse(
-                flm=alm, L=L, Method=sampling_method, Reality=Reality, Spin=0
+                flm=alm, L=L, Method=sampling_method, Reality=Reality, Spin=spin
             )[:, 0]
 
         lg.debug_log("Ending computing for l = {}".format(l))
@@ -134,12 +136,12 @@ def construct_ssht_legendre_matrix_inverse(
         if not os.path.isdir("{}/".format(save_dir)):
             os.mkdir(save_dir)
         save_dir = save_dir + "/"
-        filename = "{}ssht_legendre_inverse_matrix_{}_{}_spin_0".format(
-            save_dir, L, sampling_method
+        filename = "{}ssht_legendre_inverse_matrix_{}_{}_spin_{}".format(
+            save_dir, L, sampling_method, spin
         )
     else:
-        filename = "ssht_legendre_inverse_matrix_{}_{}_spin_0".format(
-            L, sampling_method
+        filename = "ssht_legendre_inverse_matrix_{}_{}_spin_{}".format(
+            L, sampling_method, spin
         )
 
     lg.debug_log("Saving matrix binary to {}".format(filename))
@@ -173,7 +175,7 @@ def compile_warnings(L):
 
 
 def load_legendre_matrix(
-    L=4, sampling_method="MW", save_dir="../../.matrices", direction="forward"
+    L=4, sampling_method="MW", save_dir="../../.matrices", direction="forward", spin=0
 ):
     """Constructs associated Legendre inverse matrix for precompute method
 
@@ -183,6 +185,7 @@ def load_legendre_matrix(
         sampling_method (str): Sampling method to consider
         save_dir (str): Directory from which to load precomputed matrices
         direction (str): Whether to load the forward or inverse matrices
+        spin (int): Spin of the transform to consider
 
     Returns:
 
@@ -193,8 +196,8 @@ def load_legendre_matrix(
     if direction == "inverse":
         dir_string += "_inverse"
 
-    filepath = "{}/ssht_legendre{}_matrix_{}_{}_spin_0.npy".format(
-        save_dir, dir_string, L, sampling_method
+    filepath = "{}/ssht_legendre{}_matrix_{}_{}_spin_{}.npy".format(
+        save_dir, dir_string, L, sampling_method, spin
     )
 
     if not os.path.isfile(filepath):
@@ -203,11 +206,13 @@ def load_legendre_matrix(
                 L=L,
                 sampling_method=sampling_method,
                 save_dir=save_dir,
+                spin=spin,
             )
         elif direction == "inverse":
             construct_ssht_legendre_matrix_inverse(
                 L=L,
                 sampling_method=sampling_method,
                 save_dir=save_dir,
+                spin=spin,
             )
     return np.load(filepath)

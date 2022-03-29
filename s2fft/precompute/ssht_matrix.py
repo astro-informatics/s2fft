@@ -16,7 +16,7 @@ import s2fft.logs as lg
 lg.setup_logging()
 
 
-def ssht_forward_precompute(f, L=4, legendre_kernel=None, device="cpu"):
+def ssht_forward_precompute(f, L=4, legendre_kernel=None, device="cpu", spin=0):
     """Computes the forward spherical harmonic transform via precompute
 
     Args:
@@ -25,6 +25,7 @@ def ssht_forward_precompute(f, L=4, legendre_kernel=None, device="cpu"):
         L (int): Angular bandlimit
         legendre_kernel (np.ndarray): Legendre transform kernel
         device (str): Evaluate on "cpu" or "gpu"
+        spin (int): Spin of the transform to consider
 
     Returns:
 
@@ -32,7 +33,7 @@ def ssht_forward_precompute(f, L=4, legendre_kernel=None, device="cpu"):
         coefficients indexed by [-L < n < L].
     """
     if legendre_kernel is None:
-        kernel = load_legendre_matrix(L=L, direction="forward")
+        kernel = load_legendre_matrix(L=L, direction="forward", spin=spin)
     else:
         kernel = legendre_kernel
 
@@ -86,7 +87,7 @@ def forward_ssht_transform_gpu(f, legendre_kernel, L):
     return jnp.ravel(jnp.fft.fftshift(flm, axes=1))
 
 
-def ssht_inverse_precompute(flm, L=4, legendre_kernel=None, device="cpu"):
+def ssht_inverse_precompute(flm, L=4, legendre_kernel=None, device="cpu", spin=0):
     """Computes the inverse spherical harmonic transform via precompute
 
     Args:
@@ -95,13 +96,14 @@ def ssht_inverse_precompute(flm, L=4, legendre_kernel=None, device="cpu"):
         L (int): Angular bandlimit
         legendre_kernel (np.ndarray): Legendre transform kernel
         device (str): Evaluate on "cpu" or "gpu"
+        spin (int): Spin of the transform to consider
 
     Returns:
 
         Pixel-space coefficients with shape [L, 2*L-1].
     """
     if legendre_kernel is None:
-        kernel = load_legendre_matrix(L=L, direction="inverse")
+        kernel = load_legendre_matrix(L=L, direction="inverse", spin=spin)
     else:
         kernel = legendre_kernel
 
