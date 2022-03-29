@@ -62,3 +62,40 @@ def test_sampling_exception():
 
     with pytest.raises(ValueError) as e:
         s2f.sampling.phis_equiang(L, sampling="healpix")
+
+
+@pytest.mark.parametrize("L", [5, 6])
+@pytest.mark.parametrize("sampling", ["mw", "dh"])
+def test_sampling_mw_weights(L: int, sampling: str):
+
+    # TODO: move this and potentially do better
+    np.random.seed(2)
+
+    spin = 0
+
+    q = s2f.sampling.quad_weights(L, sampling)
+
+    # Create bandlimited signal
+    ncoeff = s2f.sampling.ncoeff(L)
+    flm = np.zeros(ncoeff, dtype=np.complex128)
+    flm = np.random.rand(ncoeff) + 1j * np.random.rand(ncoeff)
+
+    f = s2f.transform.inverse_direct(flm, L, spin, sampling)
+
+    integral = flm[0] * np.sqrt(4 * np.pi)
+    q = np.reshape(q, (-1, 1))
+
+    nphi = s2f.sampling.nphi_equiang(L, sampling)
+    Q = q.dot(np.ones((1, nphi)))
+
+    integral_check = np.sum(Q * f)
+
+    print(f"q = {q}")
+    print(f"Q = {Q}")
+    print(f"q.shape = {q.shape}")
+    print(f"Q.shape = {Q.shape}")
+
+    print(f"integral = {integral}")
+    print(f"integral_check = {integral_check}")
+
+    np.testing.assert_allclose(integral, integral_check, atol=1e-14)

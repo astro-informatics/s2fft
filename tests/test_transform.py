@@ -4,7 +4,7 @@ import s2fft as s2f
 import pyssht as ssht
 
 
-@pytest.mark.skip(reason="Temporarily skipped for faster development")
+# @pytest.mark.skip(reason="Temporarily skipped for faster development")
 @pytest.mark.parametrize("L", [15, 16])
 @pytest.mark.parametrize("spin", [0, 2])
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
@@ -21,7 +21,7 @@ def test_transform_inverse_direct(L: int, spin: int, sampling: str):
     np.testing.assert_allclose(f, f_check, atol=1e-14)
 
 
-@pytest.mark.skip(reason="Temporarily skipped for faster development")
+# @pytest.mark.skip(reason="Temporarily skipped for faster development")
 @pytest.mark.parametrize("L", [15])
 @pytest.mark.parametrize("spin", [0])
 @pytest.mark.parametrize("sampling", ["mw"])
@@ -38,7 +38,7 @@ def test_transform_inverse_sov(L: int, spin: int, sampling: str):
     np.testing.assert_allclose(f, f_check, atol=1e-14)
 
 
-@pytest.mark.skip(reason="Temporarily skipped for faster development")
+# @pytest.mark.skip(reason="Temporarily skipped for faster development")
 @pytest.mark.parametrize("L", [15])
 @pytest.mark.parametrize("spin", [0])
 @pytest.mark.parametrize("sampling", ["mw"])
@@ -55,7 +55,7 @@ def test_transform_inverse_sov_fft(L: int, spin: int, sampling: str):
     np.testing.assert_allclose(f, f_check, atol=1e-14)
 
 
-@pytest.mark.skip(reason="Temporarily skipped for faster development")
+# @pytest.mark.skip(reason="Temporarily skipped for faster development")
 @pytest.mark.parametrize("L", [15, 16])
 @pytest.mark.parametrize("spin", [0, 2])
 @pytest.mark.parametrize("sampling", ["dh"])

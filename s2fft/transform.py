@@ -155,7 +155,7 @@ def forward_direct(
 
     for t, theta in enumerate(thetas):
 
-        weight = samples.weight_dh(theta, L) * 2 * np.pi / (2 * L - 1)
+        weight = samples.quad_weight_dh_theta_only(theta, L) * 2 * np.pi / (2 * L - 1)
 
         for el in range(0, L):
 
@@ -216,7 +216,7 @@ def forward_sov(
 
     for t, theta in enumerate(thetas):
 
-        weight = samples.weight_dh(theta, L) * 2 * np.pi / (2 * L - 1)
+        weight = samples.quad_weight_dh_theta_only(theta, L) * 2 * np.pi / (2 * L - 1)
 
         for el in range(0, L):
 
@@ -264,20 +264,13 @@ def forward_sov_fft(
 
     ntheta = samples.ntheta(L, sampling)
     fmt = np.zeros((2 * L - 1, ntheta), dtype=np.complex128)
-    # for t, theta in enumerate(thetas):
-
-    #     for m in range(-(L - 1), L):
-
-    #         for p, phi in enumerate(phis_equiang):
-
-    #             fmt[m + L - 1, t] += np.exp(-1j * m * phi) * f[t, p]
 
     fmt = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
     fmt = np.transpose(fmt)
 
     for t, theta in enumerate(thetas):
 
-        weight = samples.weight_dh(theta, L) * 2 * np.pi / (2 * L - 1)
+        weight = samples.quad_weight_dh_theta_only(theta, L) * 2 * np.pi / (2 * L - 1)
 
         for el in range(0, L):
 
