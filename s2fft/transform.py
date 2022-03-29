@@ -111,6 +111,7 @@ def inverse_sov_fft(
 
         for el in range(0, L):
 
+            # TODO: only need quarter of dl plane here and elsewhere
             dl = wigner.risbo.compute_full(dl, theta, L, el)
 
             if el >= np.abs(spin):
