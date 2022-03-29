@@ -11,7 +11,7 @@
 .. image:: http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat
     :target: https://arxiv.org/abs/xxxx.xxxxx
 
-<project-name>
+S2FFT: JAX accelerated spin-spherical harmonic transforms
 =================================================================================================================
 
 Add some basic discussion about ``<project-name>`` here.

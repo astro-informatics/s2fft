@@ -1,5 +1,5 @@
 **************************
-s2fft.wigner.trapani
+s2fft.wigner.risbo
 **************************
-.. automodule:: s2fft.wigner.trapani
+.. automodule:: s2fft.wigner.risbo
    :members: 
