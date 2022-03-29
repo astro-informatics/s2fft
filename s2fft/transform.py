@@ -3,7 +3,9 @@ import s2fft.sampling as samples
 import s2fft.wigner as wigner
 
 
-def inverse_direct(flm, L: int, spin: int = 0, sampling: str = "mw"):
+def inverse_direct(
+    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+) -> np.ndarray:
 
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
@@ -39,3 +41,6 @@ def inverse_direct(flm, L: int, spin: int = 0, sampling: str = "mw"):
                         )
 
     return f
+
+
+# def forward_direct()
