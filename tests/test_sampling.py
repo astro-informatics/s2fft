@@ -51,14 +51,3 @@ def test_sampling_ncoeff(L: int):
             n += 1
 
     assert s2f.sampling.ncoeff(L) == pytest.approx(n)
-
-
-def test_sampling_exception():
-
-    L = 10
-
-    with pytest.raises(NotImplementedError) as e:
-        s2f.sampling.thetas(L, sampling="healpix")
-
-    with pytest.raises(ValueError) as e:
-        s2f.sampling.phis_equiang(L, sampling="healpix")
