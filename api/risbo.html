@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; ProjectName 0.0.1 documentation</title>
+  <title>s2fft.wigner.risbo &mdash; ProjectName 0.0.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
@@ -24,8 +24,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Some background information" href="../background/index.html" />
-    <link rel="prev" title="S2FFT: JAX accelerated spin-spherical harmonic transforms" href="../index.html" /> 
+    <link rel="next" title="s2fft.logs" href="logs.html" />
+    <link rel="prev" title="s2fft.wigner.trapani" href="trapani.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,12 +48,8 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#quick-install-pypi">Quick install (PyPi)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#install-from-source-github">Install from source (GitHub)</a></li>
-</ul>
-</li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/install.html">Installation</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Background</span></p>
 <ul>
@@ -64,10 +60,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/example_notebook.html">Notebook Template</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../api/trapani.html">s2fft.wigner.trapani</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/risbo.html">s2fft.wigner.risbo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/logs.html">s2fft.logs</a></li>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="trapani.html">s2fft.wigner.trapani</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">s2fft.wigner.risbo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="logs.html">s2fft.logs</a></li>
 </ul>
 
         </div>
@@ -84,9 +80,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Installation</li>
+      <li>s2fft.wigner.risbo</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/user_guide/install.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/risbo.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -118,54 +114,22 @@
     text-align: unset;
 }
 </style>
-<div class="section" id="installation">
-<span id="install"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h1>
-<p>Link to <a class="reference external" href="https://pypi.org">PyPi</a> and provide link for source install.</p>
-<div class="section" id="quick-install-pypi">
-<h2>Quick install (PyPi)<a class="headerlink" href="#quick-install-pypi" title="Permalink to this headline"></a></h2>
-<p>Install <strong>&lt;Project-name&gt;</strong> from PyPi with a single command</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install &lt;Project-name&gt;
-</pre></div>
-</div>
-<p>Check that the package has installed by running</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip list
-</pre></div>
-</div>
-<p>and locate &lt;Project-name&gt;.</p>
-</div>
-<div class="section" id="install-from-source-github">
-<h2>Install from source (GitHub)<a class="headerlink" href="#install-from-source-github" title="Permalink to this headline"></a></h2>
-<p>When installing from source we recommend working within an existing conda environment, or creating a fresh conda environment to avoid any dependency conflicts,</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n &lt;Project-name&gt;_env <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.8
-conda activate &lt;Project-name&gt;_env
-</pre></div>
-</div>
-<p>Once within a fresh environment <strong>&lt;Project-name&gt;</strong> may be installed by cloning the GitHub repository</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/astro-informatics/&lt;Project-name&gt;
-<span class="nb">cd</span> &lt;Project-name&gt;
-</pre></div>
-</div>
-<p>and running the install script, within the root directory, with one command</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash build_&lt;Project-name&gt;.sh
-</pre></div>
-</div>
-<p>To check the install has worked correctly run the unit tests with</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest --black &lt;Project-name&gt;/tests/
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>For installing from source a conda environment is required by the installation bash script, which is recommended, due to a pandoc dependency.</p>
-</div>
-</div>
+<div class="section" id="module-s2fft.wigner.risbo">
+<span id="s2fft-wigner-risbo"></span><h1>s2fft.wigner.risbo<a class="headerlink" href="#module-s2fft.wigner.risbo" title="Permalink to this headline"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.wigner.risbo.compute_full">
+<span class="sig-prename descclassname"><span class="pre">s2fft.wigner.risbo.</span></span><span class="sig-name descname"><span class="pre">compute_full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.risbo.compute_full" title="Permalink to this definition"></a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
 </div>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../index.html" class="btn btn-neutral float-left" title="S2FFT: JAX accelerated spin-spherical harmonic transforms" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../background/index.html" class="btn btn-neutral float-right" title="Some background information" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="trapani.html" class="btn btn-neutral float-left" title="s2fft.wigner.trapani" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="logs.html" class="btn btn-neutral float-right" title="s2fft.logs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
