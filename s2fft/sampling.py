@@ -110,3 +110,14 @@ def ind2elm(ind):
 def ncoeff(L):
 
     return elm2ind(L - 1, L - 1) + 1
+
+
+def weight_dh(theta: float, L: int) -> float:
+
+    w = 0.0
+    for k in range(0, L):
+        w += np.sin((2 * k + 1) * theta) / (2 * k + 1)
+
+    w *= 2 / L * np.sin(theta)
+
+    return w
