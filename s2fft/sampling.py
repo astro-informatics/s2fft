@@ -61,7 +61,7 @@ def nphi_ring(t: int, nside: int = None) -> int:
         return 4 * (4 * nside - t - 1)
     
     else:
-        raise ValueError(f"Ring{t} not contained by nside={nside}")
+        raise ValueError(f"Ring t={t} not contained by nside={nside}")
 
 def thetas(L: int, sampling: str = "mw", nside: int = None) -> np.ndarray:
 
