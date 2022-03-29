@@ -119,7 +119,8 @@
 Trapani &amp; Navaza recursion.</p>
 <p>The Wigner-d plane is computed by recursion over <span class="math notranslate nohighlight">\(\ell\)</span> (<cite>el</cite>).
 Thus, for <span class="math notranslate nohighlight">\(\ell &gt; 0\)</span> the plane must be computed already for
-<span class="math notranslate nohighlight">\(\ell - 1\)</span>. For <span class="math notranslate nohighlight">\(\ell = 0\)</span> the recusion is initialised.</p>
+<span class="math notranslate nohighlight">\(\ell - 1\)</span>. For <span class="math notranslate nohighlight">\(\ell = 1\)</span> the recusion must already be
+initialised (see <a class="reference internal" href="#s2fft.wigner.trapani.init" title="s2fft.wigner.trapani.init"><code class="xref py py-func docutils literal notranslate"><span class="pre">init()</span></code></a>).</p>
 <p>The Wigner-d plane <span class="math notranslate nohighlight">\(d^\ell_{mm^\prime}(\pi/2)\)</span> (<cite>el</cite>) is indexed for
 <span class="math notranslate nohighlight">\(-L &lt; m, m^\prime &lt; L\)</span> by <cite>dl[m + L - 1, m’ + L - 1]</cite> but is only
 computed for the eighth of the plane
@@ -133,16 +134,15 @@ required (see <a class="reference internal" href="#s2fft.wigner.trapani.fill_eig
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>dl</strong> – Wigner-d plane for <span class="math notranslate nohighlight">\(\ell - 1\)</span> at math:<cite>pi/2</cite>.  If</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dl</strong> – Wigner-d plane for <span class="math notranslate nohighlight">\(\ell - 1\)</span> at <span class="math notranslate nohighlight">\(\pi/2\)</span>.  If <span class="math notranslate nohighlight">\(\ell = 0\)</span>
+the recursion is initialised internally and the <cite>dl</cite> argument is ignored.</p></li>
+<li><p><strong>L</strong> – Harmonic band-limit.</p></li>
+<li><p><strong>el</strong> – Spherical harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+</ul>
 </dd>
-</dl>
-<p>:param <span class="math notranslate nohighlight">\(\ell = 0\)</span> the recursion is initialised internally and the <cite>dl</cite>:
-:param argument is ignored.:
-:param L: Harmonic band-limit.
-:param ell: Spherical harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Plane of Wigner-d for <cite>el</cite>, with eighth of plane computed.</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Plane of Wigner-d for <cite>el</cite>, with eighth of plane computed.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -150,7 +150,7 @@ required (see <a class="reference internal" href="#s2fft.wigner.trapani.fill_eig
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.wigner.trapani.compute_full">
 <span class="sig-prename descclassname"><span class="pre">s2fft.wigner.trapani.</span></span><span class="sig-name descname"><span class="pre">compute_full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.trapani.compute_full" title="Permalink to this definition"></a></dt>
-<dd><p>Compute Wigner-d at argument math:<cite>pi/2</cite> for full plane using
+<dd><p>Compute Wigner-d at argument <span class="math notranslate nohighlight">\(\pi/2\)</span> for full plane using
 Trapani &amp; Navaza recursion.</p>
 <p>The Wigner-d plane is computed by recursion over <span class="math notranslate nohighlight">\(\ell\)</span> (<cite>el</cite>).
 Thus, for <span class="math notranslate nohighlight">\(\ell &gt; 0\)</span> the plane must be computed already for
@@ -170,13 +170,13 @@ Symmetry relations are then used to fill in the remainder of the plane
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>dl</strong> – Wigner-d plane for <span class="math notranslate nohighlight">\(\ell - 1\)</span> at math:<cite>pi/2</cite>.  If</p>
+<dd class="field-odd"><p><strong>dl</strong> – Wigner-d plane for <span class="math notranslate nohighlight">\(\ell - 1\)</span> at <span class="math notranslate nohighlight">\(\pi/2\)</span>.  If</p>
 </dd>
 </dl>
 <p>:param <span class="math notranslate nohighlight">\(\ell = 0\)</span> the recursion is initialised internally and the <cite>dl</cite>:
 :param argument is ignored.:
 :param L: Harmonic band-limit.
-:param ell: Spherical harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p>
+:param el: Spherical harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>Plane of Wigner-d for <cite>el</cite>, with eighth of plane computed.</p>
@@ -219,9 +219,9 @@ returned plane is computed by symmetry for <span class="math notranslate nohighl
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dl</strong> – Eighth of Wigner-d plane for <span class="math notranslate nohighlight">\(\ell\)</span> at math:<cite>pi/2</cite>.</p></li>
+<li><p><strong>dl</strong> – Eighth of Wigner-d plane for <span class="math notranslate nohighlight">\(\ell\)</span> at <span class="math notranslate nohighlight">\(\pi/2\)</span>.</p></li>
 <li><p><strong>L</strong> – Harmonic band-limit.</p></li>
-<li><p><strong>ell</strong> – Spherical harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>el</strong> – Spherical harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -241,9 +241,9 @@ returned plane is computed by symmetry for
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dl</strong> – Quarter of Wigner-d plane for <span class="math notranslate nohighlight">\(\ell\)</span> at math:<cite>pi/2</cite>.</p></li>
+<li><p><strong>dl</strong> – Quarter of Wigner-d plane for <span class="math notranslate nohighlight">\(\ell\)</span> at <span class="math notranslate nohighlight">\(\pi/2\)</span>.</p></li>
 <li><p><strong>L</strong> – Harmonic band-limit.</p></li>
-<li><p><strong>ell</strong> – Spherical harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>el</strong> – Spherical harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -275,9 +275,9 @@ returned plane is computed by symmetry for
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dl</strong> – Quarter of Wigner-d plane for <span class="math notranslate nohighlight">\(\ell\)</span> at math:<cite>pi/2</cite>.</p></li>
+<li><p><strong>dl</strong> – Quarter of Wigner-d plane for <span class="math notranslate nohighlight">\(\ell\)</span> at <span class="math notranslate nohighlight">\(\pi/2\)</span>.</p></li>
 <li><p><strong>L</strong> – Harmonic band-limit.</p></li>
-<li><p><strong>ell</strong> – Spherical harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>el</strong> – Spherical harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -301,7 +301,7 @@ returned plane is computed by symmetry for
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.wigner.trapani.init">
 <span class="sig-prename descclassname"><span class="pre">s2fft.wigner.trapani.</span></span><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.trapani.init" title="Permalink to this definition"></a></dt>
-<dd><p>Initialise Wigner-d at argument math:<cite>pi/2</cite> for <span class="math notranslate nohighlight">\(\ell=0\)</span> for
+<dd><p>Initialise Wigner-d at argument <span class="math notranslate nohighlight">\(\pi/2\)</span> for <span class="math notranslate nohighlight">\(\ell=0\)</span> for
 Trapani &amp; Navaza recursion.</p>
 </dd></dl>
 
