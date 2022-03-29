@@ -11,6 +11,10 @@ def ntheta(L: int, sampling: str = "mw") -> int:
 
         return L + 1
 
+    elif sampling.lower() == "dh":
+
+        return 2 * L
+
     elif sampling.lower() == "healpix":
 
         raise NotImplementedError(f"Sampling scheme sampling={sampling} not implement")
@@ -29,6 +33,10 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
     elif sampling.lower() == "mwss":
 
         return 2 * L
+
+    elif sampling.lower() == "dh":
+
+        return 2 * L - 1
 
     elif sampling.lower() == "healpix":
 
@@ -58,6 +66,10 @@ def t2theta(L: int, t: int, sampling: str = "mw") -> np.ndarray:
 
         return 2 * t * np.pi / (2 * L)
 
+    elif sampling.lower() == "dh":
+
+        return (2 * t + 1) * np.pi / (4 * L)
+
     elif sampling.lower() == "healpix":
 
         raise NotImplementedError(f"Sampling scheme sampling={sampling} not implement")
@@ -83,6 +95,10 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
     elif sampling.lower() == "mwss":
 
         return 2 * p * np.pi / (2 * L)
+
+    elif sampling.lower() == "dh":
+
+        return 2 * p * np.pi / (2 * L - 1)
 
     elif sampling.lower() == "healpix":
 

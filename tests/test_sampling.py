@@ -5,7 +5,7 @@ import pyssht as ssht
 
 
 @pytest.mark.parametrize("L", [15, 16])
-@pytest.mark.parametrize("sampling", ["mw", "mwss"])
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
 def test_sampling_n_and_angles(L: int, sampling: str):
 
     # Test ntheta and nphi
