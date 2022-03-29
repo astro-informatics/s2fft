@@ -1,7 +1,8 @@
+from multiprocessing.sharedctypes import Value
 import numpy as np
+import healpy as hp 
 
-
-def ntheta(L: int, sampling: str = "mw") -> int:
+def ntheta(L: int, sampling: str = "mw", nside: int = 0) -> int:
 
     if sampling.lower() == "mw":
 
@@ -17,7 +18,9 @@ def ntheta(L: int, sampling: str = "mw") -> int:
 
     elif sampling.lower() == "healpix":
 
-        raise NotImplementedError(f"Sampling scheme sampling={sampling} not implement")
+        if nside == 0:
+            raise ValueError(f"Sampling scheme sampling={sampling} with nside={nside} not supported")
+        return 4 * nside - 1
 
     else:
 
@@ -48,15 +51,28 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
 
     return 1
 
+def nphi_ring(t: int, nside: int) -> int:
 
-def thetas(L: int, sampling: str = "mw") -> np.ndarray:
+    if (t >= 0) and (t < nside-1):
+        return 4 * (t+1) 
+    
+    elif (t > 3*nside-1) and (t <= 4*nside - 2):
+        return 4 * (4 * nside - t+1)
+    
+    elif (t >= nside-1) and (t <= 3*nside-1):
+        return 4 * nside 
+    
+    else:
+        raise ValueError(f"Ring{t} not contained by nside={nside}")
+
+def thetas(L: int, sampling: str = "mw", nside: int = 0) -> np.ndarray:
 
     t = np.arange(0, ntheta(L, sampling))
 
-    return t2theta(L, t, sampling)
+    return t2theta(L, t, sampling, nside)
 
 
-def t2theta(L: int, t: int, sampling: str = "mw") -> np.ndarray:
+def t2theta(L: int, t: int, sampling: str = "mw", nside: int = 0) -> np.ndarray:
 
     if sampling.lower() == "mw":
 
@@ -72,12 +88,34 @@ def t2theta(L: int, t: int, sampling: str = "mw") -> np.ndarray:
 
     elif sampling.lower() == "healpix":
 
-        raise NotImplementedError(f"Sampling scheme sampling={sampling} not implement")
+        if nside == 0:
+            raise ValueError(f"Sampling scheme sampling={sampling} with nside={nside} not supported")
+
+        thetas = np.zeros_like(t)
+        thetas[t < nside-1] = 1 - (t[t < nside-1] +1)**2/(3*nside**2)
+        thetas[(t >= nside-1) & (t <= 3*nside-1)] =  4/3 - 2*(t[(t >= nside-1) & (t <= 3*nside-1)] +1)/(3*nside)
+        thetas[(t > 3*nside-1) & (t <= 4*nside - 2)] = (4 * nside - 1 - t[(t > 3*nside-1) & (t <= 4*nside - 2)])**2/(3*nside**2) - 1
+        return np.arccos(thetas)
 
     else:
 
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
+def phis_ring(t: int, nside: int) -> np.ndarray:
+
+    p = np.arange(0, nphi_ring(t, nside))
+
+    return p2phi_ring(t, p, nside)
+
+def p2phi_ring(t: int, p: int, nside: int) -> np.ndarray:
+
+    shift = 1/2
+    factor = np.pi/(2*(t+1))
+    if (t >= nside-1) & (t <= 3*nside-1):
+        shift *= (t-nside+2)%2
+        factor *= (t+1)/nside
+
+    return factor*(p - shift)
 
 def phis_equiang(L: int, sampling: str = "mw") -> np.ndarray:
 
