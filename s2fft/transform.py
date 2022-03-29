@@ -125,33 +125,7 @@ def inverse_sov_fft(
                         (-1) ** spin * elfactor * dl[m + L - 1, -spin + L - 1] * flm[i]
                     )
 
-    fmt_shift = np.zeros((2 * L - 1, ntheta), dtype=np.complex128)
-    for t, theta in enumerate(thetas):
-
-        fmt_shift[0:L, t] = fmt[0 + L - 1 : L + L - 1, t]
-        fmt_shift[L : 2 * L - 1, t] = fmt[-(L - 1) + L - 1 : 0 + L - 1, t]
-
-        # f[t, :] = fft.ifft(fmt_shift[:, t], norm="forward")  # * 2 * np.pi / (2 * L - 1)
-
-        # for p, phi in enumerate(phis_equiang):
-
-        #     for m in range(-(L - 1), L):
-        #         mp = m + L - 1
-
-        #         # f[t, p] += fmt[m + L - 1, t] * np.exp(1j * m * phi)
-        #         # f[t, p] += fmt_shift[m, t] * np.exp(1j * (mp - L + 1) * phi)
-        #         # f[t, p] += (
-        #         #     fmt_shift[m, t]
-        #         #     * np.exp(1j * mp * phi)
-        #         #     * np.exp(-1j * (L - 1) * phi)
-        #         # )
-        #         # f[t, p] += (
-        #         #     fmt[mp, t] * np.exp(1j * mp * phi) * np.exp(-1j * (L - 1) * phi)
-        #         # )
-        #         f[t, p] += fmt_shift[mp, t] * np.exp(1j * mp * phi)
-
-    # f = fft.ifft(fft.ifftshift(fmt, axes=0), axis=0, norm="forward")
-    f = fft.ifft(fmt_shift, axis=0, norm="forward")
+    f = fft.ifft(fft.ifftshift(fmt, axes=0), axis=0, norm="forward")
     f = np.transpose(f)
 
     return f
