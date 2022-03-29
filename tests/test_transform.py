@@ -103,6 +103,6 @@ def test_transform_forward_sov(L: int, spin: int, sampling: str):
 
     f = s2f.transform.inverse_direct(flm, L, spin, sampling)
 
-    flm_recov = s2f.transform.forward_sov(f, L, spin, sampling)
+    flm_recov = s2f.transform.forward_sov_fft(f, L, spin, sampling)
 
     np.testing.assert_allclose(flm, flm_recov, atol=1e-14)
