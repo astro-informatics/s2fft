@@ -7,6 +7,8 @@ def inverse_direct(
     flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
 ) -> np.ndarray:
 
+    # TODO: Check flm shape consistent with L
+
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
     f = np.zeros((ntheta, nphi), dtype=np.complex128)
@@ -43,4 +45,49 @@ def inverse_direct(
     return f
 
 
-# def forward_direct()
+def forward_direct(
+    f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+) -> np.ndarray:
+
+    # TODO: Check f shape consistent with L
+
+    ncoeff = samples.ncoeff(L)
+
+    flm = np.zeros((ncoeff, 1), dtype=np.complex128)
+
+    ntheta = samples.ntheta(L, sampling)
+    nphi = samples.nphi_equiang(L, sampling)
+
+    thetas = samples.thetas(L, sampling)
+    phis_equiang = samples.phis_equiang(L, sampling)
+
+    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+
+    for t, theta in enumerate(thetas):
+
+        weight = samples.weight_dh(theta, L)
+
+        for el in range(0, L):
+
+            dl = wigner.risbo.compute_full(dl, theta, L, el)
+
+            if el >= np.abs(spin):
+
+                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+
+                for m in range(-el, el + 1):
+
+                    i = samples.elm2ind(el, m)
+
+                    for p, phi in enumerate(phis_equiang):
+
+                        flm[i] += (
+                            weight
+                            * (-1) ** spin
+                            * elfactor
+                            * np.exp(-1j * m * phi)
+                            * dl[m + L - 1, -spin + L - 1]
+                            * f[t, p]
+                        )
+
+    return flm
