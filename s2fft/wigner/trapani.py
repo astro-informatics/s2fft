@@ -5,7 +5,30 @@ from functools import partial
 import logs
 
 
-def init(dl: np.ndarray, L: int) -> np.ndarray:
+def init(dl: np.ndarray, L: int, implementation: str) -> np.ndarray:
+
+    if implementation.lower() == "loopy":
+
+        return init_loopy(dl, L)
+
+    elif implementation.lower() == "vectorized":
+
+        return init_loopy(dl, L)
+
+    elif implementation.lower() == "jax":
+
+        return init_jax(dl, L)
+
+    else:
+
+        raise NotImplementedError(
+            f"Implementation method implementation={sampling} not implemented"
+        )
+
+    return dl
+
+
+def init_loopy(dl: np.ndarray, L: int) -> np.ndarray:
     """Initialise Wigner-d at argument :math:`\pi/2` for :math:`\ell=0` for
     Trapani & Navaza recursion.
     """
@@ -374,7 +397,28 @@ def fill_half2full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
     return dl
 
 
-def compute_full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+def compute_full(dl: np.ndarray, L: int, el: int, implementation: str) -> np.ndarray:
+
+    if implementation.lower() == "loopy":
+
+        return compute_full_loopy(dl, L, el)
+
+    elif implementation.lower() == "vectorized":
+
+        return compute_full_vectorized(dl, L, el)
+
+    elif implementation.lower() == "jax":
+
+        return compute_full_jax(dl, L, el)
+
+    else:
+
+        raise NotImplementedError(
+            f"Implementation method implementation={sampling} not implemented"
+        )
+
+
+def compute_full_loopy(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """Compute Wigner-d at argument :math:`\pi/2` for full plane using
     Trapani & Navaza recursion.
 

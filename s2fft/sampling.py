@@ -13,7 +13,9 @@ def ntheta(L: int, sampling: str = "mw") -> int:
 
     elif sampling.lower() == "healpix":
 
-        raise NotImplementedError(f"Sampling scheme sampling={sampling} not implement")
+        raise NotImplementedError(
+            f"Sampling scheme sampling={sampling} not implemented"
+        )
 
     else:
 
@@ -60,7 +62,9 @@ def t2theta(L: int, t: int, sampling: str = "mw") -> np.ndarray:
 
     elif sampling.lower() == "healpix":
 
-        raise NotImplementedError(f"Sampling scheme sampling={sampling} not implement")
+        raise NotImplementedError(
+            f"Sampling scheme sampling={sampling} not implemented"
+        )
 
     else:
 
@@ -86,7 +90,7 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
 
     elif sampling.lower() == "healpix":
 
-        raise ValueError(f"Sampling scheme sampling={sampling} not implement")
+        raise ValueError(f"Sampling scheme sampling={sampling} not implemented")
 
     else:
 
