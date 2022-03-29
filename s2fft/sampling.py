@@ -1,6 +1,5 @@
 from multiprocessing.sharedctypes import Value
 import numpy as np
-import healpy as hp 
 
 def ntheta(L: int, sampling: str = "mw", nside: int = 0) -> int:
 
