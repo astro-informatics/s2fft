@@ -153,9 +153,8 @@ def forward_direct(
 
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
+    weights = samples.quad_weights(L, sampling)
     for t, theta in enumerate(thetas):
-
-        weight = samples.quad_weight_dh_theta_only(theta, L) * 2 * np.pi / (2 * L - 1)
 
         for el in range(0, L):
 
@@ -172,7 +171,7 @@ def forward_direct(
                     for p, phi in enumerate(phis_equiang):
 
                         flm[i] += (
-                            weight
+                            weights[t]
                             * (-1) ** spin
                             * elfactor
                             * np.exp(-1j * m * phi)
@@ -214,9 +213,8 @@ def forward_sov(
 
                 fmt[m + L - 1, t] += np.exp(-1j * m * phi) * f[t, p]
 
+    weights = samples.quad_weights(L, sampling)
     for t, theta in enumerate(thetas):
-
-        weight = samples.quad_weight_dh_theta_only(theta, L) * 2 * np.pi / (2 * L - 1)
 
         for el in range(0, L):
 
@@ -231,7 +229,7 @@ def forward_sov(
                     i = samples.elm2ind(el, m)
 
                     flm[i] += (
-                        weight
+                        weights[t]
                         * (-1) ** spin
                         * elfactor
                         * dl[m + L - 1, -spin + L - 1]
@@ -266,11 +264,11 @@ def forward_sov_fft(
     fmt = np.zeros((2 * L - 1, ntheta), dtype=np.complex128)
 
     fmt = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
-    fmt = np.transpose(fmt)
+    fmt = np.transpose(fmt)  # TODO: remove all transposes
+
+    weights = samples.quad_weights(L, sampling)
 
     for t, theta in enumerate(thetas):
-
-        weight = samples.quad_weight_dh_theta_only(theta, L) * 2 * np.pi / (2 * L - 1)
 
         for el in range(0, L):
 
@@ -285,7 +283,7 @@ def forward_sov_fft(
                     i = samples.elm2ind(el, m)
 
                     flm[i] += (
-                        weight
+                        weights[t]
                         * (-1) ** spin
                         * elfactor
                         * dl[m + L - 1, -spin + L - 1]
