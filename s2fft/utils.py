@@ -3,12 +3,13 @@ import s2fft as s2f
 from s2fft.sampling import elm2ind
 
 
-def generate_signal_ssht(L, method="MW", spin=0, reality=False):
+def generate_flm(L, spin=0, reality=False):
     ncoeff = s2f.sampling.ncoeff(L)
     flm = np.zeros(ncoeff, dtype=np.complex128)
 
     if reality == False:
         flm = np.random.rand(ncoeff) + 1j * np.random.rand(ncoeff)
+        # For spin signals all flms for el < spin = 0, therfore first spin**2 coefficients = 0
         flm[: spin**2] = 0.0
         return flm
     else:
