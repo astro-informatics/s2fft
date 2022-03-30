@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.fft as fft
 import s2fft.sampling as samples
+import s2fft.resampling as resampling
 import s2fft.wigner as wigner
 
 
@@ -288,6 +289,78 @@ def forward_sov_fft(
                         * elfactor
                         * dl[m + L - 1, -spin + L - 1]
                         * ftm[t, m + L - 1]
+                    )
+
+    return flm
+
+
+def forward_sov_fft_mwss(
+    f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+) -> np.ndarray:
+
+    # TODO: Check f shape consistent with L
+
+    if sampling.lower() != "mwss":
+
+        raise ValueError(
+            f"Sampling scheme sampling={sampling} not implement (only DH supported at present)"
+        )
+
+    f_ext = resampling.periodic_extension_spatial_mwss(f, L, spin)
+    f_ext_up = resampling.upsample_by_two_mwss(f_ext, L)
+    f_up = resampling.unextend(f_ext_up, 2 * L, sampling)
+
+    ncoeff = samples.ncoeff(L)
+
+    flm = np.zeros(ncoeff, dtype=np.complex128)
+
+    thetas = samples.thetas(2 * L, sampling)
+    phis_equiang = samples.phis_equiang(L, sampling)
+
+    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+
+    ntheta = samples.ntheta(2 * L, sampling)
+    # ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
+
+    # print(f"ftm.shape = {ftm.shape}")
+    ftm = fft.fftshift(fft.fft(f_up, axis=1, norm="backward"), axes=1)
+    print(f"ftm.shape = {ftm.shape}")
+
+    # weights = samples.quad_weights(L, sampling)
+    weights = samples.quad_weights_mwss_theta_only(2 * L, spin) * 2 * np.pi / (2 * L)
+
+    print(f"L = {L}")
+    print(f"f.shape = {f.shape}")
+    print(f"f_ext.shape = {f_ext.shape}")
+    print(f"f_ext_up.shape = {f_ext_up.shape}")
+    print(f"f_up.shape = {f_up.shape}")
+    print(f"thetas.shape = {thetas.shape}")
+    print(f"phis_equiang.shape = {phis_equiang.shape}")
+    print(f"ntheta = {ntheta}")
+    print(f"weights.shape = {weights.shape}")
+
+    m_offset = 1 if sampling == "mwss" else 0
+
+    for t, theta in enumerate(thetas):
+
+        for el in range(0, L):
+
+            dl = wigner.risbo.compute_full(dl, theta, L, el)
+
+            if el >= np.abs(spin):
+
+                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+
+                for m in range(-el, el + 1):
+
+                    i = samples.elm2ind(el, m)
+
+                    flm[i] += (
+                        weights[t]
+                        * (-1) ** spin
+                        * elfactor
+                        * dl[m + L - 1, -spin + L - 1]
+                        * ftm[t, m + L - 1 + m_offset]
                     )
 
     return flm
