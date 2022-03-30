@@ -31,3 +31,19 @@ def test_periodic_extension_mwss(flm_generator, L: int, spin_reality):
     f_ext_check = s2f.resampling.periodic_extension_spatial_mwss(f, L, spin)
 
     np.testing.assert_allclose(f_ext, f_ext_check, atol=1e-10)
+
+
+@pytest.mark.parametrize("L", [5])
+def test_mwss_upsample_downsample(flm_generator, L: int):
+
+    (spin, reality) = (0, False)
+    flm = flm_generator(L=L, spin=spin, reality=reality)
+    f = s2f.transform.inverse_sov_fft(flm, L, spin, sampling="mwss")
+
+    f_ext = s2f.resampling.periodic_extension_spatial_mwss(f, L, spin)
+
+    f_ext_up = s2f.resampling.upsample_by_two_mwss(f_ext, L)
+
+    f_ext_up_down = s2f.resampling.downsample_by_two_mwss(f_ext_up, 2 * L)
+
+    np.testing.assert_allclose(f_ext, f_ext_up_down, atol=1e-10)
