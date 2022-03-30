@@ -140,10 +140,13 @@ def quad_weight_dh_theta_only(theta: float, L: int) -> float:
     return w
 
 
-def quad_weights(L: int, sampling: str) -> np.ndarray:
+def quad_weights(L: int, sampling: str, spin: int = 0) -> np.ndarray:
 
     if sampling.lower() == "mw":
-        return quad_weights_mw(L)
+        return quad_weights_mw(L, spin)
+
+    if sampling.lower() == "mwss":
+        return quad_weights_mwss(L, spin)
 
     elif sampling.lower() == "dh":
         return quad_weights_dh(L)
@@ -159,14 +162,35 @@ def quad_weights_dh(L):
     return q * 2 * np.pi / (2 * L - 1)
 
 
-def quad_weights_mw(L):
+def quad_weights_mw(L, spin=0):
 
-    return quad_weights_mw_theta_only(L) * 2 * np.pi / (2 * L - 1)
+    return quad_weights_mw_theta_only(L, spin) * 2 * np.pi / (2 * L - 1)
 
 
-def quad_weights_mw_theta_only(L):
+def quad_weights_mwss(L, spin=0):
 
-    w = np.zeros(2 * L - 1, dtype=np.complex)
+    return quad_weights_mwss_theta_only(L, spin) * 2 * np.pi / (2 * L)
+
+
+def quad_weights_mwss_theta_only(L, spin=0):
+
+    w = np.zeros(2 * L, dtype=np.complex128)
+    # Extra negative m, so logically -el-1 <= m <= el.
+    for i in range(-(L - 1) + 1, L + 1):
+        w[i + L - 1] = mw_weights(i - 1)
+
+    wr = np.real(fft.fft(fft.ifftshift(w), norm="backward")) / (2 * L)
+
+    q = wr[: L + 1]
+
+    q[1:L] = q[1:L] + (-1) ** spin * wr[-1:L:-1]
+
+    return q
+
+
+def quad_weights_mw_theta_only(L, spin=0):
+
+    w = np.zeros(2 * L - 1, dtype=np.complex128)
     for i in range(-(L - 1), L):
         w[i + L - 1] = mw_weights(i)
 
@@ -174,7 +198,7 @@ def quad_weights_mw_theta_only(L):
     wr = np.real(fft.fft(fft.ifftshift(w), norm="backward")) / (2 * L - 1)
     q = wr[:L]
 
-    q[: L - 1] = q[: L - 1] + wr[-1 : L - 1 : -1]
+    q[: L - 1] = q[: L - 1] + (-1) ** spin * wr[-1 : L - 1 : -1]
 
     return q
 

@@ -65,15 +65,15 @@ def test_sampling_exception():
 
 
 @pytest.mark.parametrize("L", [5, 6])
-@pytest.mark.parametrize("sampling", ["mw", "dh"])
+@pytest.mark.parametrize("sampling", ["mw", "mwss"])
 def test_sampling_mw_weights(L: int, sampling: str):
 
     # TODO: move this and potentially do better
-    np.random.seed(2)
+    # np.random.seed(2)
 
     spin = 0
 
-    q = s2f.sampling.quad_weights(L, sampling)
+    q = s2f.sampling.quad_weights(L, sampling, spin)
 
     # Create bandlimited signal
     ncoeff = s2f.sampling.ncoeff(L)
@@ -90,10 +90,11 @@ def test_sampling_mw_weights(L: int, sampling: str):
 
     integral_check = np.sum(Q * f)
 
+    print(f"sampling = {sampling}")
     print(f"q = {q}")
-    print(f"Q = {Q}")
-    print(f"q.shape = {q.shape}")
-    print(f"Q.shape = {Q.shape}")
+    # print(f"Q = {Q}")
+    # print(f"q.shape = {q.shape}")
+    # print(f"Q.shape = {Q.shape}")
 
     print(f"integral = {integral}")
     print(f"integral_check = {integral_check}")
