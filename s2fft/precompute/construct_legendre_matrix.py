@@ -2,13 +2,14 @@ import numpy as np
 import os
 import pyssht as ssht
 
+from s2fft import sampling as sampling
 import s2fft.logs as lg
 
 lg.setup_logging()
 
 
-def construct_ssht_legendre_matrix(
-    L=4, sampling_method="MW", save_dir="../../.matrices", spin=0
+def construct_legendre_matrix(
+    L=4, sampling_method="mw", save_dir="../../.matrices", spin=0
 ):
     """Constructs associated Legendre matrix for precompute method
 
@@ -21,34 +22,31 @@ def construct_ssht_legendre_matrix(
 
     Returns:
 
-        Associated legendre matrix for forward ssht transform
+        Associated legendre matrix for forward harmonic transform
     """
 
-    Reality = False
-
-    input_shape = ssht.sample_shape(L, Method=sampling_method)
+    ntheta = sampling.ntheta(L, sampling_method)
+    nphi = sampling.nphi_equiang(L, sampling_method)
 
     lg.info_log(
-        "Ssht sampling {} selected with angular bandlimit {} and spin {}".format(sampling_method, L, spin)
+        "Sampling {} selected with angular bandlimit {} and spin {}".format(sampling_method, L, spin)
     )
 
-    Legendre = np.zeros((L * L, input_shape[0]), dtype=np.complex128)
+    Legendre = np.zeros((L * L, ntheta), dtype=np.complex128)
 
-    for i in range(input_shape[0]):
+    for i in range(ntheta):
 
         lg.debug_log("Starting computing for theta index = {}".format(i))
 
-        # Initialize
-        in_matrix = np.zeros(input_shape, dtype=np.complex128)
+        in_matrix = np.zeros((ntheta, nphi), dtype=np.complex128)
         in_matrix[i, 0] = 1.0
-        # Compute eigenvector and Reshape into a C major 1D column vector of length input_length
+
         Legendre[:, i] = ssht.forward(
-            f=in_matrix, L=L, Method=sampling_method, Reality=Reality, Spin=spin
-        ).flatten("C")
+            f=in_matrix, L=L, Method=sampling_method.upper(), Spin=spin).flatten("C")
 
         lg.debug_log("Ending computing for theta index = {}".format(i))
 
-    Legendre_reshaped = np.zeros((L, 2 * L - 1, input_shape[0]), dtype=np.complex128)
+    Legendre_reshaped = np.zeros((L, 2 * L - 1, ntheta), dtype=np.complex128)
 
     for l in range(L):
         for m in range(-l, l + 1):
@@ -64,11 +62,11 @@ def construct_ssht_legendre_matrix(
         if not os.path.isdir("{}/".format(save_dir)):
             os.mkdir(save_dir)
         save_dir = save_dir + "/"
-        filename = "{}ssht_legendre_matrix_{}_{}_spin_{}".format(
+        filename = "{}legendre_matrix_{}_{}_spin_{}".format(
             save_dir, L, sampling_method, spin
         )
     else:
-        filename = "ssht_legendre_matrix_{}_{}_spin_{}".format(L, sampling_method, spin)
+        filename = "legendre_matrix_{}_{}_spin_{}".format(L, sampling_method, spin)
 
     lg.debug_log("Saving matrix binary to {}".format(filename))
 
@@ -76,8 +74,8 @@ def construct_ssht_legendre_matrix(
     return Legendre_reshaped
 
 
-def construct_ssht_legendre_matrix_inverse(
-    L=4, sampling_method="MW", save_dir="../../.matrices", spin=0
+def construct_legendre_matrix_inverse(
+    L=4, sampling_method="mw", save_dir="../../.matrices", spin=0
 ):
     """Constructs associated Legendre inverse matrix for precompute method
 
@@ -90,20 +88,18 @@ def construct_ssht_legendre_matrix_inverse(
 
     Returns:
 
-        Associated legendre matrix for forward ssht transform
+        Associated legendre matrix for inverse harmonic transform
     """
 
     compile_warnings(L)
 
-    Reality = False
-
-    input_shape = ssht.sample_shape(L, Method=sampling_method)
+    ntheta = sampling.ntheta(L, sampling_method)
 
     lg.info_log(
-        "Ssht sampling {} selected with angular bandlimit {} and spin {}".format(sampling_method, L, spin)
+        "Sampling {} selected with angular bandlimit {} and spin {}".format(sampling_method, L, spin)
     )
 
-    Legendre_inverse = np.zeros((L * L, input_shape[0]), dtype=np.complex128)
+    Legendre_inverse = np.zeros((L * L, ntheta), dtype=np.complex128)
     alm = np.zeros(L * L, dtype=np.complex128)
 
     for l in range(L):
@@ -115,12 +111,11 @@ def construct_ssht_legendre_matrix_inverse(
             alm[:] = 0.0
             alm[ind] = 1.0
             Legendre_inverse[ind, :] = ssht.inverse(
-                flm=alm, L=L, Method=sampling_method, Reality=Reality, Spin=spin
-            )[:, 0]
+                flm=alm, L=L, Method=sampling_method.upper(), Spin=spin)[:, 0]
 
         lg.debug_log("Ending computing for l = {}".format(l))
 
-    Legendre_reshaped = np.zeros((L, 2 * L - 1, input_shape[0]), dtype=np.complex128)
+    Legendre_reshaped = np.zeros((L, 2 * L - 1, ntheta), dtype=np.complex128)
 
     for l in range(L):
         for m in range(-l, l + 1):
@@ -136,11 +131,11 @@ def construct_ssht_legendre_matrix_inverse(
         if not os.path.isdir("{}/".format(save_dir)):
             os.mkdir(save_dir)
         save_dir = save_dir + "/"
-        filename = "{}ssht_legendre_inverse_matrix_{}_{}_spin_{}".format(
+        filename = "{}legendre_inverse_matrix_{}_{}_spin_{}".format(
             save_dir, L, sampling_method, spin
         )
     else:
-        filename = "ssht_legendre_inverse_matrix_{}_{}_spin_{}".format(
+        filename = "legendre_inverse_matrix_{}_{}_spin_{}".format(
             L, sampling_method, spin
         )
 
@@ -175,7 +170,7 @@ def compile_warnings(L):
 
 
 def load_legendre_matrix(
-    L=4, sampling_method="MW", save_dir="../../.matrices", direction="forward", spin=0
+    L=4, sampling_method="mw", save_dir="../../.matrices", direction="forward", spin=0
 ):
     """Constructs associated Legendre inverse matrix for precompute method
 
@@ -189,27 +184,27 @@ def load_legendre_matrix(
 
     Returns:
 
-        Associated legendre matrix for corresponding ssht transform
+        Associated legendre matrix for corresponding harmonic transform
     """
 
     dir_string = ""
     if direction == "inverse":
         dir_string += "_inverse"
 
-    filepath = "{}/ssht_legendre{}_matrix_{}_{}_spin_{}.npy".format(
+    filepath = "{}/legendre{}_matrix_{}_{}_spin_{}.npy".format(
         save_dir, dir_string, L, sampling_method, spin
     )
 
     if not os.path.isfile(filepath):
         if direction == "forward":
-            construct_ssht_legendre_matrix(
+            construct_legendre_matrix(
                 L=L,
                 sampling_method=sampling_method,
                 save_dir=save_dir,
                 spin=spin,
             )
         elif direction == "inverse":
-            construct_ssht_legendre_matrix_inverse(
+            construct_legendre_matrix_inverse(
                 L=L,
                 sampling_method=sampling_method,
                 save_dir=save_dir,
