@@ -13,9 +13,8 @@ def test_transform_inverse_direct(
     ssht_signal_generator, L: int, spin: int, sampling: str
 ):
 
-    f_check, flm = ssht_signal_generator(
-        L=L, Method=sampling.upper(), Spin=spin, Reality=False
-    )
+    flm = ssht_signal_generator(L=L, method=sampling.upper(), spin=spin, reality=False)
+    f_check = ssht.inverse(flm, L, Method=sampling.upper(), Spin=spin, Reality=False)
     f = s2f.transform.inverse_direct(flm, L, spin, sampling)
 
     np.testing.assert_allclose(f, f_check, atol=1e-14)
@@ -31,9 +30,7 @@ def test_transform_forward_direct(
     # TODO: move this and potentially do better
     np.random.seed(2)
 
-    _, flm = ssht_signal_generator(
-        L=L, Method=sampling.upper(), Spin=spin, Reality=False
-    )
+    flm = ssht_signal_generator(L=L, method=sampling.upper(), spin=spin, reality=False)
 
     f = s2f.transform.inverse_direct(flm, L, spin, sampling)
 
