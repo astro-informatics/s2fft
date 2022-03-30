@@ -10,3 +10,6 @@ codecov
 # Notebooks
 ipython==7.16.1
 jupyter==1.0.0
+
+# Healpix Sampling
+healpy

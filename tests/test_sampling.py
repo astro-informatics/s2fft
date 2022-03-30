@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 import s2fft as s2f
 import pyssht as ssht
+import healpy as hp 
 
 
 @pytest.mark.parametrize("L", [15, 16])
@@ -52,18 +53,37 @@ def test_sampling_ncoeff(L: int):
 
     assert s2f.sampling.ncoeff(L) == pytest.approx(n)
 
-
 def test_sampling_exception():
 
-    L = 10
+     L = 10
 
-    with pytest.raises(NotImplementedError) as e:
-        s2f.sampling.thetas(L, sampling="healpix")
-
-    with pytest.raises(ValueError) as e:
-        s2f.sampling.phis_equiang(L, sampling="healpix")
+     with pytest.raises(ValueError) as e:
+         s2f.sampling.phis_equiang(L, sampling="healpix")
 
 
+@pytest.mark.parametrize("nside", [32, 64, 128])
+def test_sampling_n_and_angles_hp(nside: int):
+
+    ntheta = s2f.sampling.ntheta(L=0, sampling="healpix", nside=nside)
+    assert(ntheta == 4*nside-1)
+
+    npix = hp.nside2npix(nside)
+    hp_angles = np.zeros((npix, 2))
+    for i in range(npix):
+        hp_angles[i] = hp.pix2ang(nside,i)
+    
+    s2f_hp_angles = np.zeros((npix, 2))
+    thetas = s2f.sampling.thetas(L=0, sampling="healpix", nside=nside)
+    entry = 0
+    for ring in range(ntheta):
+        phis = s2f.sampling.phis_ring(ring, nside)
+        s2f_hp_angles[entry:entry+len(phis), 0] = thetas[ring]
+        s2f_hp_angles[entry:entry+len(phis), 1] = phis
+        entry += len(phis)
+ 
+    np.testing.assert_allclose(s2f_hp_angles, hp_angles, atol=1e-14)
+
+  
 @pytest.mark.parametrize("L", [5, 6])
 @pytest.mark.parametrize("sampling", ["mw", "mwss"])
 def test_sampling_mw_weights(L: int, sampling: str):
@@ -100,3 +120,4 @@ def test_sampling_mw_weights(L: int, sampling: str):
     print(f"integral_check = {integral_check}")
 
     np.testing.assert_allclose(integral, integral_check, atol=1e-14)
+
