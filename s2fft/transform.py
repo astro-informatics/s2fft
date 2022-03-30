@@ -298,11 +298,8 @@ def inverse_direct_healpix(
     flm: np.ndarray, L: int, nside: int, spin: int = 0) -> np.ndarray:
 
     # TODO: Check flm shape consistent with L
-    import healpy as hp
 
-    ntheta = samples.ntheta(L, "healpix", nside=nside)
-    npix = 12*nside**2
-    f = np.zeros(npix, dtype=np.complex128)
+    f = np.zeros(12*nside**2, dtype=np.complex128)
 
     thetas = samples.thetas(L, "healpix", nside=nside)
 
@@ -324,7 +321,7 @@ def inverse_direct_healpix(
 
                     for p, phi in enumerate(samples.phis_ring(t, nside)):
 
-                        f[hp.ang2pix(nside, theta, phi)] += (
+                        f[samples.hp_ang2pix(nside, theta, phi)] += (
                             (-1) ** spin
                             * elfactor
                             * np.exp(1j * m * phi)
@@ -339,12 +336,10 @@ def inverse_sov_healpix(
     flm: np.ndarray, L: int, nside: int, spin: int = 0) -> np.ndarray:
 
     # TODO: Check flm shape consistent with L
-    import healpy as hp
-
 
     ntheta = samples.ntheta(L, "healpix", nside=nside)
-    npix = 12*nside**2
-    f = np.zeros(npix, dtype=np.complex128)
+    
+    f = np.zeros(12*nside**2, dtype=np.complex128)
 
     thetas = samples.thetas(L, "healpix", nside=nside)
 
@@ -375,6 +370,6 @@ def inverse_sov_healpix(
 
             for m in range(-(L - 1), L):
 
-                f[hp.ang2pix(nside, theta, phi)] += fmt[m + L - 1, t] * np.exp(1j * m * phi)
+                f[samples.hp_ang2pix(nside, theta, phi)] += fmt[m + L - 1, t] * np.exp(1j * m * phi)
 
     return f

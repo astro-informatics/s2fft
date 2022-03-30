@@ -12,8 +12,12 @@ from jax.config import config
 
 config.update("jax_enable_x64", True)
 
-@pytest.mark.parametrize("L", [16, 32])
-@pytest.mark.parametrize("spin", [0, 2])
+
+L_to_test = [8, 16, 32]
+spin_to_test = [0, 1, 2]
+
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("spin", spin_to_test)
 def test_forward_legendre_matrix_constructor(L: int, spin: int):
     """Test creation and saving down of forward Legendre kernels"""
     sampling_method = "mw"
@@ -25,8 +29,8 @@ def test_forward_legendre_matrix_constructor(L: int, spin: int):
     assert (os.path.isfile(filename))
     legendre_forward = pre.construct_legendre_matrix.construct_legendre_matrix(L, sampling_method, save_dir, spin)
 
-@pytest.mark.parametrize("L", [16, 32])
-@pytest.mark.parametrize("spin", [0, 2])
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("spin", spin_to_test)
 def test_inverse_legendre_matrix_constructor(L: int, spin: int):
     """Test creation and saving down of inverse Legendre kernels"""
     sampling_method = "mw"
@@ -38,8 +42,8 @@ def test_inverse_legendre_matrix_constructor(L: int, spin: int):
     assert (os.path.isfile(filename))
     legendre_inverse = pre.construct_legendre_matrix.construct_legendre_matrix_inverse(L, sampling_method, save_dir, spin)
 
-@pytest.mark.parametrize("L", [16, 32])
-@pytest.mark.parametrize("spin", [0, 2])
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("spin", spin_to_test)
 def test_transform_precompute_cpu(flm_generator, L: int, spin: int):
     """Test cpu implementation of forward/inverse precompute sht"""
     sampling_method = "mw"
@@ -57,8 +61,8 @@ def test_transform_precompute_cpu(flm_generator, L: int, spin: int):
     f_cpu = pre.transforms.inverse_transform_cpu(flm_cpu, leg_inv, L)
     assert np.allclose(f_cpu, f)
 
-@pytest.mark.parametrize("L", [16, 32])
-@pytest.mark.parametrize("spin", [0, 2])
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("spin", spin_to_test)
 def test_transform_precompute_gpu(flm_generator, L: int, spin: int):
     """Test gpu implementation of forward/inverse precompute sht"""
     sampling_method = "mw"

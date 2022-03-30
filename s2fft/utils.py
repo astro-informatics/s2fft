@@ -3,7 +3,8 @@ import s2fft as s2f
 from s2fft.sampling import elm2ind
 
 
-def generate_flm(L, spin=0, reality=False):
+def generate_flm(L: int, spin: int = 0, reality: bool = False) -> np.ndarray:
+    """Generates a random set of harmonic coefficients (real/complex)"""
     ncoeff = s2f.sampling.ncoeff(L)
     flm = np.zeros(ncoeff, dtype=np.complex128)
 
@@ -17,7 +18,7 @@ def generate_flm(L, spin=0, reality=False):
             flm[elm2ind(el, 0)] = np.random.rand()
             for em in range(1, el + 1):
                 flm[elm2ind(el, em)] = np.random.rand() + 1j * np.random.rand()
-                flm[elm2ind(el, -em)] = -(1 ** (em)) * np.conj(
+                flm[elm2ind(el, -em)] = (-1)**em * np.conj(
                     flm[elm2ind(el, em)]
                 )
         return flm

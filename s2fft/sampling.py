@@ -255,3 +255,44 @@ def mw_weights(m):
 
     else:
         return 0
+
+def hp_ang2pix(nside: int, theta: float, phi: float) -> int:
+    """Translated function from healpix java implementation"""
+    z = np.cos(theta)
+    return zphi2pix(nside, z, phi)
+
+def zphi2pix(nside: int, z: float, phi: float) -> int:
+    """Translated function from healpix java implementation"""
+    tt = 2*phi / np.pi
+    za = np.abs(z)
+    nl2 = int(2 * nside)
+    nl4 = int(4 * nside)
+    ncap = int(nl2 * (nside - 1))
+    npix = int(12 * nside**2)
+    if za < 2/3: # equatorial region
+        jp = int(nside * (0.5 + tt - 0.75 * z))
+        jm = int(nside * (0.5 + tt + 0.75 * z))
+
+        ir = int(nside + 1 + jp - jm)
+        kshift = 0
+        if ir%2 == 0:
+            kshift = 1
+        ip =  int((jp + jm - nside + kshift + 1) / 2) + 1
+        ipix1 = ncap + nl4 * (ir - 1) + ip
+
+    else: # North and South polar caps
+        tp = tt - int(tt)
+        tmp = np.sqrt(3.0 * (1.0 - za))
+        jp = int(nside * tp * tmp)
+        jm = int(nside * (1.0 - tp) * tmp)
+
+        ir = jp + jm + 1
+        ip = int(tt * ir) + 1
+        if ip > 4 * ir:
+            ip = ip - 4 * ir
+
+        ipix1 = 2 * ir * (ir - 1) + ip
+        if z <= 0.0:
+            ipix1 = npix - 2 * ir * (ir + 1) + ip
+
+    return ipix1 - 1
