@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.fft as fft
 
+
 def ntheta(L: int, sampling: str = "mw", nside: int = None) -> int:
 
     if sampling.lower() == "mw":
@@ -18,12 +19,31 @@ def ntheta(L: int, sampling: str = "mw", nside: int = None) -> int:
     elif sampling.lower() == "healpix":
 
         if nside is None:
-            raise ValueError(f"Sampling scheme sampling={sampling} with nside={nside} not supported")
+            raise ValueError(
+                f"Sampling scheme sampling={sampling} with nside={nside} not supported"
+            )
         return 4 * nside - 1
 
     else:
 
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+
+
+def ntheta_extension(L: int, sampling: str = "mw") -> int:
+
+    if sampling.lower() == "mw":
+
+        return 2 * L - 1
+
+    elif sampling.lower() == "mwss":
+
+        return 2 * L
+
+    else:
+
+        raise ValueError(
+            f"Sampling scheme sampling={sampling} does not support periodic extension"
+        )
 
 
 def nphi_equiang(L: int, sampling: str = "mw") -> int:
@@ -50,19 +70,21 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
 
     return 1
 
+
 def nphi_ring(t: int, nside: int = None) -> int:
 
-    if (t >= 0) and (t < nside-1):
-        return 4 * (t+1) 
-    
-    elif (t >= nside-1) and (t <= 3*nside-1):
-        return 4 * nside 
-    
-    elif (t > 3*nside-1) and (t <= 4*nside - 2):
+    if (t >= 0) and (t < nside - 1):
+        return 4 * (t + 1)
+
+    elif (t >= nside - 1) and (t <= 3 * nside - 1):
+        return 4 * nside
+
+    elif (t > 3 * nside - 1) and (t <= 4 * nside - 2):
         return 4 * (4 * nside - t - 1)
-    
+
     else:
         raise ValueError(f"Ring t={t} not contained by nside={nside}")
+
 
 def thetas(L: int, sampling: str = "mw", nside: int = None) -> np.ndarray:
 
@@ -88,17 +110,24 @@ def t2theta(L: int, t: int, sampling: str = "mw", nside: int = None) -> np.ndarr
     elif sampling.lower() == "healpix":
 
         if nside is None:
-            raise ValueError(f"Sampling scheme sampling={sampling} with nside={nside} not supported")
+            raise ValueError(
+                f"Sampling scheme sampling={sampling} with nside={nside} not supported"
+            )
 
         z = np.zeros_like(t)
-        z[t < nside-1] = 1 - (t[t < nside-1] +1)**2/(3*nside**2)
-        z[(t >= nside-1) & (t <= 3*nside-1)] =  4/3 - 2*(t[(t >= nside-1) & (t <= 3*nside-1)] +1)/(3*nside)
-        z[(t > 3*nside-1) & (t <= 4*nside - 2)] = (4 * nside - 1 - t[(t > 3*nside-1) & (t <= 4*nside - 2)])**2/(3*nside**2) - 1
+        z[t < nside - 1] = 1 - (t[t < nside - 1] + 1) ** 2 / (3 * nside**2)
+        z[(t >= nside - 1) & (t <= 3 * nside - 1)] = 4 / 3 - 2 * (
+            t[(t >= nside - 1) & (t <= 3 * nside - 1)] + 1
+        ) / (3 * nside)
+        z[(t > 3 * nside - 1) & (t <= 4 * nside - 2)] = (
+            4 * nside - 1 - t[(t > 3 * nside - 1) & (t <= 4 * nside - 2)]
+        ) ** 2 / (3 * nside**2) - 1
         return np.arccos(z)
 
     else:
 
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+
 
 def phis_ring(t: int, nside: int) -> np.ndarray:
 
@@ -106,18 +135,20 @@ def phis_ring(t: int, nside: int) -> np.ndarray:
 
     return p2phi_ring(t, p, nside)
 
+
 def p2phi_ring(t: int, p: int, nside: int) -> np.ndarray:
 
-    shift = 1/2
-    if (t+1 >= nside) & (t+1 <= 3*nside):
-        shift *= ((t-nside+2)%2)
-        factor = np.pi/(2*nside)
-        return factor*(p + shift)
-    elif t+1 > 3*nside:
-        factor = np.pi/(2*(4 * nside - t - 1))
+    shift = 1 / 2
+    if (t + 1 >= nside) & (t + 1 <= 3 * nside):
+        shift *= (t - nside + 2) % 2
+        factor = np.pi / (2 * nside)
+        return factor * (p + shift)
+    elif t + 1 > 3 * nside:
+        factor = np.pi / (2 * (4 * nside - t - 1))
     else:
-        factor = np.pi/(2*(t+1))
-    return factor*(p+shift)
+        factor = np.pi / (2 * (t + 1))
+    return factor * (p + shift)
+
 
 def phis_equiang(L: int, sampling: str = "mw") -> np.ndarray:
 
