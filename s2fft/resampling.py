@@ -93,3 +93,35 @@ def downsample_by_two_mwss(f_ext, L):
     f_ext_down = f_ext[0:-1:2, :]
 
     return f_ext_down
+
+
+def unextend(f_ext, L, sampling: str = "mw"):
+
+    if sampling.lower() not in ["mw", "mwss"]:
+        raise ValueError(
+            "Only mw and mwss supported for periodic extension "
+            f"(not sampling={sampling})"
+        )
+
+    ntheta_ext = samples.ntheta_extension(L, sampling)
+
+    if f_ext.shape[0] != ntheta_ext:
+        raise ValueError(
+            f"Periodic extension has wrong shape (shape={f_ext.shape}, L={L})"
+        )
+
+    if sampling.lower() == "mw":
+
+        f = f_ext[0:L, :]
+
+    elif sampling.lower() == "mwss":
+
+        f = f_ext[0 : L + 1, :]
+
+    else:
+        raise ValueError(
+            "Only mw and mwss supported for periodic extension "
+            f"(not sampling={sampling})"
+        )
+
+    return f
