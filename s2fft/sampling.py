@@ -1,3 +1,4 @@
+from tkinter import E
 import numpy as np
 import numpy.fft as fft
 
@@ -179,20 +180,28 @@ def quad_weight_dh_theta_only(theta: float, L: int) -> float:
     return w
 
 
-def quad_weights(L: int, sampling: str, spin: int = 0) -> np.ndarray:
+def quad_weights(L: int, sampling: str, nside: int = None, spin: int = 0) -> np.ndarray:
 
     if sampling.lower() == "mw":
         return quad_weights_mw(L, spin)
 
-    if sampling.lower() == "mwss":
+    elif sampling.lower() == "mwss":
         return quad_weights_mwss(L, spin)
 
     elif sampling.lower() == "dh":
         return quad_weights_dh(L)
+    
+    elif sampling.lower() == "healpix":
+        return quad_weights_hp(nside)
 
     else:
         raise ValueError(f"Sampling scheme sampling={sampling} not implement")
 
+def quad_weights_hp(nside: int) -> np.ndarray:
+    rings = ntheta(0, "healpix", nside)
+    hp_weights = np.zeros(rings, dtype=np.float64)
+    hp_weights[:] = np.pi / (3 * nside**2)
+    return hp_weights
 
 def quad_weights_dh(L):
 

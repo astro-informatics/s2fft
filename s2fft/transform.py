@@ -338,7 +338,7 @@ def inverse_sov_healpix(
     # TODO: Check flm shape consistent with L
 
     ntheta = samples.ntheta(L, "healpix", nside=nside)
-    
+
     f = np.zeros(12*nside**2, dtype=np.complex128)
 
     thetas = samples.thetas(L, "healpix", nside=nside)
@@ -373,3 +373,93 @@ def inverse_sov_healpix(
                 f[samples.hp_ang2pix(nside, theta, phi)] += fmt[m + L - 1, t] * np.exp(1j * m * phi)
 
     return f
+
+
+def forward_direct_healpix(
+    f: np.ndarray, L: int, nside: int, spin: int = 0) -> np.ndarray:
+
+    # TODO: Check f shape consistent with L
+
+    ncoeff = samples.ncoeff(L)
+
+    flm = np.zeros(ncoeff, dtype=np.complex128)
+
+    thetas = samples.thetas(L, "healpix", nside)
+
+    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+
+    weights = samples.quad_weights(L, "healpix", nside)
+    for t, theta in enumerate(thetas):
+
+        for el in range(0, L):
+
+            dl = wigner.risbo.compute_full(dl, theta, L, el)
+
+            if el >= np.abs(spin):
+
+                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+
+                for m in range(-el, el + 1):
+
+                    i = samples.elm2ind(el, m)
+
+                    for p, phi in enumerate(samples.phis_ring(t, nside)):
+
+                        flm[i] += (
+                            weights[t]
+                            * (-1) ** spin
+                            * elfactor
+                            * np.exp(-1j * m * phi)
+                            * dl[m + L - 1, -spin + L - 1]
+                            * f[samples.hp_ang2pix(nside, theta, phi)]
+                        )
+
+    return flm
+
+def forward_sov_healpix(
+    f: np.ndarray, L: int, nside: int, spin: int = 0) -> np.ndarray:
+
+    # TODO: Check f shape consistent with L
+
+    ncoeff = samples.ncoeff(L)
+
+    flm = np.zeros(ncoeff, dtype=np.complex128)
+
+    thetas = samples.thetas(L, "healpix", nside)
+
+    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+
+    ntheta = samples.ntheta(L, "healpix", nside)
+    fmt = np.zeros((2 * L - 1, ntheta), dtype=np.complex128)
+    for t, theta in enumerate(thetas):
+
+        for m in range(-(L - 1), L):
+
+            for p, phi in enumerate(samples.phis_ring(t, nside)):
+
+                fmt[m + L - 1, t] += np.exp(-1j * m * phi) * f[samples.hp_ang2pix(nside, theta, phi)]
+
+    weights = samples.quad_weights(L, "healpix", nside)
+    for t, theta in enumerate(thetas):
+
+        for el in range(0, L):
+
+            dl = wigner.risbo.compute_full(dl, theta, L, el)
+
+            if el >= np.abs(spin):
+
+                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+
+                for m in range(-el, el + 1):
+
+                    i = samples.elm2ind(el, m)
+
+                    flm[i] += (
+                        weights[t]
+                        * (-1) ** spin
+                        * elfactor
+                        * dl[m + L - 1, -spin + L - 1]
+                        * fmt[m + L - 1, t]
+                    )
+
+    return flm

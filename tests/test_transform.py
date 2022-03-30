@@ -96,6 +96,19 @@ def test_transform_forward_direct(flm_generator, L: int, spin: int, sampling: st
 
     np.testing.assert_allclose(flm, flm_recov, atol=1e-14)
 
+@pytest.mark.skip(reason="Temporarily skipped for faster development")
+@pytest.mark.parametrize("nside", nside_to_test)
+def test_transform_forward_direct_healpix(flm_generator, reindex_lm_to_hp, nside: int):
+    L = 2*nside
+    flm = flm_generator(L=L, reality=True)
+    f = s2f.transform.inverse_direct_healpix(flm, L, nside)
+
+    flm_direct = s2f.transform.forward_direct_healpix(f, L, nside)
+    flm_direct_hp = reindex_lm_to_hp(flm_direct, L)
+    flm_check = hp.sphtfunc.map2alm(np.real(f), lmax=L)
+
+    np.testing.assert_allclose(flm_direct_hp, flm_check, atol=1e-14)
+
 
 # @pytest.mark.skip(reason="Temporarily skipped for faster development")
 @pytest.mark.parametrize("L", L_to_test)
@@ -113,3 +126,16 @@ def test_transform_forward_sov(flm_generator, L: int, spin: int, sampling: str):
     flm_recov = s2f.transform.forward_sov_fft(f, L, spin, sampling)
 
     np.testing.assert_allclose(flm, flm_recov, atol=1e-14)
+
+@pytest.mark.skip(reason="Temporarily skipped for faster development")
+@pytest.mark.parametrize("nside", nside_to_test)
+def test_transform_forward_sov_healpix(flm_generator, reindex_lm_to_hp, nside: int):
+    L = 2*nside
+    flm = flm_generator(L=L, reality=True)
+    f = s2f.transform.inverse_sov_healpix(flm, L, nside)
+
+    flm_direct = s2f.transform.forward_sov_healpix(f, L, nside)
+    flm_direct_hp = reindex_lm_to_hp(flm_direct, L)
+    flm_check = hp.sphtfunc.map2alm(np.real(f), lmax=L)
+
+    np.testing.assert_allclose(flm_direct_hp, flm_check, atol=1e-14)
