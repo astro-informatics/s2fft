@@ -3,17 +3,17 @@ import numpy as np
 import s2fft as s2f
 import pyssht as ssht
 
-from .test_helper_functions import *
+from .utils import *
 
 # @pytest.mark.skip(reason="Temporarily skipped for faster development")
 @pytest.mark.parametrize("L", [15, 16])
 @pytest.mark.parametrize("spin", [0, 2])
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
 def test_transform_inverse_direct(
-    ssht_signal_generator, L: int, spin: int, sampling: str
+    flm_generator, L: int, spin: int, sampling: str
 ):
 
-    flm = ssht_signal_generator(L=L, method=sampling.upper(), spin=spin, reality=False)
+    flm = flm_generator(L=L, spin=spin, reality=False)
     f_check = ssht.inverse(flm, L, Method=sampling.upper(), Spin=spin, Reality=False)
     f = s2f.transform.inverse_direct(flm, L, spin, sampling)
 
@@ -59,13 +59,13 @@ def test_transform_inverse_sov_fft(L: int, spin: int, sampling: str):
 @pytest.mark.parametrize("spin", [0, 2])
 @pytest.mark.parametrize("sampling", ["dh"])
 def test_transform_forward_direct(
-    ssht_signal_generator, L: int, spin: int, sampling: str
+    flm_generator, L: int, spin: int, sampling: str
 ):
 
     # TODO: move this and potentially do better
     np.random.seed(2)
 
-    flm = ssht_signal_generator(L=L, method=sampling.upper(), spin=spin, reality=False)
+    flm = flm_generator(L=L, spin=spin, reality=False)
 
     f = s2f.transform.inverse_direct(flm, L, spin, sampling)
 
