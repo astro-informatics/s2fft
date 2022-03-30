@@ -46,7 +46,7 @@ def periodic_extension_spatial_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.
     f_ext[0:ntheta, 0:nphi] = f[0:ntheta, 0:nphi]
 
     # Reflect about north pole and add pi shift in phi
-    f_ext[ntheta:, 0 : 2 * L] = np.fft.fftshift(
+    f_ext[ntheta:, 0 : 2 * L] = (-1) ** spin * np.fft.fftshift(
         np.flipud(f[1 : ntheta - 1, 0 : 2 * L]), axes=1
     )
 
