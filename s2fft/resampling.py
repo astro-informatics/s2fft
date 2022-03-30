@@ -7,7 +7,12 @@ def periodic_extension(
     f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
 ) -> np.ndarray:
 
-    phis_equiang = samples.phis_equiang(L, sampling)
+    if sampling.lower() not in ["mw", "mwss"]:
+        raise ValueError(
+            "Only mw and mwss supported for periodic extension "
+            f"(not sampling={sampling})"
+        )
+
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
     ntheta_ext = samples.ntheta_extension(L, sampling)
@@ -55,3 +60,21 @@ def periodic_extension(
 #     f_ext = fft.ifft(fft.ifftshift(f_ext, axes=1), axis=1, norm="backward")
 
 #     return f_ext
+
+
+def periodic_extension_spatial_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
+
+    ntheta = samples.ntheta(L, sampling="mwss")
+    nphi = samples.nphi_equiang(L, sampling="mwss")
+    ntheta_ext = samples.ntheta_extension(L, sampling="mwss")
+    f_ext = np.zeros((ntheta_ext, nphi), dtype=np.complex128)
+
+    # Copy samples over sphere, i.e. 0 <= theta <= pi
+    f_ext[0:ntheta, 0:nphi] = f[0:ntheta, 0:nphi]
+
+    # Reflect about north pole and add pi shift in phi
+    f_ext[ntheta:, 0 : 2 * L] = np.fft.fftshift(
+        np.flipud(f[1 : ntheta - 1, 0 : 2 * L]), axes=1
+    )
+
+    return f_ext
