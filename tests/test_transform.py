@@ -5,6 +5,7 @@ import pyssht as ssht
 
 from .utils import *
 
+
 L_to_test = [3, 4, 5]
 spin_to_test = [0, 1, 2]
 
