@@ -306,8 +306,7 @@ def forward_sov_fft_mwss(
             f"Sampling scheme sampling={sampling} not implement (only DH supported at present)"
         )
 
-    f_ext = resampling.periodic_extension(f, L, spin, sampling)
-    # f_ext = resampling.periodic_extension_spatial_mwss(f, L, spin)
+    f_ext = resampling.periodic_extension_spatial_mwss(f, L, spin)
     f_ext_up = resampling.upsample_by_two_mwss(f_ext, L)
     f_up = resampling.unextend(f_ext_up, 2 * L, sampling)
 
@@ -321,25 +320,12 @@ def forward_sov_fft_mwss(
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
     ntheta = samples.ntheta(2 * L, sampling)
-    # ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
 
-    # print(f"ftm.shape = {ftm.shape}")
     ftm = fft.fftshift(fft.fft(f_up, axis=1, norm="backward"), axes=1)
-    print(f"ftm.shape = {ftm.shape}")
 
     # Don't need to include spin in weights (even for spin signals)
     # since accounted for already in periodic extension and upsampling.
     weights = samples.quad_weights_mwss_theta_only(2 * L, spin=0) * 2 * np.pi / (2 * L)
-
-    print(f"L = {L}")
-    print(f"f.shape = {f.shape}")
-    print(f"f_ext.shape = {f_ext.shape}")
-    print(f"f_ext_up.shape = {f_ext_up.shape}")
-    print(f"f_up.shape = {f_up.shape}")
-    print(f"thetas.shape = {thetas.shape}")
-    print(f"phis_equiang.shape = {phis_equiang.shape}")
-    print(f"ntheta = {ntheta}")
-    print(f"weights.shape = {weights.shape}")
 
     m_offset = 1 if sampling == "mwss" else 0
 
