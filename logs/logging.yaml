@@ -1,5 +1,5 @@
 # =============================================================
-# Logging setup for LatentWaves Software package (2022)
+# Logging setup for S2fft Software package (2022)
 # =============================================================
 
 version: 1
@@ -47,7 +47,7 @@ handlers:
         encoding: utf8
 
 loggers:
-    LatentWaves:
+    s2fft:
         level: DEBUG
         handlers: [console, critical_file_handler, info_file_handler, debug_file_handler]
         propagate: no
