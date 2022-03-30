@@ -107,7 +107,7 @@ def inverse_sov_fft(
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
     nphi = samples.nphi_equiang(L, sampling)
-    fmt = np.zeros((nphi, ntheta), dtype=np.complex128)
+    ftm = np.zeros((ntheta, nphi), dtype=np.complex128)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
@@ -124,12 +124,11 @@ def inverse_sov_fft(
                     i = samples.elm2ind(el, m)
 
                     m_offset = 1 if sampling == "mwss" else 0
-                    fmt[m + L - 1 + m_offset, t] += (
+                    ftm[t, m + L - 1 + m_offset] += (
                         (-1) ** spin * elfactor * dl[m + L - 1, -spin + L - 1] * flm[i]
                     )
 
-    f = fft.ifft(fft.ifftshift(fmt, axes=0), axis=0, norm="forward")
-    f = np.transpose(f)
+    f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
     return f
 
@@ -263,10 +262,10 @@ def forward_sov_fft(
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
     ntheta = samples.ntheta(L, sampling)
-    fmt = np.zeros((2 * L - 1, ntheta), dtype=np.complex128)
+    ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
 
-    fmt = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
-    fmt = np.transpose(fmt)  # TODO: remove all transposes
+    ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
+    # fmt = np.transpose(fmt)  # TODO: remove all transposes
 
     weights = samples.quad_weights(L, sampling)
 
@@ -289,7 +288,7 @@ def forward_sov_fft(
                         * (-1) ** spin
                         * elfactor
                         * dl[m + L - 1, -spin + L - 1]
-                        * fmt[m + L - 1, t]
+                        * ftm[t, m + L - 1]
                     )
 
     return flm
