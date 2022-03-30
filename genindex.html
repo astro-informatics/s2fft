@@ -63,6 +63,11 @@
 <li class="toctree-l1"><a class="reference internal" href="api/trapani.html">s2fft.wigner.trapani</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/risbo.html">s2fft.wigner.risbo</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/logs.html">s2fft.logs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/legendre_matrix.html">s2fft.precompute.construct_legendre_matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/precompute_transforms.html">s2fft.precompute.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/sampling.html">s2fft.sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/transforms.html">s2fft.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/utils.html">s2fft.utils</a></li>
 </ul>
 
         </div>
@@ -96,6 +101,7 @@
  | <a href="#D"><strong>D</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#I"><strong>I</strong></a>
+ | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#W"><strong>W</strong></a>
@@ -104,6 +110,8 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/legendre_matrix.html#s2fft.precompute.construct_legendre_matrix.compile_warnings">compile_warnings() (in module s2fft.precompute.construct_legendre_matrix)</a>
+</li>
       <li><a href="api/index.html#s2fft.wigner.trapani.compute_eighth">compute_eighth() (in module s2fft.wigner.trapani)</a>, <a href="api/trapani.html#s2fft.wigner.trapani.compute_eighth">[1]</a>
 </li>
       <li><a href="api/risbo.html#s2fft.wigner.risbo.compute_full">compute_full() (in module s2fft.wigner.risbo)</a>
@@ -121,6 +129,10 @@
       <li><a href="api/index.html#s2fft.wigner.trapani.compute_quarter_jax">compute_quarter_jax() (in module s2fft.wigner.trapani)</a>, <a href="api/trapani.html#s2fft.wigner.trapani.compute_quarter_jax">[1]</a>
 </li>
       <li><a href="api/index.html#s2fft.wigner.trapani.compute_quarter_vectorized">compute_quarter_vectorized() (in module s2fft.wigner.trapani)</a>, <a href="api/trapani.html#s2fft.wigner.trapani.compute_quarter_vectorized">[1]</a>
+</li>
+      <li><a href="api/legendre_matrix.html#s2fft.precompute.construct_legendre_matrix.construct_legendre_matrix">construct_legendre_matrix() (in module s2fft.precompute.construct_legendre_matrix)</a>
+</li>
+      <li><a href="api/legendre_matrix.html#s2fft.precompute.construct_legendre_matrix.construct_legendre_matrix_inverse">construct_legendre_matrix_inverse() (in module s2fft.precompute.construct_legendre_matrix)</a>
 </li>
       <li><a href="api/index.html#id0">critical_log() (in module s2fft.logs)</a>, <a href="api/index.html#s2fft.logs.critical_log">[1]</a>, <a href="api/logs.html#s2fft.logs.critical_log">[2]</a>
 </li>
@@ -144,15 +156,21 @@
 </li>
       <li><a href="api/index.html#s2fft.wigner.trapani.fill_half2full_jax">fill_half2full_jax() (in module s2fft.wigner.trapani)</a>, <a href="api/trapani.html#s2fft.wigner.trapani.fill_half2full_jax">[1]</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#s2fft.wigner.trapani.fill_half2full_vectorized">fill_half2full_vectorized() (in module s2fft.wigner.trapani)</a>, <a href="api/trapani.html#s2fft.wigner.trapani.fill_half2full_vectorized">[1]</a>
 </li>
       <li><a href="api/index.html#s2fft.wigner.trapani.fill_quarter2half">fill_quarter2half() (in module s2fft.wigner.trapani)</a>, <a href="api/trapani.html#s2fft.wigner.trapani.fill_quarter2half">[1]</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#s2fft.wigner.trapani.fill_quarter2half_jax">fill_quarter2half_jax() (in module s2fft.wigner.trapani)</a>, <a href="api/trapani.html#s2fft.wigner.trapani.fill_quarter2half_jax">[1]</a>
 </li>
       <li><a href="api/index.html#s2fft.wigner.trapani.fill_quarter2half_vectorized">fill_quarter2half_vectorized() (in module s2fft.wigner.trapani)</a>, <a href="api/trapani.html#s2fft.wigner.trapani.fill_quarter2half_vectorized">[1]</a>
+</li>
+      <li><a href="api/precompute_transforms.html#s2fft.precompute.transforms.forward_precompute">forward_precompute() (in module s2fft.precompute.transforms)</a>
+</li>
+      <li><a href="api/precompute_transforms.html#s2fft.precompute.transforms.forward_transform_cpu">forward_transform_cpu() (in module s2fft.precompute.transforms)</a>
+</li>
+      <li><a href="api/precompute_transforms.html#s2fft.precompute.transforms.forward_transform_gpu">forward_transform_gpu() (in module s2fft.precompute.transforms)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -162,11 +180,25 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#id2">info_log() (in module s2fft.logs)</a>, <a href="api/index.html#s2fft.logs.info_log">[1]</a>, <a href="api/logs.html#s2fft.logs.info_log">[2]</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#s2fft.wigner.trapani.init">init() (in module s2fft.wigner.trapani)</a>, <a href="api/trapani.html#s2fft.wigner.trapani.init">[1]</a>
 </li>
       <li><a href="api/index.html#s2fft.wigner.trapani.init_jax">init_jax() (in module s2fft.wigner.trapani)</a>, <a href="api/trapani.html#s2fft.wigner.trapani.init_jax">[1]</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/precompute_transforms.html#s2fft.precompute.transforms.inverse_precompute">inverse_precompute() (in module s2fft.precompute.transforms)</a>
+</li>
+      <li><a href="api/precompute_transforms.html#s2fft.precompute.transforms.inverse_transform_cpu">inverse_transform_cpu() (in module s2fft.precompute.transforms)</a>
+</li>
+      <li><a href="api/precompute_transforms.html#s2fft.precompute.transforms.inverse_transform_gpu">inverse_transform_gpu() (in module s2fft.precompute.transforms)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/legendre_matrix.html#s2fft.precompute.construct_legendre_matrix.load_legendre_matrix">load_legendre_matrix() (in module s2fft.precompute.construct_legendre_matrix)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -179,6 +211,14 @@
 
       <ul>
         <li><a href="api/index.html#module-0">s2fft.logs</a>, <a href="api/index.html#module-s2fft.logs">[1]</a>, <a href="api/logs.html#module-s2fft.logs">[2]</a>
+</li>
+        <li><a href="api/legendre_matrix.html#module-s2fft.precompute.construct_legendre_matrix">s2fft.precompute.construct_legendre_matrix</a>
+</li>
+        <li><a href="api/precompute_transforms.html#module-s2fft.precompute.transforms">s2fft.precompute.transforms</a>
+</li>
+        <li><a href="api/sampling.html#module-s2fft.sampling">s2fft.sampling</a>
+</li>
+        <li><a href="api/utils.html#module-s2fft.utils">s2fft.utils</a>
 </li>
         <li><a href="api/risbo.html#module-s2fft.wigner.risbo">s2fft.wigner.risbo</a>
 </li>
@@ -199,14 +239,42 @@
 </li>
       </ul></li>
       <li>
+    s2fft.precompute.construct_legendre_matrix
+
+      <ul>
+        <li><a href="api/legendre_matrix.html#module-s2fft.precompute.construct_legendre_matrix">module</a>
+</li>
+      </ul></li>
+      <li>
+    s2fft.precompute.transforms
+
+      <ul>
+        <li><a href="api/precompute_transforms.html#module-s2fft.precompute.transforms">module</a>
+</li>
+      </ul></li>
+      <li>
+    s2fft.sampling
+
+      <ul>
+        <li><a href="api/sampling.html#module-s2fft.sampling">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    s2fft.utils
+
+      <ul>
+        <li><a href="api/utils.html#module-s2fft.utils">module</a>
+</li>
+      </ul></li>
+      <li>
     s2fft.wigner.risbo
 
       <ul>
         <li><a href="api/risbo.html#module-s2fft.wigner.risbo">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     s2fft.wigner.trapani
 
