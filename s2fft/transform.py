@@ -106,7 +106,8 @@ def inverse_sov_fft(
 
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
-    fmt = np.zeros((2 * L - 1, ntheta), dtype=np.complex128)
+    nphi = samples.nphi_equiang(L, sampling)
+    fmt = np.zeros((nphi, ntheta), dtype=np.complex128)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
@@ -122,7 +123,8 @@ def inverse_sov_fft(
 
                     i = samples.elm2ind(el, m)
 
-                    fmt[m + L - 1, t] += (
+                    m_offset = 1 if sampling == "mwss" else 0
+                    fmt[m + L - 1 + m_offset, t] += (
                         (-1) ** spin * elfactor * dl[m + L - 1, -spin + L - 1] * flm[i]
                     )
 
