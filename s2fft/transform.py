@@ -61,7 +61,7 @@ def inverse_sov(
 
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
-    fmt = np.zeros((2 * L - 1, ntheta), dtype=np.complex128)
+    ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
@@ -76,7 +76,7 @@ def inverse_sov(
 
                     i = samples.elm2ind(el, m)
 
-                    fmt[m + L - 1, t] += (
+                    ftm[t, m + L - 1] += (
                         (-1) ** spin * elfactor * dl[m + L - 1, -spin + L - 1] * flm[i]
                     )
 
@@ -86,7 +86,7 @@ def inverse_sov(
 
             for m in range(-(L - 1), L):
 
-                f[t, p] += fmt[m + L - 1, t] * np.exp(1j * m * phi)
+                f[t, p] += ftm[t, m + L - 1] * np.exp(1j * m * phi)
 
     return f
 
@@ -205,14 +205,14 @@ def forward_sov(
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
     ntheta = samples.ntheta(L, sampling)
-    fmt = np.zeros((2 * L - 1, ntheta), dtype=np.complex128)
+    ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
 
         for m in range(-(L - 1), L):
 
             for p, phi in enumerate(phis_equiang):
 
-                fmt[m + L - 1, t] += np.exp(-1j * m * phi) * f[t, p]
+                ftm[t, m + L - 1] += np.exp(-1j * m * phi) * f[t, p]
 
     weights = samples.quad_weights(L, sampling)
     for t, theta in enumerate(thetas):
@@ -234,7 +234,7 @@ def forward_sov(
                         * (-1) ** spin
                         * elfactor
                         * dl[m + L - 1, -spin + L - 1]
-                        * fmt[m + L - 1, t]
+                        * ftm[t, m + L - 1]
                     )
 
     return flm
@@ -265,7 +265,6 @@ def forward_sov_fft(
     ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
 
     ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
-    # fmt = np.transpose(fmt)  # TODO: remove all transposes
 
     weights = samples.quad_weights(L, sampling)
 
