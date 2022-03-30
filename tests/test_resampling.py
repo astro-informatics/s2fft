@@ -17,10 +17,12 @@ def test_periodic_extension_invalid_sampling():
 
 
 @pytest.mark.parametrize("L", [5])
-@pytest.mark.parametrize("spin", [0])
-@pytest.mark.parametrize("reality", [False])
-def test_periodic_extension_mwss(flm_generator, L: int, spin: int, reality: bool):
+@pytest.mark.parametrize(
+    "spin_reality", [(0, True), (0, False), (1, False), (2, False)]
+)
+def test_periodic_extension_mwss(flm_generator, L: int, spin_reality):
 
+    (spin, reality) = spin_reality
     flm = flm_generator(L=L, spin=spin, reality=reality)
     f = s2f.transform.inverse_sov_fft(flm, L, spin, sampling="mwss")
 
