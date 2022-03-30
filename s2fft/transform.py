@@ -306,7 +306,8 @@ def forward_sov_fft_mwss(
             f"Sampling scheme sampling={sampling} not implement (only DH supported at present)"
         )
 
-    f_ext = resampling.periodic_extension_spatial_mwss(f, L, spin)
+    f_ext = resampling.periodic_extension(f, L, spin, sampling)
+    # f_ext = resampling.periodic_extension_spatial_mwss(f, L, spin)
     f_ext_up = resampling.upsample_by_two_mwss(f_ext, L)
     f_up = resampling.unextend(f_ext_up, 2 * L, sampling)
 
@@ -326,8 +327,9 @@ def forward_sov_fft_mwss(
     ftm = fft.fftshift(fft.fft(f_up, axis=1, norm="backward"), axes=1)
     print(f"ftm.shape = {ftm.shape}")
 
-    # weights = samples.quad_weights(L, sampling)
-    weights = samples.quad_weights_mwss_theta_only(2 * L, spin) * 2 * np.pi / (2 * L)
+    # Don't need to include spin in weights (even for spin signals)
+    # since accounted for already in periodic extension and upsampling.
+    weights = samples.quad_weights_mwss_theta_only(2 * L, spin=0) * 2 * np.pi / (2 * L)
 
     print(f"L = {L}")
     print(f"f.shape = {f.shape}")
