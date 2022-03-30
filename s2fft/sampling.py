@@ -171,7 +171,7 @@ def quad_weights_mw_theta_only(L):
         w[i + L - 1] = mw_weights(i)
 
     w *= np.exp(-1j * np.arange(-(L - 1), L) * np.pi / (2 * L - 1))
-    wr = np.real(fft.fft(fft.ifftshift(w))) / (2 * L - 1)
+    wr = np.real(fft.fft(fft.ifftshift(w), norm="backward")) / (2 * L - 1)
     q = wr[:L]
 
     q[: L - 1] = q[: L - 1] + wr[-1 : L - 1 : -1]
