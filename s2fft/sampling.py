@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.fft as fft
 
 def ntheta(L: int, sampling: str = "mw", nside: int = None) -> int:
 
@@ -167,7 +168,7 @@ def ncoeff(L):
     return elm2ind(L - 1, L - 1) + 1
 
 
-def weight_dh(theta: float, L: int) -> float:
+def quad_weight_dh_theta_only(theta: float, L: int) -> float:
 
     w = 0.0
     for k in range(0, L):
@@ -176,3 +177,81 @@ def weight_dh(theta: float, L: int) -> float:
     w *= 2 / L * np.sin(theta)
 
     return w
+
+
+def quad_weights(L: int, sampling: str, spin: int = 0) -> np.ndarray:
+
+    if sampling.lower() == "mw":
+        return quad_weights_mw(L, spin)
+
+    if sampling.lower() == "mwss":
+        return quad_weights_mwss(L, spin)
+
+    elif sampling.lower() == "dh":
+        return quad_weights_dh(L)
+
+    else:
+        raise ValueError(f"Sampling scheme sampling={sampling} not implement")
+
+
+def quad_weights_dh(L):
+
+    q = quad_weight_dh_theta_only(thetas(L, sampling="dh"), L)
+
+    return q * 2 * np.pi / (2 * L - 1)
+
+
+def quad_weights_mw(L, spin=0):
+
+    return quad_weights_mw_theta_only(L, spin) * 2 * np.pi / (2 * L - 1)
+
+
+def quad_weights_mwss(L, spin=0):
+
+    return quad_weights_mwss_theta_only(L, spin) * 2 * np.pi / (2 * L)
+
+
+def quad_weights_mwss_theta_only(L, spin=0):
+
+    w = np.zeros(2 * L, dtype=np.complex128)
+    # Extra negative m, so logically -el-1 <= m <= el.
+    for i in range(-(L - 1) + 1, L + 1):
+        w[i + L - 1] = mw_weights(i - 1)
+
+    wr = np.real(fft.fft(fft.ifftshift(w), norm="backward")) / (2 * L)
+
+    q = wr[: L + 1]
+
+    q[1:L] = q[1:L] + (-1) ** spin * wr[-1:L:-1]
+
+    return q
+
+
+def quad_weights_mw_theta_only(L, spin=0):
+
+    w = np.zeros(2 * L - 1, dtype=np.complex128)
+    for i in range(-(L - 1), L):
+        w[i + L - 1] = mw_weights(i)
+
+    w *= np.exp(-1j * np.arange(-(L - 1), L) * np.pi / (2 * L - 1))
+    wr = np.real(fft.fft(fft.ifftshift(w), norm="backward")) / (2 * L - 1)
+    q = wr[:L]
+
+    q[: L - 1] = q[: L - 1] + (-1) ** spin * wr[-1 : L - 1 : -1]
+
+    return q
+
+
+def mw_weights(m):
+
+    if m == 1:
+        return 1j * np.pi / 2
+
+    elif m == -1:
+        return -1j * np.pi / 2
+
+    elif m % 2 == 0:
+        return 2 / (1 - m**2)
+
+    else:
+        return 0
