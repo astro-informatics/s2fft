@@ -247,65 +247,6 @@ def forward_sov_fft(
 
     # TODO: Check f shape consistent with L
 
-    if sampling.lower() != "dh":
-
-        raise ValueError(
-            f"Sampling scheme sampling={sampling} not implement (only DH supported at present)"
-        )
-
-    ncoeff = samples.ncoeff(L)
-
-    flm = np.zeros(ncoeff, dtype=np.complex128)
-
-    thetas = samples.thetas(L, sampling)
-    phis_equiang = samples.phis_equiang(L, sampling)
-
-    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-
-    ntheta = samples.ntheta(L, sampling)
-    ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
-
-    ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
-
-    weights = samples.quad_weights(L, sampling)
-
-    for t, theta in enumerate(thetas):
-
-        for el in range(0, L):
-
-            dl = wigner.risbo.compute_full(dl, theta, L, el)
-
-            if el >= np.abs(spin):
-
-                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
-
-                for m in range(-el, el + 1):
-
-                    i = samples.elm2ind(el, m)
-
-                    flm[i] += (
-                        weights[t]
-                        * (-1) ** spin
-                        * elfactor
-                        * dl[m + L - 1, -spin + L - 1]
-                        * ftm[t, m + L - 1]
-                    )
-
-    return flm
-
-
-def forward_sov_fft_mwss(
-    f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
-) -> np.ndarray:
-
-    # TODO: Check f shape consistent with L
-
-    # if sampling.lower() not in ["mw", "mwss"]:
-    #     raise ValueError(
-    #         "Only mw and mwss supported for periodic extension "
-    #         f"(not sampling={sampling})"
-    #     )
-
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
 
@@ -319,20 +260,13 @@ def forward_sov_fft_mwss(
     ncoeff = samples.ncoeff(L)
     flm = np.zeros(ncoeff, dtype=np.complex128)
 
-    # phis_equiang = samples.phis_equiang(L, sampling)
-
-    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-
-    # ntheta = samples.ntheta(2 * L, sampling)
-
     ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
 
     # Don't need to include spin in weights (even for spin signals)
     # since accounted for already in periodic extension and upsampling.
     weights = samples.quad_weights_transform(L, sampling, spin=0)
-
     m_offset = 1 if sampling == "mwss" else 0
-
+    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
