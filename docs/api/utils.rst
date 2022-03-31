@@ -1,6 +1,5 @@
-
 **************************
-s2fft.logs
+s2fft.utils
 **************************
-.. automodule:: s2fft.logs
+.. automodule:: s2fft.utils
    :members: 

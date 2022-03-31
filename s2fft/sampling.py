@@ -1,7 +1,8 @@
 import numpy as np
+import numpy.fft as fft
 
 
-def ntheta(L: int, sampling: str = "mw") -> int:
+def ntheta(L: int, sampling: str = "mw", nside: int = None) -> int:
 
     if sampling.lower() == "mw":
 
@@ -11,15 +12,38 @@ def ntheta(L: int, sampling: str = "mw") -> int:
 
         return L + 1
 
+    elif sampling.lower() == "dh":
+
+        return 2 * L
+
     elif sampling.lower() == "healpix":
 
-        raise NotImplementedError(
-            f"Sampling scheme sampling={sampling} not implemented"
-        )
+        if nside is None:
+            raise ValueError(
+                f"Sampling scheme sampling={sampling} with nside={nside} not supported"
+            )
+        return 4 * nside - 1
 
     else:
 
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+
+
+def ntheta_extension(L: int, sampling: str = "mw") -> int:
+
+    if sampling.lower() == "mw":
+
+        return 2 * L - 1
+
+    elif sampling.lower() == "mwss":
+
+        return 2 * L
+
+    else:
+
+        raise ValueError(
+            f"Sampling scheme sampling={sampling} does not support periodic extension"
+        )
 
 
 def nphi_equiang(L: int, sampling: str = "mw") -> int:
@@ -32,6 +56,10 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
 
         return 2 * L
 
+    elif sampling.lower() == "dh":
+
+        return 2 * L - 1
+
     elif sampling.lower() == "healpix":
 
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
@@ -43,14 +71,29 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
     return 1
 
 
-def thetas(L: int, sampling: str = "mw") -> np.ndarray:
+def nphi_ring(t: int, nside: int = None) -> int:
 
-    t = np.arange(0, ntheta(L, sampling))
+    if (t >= 0) and (t < nside - 1):
+        return 4 * (t + 1)
 
-    return t2theta(L, t, sampling)
+    elif (t >= nside - 1) and (t <= 3 * nside - 1):
+        return 4 * nside
+
+    elif (t > 3 * nside - 1) and (t <= 4 * nside - 2):
+        return 4 * (4 * nside - t - 1)
+
+    else:
+        raise ValueError(f"Ring t={t} not contained by nside={nside}")
 
 
-def t2theta(L: int, t: int, sampling: str = "mw") -> np.ndarray:
+def thetas(L: int, sampling: str = "mw", nside: int = None) -> np.ndarray:
+
+    t = np.arange(0, ntheta(L, sampling, nside=nside)).astype(np.float64)
+
+    return t2theta(L, t, sampling, nside)
+
+
+def t2theta(L: int, t: int, sampling: str = "mw", nside: int = None) -> np.ndarray:
 
     if sampling.lower() == "mw":
 
@@ -60,15 +103,51 @@ def t2theta(L: int, t: int, sampling: str = "mw") -> np.ndarray:
 
         return 2 * t * np.pi / (2 * L)
 
+    elif sampling.lower() == "dh":
+
+        return (2 * t + 1) * np.pi / (4 * L)
+
     elif sampling.lower() == "healpix":
 
-        raise NotImplementedError(
-            f"Sampling scheme sampling={sampling} not implemented"
-        )
+        if nside is None:
+            raise ValueError(
+                f"Sampling scheme sampling={sampling} with nside={nside} not supported"
+            )
+
+        z = np.zeros_like(t)
+        z[t < nside - 1] = 1 - (t[t < nside - 1] + 1) ** 2 / (3 * nside**2)
+        z[(t >= nside - 1) & (t <= 3 * nside - 1)] = 4 / 3 - 2 * (
+            t[(t >= nside - 1) & (t <= 3 * nside - 1)] + 1
+        ) / (3 * nside)
+        z[(t > 3 * nside - 1) & (t <= 4 * nside - 2)] = (
+            4 * nside - 1 - t[(t > 3 * nside - 1) & (t <= 4 * nside - 2)]
+        ) ** 2 / (3 * nside**2) - 1
+        return np.arccos(z)
 
     else:
 
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+
+
+def phis_ring(t: int, nside: int) -> np.ndarray:
+
+    p = np.arange(0, nphi_ring(t, nside)).astype(np.float64)
+
+    return p2phi_ring(t, p, nside)
+
+
+def p2phi_ring(t: int, p: int, nside: int) -> np.ndarray:
+
+    shift = 1 / 2
+    if (t + 1 >= nside) & (t + 1 <= 3 * nside):
+        shift *= (t - nside + 2) % 2
+        factor = np.pi / (2 * nside)
+        return factor * (p + shift)
+    elif t + 1 > 3 * nside:
+        factor = np.pi / (2 * (4 * nside - t - 1))
+    else:
+        factor = np.pi / (2 * (t + 1))
+    return factor * (p + shift)
 
 
 def phis_equiang(L: int, sampling: str = "mw") -> np.ndarray:
@@ -87,6 +166,10 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
     elif sampling.lower() == "mwss":
 
         return 2 * p * np.pi / (2 * L)
+
+    elif sampling.lower() == "dh":
+
+        return 2 * p * np.pi / (2 * L - 1)
 
     elif sampling.lower() == "healpix":
 
@@ -114,3 +197,104 @@ def ind2elm(ind):
 def ncoeff(L):
 
     return elm2ind(L - 1, L - 1) + 1
+
+
+def quad_weight_dh_theta_only(theta: float, L: int) -> float:
+
+    w = 0.0
+    for k in range(0, L):
+        w += np.sin((2 * k + 1) * theta) / (2 * k + 1)
+
+    w *= 2 / L * np.sin(theta)
+
+    return w
+
+
+def quad_weights_transform(L: int, sampling: str, spin: int = 0) -> np.ndarray:
+
+    if sampling.lower() == "mwss":
+        return quad_weights_mwss_theta_only(2 * L, spin=0) * 2 * np.pi / (2 * L)
+
+    elif sampling.lower() == "dh":
+        return quad_weights_dh(L)
+
+    else:
+        raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+
+
+def quad_weights(L: int, sampling: str, spin: int = 0) -> np.ndarray:
+
+    if sampling.lower() == "mw":
+        return quad_weights_mw(L, spin)
+
+    if sampling.lower() == "mwss":
+        return quad_weights_mwss(L, spin)
+
+    elif sampling.lower() == "dh":
+        return quad_weights_dh(L)
+
+    else:
+        raise ValueError(f"Sampling scheme sampling={sampling} not implemented")
+
+
+def quad_weights_dh(L):
+
+    q = quad_weight_dh_theta_only(thetas(L, sampling="dh"), L)
+
+    return q * 2 * np.pi / (2 * L - 1)
+
+
+def quad_weights_mw(L, spin=0):
+
+    return quad_weights_mw_theta_only(L, spin) * 2 * np.pi / (2 * L - 1)
+
+
+def quad_weights_mwss(L, spin=0):
+
+    return quad_weights_mwss_theta_only(L, spin) * 2 * np.pi / (2 * L)
+
+
+def quad_weights_mwss_theta_only(L, spin=0):
+
+    w = np.zeros(2 * L, dtype=np.complex128)
+    # Extra negative m, so logically -el-1 <= m <= el.
+    for i in range(-(L - 1) + 1, L + 1):
+        w[i + L - 1] = mw_weights(i - 1)
+
+    wr = np.real(fft.fft(fft.ifftshift(w), norm="backward")) / (2 * L)
+
+    q = wr[: L + 1]
+
+    q[1:L] = q[1:L] + (-1) ** spin * wr[-1:L:-1]
+
+    return q
+
+
+def quad_weights_mw_theta_only(L, spin=0):
+
+    w = np.zeros(2 * L - 1, dtype=np.complex128)
+    for i in range(-(L - 1), L):
+        w[i + L - 1] = mw_weights(i)
+
+    w *= np.exp(-1j * np.arange(-(L - 1), L) * np.pi / (2 * L - 1))
+    wr = np.real(fft.fft(fft.ifftshift(w), norm="backward")) / (2 * L - 1)
+    q = wr[:L]
+
+    q[: L - 1] = q[: L - 1] + (-1) ** spin * wr[-1 : L - 1 : -1]
+
+    return q
+
+
+def mw_weights(m):
+
+    if m == 1:
+        return 1j * np.pi / 2
+
+    elif m == -1:
+        return -1j * np.pi / 2
+
+    elif m % 2 == 0:
+        return 2 / (1 - m**2)
+
+    else:
+        return 0

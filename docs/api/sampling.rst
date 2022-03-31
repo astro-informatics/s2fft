@@ -1,5 +1,5 @@
 **************************
-s2fft.wigner.trapani
+s2fft.sampling
 **************************
-.. automodule:: s2fft.wigner.trapani
+.. automodule:: s2fft.sampling
    :members: 

@@ -13,7 +13,7 @@
 .. |ArXiv| image:: http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat
     :target: https://arxiv.org/abs/xxxx.xxxxx
 
-<project-name>
+S2FFT: JAX accelerated spin-spherical harmonic transforms
 =================================================================================================================
 
 Add some basic discussion about ``<project-name>`` here.
@@ -68,6 +68,8 @@ the non-commercial use condition (see `LICENSE_EXT.txt <https://github.com/astro
     :notcited:
     :list: bullet
 
+* :ref:`modindex`
+
 .. toctree::
    :hidden:
    :maxdepth: 2
@@ -95,7 +97,15 @@ the non-commercial use condition (see `LICENSE_EXT.txt <https://github.com/astro
    :maxdepth: 2
    :caption: API
 
-   api/index
+   api/trapani
+   api/risbo
+   api/logs
+   api/legendre_matrix 
+   api/precompute_transforms
+   api/sampling 
+   api/transforms 
+   api/utils
+
 
 
 
