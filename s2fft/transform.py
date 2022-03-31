@@ -311,9 +311,7 @@ def forward_sov_fft_mwss(
 
     sampling = "mwss"
 
-    f_ext = resampling.periodic_extension_spatial_mwss(f, L, spin)
-    f_ext_up = resampling.upsample_by_two_mwss(f_ext, L)
-    f_up = resampling.unextend(f_ext_up, 2 * L, sampling)
+    f_up = resampling.upsample_by_two_mwss(f, L, spin)
 
     ncoeff = samples.ncoeff(L)
 
