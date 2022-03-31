@@ -300,11 +300,16 @@ def forward_sov_fft_mwss(
 
     # TODO: Check f shape consistent with L
 
-    if sampling.lower() != "mwss":
-
+    if sampling.lower() not in ["mw", "mwss"]:
         raise ValueError(
-            f"Sampling scheme sampling={sampling} not implement (only DH supported at present)"
+            "Only mw and mwss supported for periodic extension "
+            f"(not sampling={sampling})"
         )
+
+    if sampling.lower() == "mw":
+        f = resampling.mw_to_mwss(f, L, spin)
+
+    sampling = "mwss"
 
     f_ext = resampling.periodic_extension_spatial_mwss(f, L, spin)
     f_ext_up = resampling.upsample_by_two_mwss(f_ext, L)
