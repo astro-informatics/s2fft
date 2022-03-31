@@ -2,6 +2,7 @@ from random import sample
 import numpy as np
 import numpy.fft as fft
 import s2fft.sampling as samples
+import s2fft.resampling as resampling
 import s2fft.wigner as wigner
 
 
@@ -62,7 +63,7 @@ def inverse_sov(
 
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
-    fmt = np.zeros((2 * L - 1, ntheta), dtype=np.complex128)
+    ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
@@ -77,7 +78,7 @@ def inverse_sov(
 
                     i = samples.elm2ind(el, m)
 
-                    fmt[m + L - 1, t] += (
+                    ftm[t, m + L - 1] += (
                         (-1) ** spin * elfactor * dl[m + L - 1, -spin + L - 1] * flm[i]
                     )
 
@@ -87,7 +88,7 @@ def inverse_sov(
 
             for m in range(-(L - 1), L):
 
-                f[t, p] += fmt[m + L - 1, t] * np.exp(1j * m * phi)
+                f[t, p] += ftm[t, m + L - 1] * np.exp(1j * m * phi)
 
     return f
 
@@ -206,70 +207,16 @@ def forward_sov(
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
     ntheta = samples.ntheta(L, sampling)
-    fmt = np.zeros((2 * L - 1, ntheta), dtype=np.complex128)
+    ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
 
         for m in range(-(L - 1), L):
 
             for p, phi in enumerate(phis_equiang):
 
-                fmt[m + L - 1, t] += np.exp(-1j * m * phi) * f[t, p]
+                ftm[t, m + L - 1] += np.exp(-1j * m * phi) * f[t, p]
 
     weights = samples.quad_weights(L, sampling)
-    for t, theta in enumerate(thetas):
-
-        for el in range(0, L):
-
-            dl = wigner.risbo.compute_full(dl, theta, L, el)
-
-            if el >= np.abs(spin):
-
-                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
-
-                for m in range(-el, el + 1):
-
-                    i = samples.elm2ind(el, m)
-
-                    flm[i] += (
-                        weights[t]
-                        * (-1) ** spin
-                        * elfactor
-                        * dl[m + L - 1, -spin + L - 1]
-                        * fmt[m + L - 1, t]
-                    )
-
-    return flm
-
-
-def forward_sov_fft(
-    f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
-) -> np.ndarray:
-
-    # TODO: Check f shape consistent with L
-
-    if sampling.lower() != "dh":
-
-        raise ValueError(
-            f"Sampling scheme sampling={sampling} not implement (only DH supported at present)"
-        )
-
-    ncoeff = samples.ncoeff(L)
-
-    flm = np.zeros(ncoeff, dtype=np.complex128)
-
-    thetas = samples.thetas(L, sampling)
-    phis_equiang = samples.phis_equiang(L, sampling)
-
-    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-
-    ntheta = samples.ntheta(L, sampling)
-    ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
-
-    ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
-    # fmt = np.transpose(fmt)  # TODO: remove all transposes
-
-    weights = samples.quad_weights(L, sampling)
-
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
@@ -290,6 +237,57 @@ def forward_sov_fft(
                         * elfactor
                         * dl[m + L - 1, -spin + L - 1]
                         * ftm[t, m + L - 1]
+                    )
+
+    return flm
+
+
+def forward_sov_fft(
+    f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+) -> np.ndarray:
+
+    # TODO: Check f shape consistent with L
+
+    if sampling.lower() == "mw":
+        f = resampling.mw_to_mwss(f, L, spin)
+
+    if sampling.lower() in ["mw", "mwss"]:
+        sampling = "mwss"
+        f = resampling.upsample_by_two_mwss(f, L, spin)
+        thetas = samples.thetas(2 * L, sampling)
+    else:
+        thetas = samples.thetas(L, sampling)
+
+    ncoeff = samples.ncoeff(L)
+    flm = np.zeros(ncoeff, dtype=np.complex128)
+
+    ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
+
+    # Don't need to include spin in weights (even for spin signals)
+    # since accounted for already in periodic extension and upsampling.
+    weights = samples.quad_weights_transform(L, sampling, spin=0)
+    m_offset = 1 if sampling == "mwss" else 0
+    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    for t, theta in enumerate(thetas):
+
+        for el in range(0, L):
+
+            dl = wigner.risbo.compute_full(dl, theta, L, el)
+
+            if el >= np.abs(spin):
+
+                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+
+                for m in range(-el, el + 1):
+
+                    i = samples.elm2ind(el, m)
+
+                    flm[i] += (
+                        weights[t]
+                        * (-1) ** spin
+                        * elfactor
+                        * dl[m + L - 1, -spin + L - 1]
+                        * ftm[t, m + L - 1 + m_offset]
                     )
 
     return flm

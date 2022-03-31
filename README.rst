@@ -1,4 +1,4 @@
-.. image:: https://img.shields.io/badge/GitHub-PyTemplate-brightgreen.svg?style=flat
+.. image:: https://img.shields.io/badge/GitHub-s2fft-brightgreen.svg?style=flat
     :target: https://github.com/astro-informatics/s2fft
 .. image:: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml
