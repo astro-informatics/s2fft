@@ -54,7 +54,20 @@ def periodic_extension_spatial_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.
     return f_ext
 
 
-def upsample_by_two_mwss(f_ext: np.ndarray, L: int) -> np.ndarray:
+def upsample_by_two_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
+
+    f_ext = periodic_extension_spatial_mwss(f, L, spin)
+    f_ext_up = upsample_by_two_mwss_ext(f_ext, L)
+    f_up = unextend(f_ext_up, 2 * L, sampling="mwss")
+
+    return f_up
+
+
+def upsample_by_two_mwss_ext(f_ext: np.ndarray, L: int) -> np.ndarray:
+    """TODO
+
+    This works with theta range over 2*pi
+    """
 
     ntheta = samples.ntheta(L, sampling="mwss")
     nphi = samples.nphi_equiang(L, sampling="mwss")

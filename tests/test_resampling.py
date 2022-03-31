@@ -45,7 +45,7 @@ def test_mwss_upsample_downsample(flm_generator, L: int, spin_reality):
 
     f_ext = s2f.resampling.periodic_extension_spatial_mwss(f, L, spin)
 
-    f_ext_up = s2f.resampling.upsample_by_two_mwss(f_ext, L)
+    f_ext_up = s2f.resampling.upsample_by_two_mwss_ext(f_ext, L)
 
     f_ext_up_down = s2f.resampling.downsample_by_two_mwss(f_ext_up, 2 * L)
 
