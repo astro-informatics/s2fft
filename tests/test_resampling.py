@@ -54,10 +54,12 @@ def test_mwss_upsample_downsample(flm_generator, L: int, spin_reality):
 
 @pytest.mark.parametrize("L", [5])
 @pytest.mark.parametrize("sampling", ["mw", "mwss"])
-def test_unextend(flm_generator, L: int, sampling: str):
+@pytest.mark.parametrize(
+    "spin_reality", [(0, True), (0, False), (1, False), (2, False)]
+)
+def test_unextend(flm_generator, L: int, sampling: str, spin_reality):
 
-    reality = False
-    spin = 0
+    (spin, reality) = spin_reality
     flm = flm_generator(L=L, spin=spin, reality=reality)
     f = s2f.transform.inverse_sov_fft(flm, L, spin, sampling=sampling)
 
@@ -77,3 +79,19 @@ def test_unextend_invalid_sampling():
 
     with pytest.raises(ValueError) as e:
         s2f.resampling.unextend(f_dummy, L=5, sampling="dh")
+
+
+@pytest.mark.parametrize("L", [5])
+@pytest.mark.parametrize(
+    "spin_reality", [(0, True), (0, False), (1, False), (2, False)]
+)
+def test_mw_to_mwss_theta(flm_generator, L: int, spin_reality):
+
+    (spin, reality) = spin_reality
+    flm = flm_generator(L=L, spin=spin, reality=reality)
+    f_mw = s2f.transform.inverse_sov_fft(flm, L, spin, sampling="mw")
+    f_mwss = s2f.transform.inverse_sov_fft(flm, L, spin, sampling="mwss")
+
+    f_mwss_converted = s2f.resampling.mw_to_mwss(f_mw, L, spin)
+
+    np.testing.assert_allclose(f_mwss, f_mwss_converted, atol=1e-10)
