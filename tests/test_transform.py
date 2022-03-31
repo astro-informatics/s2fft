@@ -89,30 +89,28 @@ def test_transform_forward_sov(flm_generator, L: int, spin: int, sampling: str):
     np.testing.assert_allclose(flm, flm_recov, atol=1e-14)
 
 
-@pytest.mark.skip(reason="Temporarily skipped for faster development")
-@pytest.mark.parametrize("L", L_to_test)
-@pytest.mark.parametrize("spin", spin_to_test)
-@pytest.mark.parametrize("sampling", ["dh"])
-def test_transform_forward_sov_fft(flm_generator, L: int, spin: int, sampling: str):
+# @pytest.mark.skip(reason="Temporarily skipped for faster development")
+# @pytest.mark.parametrize("L", L_to_test)
+# @pytest.mark.parametrize("spin", spin_to_test)
+# @pytest.mark.parametrize("sampling", ["dh"])
+# def test_transform_forward_sov_fft(flm_generator, L: int, spin: int, sampling: str):
 
-    # TODO: move this and potentially do better
-    np.random.seed(2)
+#     # TODO: move this and potentially do better
+#     np.random.seed(2)
 
-    flm = flm_generator(L=L, spin=spin, reality=False)
+#     flm = flm_generator(L=L, spin=spin, reality=False)
 
-    f = s2f.transform.inverse_direct(flm, L, spin, sampling)
+#     f = s2f.transform.inverse_direct(flm, L, spin, sampling)
 
-    flm_recov = s2f.transform.forward_sov_fft(f, L, spin, sampling)
+#     flm_recov = s2f.transform.forward_sov_fft(f, L, spin, sampling)
 
-    np.testing.assert_allclose(flm, flm_recov, atol=1e-14)
+#     np.testing.assert_allclose(flm, flm_recov, atol=1e-14)
 
 
 @pytest.mark.parametrize("L", [5])
 @pytest.mark.parametrize("spin", [0, 1, 2])
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
-def test_transform_forward_sov_fft_mwss(
-    flm_generator, L: int, spin: int, sampling: str
-):
+def test_transform_forward_sov_fft(flm_generator, L: int, spin: int, sampling: str):
 
     # TODO: move this and potentially do better
     np.random.seed(2)
@@ -121,6 +119,6 @@ def test_transform_forward_sov_fft_mwss(
 
     f = s2f.transform.inverse_direct(flm, L, spin, sampling)
 
-    flm_recov = s2f.transform.forward_sov_fft_mwss(f, L, spin, sampling)
+    flm_recov = s2f.transform.forward_sov_fft(f, L, spin, sampling)
 
     np.testing.assert_allclose(flm, flm_recov, atol=1e-14)
