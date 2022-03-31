@@ -109,7 +109,7 @@ def test_transform_forward_sov_fft(flm_generator, L: int, spin: int, sampling: s
 
 @pytest.mark.parametrize("L", [5])
 @pytest.mark.parametrize("spin", [0, 1, 2])
-@pytest.mark.parametrize("sampling", ["mwss"])
+@pytest.mark.parametrize("sampling", ["mw", "mwss"])
 def test_transform_forward_sov_fft_mwss(
     flm_generator, L: int, spin: int, sampling: str
 ):
