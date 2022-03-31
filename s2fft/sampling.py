@@ -2,6 +2,7 @@ from tkinter import E
 import numpy as np
 import numpy.fft as fft
 
+
 def ntheta(L: int, sampling: str = "mw", nside: int = None) -> int:
 
     if sampling.lower() == "mw":
@@ -19,7 +20,9 @@ def ntheta(L: int, sampling: str = "mw", nside: int = None) -> int:
     elif sampling.lower() == "healpix":
 
         if nside is None:
-            raise ValueError(f"Sampling scheme sampling={sampling} with nside={nside} not supported")
+            raise ValueError(
+                f"Sampling scheme sampling={sampling} with nside={nside} not supported"
+            )
         return 4 * nside - 1
 
     else:
@@ -51,19 +54,21 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
 
     return 1
 
+
 def nphi_ring(t: int, nside: int = None) -> int:
 
-    if (t >= 0) and (t < nside-1):
-        return 4 * (t+1) 
-    
-    elif (t >= nside-1) and (t <= 3*nside-1):
-        return 4 * nside 
-    
-    elif (t > 3*nside-1) and (t <= 4*nside - 2):
+    if (t >= 0) and (t < nside - 1):
+        return 4 * (t + 1)
+
+    elif (t >= nside - 1) and (t <= 3 * nside - 1):
+        return 4 * nside
+
+    elif (t > 3 * nside - 1) and (t <= 4 * nside - 2):
         return 4 * (4 * nside - t - 1)
-    
+
     else:
         raise ValueError(f"Ring t={t} not contained by nside={nside}")
+
 
 def thetas(L: int, sampling: str = "mw", nside: int = None) -> np.ndarray:
 
@@ -89,17 +94,24 @@ def t2theta(L: int, t: int, sampling: str = "mw", nside: int = None) -> np.ndarr
     elif sampling.lower() == "healpix":
 
         if nside is None:
-            raise ValueError(f"Sampling scheme sampling={sampling} with nside={nside} not supported")
+            raise ValueError(
+                f"Sampling scheme sampling={sampling} with nside={nside} not supported"
+            )
 
         z = np.zeros_like(t)
-        z[t < nside-1] = 1 - (t[t < nside-1] +1)**2/(3*nside**2)
-        z[(t >= nside-1) & (t <= 3*nside-1)] =  4/3 - 2*(t[(t >= nside-1) & (t <= 3*nside-1)] +1)/(3*nside)
-        z[(t > 3*nside-1) & (t <= 4*nside - 2)] = (4 * nside - 1 - t[(t > 3*nside-1) & (t <= 4*nside - 2)])**2/(3*nside**2) - 1
+        z[t < nside - 1] = 1 - (t[t < nside - 1] + 1) ** 2 / (3 * nside**2)
+        z[(t >= nside - 1) & (t <= 3 * nside - 1)] = 4 / 3 - 2 * (
+            t[(t >= nside - 1) & (t <= 3 * nside - 1)] + 1
+        ) / (3 * nside)
+        z[(t > 3 * nside - 1) & (t <= 4 * nside - 2)] = (
+            4 * nside - 1 - t[(t > 3 * nside - 1) & (t <= 4 * nside - 2)]
+        ) ** 2 / (3 * nside**2) - 1
         return np.arccos(z)
 
     else:
 
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+
 
 def phis_ring(t: int, nside: int) -> np.ndarray:
 
@@ -107,18 +119,20 @@ def phis_ring(t: int, nside: int) -> np.ndarray:
 
     return p2phi_ring(t, p, nside)
 
+
 def p2phi_ring(t: int, p: int, nside: int) -> np.ndarray:
 
-    shift = 1/2
-    if (t+1 >= nside) & (t+1 <= 3*nside):
-        shift *= ((t-nside+2)%2)
-        factor = np.pi/(2*nside)
-        return factor*(p + shift)
-    elif t+1 > 3*nside:
-        factor = np.pi/(2*(4 * nside - t - 1))
+    shift = 1 / 2
+    if (t + 1 >= nside) & (t + 1 <= 3 * nside):
+        shift *= (t - nside + 2) % 2
+        factor = np.pi / (2 * nside)
+        return factor * (p + shift)
+    elif t + 1 > 3 * nside:
+        factor = np.pi / (2 * (4 * nside - t - 1))
     else:
-        factor = np.pi/(2*(t+1))
-    return factor*(p+shift)
+        factor = np.pi / (2 * (t + 1))
+    return factor * (p + shift)
+
 
 def phis_equiang(L: int, sampling: str = "mw") -> np.ndarray:
 
@@ -190,18 +204,20 @@ def quad_weights(L: int, sampling: str, nside: int = None, spin: int = 0) -> np.
 
     elif sampling.lower() == "dh":
         return quad_weights_dh(L)
-    
+
     elif sampling.lower() == "healpix":
         return quad_weights_hp(nside)
 
     else:
         raise ValueError(f"Sampling scheme sampling={sampling} not implement")
 
+
 def quad_weights_hp(nside: int) -> np.ndarray:
     rings = ntheta(0, "healpix", nside)
     hp_weights = np.zeros(rings, dtype=np.float64)
     hp_weights[:] = np.pi / (3 * nside**2)
     return hp_weights
+
 
 def quad_weights_dh(L):
 
@@ -265,31 +281,33 @@ def mw_weights(m):
     else:
         return 0
 
+
 def hp_ang2pix(nside: int, theta: float, phi: float) -> int:
     """Translated function from healpix java implementation"""
     z = np.cos(theta)
     return zphi2pix(nside, z, phi)
 
+
 def zphi2pix(nside: int, z: float, phi: float) -> int:
     """Translated function from healpix java implementation"""
-    tt = 2*phi / np.pi
+    tt = 2 * phi / np.pi
     za = np.abs(z)
     nl2 = int(2 * nside)
     nl4 = int(4 * nside)
     ncap = int(nl2 * (nside - 1))
     npix = int(12 * nside**2)
-    if za < 2/3: # equatorial region
+    if za < 2 / 3:  # equatorial region
         jp = int(nside * (0.5 + tt - 0.75 * z))
         jm = int(nside * (0.5 + tt + 0.75 * z))
 
         ir = int(nside + 1 + jp - jm)
         kshift = 0
-        if ir%2 == 0:
+        if ir % 2 == 0:
             kshift = 1
-        ip =  int((jp + jm - nside + kshift + 1) / 2) + 1
+        ip = int((jp + jm - nside + kshift + 1) / 2) + 1
         ipix1 = ncap + nl4 * (ir - 1) + ip
 
-    else: # North and South polar caps
+    else:  # North and South polar caps
         tp = tt - int(tt)
         tmp = np.sqrt(3.0 * (1.0 - za))
         jp = int(nside * tp * tmp)

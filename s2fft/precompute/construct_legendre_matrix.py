@@ -29,7 +29,9 @@ def construct_legendre_matrix(
     nphi = sampling.nphi_equiang(L, sampling_method)
 
     lg.info_log(
-        "Sampling {} selected with angular bandlimit {} and spin {}".format(sampling_method, L, spin)
+        "Sampling {} selected with angular bandlimit {} and spin {}".format(
+            sampling_method, L, spin
+        )
     )
 
     Legendre = np.zeros((L * L, ntheta), dtype=np.complex128)
@@ -42,7 +44,8 @@ def construct_legendre_matrix(
         in_matrix[i, 0] = 1.0
 
         Legendre[:, i] = ssht.forward(
-            f=in_matrix, L=L, Method=sampling_method.upper(), Spin=spin).flatten("C")
+            f=in_matrix, L=L, Method=sampling_method.upper(), Spin=spin
+        ).flatten("C")
 
         lg.debug_log("Ending computing for theta index = {}".format(i))
 
@@ -96,7 +99,9 @@ def construct_legendre_matrix_inverse(
     ntheta = sampling.ntheta(L, sampling_method)
 
     lg.info_log(
-        "Sampling {} selected with angular bandlimit {} and spin {}".format(sampling_method, L, spin)
+        "Sampling {} selected with angular bandlimit {} and spin {}".format(
+            sampling_method, L, spin
+        )
     )
 
     Legendre_inverse = np.zeros((L * L, ntheta), dtype=np.complex128)
@@ -111,7 +116,8 @@ def construct_legendre_matrix_inverse(
             alm[:] = 0.0
             alm[ind] = 1.0
             Legendre_inverse[ind, :] = ssht.inverse(
-                flm=alm, L=L, Method=sampling_method.upper(), Spin=spin)[:, 0]
+                flm=alm, L=L, Method=sampling_method.upper(), Spin=spin
+            )[:, 0]
 
         lg.debug_log("Ending computing for l = {}".format(l))
 

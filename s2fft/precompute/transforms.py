@@ -37,7 +37,9 @@ def forward_precompute(f, L=4, legendre_kernel=None, device="cpu", spin=0):
     else:
         kernel = legendre_kernel
 
-    lg.debug_log("Running precompute forward harmonic transform for L={} on {}".format(L, device))
+    lg.debug_log(
+        "Running precompute forward harmonic transform for L={} on {}".format(L, device)
+    )
 
     if device == "cpu":
         return forward_transform_cpu(f, kernel, L)
@@ -107,7 +109,9 @@ def inverse_precompute(flm, L=4, legendre_kernel=None, device="cpu", spin=0):
     else:
         kernel = legendre_kernel
 
-    lg.debug_log("Running precompute inverse harmonic transform for L={} on {}".format(L, device))
+    lg.debug_log(
+        "Running precompute inverse harmonic transform for L={} on {}".format(L, device)
+    )
 
     if device == "cpu":
         return inverse_transform_cpu(flm, kernel, L)
