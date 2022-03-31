@@ -15,6 +15,7 @@ def periodic_extension(
 
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
+    nphi = f.shape[1]
     ntheta_ext = samples.ntheta_extension(L, sampling)
     f_ext = np.zeros((ntheta_ext, nphi), dtype=np.complex128)
 
@@ -125,3 +126,75 @@ def unextend(f_ext, L, sampling: str = "mw"):
         )
 
     return f
+
+
+def mw_to_mwss_phi(f_mw, L):
+    """TODO
+
+    Note can work with arbitrary number of theta samples
+    """
+    ntheta = f_mw.shape[0]
+    nphi_mw = samples.nphi_equiang(L, sampling="mw")
+    nphi_mwss = samples.nphi_equiang(L, sampling="mwss")
+
+    if f_mw.shape[1] != nphi_mw:
+        raise ValueError(f"Invalid phi size={f_mw.shape[1]} for mw sampling")
+
+    # FFT in phi
+    # TODO: check ok t overwrite input argmument
+    ftm_mw = fft.fftshift(fft.fft(f_mw, axis=1, norm="forward"), axes=1)
+
+    # Zero pad
+    f_mwss = np.zeros((ntheta, nphi_mwss), dtype=np.complex128)
+    for t in range(0, ntheta):
+        f_mwss[t, 1 : nphi_mw + 1] = ftm_mw[t, 0:nphi_mw]
+
+    f_mwss = fft.ifft(fft.ifftshift(f_mwss, axes=1), axis=1, norm="forward")
+
+    return f_mwss
+
+
+def mw_to_mwss_theta(f_mw, L, spin=0):
+
+    nphi_mw = samples.nphi_equiang(L, sampling="mw")
+    ntheta_mw = samples.ntheta(L, sampling="mw")
+    ntheta_mwss = samples.ntheta(L, sampling="mwss")
+    ntheta_mw_ext = samples.ntheta_extension(L, sampling="mw")
+    ntheta_mwss_ext = samples.ntheta_extension(L, sampling="mwss")
+
+    if f_mw.shape[0] != ntheta_mw:
+        raise ValueError(f"Invalid theta size={f_mw.shape[0]} for mw sampling")
+
+    if f_mw.shape[1] != nphi_mw:
+        raise ValueError(f"Invalid phi size={f_mw.shape[1]} for mw sampling")
+
+    # TODO: add support for spin
+    f_mw_ext = periodic_extension(f_mw, L, spin=spin, sampling="mw")
+
+    # FFT in theta
+    fmp_mw_ext = fft.fftshift(fft.fft(f_mw_ext, axis=0, norm="forward"), axes=0)
+
+    # Zero pad and apply phase shift to account for MW north pole offset
+    fmp_mwss_ext = np.zeros((ntheta_mwss_ext, nphi_mw), dtype=np.complex128)
+    for p in range(0, nphi_mw):
+        fmp_mw_ext[0:ntheta_mw_ext, p] *= np.exp(
+            -1j * np.arange(-(L - 1), L) * np.pi / (2 * L - 1)
+        )
+        fmp_mwss_ext[1 : ntheta_mw_ext + 1, p] = fmp_mw_ext[0:ntheta_mw_ext, p]
+
+    # Perform IFFT to convert back to spatial domain
+    f_mwss_ext = fft.ifft(fft.ifftshift(fmp_mwss_ext, axes=0), axis=0, norm="forward")
+
+    # Unextend
+    f_mwss = unextend(f_mwss_ext, L, sampling="mwss")
+
+    return f_mwss
+
+
+def mw_to_mwss(f_mw, L, spin=0):
+
+    # Must do extension in this order, i.e. theta first, then phi
+    # (since theta extension must do FFTs in phi so shouldn't change number of
+    # phi samples there).
+
+    return mw_to_mwss_phi(mw_to_mwss_theta(f_mw, L, spin), L)
