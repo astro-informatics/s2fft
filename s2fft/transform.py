@@ -443,7 +443,7 @@ def forward_direct_healpix(
 
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
-    weights = samples.quad_weights(L, "healpix", nside)
+    weights = samples.quad_weights(L, "healpix", nside=nside)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
@@ -496,7 +496,7 @@ def forward_sov_healpix(f: np.ndarray, L: int, nside: int, spin: int = 0) -> np.
                     np.exp(-1j * m * phi) * f[samples.hp_ang2pix(nside, theta, phi)]
                 )
 
-    weights = samples.quad_weights(L, "healpix", nside)
+    weights = samples.quad_weights(L, "healpix", nside=nside)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):

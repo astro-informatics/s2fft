@@ -224,7 +224,7 @@ def quad_weights_transform(L: int, sampling: str, spin: int = 0) -> np.ndarray:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
 
-def quad_weights(L: int, sampling: str, spin: int = 0) -> np.ndarray:
+def quad_weights(L: int, sampling: str, spin: int = 0, nside: int = None) -> np.ndarray:
 
     if sampling.lower() == "mw":
         return quad_weights_mw(L, spin)
