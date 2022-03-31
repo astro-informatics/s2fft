@@ -173,7 +173,7 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
 
     elif sampling.lower() == "healpix":
 
-        raise ValueError(f"Sampling scheme sampling={sampling} not implement")
+        raise ValueError(f"Sampling scheme sampling={sampling} not implemented")
 
     else:
 
@@ -210,6 +210,18 @@ def quad_weight_dh_theta_only(theta: float, L: int) -> float:
     return w
 
 
+def quad_weights_transform(L: int, sampling: str, spin: int = 0) -> np.ndarray:
+
+    if sampling.lower() == "mwss":
+        return quad_weights_mwss_theta_only(2 * L, spin=0) * 2 * np.pi / (2 * L)
+
+    elif sampling.lower() == "dh":
+        return quad_weights_dh(L)
+
+    else:
+        raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+
+
 def quad_weights(L: int, sampling: str, spin: int = 0) -> np.ndarray:
 
     if sampling.lower() == "mw":
@@ -222,7 +234,7 @@ def quad_weights(L: int, sampling: str, spin: int = 0) -> np.ndarray:
         return quad_weights_dh(L)
 
     else:
-        raise ValueError(f"Sampling scheme sampling={sampling} not implement")
+        raise ValueError(f"Sampling scheme sampling={sampling} not implemented")
 
 
 def quad_weights_dh(L):

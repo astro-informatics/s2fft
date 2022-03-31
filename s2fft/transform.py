@@ -300,35 +300,36 @@ def forward_sov_fft_mwss(
 
     # TODO: Check f shape consistent with L
 
-    if sampling.lower() not in ["mw", "mwss"]:
-        raise ValueError(
-            "Only mw and mwss supported for periodic extension "
-            f"(not sampling={sampling})"
-        )
+    # if sampling.lower() not in ["mw", "mwss"]:
+    #     raise ValueError(
+    #         "Only mw and mwss supported for periodic extension "
+    #         f"(not sampling={sampling})"
+    #     )
 
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
 
-    sampling = "mwss"
-
-    f_up = resampling.upsample_by_two_mwss(f, L, spin)
+    if sampling.lower() in ["mw", "mwss"]:
+        sampling = "mwss"
+        f = resampling.upsample_by_two_mwss(f, L, spin)
+        thetas = samples.thetas(2 * L, sampling)
+    else:
+        thetas = samples.thetas(L, sampling)
 
     ncoeff = samples.ncoeff(L)
-
     flm = np.zeros(ncoeff, dtype=np.complex128)
 
-    thetas = samples.thetas(2 * L, sampling)
-    phis_equiang = samples.phis_equiang(L, sampling)
+    # phis_equiang = samples.phis_equiang(L, sampling)
 
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
-    ntheta = samples.ntheta(2 * L, sampling)
+    # ntheta = samples.ntheta(2 * L, sampling)
 
-    ftm = fft.fftshift(fft.fft(f_up, axis=1, norm="backward"), axes=1)
+    ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
 
     # Don't need to include spin in weights (even for spin signals)
     # since accounted for already in periodic extension and upsampling.
-    weights = samples.quad_weights_mwss_theta_only(2 * L, spin=0) * 2 * np.pi / (2 * L)
+    weights = samples.quad_weights_transform(L, sampling, spin=0)
 
     m_offset = 1 if sampling == "mwss" else 0
 
