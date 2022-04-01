@@ -149,7 +149,9 @@ def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
     
     Note that healpix implicitly assumes conjugate symmetry and thus 
     only stores positive m coefficients. So this function discards the 
-    negative m values. This process is NOT invertible!
+    negative m values. This process is NOT invertible! See the 
+    `healpy api docs <https://healpy.readthedocs.io/en/latest/generated/healpy.sphtfunc.alm2map.html>`_ 
+    for details on healpix indexing and lengths.
 
     Conventions for e.g. :math:`L = 3` 
 
