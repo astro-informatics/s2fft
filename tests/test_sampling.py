@@ -135,6 +135,9 @@ def test_sampling_exceptions():
         s2f.sampling.ntheta_extension(L, sampling="foo")
 
     with pytest.raises(ValueError) as e:
+        s2f.sampling.nphi_equiang(L, sampling="healpix")
+
+    with pytest.raises(ValueError) as e:
         s2f.sampling.nphi_equiang(L, sampling="foo")
 
     with pytest.raises(ValueError) as e:
