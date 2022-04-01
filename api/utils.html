@@ -19,8 +19,6 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script src="../_static/dark_mode_js/default_light.js"></script>
         <script src="../_static/dark_mode_js/theme_switcher.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -122,94 +120,6 @@
 </style>
 <div class="section" id="module-s2fft.utils">
 <span id="s2fft-utils"></span><h1>s2fft.utils<a class="headerlink" href="#module-s2fft.utils" title="Permalink to this headline"></a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.utils.flm_1d_to_2d">
-<span class="sig-prename descclassname"><span class="pre">s2fft.utils.</span></span><span class="sig-name descname"><span class="pre">flm_1d_to_2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm_1d</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.flm_1d_to_2d" title="Permalink to this definition"></a></dt>
-<dd><p>Converts from 1d indexed flms to 2d indexed</p>
-<p>Conventions for e.g. <span class="math notranslate nohighlight">\(L = 3\)</span></p>
-<div class="math notranslate nohighlight">
-\[\begin{split}2D = \begin{bmatrix}
-        flm_{(2,-2)} &amp; flm_{(2,-1)} &amp; flm_{(2,0)} &amp; flm_{(2,1)} &amp; flm_{(2,2)}  \\
-        0 &amp; flm_{(1,-1)} &amp; flm_{(1,0)} &amp; flm_{(1,1)} &amp; 0 \\
-        0 &amp; 0 &amp; flm_{(0,0)} &amp; 0 &amp; 0
-    \end{bmatrix}\end{split}\]</div>
-<div class="math notranslate nohighlight">
-\[1D =  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]\]</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>2D indexed flms</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.utils.flm_2d_to_1d">
-<span class="sig-prename descclassname"><span class="pre">s2fft.utils.</span></span><span class="sig-name descname"><span class="pre">flm_2d_to_1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm_2d</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.flm_2d_to_1d" title="Permalink to this definition"></a></dt>
-<dd><p>Converts from 2d indexed flms to 1d indexed</p>
-<p>Conventions for e.g. <span class="math notranslate nohighlight">\(L = 3\)</span></p>
-<div class="math notranslate nohighlight">
-\[\begin{split}2D = \begin{bmatrix}
-        flm_{(2,-2)} &amp; flm_{(2,-1)} &amp; flm_{(2,0)} &amp; flm_{(2,1)} &amp; flm_{(2,2)}  \\
-        0 &amp; flm_{(1,-1)} &amp; flm_{(1,0)} &amp; flm_{(1,1)} &amp; 0 \\
-        0 &amp; 0 &amp; flm_{(0,0)} &amp; 0 &amp; 0
-    \end{bmatrix}\end{split}\]</div>
-<div class="math notranslate nohighlight">
-\[1D =  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]\]</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>1D indexed flms</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.utils.flm_2d_to_hp">
-<span class="sig-prename descclassname"><span class="pre">s2fft.utils.</span></span><span class="sig-name descname"><span class="pre">flm_2d_to_hp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm_2d</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.flm_2d_to_hp" title="Permalink to this definition"></a></dt>
-<dd><p>Converts from 2d indexed flms to healpix indexed flms</p>
-<p>Note that healpix implicitly assumes conjugate symmetry and thus
-only stores positive m coefficients. So this function discards the
-negative m values. This process is NOT invertible! See the
-<a class="reference external" href="https://healpy.readthedocs.io/en/latest/generated/healpy.sphtfunc.alm2map.html">healpy api docs</a>
-for details on healpix indexing and lengths.</p>
-<p>Conventions for e.g. <span class="math notranslate nohighlight">\(L = 3\)</span></p>
-<div class="math notranslate nohighlight">
-\[\begin{split}2D = \begin{bmatrix}
-        flm_{(2,-2)} &amp; flm_{(2,-1)} &amp; flm_{(2,0)} &amp; flm_{(2,1)} &amp; flm_{(2,2)}  \\
-        0 &amp; flm_{(1,-1)} &amp; flm_{(1,0)} &amp; flm_{(1,1)} &amp; 0 \\
-        0 &amp; 0 &amp; flm_{(0,0)} &amp; 0 &amp; 0
-    \end{bmatrix}\end{split}\]</div>
-<div class="math notranslate nohighlight">
-\[healpix =  [flm_{0,0}, \dots, flm_{L,0}, flm_{1,1}, \dots, flm_{L,1}, \dots]\]</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>healpix indexed flms of an implicitly real signal</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.utils.flm_hp_to_2d">
-<span class="sig-prename descclassname"><span class="pre">s2fft.utils.</span></span><span class="sig-name descname"><span class="pre">flm_hp_to_2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm_hp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.flm_hp_to_2d" title="Permalink to this definition"></a></dt>
-<dd><p>Converts from healpix indexed flms to 2d indexed</p>
-<p>Note that healpix implicitly assumes conjugate symmetry and thus
-only stores positive m coefficients. Here we unpack that into
-harmonic coefficients of an explicitly real signal.</p>
-<p>Conventions for e.g. <span class="math notranslate nohighlight">\(L = 3\)</span></p>
-<div class="math notranslate nohighlight">
-\[\begin{split}2D = \begin{bmatrix}
-        flm_{(2,-2)} &amp; flm_{(2,-1)} &amp; flm_{(2,0)} &amp; flm_{(2,1)} &amp; flm_{(2,2)}  \\
-        0 &amp; flm_{(1,-1)} &amp; flm_{(1,0)} &amp; flm_{(1,1)} &amp; 0 \\
-        0 &amp; 0 &amp; flm_{(0,0)} &amp; 0 &amp; 0
-    \end{bmatrix}\end{split}\]</div>
-<div class="math notranslate nohighlight">
-\[healpix =  [flm_{0,0}, \dots, flm_{L,0}, flm_{1,1}, \dots, flm_{L,1}, \dots]\]</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>2D indexed flms of a explicitly real signal</p>
-</dd>
-</dl>
-</dd></dl>
-
 </div>
 
 
