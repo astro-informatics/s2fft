@@ -52,14 +52,7 @@ def test_sampling_ncoeff(L: int):
             n += 1
 
     assert s2f.sampling.ncoeff(L) == pytest.approx(n)
-
-def test_sampling_exception():
-
-     L = 10
-
-     with pytest.raises(ValueError) as e:
-         s2f.sampling.phis_equiang(L, sampling="healpix")
-
+        
 
 @pytest.mark.parametrize("nside", [32, 64, 128])
 def test_sampling_n_and_angles_hp(nside: int):
@@ -121,3 +114,39 @@ def test_sampling_mw_weights(L: int, sampling: str):
 
     np.testing.assert_allclose(integral, integral_check, atol=1e-14)
 
+def test_sampling_exceptions():
+
+    L = 10
+
+    with pytest.raises(ValueError) as e:
+        s2f.sampling.phis_equiang(L, sampling="healpix")
+    
+    with pytest.raises(ValueError) as e:
+        s2f.sampling.phis_equiang(L, sampling="foo")
+    
+    with pytest.raises(ValueError) as e:
+         s2f.sampling.ntheta(L, sampling="healpix")
+
+    with pytest.raises(ValueError) as e:
+         s2f.sampling.ntheta(L, sampling="foo")
+    
+    with pytest.raises(ValueError) as e:
+         s2f.sampling.ntheta_extension(L, sampling="foo")
+    
+    with pytest.raises(ValueError) as e:
+         s2f.sampling.nphi_equiang(L, sampling="foo")
+
+    with pytest.raises(ValueError) as e:
+         s2f.sampling.nphi_ring(-1, nside=2)
+
+    with pytest.raises(ValueError) as e:
+         s2f.sampling.t2theta(L, 0, sampling="healpix")
+    
+    with pytest.raises(ValueError) as e:
+         s2f.sampling.t2theta(L, 0, sampling="foo")
+        
+    with pytest.raises(ValueError) as e:
+         s2f.sampling.quad_weights_transform(L, sampling="foo")
+    
+    with pytest.raises(ValueError) as e:
+         s2f.sampling.quad_weights(L, sampling="foo")

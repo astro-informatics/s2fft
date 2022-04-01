@@ -38,6 +38,57 @@ def test_inverse_legendre_matrix_constructor(L: int, spin: int):
     assert (os.path.isfile(filename))
     legendre_inverse = pre.construct_legendre_matrix.construct_legendre_matrix_inverse(L, sampling_method, save_dir, spin)
 
+def test_legendre_matrix_constructor_compile_time_warning():
+    """Test compile time warning of legendre kernels"""
+    pre.construct_legendre_matrix.compile_warnings(256)
+
+@pytest.mark.parametrize("L", [16, 32])
+@pytest.mark.parametrize("spin", [0, 2])
+@pytest.mark.parametrize("device", ["cpu", "gpu"])
+def test_transform_precompute(flm_generator, L: int, spin: int, device: str):
+    """Test wrapper implementation of forward/inverse precompute sht"""
+    sampling_method = "mw"
+    save_dir = ".matrices"
+
+    leg_for = pre.construct_legendre_matrix.construct_legendre_matrix(L, sampling_method, save_dir, spin)
+    leg_inv = pre.construct_legendre_matrix.construct_legendre_matrix_inverse(L, sampling_method, save_dir, spin)
+
+    flm = flm_generator(L=L, spin=spin)
+    f = ssht.inverse(flm, L, spin)
+
+    flm_precomp = pre.transforms.forward_precompute(f, L, leg_for, device, spin)
+    assert np.allclose(flm_precomp[np.nonzero(flm_precomp)], flm[spin**2:])
+
+    f_precomp = pre.transforms.inverse_precompute(flm_precomp, L, leg_inv, device, spin)
+    assert np.allclose(f_precomp, f)
+
+def test_transform_device_exceptions():
+    """Test device exception of forward/inverse precompute sht"""
+    f = ["not a vector"]
+    legendre_kernel = ["not a kernel"]
+    device = ["not a device"]
+    with pytest.raises(ValueError):
+        pre.transforms.forward_precompute(f, 8, legendre_kernel, device, 0)
+    with pytest.raises(ValueError):
+        pre.transforms.inverse_precompute(f, 8, legendre_kernel, device, 0)
+
+@pytest.mark.parametrize("L", [16, 32])
+@pytest.mark.parametrize("spin", [0, 2])
+@pytest.mark.parametrize("device", ["cpu", "gpu"])
+def test_transform_precompute_load_legendre(flm_generator, L: int, spin: int, device: str):
+    """Test wrapper implementation of forward/inverse precompute sht"""
+    sampling_method = "mw"
+    save_dir = ".matrices"
+
+    flm = flm_generator(L=L, spin=spin)
+    f = ssht.inverse(flm, L, spin)
+
+    flm_precomp = pre.transforms.forward_precompute(f, L=L, device=device, spin=spin, save_dir=save_dir)
+    assert np.allclose(flm_precomp[np.nonzero(flm_precomp)], flm[spin**2:])
+
+    f_precomp = pre.transforms.inverse_precompute(flm_precomp, L=L, device=device, spin=spin, save_dir=save_dir)
+    assert np.allclose(f_precomp, f)
+    
 @pytest.mark.parametrize("L", [16, 32])
 @pytest.mark.parametrize("spin", [0, 2])
 def test_transform_precompute_cpu(flm_generator, L: int, spin: int):
@@ -79,7 +130,3 @@ def test_transform_precompute_gpu(flm_generator, L: int, spin: int):
 
     f_gpu = inverse_jit(device_put(flm_gpu), leg_inv, L)
     assert np.allclose(f_gpu, f)
-
-                
-
-
