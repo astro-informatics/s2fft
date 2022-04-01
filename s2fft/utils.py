@@ -4,7 +4,9 @@ import s2fft.sampling as samples
 
 
 def generate_flm(L: int, spin: int = 0, reality: bool = False) -> np.ndarray:
+
     ncoeff = samples.ncoeff(L)
+
     flm = np.zeros(ncoeff, dtype=np.complex128)
 
     if reality == False:
@@ -17,9 +19,10 @@ def generate_flm(L: int, spin: int = 0, reality: bool = False) -> np.ndarray:
             flm[samples.elm2ind(el, 0)] = np.random.rand()
             for em in range(1, el + 1):
                 flm[samples.elm2ind(el, em)] = np.random.rand() + 1j * np.random.rand()
-                flm[samples.elm2ind(el, -em)] = -(1 ** (em)) * np.conj(
+                flm[samples.elm2ind(el, -em)] = (-1) ** em * np.conj(
                     flm[samples.elm2ind(el, em)]
                 )
+
         return flm
 
 

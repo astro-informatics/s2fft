@@ -4,6 +4,8 @@ import s2fft as s2f
 import pyssht as ssht
 import healpy as hp
 
+nside_to_test = [32, 64, 128]
+
 
 @pytest.mark.parametrize("L", [15, 16])
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
@@ -54,7 +56,7 @@ def test_sampling_ncoeff(L: int):
     assert s2f.sampling.ncoeff(L) == pytest.approx(n)
 
 
-@pytest.mark.parametrize("nside", [32, 64, 128])
+@pytest.mark.parametrize("nside", nside_to_test)
 def test_sampling_n_and_angles_hp(nside: int):
 
     ntheta = s2f.sampling.ntheta(L=0, sampling="healpix", nside=nside)
@@ -75,6 +77,15 @@ def test_sampling_n_and_angles_hp(nside: int):
         entry += len(phis)
 
     np.testing.assert_allclose(s2f_hp_angles, hp_angles, atol=1e-14)
+
+
+@pytest.mark.parametrize("nside", nside_to_test)
+def test_hp_ang2pix(nside: int):
+
+    for i in range(12 * nside**2):
+        theta, phi = hp.pix2ang(nside, i)
+        j = s2f.sampling.hp_ang2pix(nside, theta, phi)
+        assert i == j
 
 
 @pytest.mark.parametrize("L", [5, 6])
