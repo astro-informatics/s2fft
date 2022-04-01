@@ -56,7 +56,7 @@ def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
 
     for el in range(L):
         for m in range(-el, el + 1):
-            flm_1d[el * el + el + m] = flm_2d[el, L - 1 + m]
+            flm_1d[samples.elm2ind(el, m)] = flm_2d[el, L - 1 + m]
 
     return flm_1d
 
@@ -94,6 +94,6 @@ def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
 
     for el in range(L):
         for m in range(-el, el + 1):
-            flm_2d[el, L - 1 + m] = flm_1d[el * el + el + m]
+            flm_2d[el, L - 1 + m] = flm_1d[samples.elm2ind(el, m)]
 
     return flm_2d
