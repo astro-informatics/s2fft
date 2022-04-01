@@ -3,7 +3,6 @@ import numpy as np
 import s2fft.sampling as samples
 
 
-
 def generate_flm(L: int, spin: int = 0, reality: bool = False) -> np.ndarray:
     ncoeff = samples.ncoeff(L)
     flm = np.zeros(ncoeff, dtype=np.complex128)
@@ -22,6 +21,7 @@ def generate_flm(L: int, spin: int = 0, reality: bool = False) -> np.ndarray:
                     flm[samples.elm2ind(el, em)]
                 )
         return flm
+
 
 def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
     r"""Converts from 2d indexed flms to 1d indexed
@@ -50,13 +50,16 @@ def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
         if len(flm_2d.shape) == 1:
             raise ValueError(f"Flm is already 1D indexed")
         else:
-            raise ValueError(f"Cannot convert flm of dimension {flm_2d.shape} to 1D indexing")
+            raise ValueError(
+                f"Cannot convert flm of dimension {flm_2d.shape} to 1D indexing"
+            )
 
     for el in range(L):
-        for m in range(-el, el+1):
-            flm_1d[el*el+el+m] = flm_2d[el, L-1+m]
+        for m in range(-el, el + 1):
+            flm_1d[el * el + el + m] = flm_2d[el, L - 1 + m]
 
     return flm_1d
+
 
 def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
     r"""Converts from 1d indexed flms to 2d indexed
@@ -79,16 +82,18 @@ def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
 
         2D indexed flms
     """
-    flm_2d = np.zeros((L, 2*L-1), dtype=np.complex128)
+    flm_2d = np.zeros((L, 2 * L - 1), dtype=np.complex128)
 
     if len(flm_1d.shape) != 1:
         if len(flm_1d.shape) == 2:
             raise ValueError(f"Flm is already 2D indexed")
         else:
-            raise ValueError(f"Cannot convert flm of dimension {flm_2d.shape} to 2D indexing")
+            raise ValueError(
+                f"Cannot convert flm of dimension {flm_2d.shape} to 2D indexing"
+            )
 
     for el in range(L):
-        for m in range(-el, el+1):
-            flm_2d[el, L-1+m] = flm_1d[el*el+el+m]
+        for m in range(-el, el + 1):
+            flm_2d[el, L - 1 + m] = flm_1d[el * el + el + m]
 
     return flm_2d
