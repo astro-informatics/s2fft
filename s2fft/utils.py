@@ -24,19 +24,21 @@ def generate_flm(L: int, spin: int = 0, reality: bool = False) -> np.ndarray:
         return flm
 
 def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
-    """Converts from 2d indexed flms to 1d indexed
+    r"""Converts from 2d indexed flms to 1d indexed
     
     Conventions for e.g. :math:`L = 3` 
+
     .. math::
-        \text{2D indexing} = 
-        \begin{matrix}
-            flm_{2,-2} & flm_{2,-1} & flm_{2,0} & flm_{2,1} & flm_{2,2}  \\
-            0 & flm_{1,-1} & flm_{1,0} & flm_{1,1} & 0 \\
-            0 & 0 & flm_{0,0} & 0 & 0
-        \end{matrix}
+
+        2D = \begin{bmatrix}
+                flm_{(2,-2)} & flm_{(2,-1)} & flm_{(2,0)} & flm_{(2,1)} & flm_{(2,2)}  \\
+                0 & flm_{(1,-1)} & flm_{(1,0)} & flm_{(1,1)} & 0 \\
+                0 & 0 & flm_{(0,0)} & 0 & 0
+            \end{bmatrix}
     
     .. math::
-        \text{1D indexing} =  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]
+
+        1D =  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]
 
     Returns:
 
@@ -57,19 +59,21 @@ def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
     return flm_1d
 
 def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
-    """Converts from 1d indexed flms to 2d indexed
+    r"""Converts from 1d indexed flms to 2d indexed
     
     Conventions for e.g. :math:`L = 3` 
+
     .. math::
-        \text{2D indexing} = 
-        \begin{matrix}
-            flm_{2,-2} & flm_{2,-1} & flm_{2,0} & flm_{2,1} & flm_{2,2}  \\
-            0 & flm_{1,-1} & flm_{1,0} & flm_{1,1} & 0 \\
-            0 & 0 & flm_{0,0} & 0 & 0
-        \end{matrix}
+
+        2D = \begin{bmatrix}
+                flm_{(2,-2)} & flm_{(2,-1)} & flm_{(2,0)} & flm_{(2,1)} & flm_{(2,2)}  \\
+                0 & flm_{(1,-1)} & flm_{(1,0)} & flm_{(1,1)} & 0 \\
+                0 & 0 & flm_{(0,0)} & 0 & 0
+            \end{bmatrix}
     
     .. math::
-        \text{1D indexing} =  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]
+
+        1D =  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]
 
     Returns:
 
