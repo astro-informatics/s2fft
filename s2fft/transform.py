@@ -1,7 +1,7 @@
 from random import sample
 import numpy as np
 import numpy.fft as fft
-import s2fft.sampling as samples
+import s2fft.samples as samples
 import s2fft.resampling as resampling
 import s2fft.wigner as wigner
 

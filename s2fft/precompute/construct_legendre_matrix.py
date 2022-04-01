@@ -2,7 +2,7 @@ import numpy as np
 import os
 import pyssht as ssht
 
-from s2fft import sampling as sampling
+from s2fft import samples as samples
 import s2fft.logs as lg
 
 lg.setup_logging()
@@ -25,8 +25,8 @@ def construct_legendre_matrix(
         Associated legendre matrix for forward harmonic transform
     """
 
-    ntheta = sampling.ntheta(L, sampling_method)
-    nphi = sampling.nphi_equiang(L, sampling_method)
+    ntheta = samples.ntheta(L, sampling_method)
+    nphi = samples.nphi_equiang(L, sampling_method)
 
     lg.info_log(
         "Sampling {} selected with angular bandlimit {} and spin {}".format(
@@ -96,7 +96,7 @@ def construct_legendre_matrix_inverse(
 
     compile_warnings(L)
 
-    ntheta = sampling.ntheta(L, sampling_method)
+    ntheta = samples.ntheta(L, sampling_method)
 
     lg.info_log(
         "Sampling {} selected with angular bandlimit {} and spin {}".format(
