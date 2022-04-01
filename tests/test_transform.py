@@ -19,7 +19,7 @@ def test_transform_inverse_direct(flm_generator, L: int, spin: int, sampling: st
 
     flm = flm_generator(L=L, spin=spin, reality=False)
     f_check = ssht.inverse(
-        s2f.utils.flm_2d_to_1d(flm, L),
+        s2f.samples.flm_2d_to_1d(flm, L),
         L,
         Method=sampling.upper(),
         Spin=spin,
@@ -35,7 +35,7 @@ def test_transform_inverse_direct(flm_generator, L: int, spin: int, sampling: st
 def test_transform_inverse_direct_healpix(flm_generator, nside: int):
     L = 2 * nside
     flm = flm_generator(L=L, reality=True)
-    flm_hp = s2f.utils.flm_2d_to_hp(flm, L)
+    flm_hp = s2f.samples.flm_2d_to_hp(flm, L)
     f_check = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
 
     f = s2f.transform.inverse_direct_healpix(flm, L, nside)
@@ -53,7 +53,7 @@ def test_transform_inverse_sov(flm_generator, L: int, spin: int, sampling: str):
     f = s2f.transform.inverse_sov(flm, L, spin, sampling)
 
     f_check = ssht.inverse(
-        s2f.utils.flm_2d_to_1d(flm, L),
+        s2f.samples.flm_2d_to_1d(flm, L),
         L,
         Method=sampling.upper(),
         Spin=spin,
@@ -68,7 +68,7 @@ def test_transform_inverse_sov(flm_generator, L: int, spin: int, sampling: str):
 def test_transform_inverse_sov_healpix(flm_generator, nside: int):
     L = 2 * nside
     flm = flm_generator(L=L, reality=True)
-    flm_hp = s2f.utils.flm_2d_to_hp(flm, L)
+    flm_hp = s2f.samples.flm_2d_to_hp(flm, L)
     f_check = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
 
     f = s2f.transform.inverse_sov_healpix(flm, L, nside)
@@ -86,7 +86,7 @@ def test_transform_inverse_sov_fft(flm_generator, L: int, spin: int, sampling: s
     f = s2f.transform.inverse_sov_fft(flm, L, spin, sampling)
 
     f_check = ssht.inverse(
-        s2f.utils.flm_2d_to_1d(flm, L),
+        s2f.samples.flm_2d_to_1d(flm, L),
         L,
         Method=sampling.upper(),
         Spin=spin,
@@ -107,7 +107,7 @@ def test_transform_forward_direct(flm_generator, L: int, spin: int, sampling: st
     flm = flm_generator(L=L, spin=spin, reality=False)
 
     f = ssht.inverse(
-        s2f.utils.flm_2d_to_1d(flm, L),
+        s2f.samples.flm_2d_to_1d(flm, L),
         L,
         Method=sampling.upper(),
         Spin=spin,
@@ -127,7 +127,7 @@ def test_transform_forward_direct_healpix(flm_generator, L: int):
     f = s2f.transform.inverse_direct_healpix(flm, L, nside)
 
     flm_direct = s2f.transform.forward_direct_healpix(f, L, nside)
-    flm_direct_hp = s2f.utils.flm_2d_to_hp(flm_direct, L)
+    flm_direct_hp = s2f.samples.flm_2d_to_hp(flm_direct, L)
     flm_check = hp.sphtfunc.map2alm(np.real(f), lmax=L - 1)
 
     np.testing.assert_allclose(flm_direct_hp, flm_check, atol=1e-2)
@@ -144,7 +144,7 @@ def test_transform_forward_sov(flm_generator, L: int, spin: int, sampling: str):
     flm = flm_generator(L=L, spin=spin, reality=False)
 
     f = ssht.inverse(
-        s2f.utils.flm_2d_to_1d(flm, L),
+        s2f.samples.flm_2d_to_1d(flm, L),
         L,
         Method=sampling.upper(),
         Spin=spin,
@@ -167,7 +167,7 @@ def test_transform_forward_sov_fft(flm_generator, L: int, spin: int, sampling: s
     flm = flm_generator(L=L, spin=spin, reality=False)
 
     f = ssht.inverse(
-        s2f.utils.flm_2d_to_1d(flm, L),
+        s2f.samples.flm_2d_to_1d(flm, L),
         L,
         Method=sampling.upper(),
         Spin=spin,
@@ -192,7 +192,7 @@ def test_transform_forward_sov_healpix(flm_generator, L: int):
     f = s2f.transform.inverse_sov_healpix(flm, L, nside)
 
     flm_direct = s2f.transform.forward_sov_healpix(f, L, nside)
-    flm_direct_hp = s2f.utils.flm_2d_to_hp(flm_direct, L)
+    flm_direct_hp = s2f.samples.flm_2d_to_hp(flm_direct, L)
     flm_check = hp.sphtfunc.map2alm(np.real(f), lmax=L - 1)
 
     np.testing.assert_allclose(flm_direct_hp, flm_check, atol=1e-2)

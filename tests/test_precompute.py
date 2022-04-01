@@ -76,7 +76,7 @@ def test_transform_precompute(flm_generator, L: int, spin: int, device: str):
 
     flm = flm_generator(L=L, spin=spin)
 
-    f = ssht.inverse(s2f.utils.flm_2d_to_1d(flm, L), L, spin)
+    f = ssht.inverse(s2f.samples.flm_2d_to_1d(flm, L), L, spin)
 
     flm_precomp = pre.transforms.forward_precompute(f, L, leg_for, device, spin)
     assert np.allclose(flm_precomp, flm)
@@ -108,7 +108,7 @@ def test_transform_precompute_load_legendre(
 
     flm = flm_generator(L=L, spin=spin)
 
-    f = ssht.inverse(s2f.utils.flm_2d_to_1d(flm, L), L, spin)
+    f = ssht.inverse(s2f.samples.flm_2d_to_1d(flm, L), L, spin)
 
     flm_precomp = pre.transforms.forward_precompute(
         f, L=L, device=device, spin=spin, save_dir=save_dir
@@ -137,7 +137,7 @@ def test_transform_precompute_cpu(flm_generator, L: int, spin: int):
 
     flm = flm_generator(L=L, spin=spin)
 
-    f = ssht.inverse(s2f.utils.flm_2d_to_1d(flm, L), L, spin)
+    f = ssht.inverse(s2f.samples.flm_2d_to_1d(flm, L), L, spin)
 
     flm_cpu = pre.transforms.forward_transform_cpu(f, leg_for, L)
     assert np.allclose(flm_cpu, flm)
@@ -166,7 +166,7 @@ def test_transform_precompute_gpu(flm_generator, L: int, spin: int):
 
     flm = flm_generator(L=L, spin=spin, reality=False)
 
-    f = ssht.inverse(s2f.utils.flm_2d_to_1d(flm, L), L, spin)
+    f = ssht.inverse(s2f.samples.flm_2d_to_1d(flm, L), L, spin)
 
     forward_jit = jit(pre.transforms.forward_transform_gpu, static_argnums=(2,))
     inverse_jit = jit(pre.transforms.inverse_transform_gpu, static_argnums=(2,))
