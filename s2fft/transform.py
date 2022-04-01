@@ -1,7 +1,8 @@
 from random import sample
 import numpy as np
 import numpy.fft as fft
-import s2fft.sampling as samples
+import s2fft.samples as samples
+import s2fft.quadrature as quadrature
 import s2fft.resampling as resampling
 import s2fft.wigner as wigner
 
@@ -156,7 +157,7 @@ def forward_direct(
 
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
-    weights = samples.quad_weights(L, sampling)
+    weights = quadrature.quad_weights(L, sampling)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
@@ -216,7 +217,7 @@ def forward_sov(
 
                 ftm[t, m + L - 1] += np.exp(-1j * m * phi) * f[t, p]
 
-    weights = samples.quad_weights(L, sampling)
+    weights = quadrature.quad_weights(L, sampling)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
@@ -265,7 +266,7 @@ def forward_sov_fft(
 
     # Don't need to include spin in weights (even for spin signals)
     # since accounted for already in periodic extension and upsampling.
-    weights = samples.quad_weights_transform(L, sampling, spin=0)
+    weights = quadrature.quad_weights_transform(L, sampling, spin=0)
     m_offset = 1 if sampling == "mwss" else 0
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
     for t, theta in enumerate(thetas):
@@ -443,7 +444,7 @@ def forward_direct_healpix(
 
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
-    weights = samples.quad_weights(L, "healpix", nside=nside)
+    weights = quadrature.quad_weights(L, "healpix", nside=nside)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
@@ -496,7 +497,7 @@ def forward_sov_healpix(f: np.ndarray, L: int, nside: int, spin: int = 0) -> np.
                     np.exp(-1j * m * phi) * f[samples.hp_ang2pix(nside, theta, phi)]
                 )
 
-    weights = samples.quad_weights(L, "healpix", nside=nside)
+    weights = quadrature.quad_weights(L, "healpix", nside=nside)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):

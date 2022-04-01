@@ -12,35 +12,33 @@ nside_to_test = [32, 64, 128]
 def test_sampling_n_and_angles(L: int, sampling: str):
 
     # Test ntheta and nphi
-    ntheta = s2f.sampling.ntheta(L, sampling)
-    nphi = s2f.sampling.nphi_equiang(L, sampling)
+    ntheta = s2f.samples.ntheta(L, sampling)
+    nphi = s2f.samples.nphi_equiang(L, sampling)
     (ntheta_ssht, nphi_ssht) = ssht.sample_shape(L, sampling.upper())
     assert (ntheta, nphi) == pytest.approx((ntheta_ssht, nphi_ssht))
 
     # Test thetas and phis
     t = np.arange(0, ntheta)
-    thetas = s2f.sampling.t2theta(L, t, sampling)
+    thetas = s2f.samples.t2theta(L, t, sampling)
     p = np.arange(0, nphi)
-    phis = s2f.sampling.p2phi_equiang(L, p, sampling)
+    phis = s2f.samples.p2phi_equiang(L, p, sampling)
     thetas_ssht, phis_ssht = ssht.sample_positions(L, sampling.upper())
     np.testing.assert_allclose(thetas, thetas_ssht, atol=1e-14)
     np.testing.assert_allclose(phis, phis_ssht, atol=1e-14)
 
     # Test direct thetas and phis
+    np.testing.assert_allclose(s2f.samples.thetas(L, sampling), thetas_ssht, atol=1e-14)
     np.testing.assert_allclose(
-        s2f.sampling.thetas(L, sampling), thetas_ssht, atol=1e-14
-    )
-    np.testing.assert_allclose(
-        s2f.sampling.phis_equiang(L, sampling), phis_ssht, atol=1e-14
+        s2f.samples.phis_equiang(L, sampling), phis_ssht, atol=1e-14
     )
 
 
 @pytest.mark.parametrize("ind", [15, 16])
 def test_sampling_index_conversion(ind: int):
 
-    (el, m) = s2f.sampling.ind2elm(ind)
+    (el, m) = s2f.samples.ind2elm(ind)
 
-    ind_check = s2f.sampling.elm2ind(el, m)
+    ind_check = s2f.samples.elm2ind(el, m)
 
     assert ind == ind_check
 
@@ -53,13 +51,13 @@ def test_sampling_ncoeff(L: int):
         for m in range(-el, el + 1):
             n += 1
 
-    assert s2f.sampling.ncoeff(L) == pytest.approx(n)
+    assert s2f.samples.ncoeff(L) == pytest.approx(n)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
 def test_sampling_n_and_angles_hp(nside: int):
 
-    ntheta = s2f.sampling.ntheta(L=0, sampling="healpix", nside=nside)
+    ntheta = s2f.samples.ntheta(L=0, sampling="healpix", nside=nside)
     assert ntheta == 4 * nside - 1
 
     npix = hp.nside2npix(nside)
@@ -68,10 +66,10 @@ def test_sampling_n_and_angles_hp(nside: int):
         hp_angles[i] = hp.pix2ang(nside, i)
 
     s2f_hp_angles = np.zeros((npix, 2))
-    thetas = s2f.sampling.thetas(L=0, sampling="healpix", nside=nside)
+    thetas = s2f.samples.thetas(L=0, sampling="healpix", nside=nside)
     entry = 0
     for ring in range(ntheta):
-        phis = s2f.sampling.phis_ring(ring, nside)
+        phis = s2f.samples.phis_ring(ring, nside)
         s2f_hp_angles[entry : entry + len(phis), 0] = thetas[ring]
         s2f_hp_angles[entry : entry + len(phis), 1] = phis
         entry += len(phis)
@@ -84,32 +82,32 @@ def test_hp_ang2pix(nside: int):
 
     for i in range(12 * nside**2):
         theta, phi = hp.pix2ang(nside, i)
-        j = s2f.sampling.hp_ang2pix(nside, theta, phi)
+        j = s2f.samples.hp_ang2pix(nside, theta, phi)
         assert i == j
 
 
 @pytest.mark.parametrize("L", [5, 6])
 @pytest.mark.parametrize("sampling", ["mw", "mwss"])
-def test_sampling_mw_weights(L: int, sampling: str):
+def test_quadrature_mw_weights(L: int, sampling: str):
 
     # TODO: move this and potentially do better
     # np.random.seed(2)
 
     spin = 0
 
-    q = s2f.sampling.quad_weights(L, sampling, spin)
+    q = s2f.quadrature.quad_weights(L, sampling, spin)
 
     # Create bandlimited signal
-    ncoeff = s2f.sampling.ncoeff(L)
+    ncoeff = s2f.samples.ncoeff(L)
     flm = np.zeros(ncoeff, dtype=np.complex128)
     flm = np.random.rand(ncoeff) + 1j * np.random.rand(ncoeff)
 
-    f = s2f.transform.inverse_direct(flm, L, spin, sampling)
+    f = s2f.transform.inverse_sov_fft(flm, L, spin, sampling)
 
     integral = flm[0] * np.sqrt(4 * np.pi)
     q = np.reshape(q, (-1, 1))
 
-    nphi = s2f.sampling.nphi_equiang(L, sampling)
+    nphi = s2f.samples.nphi_equiang(L, sampling)
     Q = q.dot(np.ones((1, nphi)))
 
     integral_check = np.sum(Q * f)
@@ -131,37 +129,37 @@ def test_sampling_exceptions():
     L = 10
 
     with pytest.raises(ValueError) as e:
-        s2f.sampling.phis_equiang(L, sampling="healpix")
+        s2f.samples.phis_equiang(L, sampling="healpix")
 
     with pytest.raises(ValueError) as e:
-        s2f.sampling.phis_equiang(L, sampling="foo")
+        s2f.samples.phis_equiang(L, sampling="foo")
 
     with pytest.raises(ValueError) as e:
-        s2f.sampling.ntheta(L, sampling="healpix")
+        s2f.samples.ntheta(L, sampling="healpix")
 
     with pytest.raises(ValueError) as e:
-        s2f.sampling.ntheta(L, sampling="foo")
+        s2f.samples.ntheta(L, sampling="foo")
 
     with pytest.raises(ValueError) as e:
-        s2f.sampling.ntheta_extension(L, sampling="foo")
+        s2f.samples.ntheta_extension(L, sampling="foo")
 
     with pytest.raises(ValueError) as e:
-        s2f.sampling.nphi_equiang(L, sampling="healpix")
+        s2f.samples.nphi_equiang(L, sampling="healpix")
 
     with pytest.raises(ValueError) as e:
-        s2f.sampling.nphi_equiang(L, sampling="foo")
+        s2f.samples.nphi_equiang(L, sampling="foo")
 
     with pytest.raises(ValueError) as e:
-        s2f.sampling.nphi_ring(-1, nside=2)
+        s2f.samples.nphi_ring(-1, nside=2)
 
     with pytest.raises(ValueError) as e:
-        s2f.sampling.t2theta(L, 0, sampling="healpix")
+        s2f.samples.t2theta(L, 0, sampling="healpix")
 
     with pytest.raises(ValueError) as e:
-        s2f.sampling.t2theta(L, 0, sampling="foo")
+        s2f.samples.t2theta(L, 0, sampling="foo")
 
     with pytest.raises(ValueError) as e:
-        s2f.sampling.quad_weights_transform(L, sampling="foo")
+        s2f.quadrature.quad_weights_transform(L, sampling="foo")
 
     with pytest.raises(ValueError) as e:
-        s2f.sampling.quad_weights(L, sampling="foo")
+        s2f.quadrature.quad_weights(L, sampling="foo")

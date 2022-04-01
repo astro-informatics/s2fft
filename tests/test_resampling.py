@@ -92,8 +92,8 @@ def test_resampling_exceptions():
         s2f.resampling.mw_to_mwss_phi(f_dummy, L=5)
 
     L = 5
-    nphi_mw = s2f.sampling.nphi_equiang(L, sampling="mw")
-    ntheta_mw = s2f.sampling.ntheta(L, sampling="mw")
+    nphi_mw = s2f.samples.nphi_equiang(L, sampling="mw")
+    ntheta_mw = s2f.samples.ntheta(L, sampling="mw")
     with pytest.raises(ValueError) as e:
         f_dummy = np.zeros((ntheta_mw + 1, nphi_mw), dtype=np.complex128)
         s2f.resampling.mw_to_mwss_theta(f_dummy, L)
