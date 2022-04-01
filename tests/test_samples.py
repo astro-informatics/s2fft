@@ -11,7 +11,7 @@ nside_to_test = [32, 64, 128]
 
 @pytest.mark.parametrize("L", [15, 16])
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
-def test_sampling_n_and_angles(L: int, sampling: str):
+def test_samples_n_and_angles(L: int, sampling: str):
 
     # Test ntheta and nphi
     ntheta = s2f.samples.ntheta(L, sampling)
@@ -36,7 +36,7 @@ def test_sampling_n_and_angles(L: int, sampling: str):
 
 
 @pytest.mark.parametrize("ind", [15, 16])
-def test_sampling_index_conversion(ind: int):
+def test_samples_index_conversion(ind: int):
 
     (el, m) = s2f.samples.ind2elm(ind)
 
@@ -46,7 +46,7 @@ def test_sampling_index_conversion(ind: int):
 
 
 @pytest.mark.parametrize("L", [15, 16])
-def test_sampling_ncoeff(L: int):
+def test_samples_ncoeff(L: int):
 
     n = 0
     for el in range(0, L):
@@ -57,7 +57,7 @@ def test_sampling_ncoeff(L: int):
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
-def test_sampling_n_and_angles_hp(nside: int):
+def test_samples_n_and_angles_hp(nside: int):
 
     ntheta = s2f.samples.ntheta(L=0, sampling="healpix", nside=nside)
     assert ntheta == 4 * nside - 1
@@ -123,7 +123,7 @@ def test_quadrature_mw_weights(flm_generator, L: int, sampling: str):
     np.testing.assert_allclose(integral, integral_check, atol=1e-14)
 
 
-def test_sampling_exceptions():
+def test_samples_exceptions():
 
     L = 10
 
