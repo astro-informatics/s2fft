@@ -179,6 +179,11 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
 
+def flm_shape(L: int) -> tuple:
+
+    return L, 2 * L - 1
+
+
 def elm2ind(el: int, m: int) -> int:
 
     return el**2 + el + m
@@ -240,6 +245,8 @@ def zphi2pix(nside: int, z: float, phi: float) -> int:
 
     return ipix1 - 1
 
+
 def hp_getidx(L: int, el: int, m: int) -> int:
     """Returns healpix flm index for l=el & m=em"""
-    return m * (2 * L + 1 - m) // 2 + el
+    # return m * (2 * lmax + 1 - m) // 2 + el
+    return m * (2 * L - 1 - m) // 2 + el
