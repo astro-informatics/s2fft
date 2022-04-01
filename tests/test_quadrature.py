@@ -27,15 +27,6 @@ def test_quadrature_mw_weights(flm_generator, L: int, sampling: str):
 
     integral_check = np.sum(Q * f)
 
-    print(f"sampling = {sampling}")
-    print(f"q = {q}")
-    # print(f"Q = {Q}")
-    # print(f"q.shape = {q.shape}")
-    # print(f"Q.shape = {Q.shape}")
-
-    print(f"integral = {integral}")
-    print(f"integral_check = {integral_check}")
-
     np.testing.assert_allclose(integral, integral_check, atol=1e-14)
 
 
