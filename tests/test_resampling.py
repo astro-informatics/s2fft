@@ -70,15 +70,37 @@ def test_unextend(flm_generator, L: int, sampling: str, spin_reality):
     np.testing.assert_allclose(f, f_unext, atol=1e-10)
 
 
-def test_unextend_invalid_sampling():
+def test_resampling_exceptions():
 
     f_dummy = np.zeros((2, 2), dtype=np.complex128)
+
+    with pytest.raises(ValueError) as e:
+        L_odd = 3
+        s2f.resampling.downsample_by_two_mwss(f_dummy, L_odd)
 
     with pytest.raises(ValueError) as e:
         s2f.resampling.unextend(f_dummy, L=5, sampling="healpix")
 
     with pytest.raises(ValueError) as e:
         s2f.resampling.unextend(f_dummy, L=5, sampling="dh")
+
+    with pytest.raises(ValueError) as e:
+        # f_ext has wrong shape
+        s2f.resampling.unextend(f_dummy, L=5, sampling="mw")
+
+    with pytest.raises(ValueError) as e:
+        s2f.resampling.mw_to_mwss_phi(f_dummy, L=5)
+
+    L = 5
+    nphi_mw = s2f.sampling.nphi_equiang(L, sampling="mw")
+    ntheta_mw = s2f.sampling.ntheta(L, sampling="mw")
+    with pytest.raises(ValueError) as e:
+        f_dummy = np.zeros((ntheta_mw + 1, nphi_mw), dtype=np.complex128)
+        s2f.resampling.mw_to_mwss_theta(f_dummy, L)
+
+    with pytest.raises(ValueError) as e:
+        f_dummy = np.zeros((ntheta_mw, nphi_mw + 1), dtype=np.complex128)
+        s2f.resampling.mw_to_mwss_theta(f_dummy, L)
 
 
 @pytest.mark.parametrize("L", [5])
