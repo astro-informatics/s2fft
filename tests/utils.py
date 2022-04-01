@@ -17,7 +17,7 @@ def reindex_lm_to_hp():
 
         for el in range(0, L):
             for m in range(0, el + 1):
-                flm_hp[s2f.sampling.hp_getidx(L, el, m)] = flm[s2f.sampling.elm2ind(el, m)]
+                flm_hp[s2f.samples.hp_getidx(L, el, m)] = flm[s2f.samples.elm2ind(el, m)]
 
         return flm_hp
 
