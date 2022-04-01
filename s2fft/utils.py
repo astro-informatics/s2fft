@@ -1,6 +1,6 @@
 from multiprocessing.sharedctypes import Value
 import numpy as np
-import s2fft.sampling as samples
+import s2fft.samples as samples
 
 
 def generate_flm(L: int, spin: int = 0, reality: bool = False) -> np.ndarray:

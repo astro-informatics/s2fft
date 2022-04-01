@@ -1,5 +1,5 @@
 from . import logs
-from . import sampling
+from . import samples
 from . import resampling
 from . import transform
 from . import utils

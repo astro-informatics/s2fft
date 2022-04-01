@@ -1,5 +1,5 @@
 **************************
-s2fft.sampling
+s2fft.samples
 **************************
-.. automodule:: s2fft.sampling
+.. automodule:: s2fft.samples
    :members: 
