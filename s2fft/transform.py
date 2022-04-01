@@ -34,8 +34,6 @@ def inverse_direct(
 
                 for m in range(-el, el + 1):
 
-                    i = samples.elm2ind(el, m)
-
                     for p, phi in enumerate(phis_equiang):
 
                         f[t, p] += (
@@ -43,7 +41,7 @@ def inverse_direct(
                             * elfactor
                             * np.exp(1j * m * phi)
                             * dl[m + L - 1, -spin + L - 1]
-                            * flm[i]
+                            * flm[el, m + L - 1]
                         )
 
     return f
@@ -77,10 +75,11 @@ def inverse_sov(
 
                 for m in range(-el, el + 1):
 
-                    i = samples.elm2ind(el, m)
-
                     ftm[t, m + L - 1] += (
-                        (-1) ** spin * elfactor * dl[m + L - 1, -spin + L - 1] * flm[i]
+                        (-1) ** spin
+                        * elfactor
+                        * dl[m + L - 1, -spin + L - 1]
+                        * flm[el, m + L - 1]
                     )
 
     for t, theta in enumerate(thetas):
@@ -124,11 +123,12 @@ def inverse_sov_fft(
 
                 for m in range(-el, el + 1):
 
-                    i = samples.elm2ind(el, m)
-
                     m_offset = 1 if sampling == "mwss" else 0
                     ftm[t, m + L - 1 + m_offset] += (
-                        (-1) ** spin * elfactor * dl[m + L - 1, -spin + L - 1] * flm[i]
+                        (-1) ** spin
+                        * elfactor
+                        * dl[m + L - 1, -spin + L - 1]
+                        * flm[el, m + L - 1]
                     )
 
     f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
@@ -148,9 +148,7 @@ def forward_direct(
             f"Sampling scheme sampling={sampling} not implement (only DH supported at present)"
         )
 
-    ncoeff = samples.ncoeff(L)
-
-    flm = np.zeros(ncoeff, dtype=np.complex128)
+    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
@@ -170,11 +168,9 @@ def forward_direct(
 
                 for m in range(-el, el + 1):
 
-                    i = samples.elm2ind(el, m)
-
                     for p, phi in enumerate(phis_equiang):
 
-                        flm[i] += (
+                        flm[el, m + L - 1] += (
                             weights[t]
                             * (-1) ** spin
                             * elfactor
@@ -198,9 +194,7 @@ def forward_sov(
             f"Sampling scheme sampling={sampling} not implement (only DH supported at present)"
         )
 
-    ncoeff = samples.ncoeff(L)
-
-    flm = np.zeros(ncoeff, dtype=np.complex128)
+    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
@@ -230,9 +224,7 @@ def forward_sov(
 
                 for m in range(-el, el + 1):
 
-                    i = samples.elm2ind(el, m)
-
-                    flm[i] += (
+                    flm[el, m + L - 1] += (
                         weights[t]
                         * (-1) ** spin
                         * elfactor
@@ -259,8 +251,7 @@ def forward_sov_fft(
     else:
         thetas = samples.thetas(L, sampling)
 
-    ncoeff = samples.ncoeff(L)
-    flm = np.zeros(ncoeff, dtype=np.complex128)
+    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
     ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
 
@@ -281,9 +272,7 @@ def forward_sov_fft(
 
                 for m in range(-el, el + 1):
 
-                    i = samples.elm2ind(el, m)
-
-                    flm[i] += (
+                    flm[el, m + L - 1] += (
                         weights[t]
                         * (-1) ** spin
                         * elfactor
@@ -318,8 +307,6 @@ def inverse_direct_healpix(
 
                 for m in range(-el, el + 1):
 
-                    i = samples.elm2ind(el, m)
-
                     for p, phi in enumerate(samples.phis_ring(t, nside)):
 
                         f[samples.hp_ang2pix(nside, theta, phi)] += (
@@ -327,7 +314,7 @@ def inverse_direct_healpix(
                             * elfactor
                             * np.exp(1j * m * phi)
                             * dl[m + L - 1, -spin + L - 1]
-                            * flm[i]
+                            * flm[el, m + L - 1]
                         )
 
     return f
@@ -360,10 +347,11 @@ def inverse_sov_healpix(
 
                 for m in range(-el, el + 1):
 
-                    i = samples.elm2ind(el, m)
-
                     ftm[t, m + L - 1] += (
-                        (-1) ** spin * elfactor * dl[m + L - 1, -spin + L - 1] * flm[i]
+                        (-1) ** spin
+                        * elfactor
+                        * dl[m + L - 1, -spin + L - 1]
+                        * flm[el, m + L - 1]
                     )
 
     for t, theta in enumerate(thetas):
@@ -390,6 +378,7 @@ def inverse_sov_fft_healpix(
 
     ntheta = samples.ntheta(L, "healpix", nside)
 
+    # TODO: should use npix below
     f = np.zeros(12 * nside**2, dtype=np.complex128)
 
     thetas = samples.thetas(L, "healpix", nside)
@@ -414,10 +403,11 @@ def inverse_sov_fft_healpix(
                     # See libsharp paper
                     psi_0_y = samples.p2phi_ring(t, 0, nside)
 
-                    i = samples.elm2ind(el, m)
-
                     ftm[t, m + L - 1] += (
-                        (-1) ** spin * elfactor * dl[m + L - 1, -spin + L - 1] * flm[i]
+                        (-1) ** spin
+                        * elfactor
+                        * dl[m + L - 1, -spin + L - 1]
+                        * flm[el, m + L - 1]
                     ) * np.exp(1j * m * psi_0_y)
     index = 0
     for t, theta in enumerate(thetas):
@@ -436,9 +426,7 @@ def forward_direct_healpix(
 
     # TODO: Check f shape consistent with L
 
-    ncoeff = samples.ncoeff(L)
-
-    flm = np.zeros(ncoeff, dtype=np.complex128)
+    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
     thetas = samples.thetas(L, "healpix", nside)
 
@@ -457,11 +445,9 @@ def forward_direct_healpix(
 
                 for m in range(-el, el + 1):
 
-                    i = samples.elm2ind(el, m)
-
                     for p, phi in enumerate(samples.phis_ring(t, nside)):
 
-                        flm[i] += (
+                        flm[el, m + L - 1] += (
                             weights[t]
                             * (-1) ** spin
                             * elfactor
@@ -477,9 +463,7 @@ def forward_sov_healpix(f: np.ndarray, L: int, nside: int, spin: int = 0) -> np.
 
     # TODO: Check f shape consistent with L
 
-    ncoeff = samples.ncoeff(L)
-
-    flm = np.zeros(ncoeff, dtype=np.complex128)
+    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
     thetas = samples.thetas(L, "healpix", nside)
 
@@ -510,9 +494,7 @@ def forward_sov_healpix(f: np.ndarray, L: int, nside: int, spin: int = 0) -> np.
 
                 for m in range(-el, el + 1):
 
-                    i = samples.elm2ind(el, m)
-
-                    flm[i] += (
+                    flm[el, m + L - 1] += (
                         weights[t]
                         * (-1) ** spin
                         * elfactor

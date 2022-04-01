@@ -88,7 +88,7 @@ def test_hp_ang2pix(nside: int):
 
 @pytest.mark.parametrize("L", [5, 6])
 @pytest.mark.parametrize("sampling", ["mw", "mwss"])
-def test_quadrature_mw_weights(L: int, sampling: str):
+def test_quadrature_mw_weights(flm_generator, L: int, sampling: str):
 
     # TODO: move this and potentially do better
     # np.random.seed(2)
@@ -97,14 +97,11 @@ def test_quadrature_mw_weights(L: int, sampling: str):
 
     q = s2f.quadrature.quad_weights(L, sampling, spin)
 
-    # Create bandlimited signal
-    ncoeff = s2f.samples.ncoeff(L)
-    flm = np.zeros(ncoeff, dtype=np.complex128)
-    flm = np.random.rand(ncoeff) + 1j * np.random.rand(ncoeff)
+    flm = flm_generator(L=L, spin=spin, reality=False)
 
     f = s2f.transform.inverse_sov_fft(flm, L, spin, sampling)
 
-    integral = flm[0] * np.sqrt(4 * np.pi)
+    integral = flm[0, 0] * np.sqrt(4 * np.pi)
     q = np.reshape(q, (-1, 1))
 
     nphi = s2f.samples.nphi_equiang(L, sampling)

@@ -12,16 +12,14 @@ def generate_flm(L: int, spin: int = 0, reality: bool = False) -> np.ndarray:
     if reality == False:
         flm = np.random.rand(ncoeff) + 1j * np.random.rand(ncoeff)
         # For spin signals all flms for el < spin = 0, therfore first spin**2 coefficients = 0
-        flm[: spin**2] = 0.0
+        flm[:spin, :] = 0.0
         return flm
     else:
         for el in range(spin, L):
-            flm[samples.elm2ind(el, 0)] = np.random.rand()
-            for em in range(1, el + 1):
-                flm[samples.elm2ind(el, em)] = np.random.rand() + 1j * np.random.rand()
-                flm[samples.elm2ind(el, -em)] = (-1) ** em * np.conj(
-                    flm[samples.elm2ind(el, em)]
-                )
+            flm[el, 0] = np.random.rand()
+            for m in range(1, el + 1):
+                flm[el, m] = np.random.rand() + 1j * np.random.rand()
+                flm[el, -m] = (-1) ** m * np.conj(flm[el, m])
 
         return flm
 
@@ -59,7 +57,7 @@ def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
 
     for el in range(L):
         for m in range(-el, el + 1):
-            flm_1d[samples.elm2ind(el, m)] = flm_2d[el, L - 1 + m]
+            flm_1d[samples.elm2ind(el, m)] = flm_2d[el, m + L - 1]
 
     return flm_1d
 
@@ -97,6 +95,6 @@ def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
 
     for el in range(L):
         for m in range(-el, el + 1):
-            flm_2d[el, L - 1 + m] = flm_1d[samples.elm2ind(el, m)]
+            flm_2d[el, m + L - 1] = flm_1d[samples.elm2ind(el, m)]
 
     return flm_2d

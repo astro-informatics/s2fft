@@ -193,6 +193,11 @@ def ind2elm(ind):
     return (el, m)
 
 
+def flm_shape(L):
+
+    return (L, 2 * L - 1)
+
+
 def ncoeff(L):
 
     return elm2ind(L - 1, L - 1) + 1
