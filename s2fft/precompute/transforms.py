@@ -16,7 +16,9 @@ import s2fft.logs as lg
 lg.setup_logging()
 
 
-def forward_precompute(f, L=4, legendre_kernel=None, device="cpu", spin=0, save_dir="../../.matrices"):
+def forward_precompute(
+    f, L=4, legendre_kernel=None, device="cpu", spin=0, save_dir="../../.matrices"
+):
     """Computes the forward spherical harmonic transform via precompute
 
     Args:
@@ -34,7 +36,9 @@ def forward_precompute(f, L=4, legendre_kernel=None, device="cpu", spin=0, save_
         coefficients indexed by [-L < n < L].
     """
     if legendre_kernel is None:
-        kernel = load_legendre_matrix(L=L, direction="forward", spin=spin, save_dir=save_dir)
+        kernel = load_legendre_matrix(
+            L=L, direction="forward", spin=spin, save_dir=save_dir
+        )
     else:
         kernel = legendre_kernel
 
@@ -90,7 +94,9 @@ def forward_transform_gpu(f, legendre_kernel, L):
     return jnp.ravel(jnp.fft.fftshift(flm, axes=1))
 
 
-def inverse_precompute(flm, L=4, legendre_kernel=None, device="cpu", spin=0, save_dir="../../.matrices"):
+def inverse_precompute(
+    flm, L=4, legendre_kernel=None, device="cpu", spin=0, save_dir="../../.matrices"
+):
     """Computes the inverse spherical harmonic transform via precompute
 
     Args:
@@ -107,7 +113,9 @@ def inverse_precompute(flm, L=4, legendre_kernel=None, device="cpu", spin=0, sav
         Pixel-space coefficients with shape [L, 2*L-1].
     """
     if legendre_kernel is None:
-        kernel = load_legendre_matrix(L=L, direction="inverse", spin=spin, save_dir=save_dir)
+        kernel = load_legendre_matrix(
+            L=L, direction="inverse", spin=spin, save_dir=save_dir
+        )
     else:
         kernel = legendre_kernel
 

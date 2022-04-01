@@ -211,7 +211,6 @@ def quad_weight_dh_theta_only(theta: float, L: int) -> float:
     return w
 
 
-
 def quad_weights_transform(L: int, sampling: str, spin: int = 0) -> np.ndarray:
 
     if sampling.lower() == "mwss":

@@ -6,6 +6,7 @@ import healpy as hp
 
 nside_to_test = [32, 64, 128]
 
+
 @pytest.mark.parametrize("L", [15, 16])
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
 def test_sampling_n_and_angles(L: int, sampling: str):
@@ -81,7 +82,7 @@ def test_sampling_n_and_angles_hp(nside: int):
 @pytest.mark.parametrize("nside", nside_to_test)
 def test_hp_ang2pix(nside: int):
 
-    for i in range(12*nside**2):
+    for i in range(12 * nside**2):
         theta, phi = hp.pix2ang(nside, i)
         j = s2f.sampling.hp_ang2pix(nside, theta, phi)
         assert i == j
