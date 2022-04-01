@@ -71,7 +71,7 @@ def forward_transform_cpu(f, legendre_kernel, L):
     """
     fm = np.fft.fft(f)
     flm = np.einsum("lmi, im->lm", legendre_kernel, fm)
-    return np.ravel(np.fft.fftshift(flm, axes=1))
+    return np.fft.fftshift(flm, axes=1)
 
 
 @partial(jit, static_argnums=(2,))
@@ -91,7 +91,7 @@ def forward_transform_gpu(f, legendre_kernel, L):
     """
     fm = jnp.fft.fft(f)
     flm = jnp.einsum("lmi, im->lm", legendre_kernel, fm, optimize=True)
-    return jnp.ravel(jnp.fft.fftshift(flm, axes=1))
+    return jnp.fft.fftshift(flm, axes=1)
 
 
 def inverse_precompute(
@@ -145,7 +145,7 @@ def inverse_transform_cpu(flm, legendre_kernel, L):
 
         Pixel-space coefficients with shape [L, 2*L-1].
     """
-    flm_shift = np.fft.ifftshift(np.reshape(flm, (L, 2 * L - 1)), axes=1)
+    flm_shift = np.fft.ifftshift(flm, axes=1)
     fm = np.einsum("lmi, lm->im", legendre_kernel, flm_shift)
     return fm.shape[1] * np.fft.ifft(fm)
 
@@ -164,6 +164,6 @@ def inverse_transform_gpu(flm, legendre_kernel, L):
 
         Pixel-space coefficients with shape [L, 2*L-1].
     """
-    flm_shift = jnp.fft.ifftshift(jnp.reshape(flm, (L, 2 * L - 1)), axes=1)
+    flm_shift = jnp.fft.ifftshift(flm, axes=1)
     fm = jnp.einsum("lmi, lm->im", legendre_kernel, flm_shift, optimize=True)
     return float(2 * L - 1) * jnp.fft.ifft(fm)

@@ -353,3 +353,7 @@ def zphi2pix(nside: int, z: float, phi: float) -> int:
             ipix1 = npix - 2 * ir * (ir + 1) + ip
 
     return ipix1 - 1
+
+def hp_getidx(L: int, el: int, m: int) -> int:
+    """Returns healpix flm index for l=el & m=em"""
+    return m * (2 * L + 1 - m) // 2 + el
