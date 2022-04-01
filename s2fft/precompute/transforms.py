@@ -16,7 +16,7 @@ import s2fft.logs as lg
 lg.setup_logging()
 
 
-def forward_precompute(f, L=4, legendre_kernel=None, device="cpu", spin=0):
+def forward_precompute(f, L=4, legendre_kernel=None, device="cpu", spin=0, save_dir="../../.matrices"):
     """Computes the forward spherical harmonic transform via precompute
 
     Args:
@@ -26,6 +26,7 @@ def forward_precompute(f, L=4, legendre_kernel=None, device="cpu", spin=0):
         legendre_kernel (np.ndarray): Legendre transform kernel
         device (str): Evaluate on "cpu" or "gpu"
         spin (int): Spin of the transform to consider
+        save_dir (str): Where to save legendre kernels
 
     Returns:
 
@@ -33,7 +34,7 @@ def forward_precompute(f, L=4, legendre_kernel=None, device="cpu", spin=0):
         coefficients indexed by [-L < n < L].
     """
     if legendre_kernel is None:
-        kernel = load_legendre_matrix(L=L, direction="forward", spin=spin)
+        kernel = load_legendre_matrix(L=L, direction="forward", spin=spin, save_dir=save_dir)
     else:
         kernel = legendre_kernel
 
@@ -89,7 +90,7 @@ def forward_transform_gpu(f, legendre_kernel, L):
     return jnp.ravel(jnp.fft.fftshift(flm, axes=1))
 
 
-def inverse_precompute(flm, L=4, legendre_kernel=None, device="cpu", spin=0):
+def inverse_precompute(flm, L=4, legendre_kernel=None, device="cpu", spin=0, save_dir="../../.matrices"):
     """Computes the inverse spherical harmonic transform via precompute
 
     Args:
@@ -99,13 +100,14 @@ def inverse_precompute(flm, L=4, legendre_kernel=None, device="cpu", spin=0):
         legendre_kernel (np.ndarray): Legendre transform kernel
         device (str): Evaluate on "cpu" or "gpu"
         spin (int): Spin of the transform to consider
+        save_dir (str): Where to save legendre kernels
 
     Returns:
 
         Pixel-space coefficients with shape [L, 2*L-1].
     """
     if legendre_kernel is None:
-        kernel = load_legendre_matrix(L=L, direction="inverse", spin=spin)
+        kernel = load_legendre_matrix(L=L, direction="inverse", spin=spin, save_dir=save_dir)
     else:
         kernel = legendre_kernel
 
