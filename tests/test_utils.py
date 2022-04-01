@@ -21,6 +21,21 @@ def test_flm_reindexing_functions(flm_generator):
     np.testing.assert_allclose(flm_1d, flm_1d_check, atol=1e-14)
 
 
+def test_flm_reindexing_functions_healpix(flm_generator, reindex_lm_to_hp):
+
+    L = 16
+    flm_1d = flm_generator(L=L, spin=0, reality=True)
+    flm_hp = reindex_lm_to_hp(flm_1d, L)
+
+    flm_2d_hp = s2f.utils.flm_hp_to_2d(flm_hp, L)
+    flm_2d = s2f.utils.flm_1d_to_2d(flm_1d, L)
+    assert len(flm_2d_hp.shape) == 2
+    np.testing.assert_allclose(flm_2d, flm_2d_hp, atol=1e-14)
+
+    flm_hp_check = s2f.utils.flm_2d_to_hp(flm_2d_hp, L)
+    np.testing.assert_allclose(flm_hp, flm_hp_check, atol=1e-14)
+
+
 def test_flm_reindexing_exceptions(flm_generator):
     L = 16
     spin = 0

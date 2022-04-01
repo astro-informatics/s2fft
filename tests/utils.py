@@ -16,8 +16,8 @@ def reindex_lm_to_hp():
         flm_hp = np.zeros(int(L * (L + 1) / 2 + L + 1), dtype=np.complex128)
 
         for el in range(0, L):
-            for em in range(0, el + 1):
-                flm_hp[hp.sphtfunc.Alm.getidx(L, el, em)] = flm[el * el + el + em]
+            for m in range(0, el + 1):
+                flm_hp[s2f.samples.hp_getidx(L, el, m)] = flm[s2f.samples.elm2ind(el, m)]
 
         return flm_hp
 
