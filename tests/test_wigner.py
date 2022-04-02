@@ -96,3 +96,19 @@ def test_risbo_with_ssht():
     for el in range(0, L):
         dl = wigner.risbo.compute_full(dl, beta, L, el)
         np.testing.assert_allclose(dl_array[el, :, :], dl, atol=1e-15)
+
+
+def test_turok_with_ssht():
+    """Test Turok computation against ssht"""
+
+    # Test all dl(pi/2) terms up to L.
+    L = 10
+
+    # Compute using SSHT.
+    beta = np.pi / 2.0
+    dl_array = ssht.generate_dl(beta, L)[
+        -1,
+    ]
+    dl_turok = wigner.turok.compute_full(beta, L)
+
+    np.testing.assert_allclose(dl_turok, dl_array, atol=1e-15)
