@@ -1,5 +1,10 @@
-from re import S
 import numpy as np
+
+
+def compute_full(beta: float, L: int) -> np.ndarray:
+    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    el = L - 1
+    return turok_fill(turok_quarter(dl, beta, el), el)
 
 
 def turok_quarter(dl: np.ndarray, beta: float, l: int) -> np.ndarray:
@@ -8,7 +13,7 @@ def turok_quarter(dl: np.ndarray, beta: float, l: int) -> np.ndarray:
     If beta=0 then dl=identity
     """
     if np.abs(beta) < 0:
-        dl = np.identity(2 * l + 1, dtype=np.complex128)
+        return np.identity(2 * l + 1, dtype=np.float64)
 
     """
     Define a bunch of random numbers
@@ -53,7 +58,6 @@ def turok_quarter(dl: np.ndarray, beta: float, l: int) -> np.ndarray:
     big = big_const
     lbig = np.log(big)
     bigi = 1.0 / big_const
-    bigi2 = 1.0 / (big_const**2)
     xllp1 = l * (l + 1)
 
     """
@@ -100,7 +104,7 @@ def turok_quarter(dl: np.ndarray, beta: float, l: int) -> np.ndarray:
         lamb = ((l + 1) * omc - index + c) / s
         dl[index - lp1, 2 - lp1] = lamb * dl[index - lp1, 1 - lp1] * cpi[0]
         if index < 2 * l:
-            for m in range(2, 2 * l - index + 1):
+            for m in range(2, 2 * l - index + 2):
                 lamb = ((l + 1) * omc - index + m * c) / s
                 dl[index - lp1, m + 1 - lp1] = (
                     lamb * cpi[m - 1] * dl[index - lp1, m - lp1]
@@ -265,7 +269,7 @@ def turok_fill(dl: np.ndarray, l: int) -> np.ndarray:
 
     # lp1 = l + 1
     lp1 = 1
-
+    # return dl
     """
     Reflect across anti-diagonal
     """
