@@ -371,10 +371,9 @@ def inverse_sov_fft_healpix(
     flm: np.ndarray, L: int, nside: int, spin: int = 0
 ) -> np.ndarray:
 
-    raise ValueError(f"Healpix sov + fft not yet functional")
+    # raise ValueError(f"Healpix sov + fft not yet functional")
 
     # TODO: Check flm shape consistent with L
-    from scipy.signal import resample
 
     ntheta = samples.ntheta(L, "healpix", nside)
 
@@ -384,7 +383,7 @@ def inverse_sov_fft_healpix(
 
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
-    ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
+    ftm = np.zeros((ntheta, 2 * L), dtype=np.complex128)
 
     for t, theta in enumerate(thetas):
 
@@ -402,7 +401,8 @@ def inverse_sov_fft_healpix(
                     # See libsharp paper
                     psi_0_y = samples.p2phi_ring(t, 0, nside)
 
-                    ftm[t, m + L - 1] += (
+                    offset = 1
+                    ftm[t, m + L - 1 + offset] += (
                         (-1) ** spin
                         * elfactor
                         * dl[m + L - 1, -spin + L - 1]
@@ -410,10 +410,14 @@ def inverse_sov_fft_healpix(
                     ) * np.exp(1j * m * psi_0_y)
     index = 0
     for t, theta in enumerate(thetas):
+        # Evaluate how many phi samples we expect in ring
         nphi = samples.nphi_ring(t, nside)
-        f_ring = fft.ifft(fft.ifftshift(ftm[t]), norm="forward")
-        f_ring = resample(f_ring, nphi)
-        f[index : index + nphi] = f_ring
+        # Find LCM of m's in ring and desired phi samples
+        n = np.lcm(nphi, 2 * L)
+        # Compute zero-padding for ftm
+        padding = int((n - ftm[t].shape[0]) / 2)
+        f_ring = fft.ifft(fft.ifftshift(np.pad(ftm[t], padding)), norm="forward")
+        f[index : index + nphi] = f_ring[:: int(n / nphi)]
         index += nphi
 
     return f
