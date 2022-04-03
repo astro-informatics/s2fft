@@ -1,28 +1,38 @@
 import numpy as np
 
 
-def compute_full(beta: float, L: int) -> np.ndarray:
+def compute_full(beta: float, el: int, L: int) -> np.ndarray:
     """Constructs the Wigner-d matrix via Turok recursion
 
     Args:
 
         beta (float): polar angle in radians
-        L (int): Angular bandlimit
+        el (int): Angular bandlimit of wigner-d matrix
+        L (int): Angular bandlimit of overall transform
 
     Raises:
 
+        ValueError: If el is greater than L
         ValueError: If polar angle is greater than pi
 
     Returns:
 
         Wigner-d matrix of dimension [2*L-1, 2*L-1]
     """
+    if el >= L:
+        raise ValueError(
+            f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
+        )
+
     if beta > np.pi:
         raise ValueError(f"Polar angle {beta} cannot be greater than pi")
 
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-    el = L - 1
-    return turok_fill(turok_quarter(dl, beta, el), el)
+    dl_el = np.zeros((2 * el + 1, 2 * el + 1), dtype=np.float64)
+    dl[L - 1 - el : L + el, L - 1 - el : L + el] = turok_fill(
+        turok_quarter(dl_el, beta, el), el
+    )
+    return dl
 
 
 def turok_quarter(dl: np.ndarray, beta: float, l: int) -> np.ndarray:
@@ -46,8 +56,8 @@ def turok_quarter(dl: np.ndarray, beta: float, l: int) -> np.ndarray:
     # Define constants adopted throughout
     lp1 = 1  # Offset for indexing (currently -L < m < L in 2D)
 
-    # TODO: Can you remember the point of these big consts?
-    big_const = 1.0
+    # These constants handle overflow by retrospectively renormalising
+    big_const = 1e10
     big = big_const
     bigi = 1.0 / big_const
     lbig = np.log(big)
@@ -79,12 +89,12 @@ def turok_quarter(dl: np.ndarray, beta: float, l: int) -> np.ndarray:
         sign[i - 1] = sign[i - 2] * t / np.abs(t)
 
     # Initialising coefficients cp(m)= cplus(l-m).
-    for m in range(1, l + 1):
+    for m in range(1, l + 2):
         xm = l - m
         cpi[m - 1] = 2.0 / np.sqrt(l * (l + 1) - xm * (xm + 1))
         cp[m - 1] = 1.0 / cpi[m - 1]
 
-    for m in range(2, l + 1):
+    for m in range(2, l + 2):
         cp2[m - 1] = cpi[m - 1] * cp[m - 2]
 
     dl[1 - lp1, 1 - lp1] = 1.0
@@ -93,7 +103,7 @@ def turok_quarter(dl: np.ndarray, beta: float, l: int) -> np.ndarray:
     # Use Turok recursion to fill from diagonal to horizontal (lower left eight)
     for index in range(2, l + 2):
         dl[index - lp1, 1 - lp1] = 1.0
-        lamb = ((l + 1) * omc - index + c) * si
+        lamb = ((l + 1) * omc - index + c) / s
         dl[index - lp1, 2 - lp1] = lamb * dl[index - lp1, 1 - lp1] * cpi[0]
         if index > 2:
             for m in range(2, index):
@@ -102,9 +112,10 @@ def turok_quarter(dl: np.ndarray, beta: float, l: int) -> np.ndarray:
                     lamb * cpi[m - 1] * dl[index - lp1, m - lp1]
                     - cp2[m - 1] * dl[index - lp1, m - 1 - lp1]
                 )
+
                 if dl[index - lp1, m + 1 - lp1] > big:
                     lrenorm[index - 1] = lrenorm[index - 1] - lbig
-                    for im in range(m + 1):
+                    for im in range(m + 2):
                         dl[index - lp1, im - lp1] = dl[index - lp1, im - lp1] * bigi
 
     # Use Turok recursion to fill horizontal to anti-diagonal (upper left eight)

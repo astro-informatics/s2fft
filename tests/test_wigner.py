@@ -102,15 +102,17 @@ def test_risbo_with_ssht():
 def test_turok_with_ssht():
     """Test Turok computation against ssht"""
 
-    # Test all dl(pi/2) terms up to L.
+    # Test all dl() terms up to L.
     L = 10
     betas = samples.thetas(L)
 
     # Compute using SSHT.
-    for beta in betas:
-        dl_array = ssht.generate_dl(beta, L)[
-            -1,
-        ]
-        dl_turok = wigner.turok.compute_full(beta, L)
+    for beta in betas[:-1]:
+        dl_array = ssht.generate_dl(beta, L)
 
-        np.testing.assert_allclose(dl_turok, dl_array, atol=1e-15)
+        # Avoid el = 0
+        # pytest flags (div 0) but this is expected behaviour!
+        for el in range(1, L):
+            dl_turok = wigner.turok.compute_full(beta, el, L)
+
+            np.testing.assert_allclose(dl_turok, dl_array[el], atol=1e-15)
