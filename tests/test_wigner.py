@@ -9,6 +9,9 @@ from jax.config import config
 
 config.update("jax_enable_x64", True)
 
+L_to_test = [8, 16]
+spin_to_test = np.arange(-3, 3)
+
 
 def test_trapani_with_ssht():
     """Test Trapani computation against ssht"""
@@ -99,20 +102,55 @@ def test_risbo_with_ssht():
         np.testing.assert_allclose(dl_array[el, :, :], dl, atol=1e-15)
 
 
-def test_turok_with_ssht():
+@pytest.mark.parametrize("L", L_to_test)
+def test_turok_with_ssht(L: int):
     """Test Turok computation against ssht"""
 
     # Test all dl() terms up to L.
-    L = 10
     betas = samples.thetas(L)
 
     # Compute using SSHT.
-    for beta in betas[:-1]:
+    for beta in betas:
         dl_array = ssht.generate_dl(beta, L)
 
-        # Avoid el = 0
-        # pytest flags (div 0) but this is expected behaviour!
-        for el in range(1, L):
+        for el in range(L):
             dl_turok = wigner.turok.compute_full(beta, el, L)
 
             np.testing.assert_allclose(dl_turok, dl_array[el], atol=1e-15)
+
+
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("spin", spin_to_test)
+def test_turok_single_spin_with_ssht(L: int, spin: int):
+    """Test Turok spin slice computation against ssht"""
+
+    # Test all dl() terms up to L.
+    betas = samples.thetas(L)
+
+    # Compute using SSHT.
+    for beta in betas:
+        dl_array = ssht.generate_dl(beta, L)
+
+        for el in range(L):
+            if el >= np.abs(spin):
+                dl_turok = wigner.turok.compute_spin_slice(beta, el, L, spin)
+
+                np.testing.assert_allclose(
+                    dl_turok, dl_array[el][L - 1 - spin], atol=1e-15
+                )
+
+
+def test_turok_exceptions():
+    L = 10
+
+    with pytest.raises(ValueError) as e:
+        wigner.turok.compute_full(np.pi / 2, L, L)
+
+    with pytest.raises(ValueError) as e:
+        wigner.turok.compute_spin_slice(np.pi / 2, L - 1, L, 0, True)
+
+    with pytest.raises(ValueError) as e:
+        wigner.turok.compute_spin_slice(np.pi / 2, L, L, 0)
+
+    with pytest.raises(ValueError) as e:
+        wigner.turok.compute_spin_slice(np.pi / 2, 2, L, 3)

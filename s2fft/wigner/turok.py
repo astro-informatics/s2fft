@@ -14,7 +14,6 @@ def compute_full(beta: float, el: int, L: int) -> np.ndarray:
     Raises:
 
         ValueError: If el is greater than L
-        ValueError: If polar angle is greater than pi
 
     Returns:
 
@@ -25,9 +24,6 @@ def compute_full(beta: float, el: int, L: int) -> np.ndarray:
             f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
         )
 
-    if beta > np.pi:
-        raise ValueError(f"Polar angle {beta} cannot be greater than pi")
-
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
     dl[L - 1 - el : L + el, L - 1 - el : L + el] = turok_fill(
         turok_quarter(beta, el), el
@@ -35,8 +31,12 @@ def compute_full(beta: float, el: int, L: int) -> np.ndarray:
     return dl
 
 
-def compute_spin_slice(beta: float, el: int, L: int, spin: int) -> np.ndarray:
+def compute_spin_slice(
+    beta: float, el: int, L: int, spin: int, accelerate: bool = False
+) -> np.ndarray:
     """Constructs the Wigner-d matrix via Turok recursion
+
+    TODO: Fix reflection optimisations
 
     Args:
 
@@ -44,40 +44,42 @@ def compute_spin_slice(beta: float, el: int, L: int, spin: int) -> np.ndarray:
         el (int): Angular bandlimit of wigner-d matrix
         L (int): Angular bandlimit of overall transform
         spin (int): m' at which to slice matrix
+        accelerate (bool): optimise indexing to minimise reflections
 
     Raises:
 
         ValueError: If el is greater than L
-        ValueError: If polar angle is greater than pi
+        ValueError: If el is less than spin
+        ValueError: If reflection acceleration is activated
 
     Returns:
 
         Wigner-d matrix of dimension [2*L-1]
     """
+    if el < spin:
+        raise ValueError(f"Wigner-D not valid for l={el} < spin={spin}.")
+
+    if accelerate == True:
+        raise ValueError(f"Reflection acceleration scheme not yet stable.")
+
     if el >= L:
         raise ValueError(
             f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
         )
 
-    if beta > np.pi:
-        raise ValueError(f"Polar angle {beta} cannot be greater than pi")
-
-    # dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-    # dl[L - 1 - spin, L - 1 - el : L + el] = turok_quarter_spin(beta, el, spin)
-
     dl = np.zeros(2 * L - 1, dtype=np.float64)
-    dl[L - 1 - el : L + el] = turok_quarter_spin(beta, el, spin)
-    if el > 0:
-        return dl
-    else:
-        return dl
+    dl[L - 1 - el : L + el] = turok_quarter_spin(beta, el, spin, accelerate)
+
+    return dl
 
 
 def turok_quarter_spin(
-    beta: float, l: int, spin: int, accelerate: bool = True
+    beta: float, l: int, spin: int, accelerate: bool = False
 ) -> np.ndarray:
     """Evaluates the left quarter triangle of the Wigner-d matrix via
         Turok recursion at ONLY a specific spin index
+
+    TODO: Fix reflection optimisations
 
     Args:
         beta (float): polar angle in radians
@@ -90,13 +92,22 @@ def turok_quarter_spin(
         Wigner-d matrix of dimension [2*L-1] with
         left quarter triangle populated only at m' = spin
     """
-    dl = np.zeros((2 * l + 1, 2 * l + 1), dtype=np.float64)
+    # Analytically evaluate singularities
+    if np.abs(beta) <= 0:
+        dl = np.zeros(2 * l + 1, dtype=np.float64)
+        dl[l - spin] = 1
+        return dl
 
-    # If beta < 0 dl = identity
-    if np.abs(beta) < 0:
-        return np.identity(2 * l + 1, dtype=np.float64)
+    if np.abs(beta) >= np.pi:
+        dl = np.zeros(2 * l + 1, dtype=np.float64)
+        dl[l + spin] = (-1) ** (l + spin)
+        return dl
+
+    if l == 0:
+        return 1
 
     # Define constants adopted throughout
+    dl = np.zeros((2 * l + 1, 2 * l + 1), dtype=np.float64)
     lp1 = 1  # Offset for indexing (currently -l <= m <= l)
 
     # These constants handle overflow by retrospectively renormalising
@@ -142,10 +153,6 @@ def turok_quarter_spin(
     # Use Turok recursion to fill from diagonal to horizontal (lower left eight)
     index = l - spin + lp1
     m_cap = l - np.abs(spin) + lp1
-
-    if l == 0:
-        dl[index - lp1, 1 - lp1] = 1.0
-        return dl
 
     for i in range(l - np.abs(spin) + lp1, l + 2):
         dl[i - lp1, 1 - lp1] = 1.0
@@ -246,13 +253,21 @@ def turok_quarter(beta: float, l: int) -> np.ndarray:
         Wigner-d matrix of dimension [2*L-1, 2*L-1] with
         left quarter triangle populated.
     """
-    dl = np.zeros((2 * l + 1, 2 * l + 1), dtype=np.float64)
-
-    # If beta < 0 dl = identity
-    if np.abs(beta) < 0:
+    # Analytically evaluate singularities
+    if np.abs(beta) <= 0:
         return np.identity(2 * l + 1, dtype=np.float64)
 
+    if np.abs(beta) >= np.pi:
+        dl = np.zeros((2 * l + 1, 2 * l + 1), dtype=np.float64)
+        for m in range(-l, l + 1):
+            dl[l - m, l + m] = (-1) ** (l + m)
+        return dl
+
+    if l == 0:
+        return 1
+
     # Define constants adopted throughout
+    dl = np.zeros((2 * l + 1, 2 * l + 1), dtype=np.float64)
     lp1 = 1  # Offset for indexing (currently -L < m < L in 2D)
 
     # These constants handle overflow by retrospectively renormalising
