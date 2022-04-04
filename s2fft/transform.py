@@ -502,3 +502,82 @@ def forward_sov_healpix(f: np.ndarray, L: int, nside: int, spin: int = 0) -> np.
                     )
 
     return flm
+
+
+def inverse_direct_turok(
+    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+) -> np.ndarray:
+
+    # TODO: Check flm shape consistent with L
+
+    ntheta = samples.ntheta(L, sampling)
+    nphi = samples.nphi_equiang(L, sampling)
+    f = np.zeros((ntheta, nphi), dtype=np.complex128)
+
+    thetas = samples.thetas(L, sampling)
+    phis_equiang = samples.phis_equiang(L, sampling)
+
+    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+
+    for t, theta in enumerate(thetas):
+
+        for el in range(0, L):
+
+            dl = wigner.turok.compute_full(theta, el, L)
+
+            if el >= np.abs(spin):
+
+                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+
+                for m in range(-el, el + 1):
+
+                    for p, phi in enumerate(phis_equiang):
+
+                        f[t, p] += (
+                            (-1) ** spin
+                            * elfactor
+                            * np.exp(1j * m * phi)
+                            * dl[m + L - 1, -spin + L - 1]
+                            * flm[el, m + L - 1]
+                        )
+
+    return f
+
+
+def inverse_direct_turok_spinslice(
+    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+) -> np.ndarray:
+
+    # TODO: Check flm shape consistent with L
+
+    ntheta = samples.ntheta(L, sampling)
+    nphi = samples.nphi_equiang(L, sampling)
+    f = np.zeros((ntheta, nphi), dtype=np.complex128)
+
+    thetas = samples.thetas(L, sampling)
+    phis_equiang = samples.phis_equiang(L, sampling)
+
+    for t, theta in enumerate(thetas):
+
+        for el in range(0, L):
+
+            if el >= np.abs(spin):
+
+                dl = wigner.turok.compute_spin_slice(theta, el, L, spin)
+
+                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+
+                for m in range(-el, el + 1):
+
+                    for p, phi in enumerate(phis_equiang):
+
+                        f[t, p] += (
+                            (-1) ** spin
+                            * elfactor
+                            * np.exp(1j * m * phi)
+                            * dl[m + L - 1]
+                            * (-1) ** (-m - spin)
+                            * flm[el, m + L - 1]
+                        )
+
+    return f
