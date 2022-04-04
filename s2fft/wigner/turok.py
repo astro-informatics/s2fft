@@ -50,7 +50,6 @@ def compute_spin_slice(
 
         ValueError: If el is greater than L
         ValueError: If el is less than spin
-        ValueError: If reflection acceleration is activated
 
     Returns:
 
@@ -58,9 +57,6 @@ def compute_spin_slice(
     """
     if el < spin:
         raise ValueError(f"Wigner-D not valid for l={el} < spin={spin}.")
-
-    if accelerate == True:
-        raise ValueError(f"Reflection acceleration scheme not yet stable.")
 
     if el >= L:
         raise ValueError(
@@ -218,7 +214,7 @@ def turok_quarter_spin(
 
         # Conjugate reflect across vertical line from spin to -spin
         for i in range(m_cap):
-            dl[index - lp1, 2 * l - i] = (-1) ** (spin + i + 1) * dl[l + spin, i]
+            dl[index - lp1, 2 * l - i] = (-1) ** (float(spin + i + 1)) * dl[l + spin, i]
 
         if np.abs(spin) > 0:
             if spin >= 0:
@@ -233,6 +229,15 @@ def turok_quarter_spin(
                 for i in range(m_cap, l):
                     dl[index - lp1, 2 * l - i] = dl[l - spin - step, m_cap - 1]
                     step -= 1
+
+        # Finally invert the appropriate elements
+        if spin > 0:
+            dl[index - lp1, l + 1 :] *= (-1) ** (l + 1)
+        elif spin < 0:
+            dl[index - lp1, l + np.abs(spin) :] *= (-1) ** (l + 1)
+        else:
+            dl[index - lp1, l:] *= (-1) ** (l + 1)
+
     else:
         dl = turok_fill(dl, l)
 

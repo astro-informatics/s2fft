@@ -140,14 +140,33 @@ def test_turok_single_spin_with_ssht(L: int, spin: int):
                 )
 
 
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("spin", spin_to_test)
+def test_turok_single_spin_acceleration(L: int, spin: int):
+    """Test Turok spin slice computation against ssht"""
+
+    # Test all dl() terms up to L.
+    betas = samples.thetas(L)
+
+    # Compute using SSHT.
+    for beta in betas:
+        for el in range(L):
+            if el >= np.abs(spin):
+                dl_turok_no_accel = wigner.turok.compute_spin_slice(beta, el, L, spin)
+                dl_turok_accel = wigner.turok.compute_spin_slice(
+                    beta, el, L, spin, accelerate=True
+                )
+
+                np.testing.assert_allclose(
+                    dl_turok_no_accel, dl_turok_accel, atol=1e-15
+                )
+
+
 def test_turok_exceptions():
     L = 10
 
     with pytest.raises(ValueError) as e:
         wigner.turok.compute_full(np.pi / 2, L, L)
-
-    with pytest.raises(ValueError) as e:
-        wigner.turok.compute_spin_slice(np.pi / 2, L - 1, L, 0, True)
 
     with pytest.raises(ValueError) as e:
         wigner.turok.compute_spin_slice(np.pi / 2, L, L, 0)
