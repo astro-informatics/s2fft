@@ -9,7 +9,7 @@ from jax.config import config
 
 config.update("jax_enable_x64", True)
 
-L_to_test = [8, 16]
+L_to_test = [8, 16, 32]
 spin_to_test = np.arange(-3, 3)
 
 
@@ -116,12 +116,12 @@ def test_turok_with_ssht(L: int):
         for el in range(L):
             dl_turok = wigner.turok.compute_full(beta, el, L)
 
-            np.testing.assert_allclose(dl_turok, dl_array[el], atol=1e-15)
+            np.testing.assert_allclose(dl_turok, dl_array[el], atol=1e-14)
 
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
-def test_turok_single_spin_with_ssht(L: int, spin: int):
+def test_turok_slice_with_ssht(L: int, spin: int):
     """Test Turok spin slice computation against ssht"""
 
     # Test all dl() terms up to L.
@@ -133,16 +133,16 @@ def test_turok_single_spin_with_ssht(L: int, spin: int):
 
         for el in range(L):
             if el >= np.abs(spin):
-                dl_turok = wigner.turok.compute_spin_slice(beta, el, L, spin)
-
+                dl_turok = wigner.turok.compute_slice(beta, el, L, spin)
+                
                 np.testing.assert_allclose(
-                    dl_turok, dl_array[el][L - 1 - spin], atol=1e-15
+                    dl_turok, dl_array[el][L - 1 - spin], atol=1e-14
                 )
 
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
-def test_turok_single_spin_acceleration(L: int, spin: int):
+def test_turok_slice_acceleration(L: int, spin: int):
     """Test Turok spin slice computation against ssht"""
 
     # Test all dl() terms up to L.
@@ -152,13 +152,13 @@ def test_turok_single_spin_acceleration(L: int, spin: int):
     for beta in betas:
         for el in range(L):
             if el >= np.abs(spin):
-                dl_turok_no_accel = wigner.turok.compute_spin_slice(beta, el, L, spin)
-                dl_turok_accel = wigner.turok.compute_spin_slice(
+                dl_turok_no_accel = wigner.turok.compute_slice(beta, el, L, spin)
+                dl_turok_accel = wigner.turok.compute_slice(
                     beta, el, L, spin, accelerate=True
                 )
 
                 np.testing.assert_allclose(
-                    dl_turok_no_accel, dl_turok_accel, atol=1e-15
+                    dl_turok_no_accel, dl_turok_accel, atol=1e-14
                 )
 
 
@@ -169,7 +169,7 @@ def test_turok_exceptions():
         wigner.turok.compute_full(np.pi / 2, L, L)
 
     with pytest.raises(ValueError) as e:
-        wigner.turok.compute_spin_slice(np.pi / 2, L, L, 0)
+        wigner.turok.compute_slice(np.pi / 2, L, L, 0)
 
     with pytest.raises(ValueError) as e:
-        wigner.turok.compute_spin_slice(np.pi / 2, 2, L, 3)
+        wigner.turok.compute_slice(np.pi / 2, 2, L, 3)
