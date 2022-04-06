@@ -3,17 +3,16 @@ import numpy as np
 
 
 def compute_full(dl: np.ndarray, beta: float, el: int, L: int) -> np.ndarray:
-    """Constructs the complete Wigner-d matrix at polar angle
+    r"""Constructs the complete Wigner-d matrix at polar angle
     :math:`\beta` using Turok recursion.
 
     The Wigner-d plane for a given :math:`\ell` (`el`) and :math:`\beta`
-    is computed recursively over :math:`m, mm` labelled 'm' and 'mm'
-    respectively.
+    is computed recursively over :math:`m, m^{\prime}`.
 
-    The Wigner-d plane :math:`d^\ell_{m, mm}(\beta)` is indexed for
-    :math:`-L < m, mm < L` by `dl[m + L - 1, mm + L - 1]` but is only
-    computed for the eighth of the plane
-    :math:`mm <= m < \ell, 0 <= mm <= \ell`.
+    The Wigner-d plane :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
+    :math:`-L < m, m^{\prime} < L` by dl[L - 1 + :math:`m`, L - 1 + :math:`m^{\prime}`] 
+    but is only computed for the eighth of the plane
+    :math:`m^{\prime} <= m < \ell, 0 <= m^{\prime} <= \ell`.
     Symmetry relations can be used to fill in the remainder of the plane if
     required (see :func:`~fill`).
 
@@ -44,18 +43,18 @@ def compute_full(dl: np.ndarray, beta: float, el: int, L: int) -> np.ndarray:
 
 def compute_slice(
     dl: np.ndarray, beta: float, el: int,  L: int, mm: int) -> np.ndarray:
-    """Constructs a particular slice `mm` of the complete Wigner-d matrix
-    at polar angle :math:`\beta` using Turok recursion.
+    r"""Constructs a particular slice :math:`m^{\prime}`, denoted `mm`, 
+    of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok recursion.
 
     The Wigner-d slice for a given :math:`\ell` (`el`) and :math:`\beta`
-    is computed recursively over :math:`m` labelled 'm' at a specific 'mm'.
+    is computed recursively over :math:`m` labelled 'm' at a specific :math:`m^{\prime}`.
     The Turok recursion is analytically correct from :math:`-\ell < m < \ell` 
     however numerically it can become unstable for :math:`m > 0`. To avoid this we 
-    compute :math:`d_{m, mm}^{\ell}(\beta)` for negative :math:`m` and then evaluate 
-    :math:`d_{m, -mm}^{\ell}(\beta) = (-1)^{m-mm} d_{-m, mm}^{\ell}(\beta)` which we 
-    can again evaluate using a Turok recursion.
+    compute :math:`d_{m, m^{\prime}}^{\ell}(\beta)` for negative :math:`m` and then evaluate 
+    :math:`d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m, m^{\prime}}^{\ell}(\beta)` 
+    which we can again evaluate using a Turok recursion.
 
-    The Wigner-d slice :math:`d^\ell_{m, mm}(\beta)` is indexed for
+    The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
     :math:`-L < m < L` by `dl[L - 1 - m]`. This implementation has computational 
     scaling :math:`\mathcal{O}(L)`, and typically requires :math:`\sim 2L` operations.
 
@@ -99,7 +98,7 @@ def compute_slice(
 
 def turok_quarter_slice(
     dl: np.ndarray, beta: float, el: int, L: int, mm: int) -> np.ndarray:
-    """Evaluates a single slice at :math:`mm` of the Wigner-d matrix evaluated 
+    r"""Evaluates a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated 
     at :math:`\beta`.
 
     Args:
@@ -109,7 +108,6 @@ def turok_quarter_slice(
         l (int): Harmonic degree of Wigner-d matrix.
         L (int): Harmonic bandlimit of overall transform.
         mm (int): Harmonic degree at which to slice the matrix.
-        accelerate (bool): Optimise indexing to minimise reflections.
 
     Returns:
 
@@ -206,8 +204,7 @@ def turok_quarter_slice(
 
 
 def turok_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
-    """Evaluates the left quarter triangle of the Wigner-d matrix via
-        Turok recursion
+    """Evaluates the left quarter triangle of the Wigner-d matrix via Turok recursion
 
     Args:
     
