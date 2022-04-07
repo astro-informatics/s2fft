@@ -115,11 +115,11 @@ def turok_quarter_slice(
     """
     # Analytically evaluate singularities
     if np.isclose(beta, 0, atol=1e-8):
-        dl[L-1-mm] = 1
+        dl[L-1+mm] = 1
         return dl
 
     if np.isclose(beta, np.pi, atol=1e-8):
-        dl[L - 1 + mm] = (-1) ** (el + mm)  
+        dl[L - 1 - mm] = (-1) ** (el + mm)  
         return dl
 
     if el == 0:
@@ -140,7 +140,7 @@ def turok_quarter_slice(
     omc = 1.0 - c
     
     # Indexing boundaries
-    half_slices = [el - mm + 1, el + mm + 1]
+    half_slices = [el + mm + 1, el - mm + 1]
     lims = [L-1-el, L-1+el]
 
     # Vectors with indexing -L < m < L adopted throughout

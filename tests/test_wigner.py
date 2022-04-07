@@ -122,11 +122,12 @@ def test_turok_with_ssht(L: int):
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
-def test_turok_slice_with_ssht(L: int, spin: int):
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "healpix"])
+def test_turok_slice_with_ssht(L: int, spin: int, sampling: str):
     """Test Turok spin slice computation against ssht"""
 
     # Test all dl() terms up to L.
-    betas = samples.thetas(L)
+    betas = samples.thetas(L, sampling, int(L/2))
     dl = np.zeros(2*L-1, dtype=np.float64)
     
     # Compute using SSHT.
@@ -139,7 +140,7 @@ def test_turok_slice_with_ssht(L: int, spin: int):
                 dl_turok = wigner.turok.compute_slice(dl, beta, el, L, spin)
                 
                 np.testing.assert_allclose(
-                    dl_turok, dl_array[el][L - 1 - spin], atol=1e-14
+                    dl_turok, dl_array[el][L - 1 + spin], atol=1e-10, rtol=1e-12
                 )
 
 def test_turok_exceptions():

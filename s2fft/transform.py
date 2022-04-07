@@ -28,7 +28,7 @@ def inverse_direct(
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, spin)
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
                 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -70,7 +70,7 @@ def inverse_sov(
 
             if el >= np.abs(spin):
                 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, spin)
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -118,7 +118,7 @@ def inverse_sov_fft(
 
             if el >= np.abs(spin):
                 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, spin)
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -164,7 +164,7 @@ def forward_direct(
 
             if el >= np.abs(spin):
                 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, spin)
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -221,7 +221,7 @@ def forward_sov(
 
             if el >= np.abs(spin):
                 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, spin)
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -270,7 +270,7 @@ def forward_sov_fft(
 
             if el >= np.abs(spin):
                 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, spin)
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -306,7 +306,7 @@ def inverse_direct_healpix(
 
             if el >= np.abs(spin):
                 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, spin)
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -347,7 +347,7 @@ def inverse_sov_healpix(
 
             if el >= np.abs(spin):
                 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, spin)
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -445,7 +445,7 @@ def forward_direct_healpix(
 
             if el >= np.abs(spin):
                 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, spin)
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -495,7 +495,7 @@ def forward_sov_healpix(f: np.ndarray, L: int, nside: int, spin: int = 0) -> np.
 
             if el >= np.abs(spin):
                 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, spin)
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
