@@ -2,12 +2,15 @@ import pytest
 import numpy as np
 import jax.numpy as jnp
 import s2fft.wigner as wigner
+import s2fft.samples as samples
 import pyssht as ssht
 
 from jax.config import config
 
 config.update("jax_enable_x64", True)
 
+L_to_test = [8, 16, 32]
+spin_to_test = np.arange(-3, 3)
 
 def test_trapani_with_ssht():
     """Test Trapani computation against ssht"""
@@ -96,3 +99,69 @@ def test_risbo_with_ssht():
     for el in range(0, L):
         dl = wigner.risbo.compute_full(dl, beta, L, el)
         np.testing.assert_allclose(dl_array[el, :, :], dl, atol=1e-15)
+
+
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "healpix"])
+def test_turok_with_ssht(L: int, sampling: str):
+    """Test Turok computation against ssht"""
+
+    # Test all dl() terms up to L.
+    betas = samples.thetas(L, sampling, int(L/2))
+    dl = np.zeros((2*L-1, 2*L-1), dtype=np.float64)
+
+    # Compute using SSHT.
+    for beta in betas:
+        dl_array = ssht.generate_dl(beta, L)
+        
+        for el in range(L):
+
+            dl_turok = wigner.turok.compute_full(dl, beta, el, L)
+
+            np.testing.assert_allclose(dl_turok, dl_array[el], atol=1e-14)
+
+
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("spin", spin_to_test)
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "healpix"])
+def test_turok_slice_with_ssht(L: int, spin: int, sampling: str):
+    """Test Turok spin slice computation against ssht"""
+
+    # Test all dl() terms up to L.
+    betas = samples.thetas(L, sampling, int(L/2))
+    dl = np.zeros(2*L-1, dtype=np.float64)
+    
+    # Compute using SSHT.
+    for beta in betas:
+        dl_array = ssht.generate_dl(beta, L)
+
+        for el in range(L):
+            if el >= np.abs(spin):
+                
+                dl_turok = wigner.turok.compute_slice(dl, beta, el, L, -spin)
+                
+                np.testing.assert_allclose(
+                    dl_turok, dl_array[el][L - 1 - spin], atol=1e-10, rtol=1e-12
+                )
+
+def test_turok_exceptions():
+    L = 10
+    dl = np.zeros(2*L-1, dtype=np.float64)
+    dl_full = np.zeros((2*L-1, 2*L-1), dtype=np.float64)
+    dl_incorrect_shape = np.zeros(1, dtype=np.float64)
+    dl_incorrect_dimension = np.zeros((2,3), dtype=np.float64)
+    
+    with pytest.raises(ValueError) as e:
+        wigner.turok.compute_full(dl_full, np.pi / 2, L, L)
+
+    with pytest.raises(ValueError) as e:
+        wigner.turok.compute_slice(dl=dl, beta=np.pi/2, el=L-1, L=L, mm=L)
+
+    with pytest.raises(ValueError) as e:
+        wigner.turok.compute_slice(dl=dl, beta=np.pi/2, el=L, L=L, mm=0)
+    
+    with pytest.raises(ValueError) as e:
+        wigner.turok.compute_slice(dl=dl_incorrect_dimension, beta=np.pi/2, el=L-1, L=L,  mm=0)
+    
+    with pytest.raises(ValueError) as e:
+        wigner.turok.compute_slice(dl=dl_incorrect_shape, beta=np.pi, el=L-1, L=L, mm=0)

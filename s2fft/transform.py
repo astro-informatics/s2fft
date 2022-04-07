@@ -20,16 +20,16 @@ def inverse_direct(
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
 
-    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl = np.zeros(2 * L - 1, dtype=np.float64)
 
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
 
-            dl = wigner.risbo.compute_full(dl, theta, L, el)
-
             if el >= np.abs(spin):
 
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
+                
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
                 for m in range(-el, el + 1):
@@ -40,7 +40,8 @@ def inverse_direct(
                             (-1) ** spin
                             * elfactor
                             * np.exp(1j * m * phi)
-                            * dl[m + L - 1, -spin + L - 1]
+                            * dl[m + L - 1]
+                            * (-1) ** (-m - spin)
                             * flm[el, m + L - 1]
                         )
 
@@ -60,16 +61,16 @@ def inverse_sov(
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
 
-    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl = np.zeros(2 * L - 1, dtype=np.float64)
 
     ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
 
-            dl = wigner.risbo.compute_full(dl, theta, L, el)
-
             if el >= np.abs(spin):
+                
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -78,7 +79,8 @@ def inverse_sov(
                     ftm[t, m + L - 1] += (
                         (-1) ** spin
                         * elfactor
-                        * dl[m + L - 1, -spin + L - 1]
+                        * dl[m + L - 1]
+                        * (-1) ** (-m - spin)
                         * flm[el, m + L - 1]
                     )
 
@@ -106,7 +108,7 @@ def inverse_sov_fft(
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
 
-    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl = np.zeros(2 * L - 1, dtype=np.float64)
 
     nphi = samples.nphi_equiang(L, sampling)
     ftm = np.zeros((ntheta, nphi), dtype=np.complex128)
@@ -114,10 +116,9 @@ def inverse_sov_fft(
 
         for el in range(0, L):
 
-            # TODO: only need quarter of dl plane here and elsewhere
-            dl = wigner.risbo.compute_full(dl, theta, L, el)
-
             if el >= np.abs(spin):
+                
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -127,7 +128,8 @@ def inverse_sov_fft(
                     ftm[t, m + L - 1 + m_offset] += (
                         (-1) ** spin
                         * elfactor
-                        * dl[m + L - 1, -spin + L - 1]
+                        * dl[m + L - 1]
+                        * (-1) ** (-m - spin)
                         * flm[el, m + L - 1]
                     )
 
@@ -153,16 +155,16 @@ def forward_direct(
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
 
-    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl = np.zeros(2 * L - 1, dtype=np.float64)
 
     weights = quadrature.quad_weights(L, sampling)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
 
-            dl = wigner.risbo.compute_full(dl, theta, L, el)
-
             if el >= np.abs(spin):
+                
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -175,7 +177,8 @@ def forward_direct(
                             * (-1) ** spin
                             * elfactor
                             * np.exp(-1j * m * phi)
-                            * dl[m + L - 1, -spin + L - 1]
+                            * dl[m + L - 1]
+                            * (-1) ** (-m - spin)
                             * f[t, p]
                         )
 
@@ -199,7 +202,7 @@ def forward_sov(
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
 
-    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl = np.zeros(2 * L - 1, dtype=np.float64)
 
     ntheta = samples.ntheta(L, sampling)
     ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
@@ -216,9 +219,9 @@ def forward_sov(
 
         for el in range(0, L):
 
-            dl = wigner.risbo.compute_full(dl, theta, L, el)
-
             if el >= np.abs(spin):
+                
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -228,7 +231,8 @@ def forward_sov(
                         weights[t]
                         * (-1) ** spin
                         * elfactor
-                        * dl[m + L - 1, -spin + L - 1]
+                        * dl[m + L - 1]
+                        * (-1) ** (-m - spin)
                         * ftm[t, m + L - 1]
                     )
 
@@ -259,14 +263,14 @@ def forward_sov_fft(
     # since accounted for already in periodic extension and upsampling.
     weights = quadrature.quad_weights_transform(L, sampling, spin=0)
     m_offset = 1 if sampling == "mwss" else 0
-    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl = np.zeros(2 * L - 1, dtype=np.float64)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
 
-            dl = wigner.risbo.compute_full(dl, theta, L, el)
-
             if el >= np.abs(spin):
+                
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -276,7 +280,8 @@ def forward_sov_fft(
                         weights[t]
                         * (-1) ** spin
                         * elfactor
-                        * dl[m + L - 1, -spin + L - 1]
+                        * dl[m + L - 1]
+                        * (-1) ** (-m - spin)
                         * ftm[t, m + L - 1 + m_offset]
                     )
 
@@ -293,15 +298,15 @@ def inverse_direct_healpix(
 
     thetas = samples.thetas(L, "healpix", nside=nside)
 
-    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl = np.zeros(2 * L - 1, dtype=np.float64)
 
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
 
-            dl = wigner.risbo.compute_full(dl, theta, L, el)
-
             if el >= np.abs(spin):
+                
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -313,7 +318,8 @@ def inverse_direct_healpix(
                             (-1) ** spin
                             * elfactor
                             * np.exp(1j * m * phi)
-                            * dl[m + L - 1, -spin + L - 1]
+                            * dl[m + L - 1]
+                            * (-1) ** (-m - spin)
                             * flm[el, m + L - 1]
                         )
 
@@ -332,16 +338,16 @@ def inverse_sov_healpix(
 
     thetas = samples.thetas(L, "healpix", nside=nside)
 
-    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl = np.zeros(2 * L - 1, dtype=np.float64)
 
     ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
 
-            dl = wigner.risbo.compute_full(dl, theta, L, el)
-
             if el >= np.abs(spin):
+                
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -350,7 +356,8 @@ def inverse_sov_healpix(
                     ftm[t, m + L - 1] += (
                         (-1) ** spin
                         * elfactor
-                        * dl[m + L - 1, -spin + L - 1]
+                        * dl[m + L - 1]
+                        * (-1) ** (-m - spin)
                         * flm[el, m + L - 1]
                     )
 
@@ -429,16 +436,16 @@ def forward_direct_healpix(
 
     thetas = samples.thetas(L, "healpix", nside)
 
-    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl = np.zeros(2 * L - 1, dtype=np.float64)
 
     weights = quadrature.quad_weights(L, "healpix", nside=nside)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
 
-            dl = wigner.risbo.compute_full(dl, theta, L, el)
-
             if el >= np.abs(spin):
+                
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -451,7 +458,8 @@ def forward_direct_healpix(
                             * (-1) ** spin
                             * elfactor
                             * np.exp(-1j * m * phi)
-                            * dl[m + L - 1, -spin + L - 1]
+                            * dl[m + L - 1]
+                            * (-1) ** (-m - spin)
                             * f[samples.hp_ang2pix(nside, theta, phi)]
                         )
 
@@ -466,7 +474,7 @@ def forward_sov_healpix(f: np.ndarray, L: int, nside: int, spin: int = 0) -> np.
 
     thetas = samples.thetas(L, "healpix", nside)
 
-    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl = np.zeros(2 * L - 1, dtype=np.float64)
 
     ntheta = samples.ntheta(L, "healpix", nside)
     ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
@@ -485,9 +493,9 @@ def forward_sov_healpix(f: np.ndarray, L: int, nside: int, spin: int = 0) -> np.
 
         for el in range(0, L):
 
-            dl = wigner.risbo.compute_full(dl, theta, L, el)
-
             if el >= np.abs(spin):
+                
+                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -497,7 +505,8 @@ def forward_sov_healpix(f: np.ndarray, L: int, nside: int, spin: int = 0) -> np.
                         weights[t]
                         * (-1) ** spin
                         * elfactor
-                        * dl[m + L - 1, -spin + L - 1]
+                        * dl[m + L - 1]
+                        * (-1) ** (-m - spin)
                         * ftm[t, m + L - 1]
                     )
 
