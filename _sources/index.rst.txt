@@ -99,6 +99,7 @@ the non-commercial use condition (see `LICENSE_EXT.txt <https://github.com/astro
 
    api/trapani
    api/risbo
+   api/turok
    api/logs
    api/legendre_matrix 
    api/precompute_transforms
