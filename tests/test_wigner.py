@@ -102,11 +102,12 @@ def test_risbo_with_ssht():
 
 
 @pytest.mark.parametrize("L", L_to_test)
-def test_turok_with_ssht(L: int):
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "healpix"])
+def test_turok_with_ssht(L: int, sampling: str):
     """Test Turok computation against ssht"""
 
     # Test all dl() terms up to L.
-    betas = samples.thetas(L)
+    betas = samples.thetas(L, sampling, int(L/2))
     dl = np.zeros((2*L-1, 2*L-1), dtype=np.float64)
 
     # Compute using SSHT.
