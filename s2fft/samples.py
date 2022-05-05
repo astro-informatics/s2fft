@@ -5,7 +5,6 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
     r"""Number of :math:`\theta` samples for sampling scheme at specified resolution.
 
     Args:
-
         L (int): Harmonic band-limit.  Required if sampling not healpix.  Defaults to
             None.
 
@@ -16,7 +15,6 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
             if sampling="healpix".  Defaults to None.
 
     Raises:
-
         ValueError: L not specified when sampling not healpix.
 
         ValueError: HEALPix sampling set but nside not specified.
@@ -59,6 +57,23 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
 
 
 def ntheta_extension(L: int, sampling: str = "mw") -> int:
+    r"""Number of :math:`\theta` samples for MW/MWSS sampling when extended to
+    :math:`2\pi`.
+
+    Args:
+        L (int): Harmonic band-limit.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss"}.  Defaults to "mw".
+
+    Raises:
+        ValueError: Sampling scheme other than MW/MWSS.
+
+    Returns:
+        int: Number of :math:`\theta` samples at given resolution when extended to
+            :math:`2\pi`.
+
+    """
 
     if sampling.lower() == "mw":
 
@@ -76,6 +91,26 @@ def ntheta_extension(L: int, sampling: str = "mw") -> int:
 
 
 def nphi_equiang(L: int, sampling: str = "mw") -> int:
+    r"""Number of :math:`\phi` samples for equiangular sampling scheme at specified
+    resolution.
+
+    Number of samples is independent of :math:`\theta` since equiangular sampling
+    scheme.
+
+    Args:
+        L (int): Harmonic band-limit.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
+
+    Raises:
+        ValueError: HEALPix sampling scheme.
+
+        ValueError: Unknown sampling scheme.
+
+    Returns:
+        int: Number of :math:`\phi` samples.
+    """
 
     if sampling.lower() == "mw":
 
@@ -101,6 +136,20 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
 
 
 def nphi_ring(t: int, nside: int = None) -> int:
+    r"""Number of :math:`\phi` samples for HEALPix sampling on given :math:`\theta`
+    ring.
+
+    Args:
+        t (int): Index of HEALPix :math:`\theta` ring.
+
+        nside (int, optional): HEALPix Nside resolution parameter.
+
+    Raises:
+        ValueError: Invalid ring index given nside.
+
+    Returns:
+        int: Number of :math:`\phi` samples on given :math:`\theta` ring.
+    """
 
     if (t >= 0) and (t < nside - 1):
         return 4 * (t + 1)
@@ -115,14 +164,36 @@ def nphi_ring(t: int, nside: int = None) -> int:
         raise ValueError(f"Ring t={t} not contained by nside={nside}")
 
 
-def thetas(L: int, sampling: str = "mw", nside: int = None) -> np.ndarray:
+def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray:
 
-    t = np.arange(0, ntheta(L, sampling, nside=nside)).astype(np.float64)
+    t = np.arange(0, ntheta(L=L, sampling=sampling, nside=nside)).astype(np.float64)
 
-    return t2theta(L, t, sampling, nside)
+    return t2theta(t, L, sampling, nside)
 
 
-def t2theta(L: int, t: int, sampling: str = "mw", nside: int = None) -> np.ndarray:
+def t2theta(
+    t: int, L: int = None, sampling: str = "mw", nside: int = None
+) -> np.ndarray:
+    r"""Convert index to :math:`\theta' angle.
+
+    Args:
+        L (int): _description_
+        t (int): _description_
+        sampling (str, optional): _description_. Defaults to "mw".
+        nside (int, optional): _description_. Defaults to None.
+
+    Raises:
+        ValueError: _description_
+        ValueError: _description_
+
+    Returns:
+        np.ndarray: _description_
+    """
+
+    if sampling.lower() != "healpix" and L is None:
+        raise ValueError(
+            f"Sampling scheme sampling={sampling} with L={L} not supported"
+        )
 
     if sampling.lower() == "mw":
 
@@ -143,6 +214,7 @@ def t2theta(L: int, t: int, sampling: str = "mw", nside: int = None) -> np.ndarr
                 f"Sampling scheme sampling={sampling} with nside={nside} not supported"
             )
 
+        # TODO: This should be a separate function.
         z = np.zeros_like(t)
         z[t < nside - 1] = 1 - (t[t < nside - 1] + 1) ** 2 / (3 * nside**2)
         z[(t >= nside - 1) & (t <= 3 * nside - 1)] = 4 / 3 - 2 * (
