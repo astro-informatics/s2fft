@@ -5,8 +5,8 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
     r"""Number of :math:`\theta` samples for sampling scheme at specified resolution.
 
     Args:
-        L (int): Harmonic band-limit.  Required if sampling not healpix.  Defaults to
-            None.
+        L (int, optional): Harmonic band-limit.  Required if sampling not healpix.
+            Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
@@ -174,20 +174,31 @@ def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray
 def t2theta(
     t: int, L: int = None, sampling: str = "mw", nside: int = None
 ) -> np.ndarray:
-    r"""Convert index to :math:`\theta' angle.
+    r"""Convert index to :math:`\theta` angle.
 
     Args:
-        L (int): _description_
-        t (int): _description_
-        sampling (str, optional): _description_. Defaults to "mw".
-        nside (int, optional): _description_. Defaults to None.
+        t (int): :math:`\theta` index.
+
+        L (int, optional): Harmonic band-limit.  Required if sampling not healpix.  Defaults to
+            None.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
 
     Raises:
-        ValueError: _description_
-        ValueError: _description_
+
+    Raises:
+        ValueError: L not specified when sampling not healpix.
+
+        ValueError: HEALPix sampling set but nside not specified.
+
+        ValueError: Sampling scheme not supported.
 
     Returns:
-        np.ndarray: _description_
+        np.ndarray: :math:`\theta` angle(s) for passed index or indices.
     """
 
     if sampling.lower() != "healpix" and L is None:
@@ -214,20 +225,27 @@ def t2theta(
                 f"Sampling scheme sampling={sampling} with nside={nside} not supported"
             )
 
-        # TODO: This should be a separate function.
-        z = np.zeros_like(t)
-        z[t < nside - 1] = 1 - (t[t < nside - 1] + 1) ** 2 / (3 * nside**2)
-        z[(t >= nside - 1) & (t <= 3 * nside - 1)] = 4 / 3 - 2 * (
-            t[(t >= nside - 1) & (t <= 3 * nside - 1)] + 1
-        ) / (3 * nside)
-        z[(t > 3 * nside - 1) & (t <= 4 * nside - 2)] = (
-            4 * nside - 1 - t[(t > 3 * nside - 1) & (t <= 4 * nside - 2)]
-        ) ** 2 / (3 * nside**2) - 1
-        return np.arccos(z)
+        return _t2theta_healpix(t, nside)
 
     else:
 
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+
+
+def _t2theta_healpix(t: int, nside: int) -> np.ndarray:
+
+    z = np.zeros_like(t)
+    z[t < nside - 1] = 1 - (t[t < nside - 1] + 1) ** 2 / (3 * nside**2)
+
+    z[(t >= nside - 1) & (t <= 3 * nside - 1)] = 4 / 3 - 2 * (
+        t[(t >= nside - 1) & (t <= 3 * nside - 1)] + 1
+    ) / (3 * nside)
+
+    z[(t > 3 * nside - 1) & (t <= 4 * nside - 2)] = (
+        4 * nside - 1 - t[(t > 3 * nside - 1) & (t <= 4 * nside - 2)]
+    ) ** 2 / (3 * nside**2) - 1
+
+    return np.arccos(z)
 
 
 def phis_ring(t: int, nside: int) -> np.ndarray:
