@@ -1,7 +1,36 @@
 import numpy as np
 
 
-def ntheta(L: int, sampling: str = "mw", nside: int = None) -> int:
+def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
+    r"""Number of :math:`\theta` samples for sampling scheme at specified resolution.
+
+    Args:
+
+        L (int): Harmonic band-limit.  Required if sampling not healpix.  Defaults to
+            None.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+    Raises:
+
+        ValueError: L not specified when sampling not healpix.
+
+        ValueError: HEALPix sampling set but nside not specified.
+
+        ValueError: Sampling scheme not supported.
+
+    Returns:
+        int: Number of :math:`\theta` samples of sampling scheme at given resolution.
+    """
+
+    if sampling.lower() != "healpix" and L is None:
+        raise ValueError(
+            f"Sampling scheme sampling={sampling} with L={L} not supported"
+        )
 
     if sampling.lower() == "mw":
 
@@ -21,6 +50,7 @@ def ntheta(L: int, sampling: str = "mw", nside: int = None) -> int:
             raise ValueError(
                 f"Sampling scheme sampling={sampling} with nside={nside} not supported"
             )
+
         return 4 * nside - 1
 
     else:

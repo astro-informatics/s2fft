@@ -102,6 +102,9 @@ def test_samples_exceptions():
         s2f.samples.ntheta(L, sampling="healpix")
 
     with pytest.raises(ValueError) as e:
+        s2f.samples.ntheta(sampling="mw")
+
+    with pytest.raises(ValueError) as e:
         s2f.samples.ntheta(L, sampling="foo")
 
     with pytest.raises(ValueError) as e:
