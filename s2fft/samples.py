@@ -403,28 +403,75 @@ def elm2ind(el: int, m: int) -> int:
     return el**2 + el + m
 
 
-def ind2elm(ind):
+def ind2elm(ind: int) -> tuple:
+    """Convert from 1D spherical harmonic index to 2D index of :math:`(\ell,m)`.
+
+    Warning:
+        Note that 1D storage of spherical harmonic coefficients is *not* the default.
+
+    Args:
+        ind (_type_): 1D spherical harmonic index.
+
+    Returns:
+        tuple: `(el,m)` defining spherical harmonic degree and order.
+    """
 
     el = np.floor(np.sqrt(ind))
 
     m = ind - el**2 - el
 
-    return (el, m)
+    return el, m
 
 
-def ncoeff(L):
+def ncoeff(L: int) -> int:
+    """Number of spherical harmonic coefficients for given band-limit L.
+
+    Args:
+        L (int, optional): Harmonic band-limit.
+
+    Returns:
+        int: Number of spherical harmonic coefficients.
+    """
 
     return elm2ind(L - 1, L - 1) + 1
 
 
 def hp_ang2pix(nside: int, theta: float, phi: float) -> int:
-    """Translated function from healpix java implementation"""
+    r"""Convert angle to HEALPix index for HEALPix ring ordering scheme.
+
+    Args:
+        nside (int): HEALPix Nside resolution parameter.
+
+        theta (float): Spherical :math:`\theta` angle.
+
+        phi (float): Spherical :math:`\phi` angle.
+
+    Returns:
+        int: HEALPix map index for ring ordering scheme.
+    """
+
     z = np.cos(theta)
-    return zphi2pix(nside, z, phi)
+
+    return _zphi2pix(nside, z, phi)
 
 
 def zphi2pix(nside: int, z: float, phi: float) -> int:
-    """Translated function from healpix java implementation"""
+    r"""TODO
+
+    Args:
+        nside (int): HEALPix Nside resolution parameter.
+
+        z (float): Cosine of spherical :math:`\theta` angle, i.e. :math:`\cos(\theta)`.
+
+        phi (float): Spherical :math:`\phi` angle.
+
+    Returns:
+        int: HEALPix map index for ring ordering scheme.
+
+    Notes:
+        Translated function from HEALPix Java implementation.
+    """
+
     tt = 2 * phi / np.pi
     za = np.abs(z)
     nl2 = int(2 * nside)
