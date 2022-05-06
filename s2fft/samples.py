@@ -509,8 +509,18 @@ def _hp_zphi2pix(nside: int, z: float, phi: float) -> int:
 
 
 def hp_getidx(L: int, el: int, m: int) -> int:
-    """Returns healpix flm index for l=el & m=em"""
-    # return m * (2 * lmax + 1 - m) // 2 + el
+    r"""Returns healpix flm index for :math:`\ell=el` and :math:`m=em`
+
+    Args:
+        L (int): Harmonic band-limit.
+
+        el (int): Harmonic degree :math:`\ell`.
+
+        m (int): Harmonic order :math:`m`.
+
+    Returns:
+        int: Corresponding index for RING ordered HEALPix.
+    """
     return m * (2 * L - 1 - m) // 2 + el
 
 
@@ -531,9 +541,13 @@ def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
 
         1D =  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]
 
-    Returns:
+    Args:
+        flm_2d (np.ndarray): 2D indexed harmonic coefficients.
 
-        1D indexed flms
+        L (int): Harmonic band-limit.
+
+    Returns:
+        np.ndarray: 1D indexed flms.
     """
     flm_1d = np.zeros(ncoeff(L), dtype=np.complex128)
 
@@ -569,9 +583,13 @@ def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
 
         1D =  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]
 
-    Returns:
+    Args:
+        flm_1d (np.ndarray): 1D indexed harmonic coefficients.
 
-        2D indexed flms
+        L (int): Harmonic band-limit.
+
+    Returns:
+        np.ndarray: 2D indexed flms
     """
     flm_2d = np.zeros(flm_shape(L), dtype=np.complex128)
 
@@ -611,9 +629,16 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
 
         healpix =  [flm_{0,0}, \dots, flm_{L,0}, flm_{1,1}, \dots, flm_{L,1}, \dots]
 
-    Returns:
+    Args:
+        flm_hp (np.ndarray): HEALPix indexed harmonic coefficients.
 
-        2D indexed flms of a explicitly real signal
+        L (int): Harmonic band-limit.
+
+    Returns:
+        np.ndarray: 2D indexed flms.
+
+    Notes:
+        Returns harmonic coefficients of an explicitly real signal.
     """
     flm_2d = np.zeros(flm_shape(L), dtype=np.complex128)
 
@@ -652,13 +677,19 @@ def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
 
         healpix =  [flm_{0,0}, \dots, flm_{L,0}, flm_{1,1}, \dots, flm_{L,1}, \dots]
 
-    Returns:
+    Args:
+        flm_2d (np.ndarray): 2D indexed harmonic coefficients.
 
-        healpix indexed flms of an implicitly real signal
+        L (int): Harmonic band-limit.
+
+        
+    Returns:
+        np.ndarray: HEALPix indexed flms.
+    
+    Notes:
+        Returns harmonic coefficients of an explicitly real signal.
     """
 
-    # mmax * (2 * lmax + 1 - mmax) / 2 + lmax + 1
-    # (L-1) * (2 * (L-1) + 1 - (L-1)) / 2 + (L-1) + 1 = (L-1) * L / 2 + L = L * (L+1)/2
     flm_hp = np.zeros(int(L * (L + 1) / 2), dtype=np.complex128)
 
     if len(flm_hp.shape) != 1:
