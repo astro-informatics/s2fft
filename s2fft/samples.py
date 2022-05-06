@@ -165,7 +165,21 @@ def nphi_ring(t: int, nside: int = None) -> int:
 
 
 def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray:
+    r"""Compute :math:`\theta` samples for given sampling scheme.
 
+    Args:
+        L (int, optional): Harmonic band-limit.  Required if sampling not healpix.
+            Defaults to None.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+    Returns:
+        np.ndarray: Array of :math:`\theta` samples for given sampling scheme.
+    """
     t = np.arange(0, ntheta(L=L, sampling=sampling, nside=nside)).astype(np.float64)
 
     return t2theta(t, L, sampling, nside)
@@ -174,21 +188,19 @@ def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray
 def t2theta(
     t: int, L: int = None, sampling: str = "mw", nside: int = None
 ) -> np.ndarray:
-    r"""Convert index to :math:`\theta` angle.
+    r"""Convert index to :math:`\theta` angle for sampling scheme.
 
     Args:
         t (int): :math:`\theta` index.
 
-        L (int, optional): Harmonic band-limit.  Required if sampling not healpix.  Defaults to
-            None.
+        L (int, optional): Harmonic band-limit.  Required if sampling not healpix.
+            Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
-
-    Raises:
 
     Raises:
         ValueError: L not specified when sampling not healpix.
@@ -233,6 +245,16 @@ def t2theta(
 
 
 def _t2theta_healpix(t: int, nside: int) -> np.ndarray:
+    r"""Convert (ring) index to :math:`\theta` angle for HEALPix sampling scheme.
+
+    Args:
+        t (int): :math:`\theta` index.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+    Returns:
+        np.ndarray: :math:`\theta` angle(s) for passed HEALPix (ring) index or indices.
+    """
 
     z = np.zeros_like(t)
     z[t < nside - 1] = 1 - (t[t < nside - 1] + 1) ** 2 / (3 * nside**2)
