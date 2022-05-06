@@ -104,10 +104,7 @@ the non-commercial use condition (see `LICENSE_EXT.txt <https://github.com/astro
    api/legendre_matrix 
    api/precompute_transforms
    api/quadrature
+   api/resampling 
    api/sampling 
    api/transforms 
    api/utils
-
-
-
-
