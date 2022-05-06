@@ -437,7 +437,7 @@ def ncoeff(L: int) -> int:
 
 
 def hp_ang2pix(nside: int, theta: float, phi: float) -> int:
-    r"""Convert angle to HEALPix index for HEALPix ring ordering scheme.
+    r"""Convert angles to HEALPix index for HEALPix ring ordering scheme.
 
     Args:
         nside (int): HEALPix Nside resolution parameter.
@@ -452,11 +452,12 @@ def hp_ang2pix(nside: int, theta: float, phi: float) -> int:
 
     z = np.cos(theta)
 
-    return _zphi2pix(nside, z, phi)
+    return _hp_zphi2pix(nside, z, phi)
 
 
-def zphi2pix(nside: int, z: float, phi: float) -> int:
-    r"""TODO
+def _hp_zphi2pix(nside: int, z: float, phi: float) -> int:
+    r"""Convert angles to HEALPix index for HEALPix ring ordering scheme, using
+    :math:`z=\cos(\theta)`.
 
     Args:
         nside (int): HEALPix Nside resolution parameter.
