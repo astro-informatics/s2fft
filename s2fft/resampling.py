@@ -6,6 +6,20 @@ import s2fft.samples as samples
 def periodic_extension(
     f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
 ) -> np.ndarray:
+    """_summary_
+
+    Args:
+        f (np.ndarray): _description_
+        L (int): _description_
+        spin (int, optional): _description_. Defaults to 0.
+        sampling (str, optional): _description_. Defaults to "mw".
+
+    Raises:
+        ValueError: _description_
+
+    Returns:
+        np.ndarray: _description_
+    """
 
     if sampling.lower() not in ["mw", "mwss"]:
         raise ValueError(
@@ -93,7 +107,7 @@ def upsample_by_two_mwss_ext(f_ext: np.ndarray, L: int) -> np.ndarray:
     return f_ext_up
 
 
-def downsample_by_two_mwss(f_ext, L):
+def downsample_by_two_mwss(f_ext: np.ndarray, L: int) -> np.ndarray:
     """TODO
 
     Note L is the bandlimit of f_ext, so output is at L/2.
@@ -109,7 +123,7 @@ def downsample_by_two_mwss(f_ext, L):
     return f_ext_down
 
 
-def unextend(f_ext, L, sampling: str = "mw"):
+def unextend(f_ext: np.ndarray, L: int, sampling: str = "mw") -> np.ndarray:
 
     if sampling.lower() not in ["mw", "mwss"]:
         raise ValueError(
@@ -141,11 +155,33 @@ def unextend(f_ext, L, sampling: str = "mw"):
     return f
 
 
-def mw_to_mwss_phi(f_mw, L):
-    """TODO
+def mw_to_mwss_phi(f_mw: np.ndarray, L: int) -> np.ndarray:
+    r"""Convert :math:`\phi` component of signal on the sphere from MW sampling to
+    MWSS sampling.
 
-    Note can work with arbitrary number of theta samples
+    Conversion is performed by zero padding in harmonic space.
+
+    Note:
+        Can work with arbitrary number of :math:`\theta` samples.  Hence, to convert
+        both :math:`(\theta,\phi)` sampling to MWSS, can use :func:`~mw_to_mwss_theta`
+        to first convert :math:`\theta` sampling before using this function to convert
+        the :math:`\phi` sampling.
+
+    Args:
+        f_mw (np.ndarray): Signal on the sphere sampled with MW sampling in
+            :math:`\phi` and arbitrary number of samples in
+
+        L (int, optional): Harmonic band-limit.
+
+    Raises:
+        ValueError: Input spherical signal must have number of samples in :math:`\phi`
+            matching MW sampling.
+
+    Returns:
+        np.ndarray: Signal on the sphere with MWSS sampling in :math:`\phi` and
+        sampling in :math:`\theta` of the input signal.
     """
+
     ntheta = f_mw.shape[0]
     nphi_mw = samples.nphi_equiang(L, sampling="mw")
     nphi_mwss = samples.nphi_equiang(L, sampling="mwss")
@@ -167,7 +203,29 @@ def mw_to_mwss_phi(f_mw, L):
     return f_mwss
 
 
-def mw_to_mwss_theta(f_mw, L, spin=0):
+def mw_to_mwss_theta(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
+    r"""Convert :math:`\theta` component of signal on the sphere from MW sampling to
+    MWSS sampling.
+
+    Conversion is performed by first performing a period extension in
+    :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space.  The
+    resulting signal is then unextend back to the :math:`\theta` domain of
+    :math:`[0,\pi]`.
+
+    Args:
+        f_mw (np.ndarray): Signal on the sphere sampled with MW sampling.
+
+        L (int, optional): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+    Raises:
+        ValueError: Input spherical signal must have shape matching MW sampling.
+
+    Returns:
+        np.ndarray: Signal on the sphere with MWSS sampling in :math:`\theta` and MW
+        sampling in :math:`\phi`.
+    """
 
     nphi_mw = samples.nphi_equiang(L, sampling="mw")
     ntheta_mw = samples.ntheta(L, sampling="mw")
@@ -181,7 +239,6 @@ def mw_to_mwss_theta(f_mw, L, spin=0):
     if f_mw.shape[1] != nphi_mw:
         raise ValueError(f"Invalid phi size={f_mw.shape[1]} for mw sampling")
 
-    # TODO: add support for spin
     f_mw_ext = periodic_extension(f_mw, L, spin=spin, sampling="mw")
 
     # FFT in theta
@@ -204,8 +261,21 @@ def mw_to_mwss_theta(f_mw, L, spin=0):
     return f_mwss
 
 
-def mw_to_mwss(f_mw, L, spin=0):
+def mw_to_mwss(f_mw: np.ndarray, L, spin: int = 0) -> np.ndarray:
+    """Convert signal on the sphere from MW sampling to MWSS sampling.
 
+    Conversion is performed...
+
+    Args:
+        f_mw (np.ndarray): Signal on the sphere sampled with MW sampling.
+
+        L (int, optional): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+    Returns:
+        np.ndarray: Signal on the sphere sampled with MWSS sampling.
+    """
     # Must do extension in this order, i.e. theta first, then phi
     # (since theta extension must do FFTs in phi so shouldn't change number of
     # phi samples there).
