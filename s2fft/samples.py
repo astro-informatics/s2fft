@@ -70,8 +70,7 @@ def ntheta_extension(L: int, sampling: str = "mw") -> int:
         ValueError: Sampling scheme other than MW/MWSS.
 
     Returns:
-        int: Number of :math:`\theta` samples at given resolution when extended to
-            :math:`2\pi`.
+        int: Number of :math:`\theta` samples when extended to :math:`2\pi`.
 
     """
 
@@ -271,6 +270,16 @@ def _t2theta_healpix(t: int, nside: int) -> np.ndarray:
 
 
 def phis_ring(t: int, nside: int) -> np.ndarray:
+    r"""Compute :math:`\phi` samples for given :math:`\theta` HEALPix ring.
+
+    Args:
+        t (int): :math:`\theta` index.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+    Returns:
+        np.ndarray: :math:`\phi` angles.
+    """
 
     p = np.arange(0, nphi_ring(t, nside)).astype(np.float64)
 
@@ -278,6 +287,18 @@ def phis_ring(t: int, nside: int) -> np.ndarray:
 
 
 def p2phi_ring(t: int, p: int, nside: int) -> np.ndarray:
+    r"""Convert index to :math:`\phi` angle for HEALPix for given :math:`\theta` ring.
+
+    Args:
+        t (int): :math:`\theta` index of ring.
+
+        p (int): :math:`\phi` index within ring.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+    Returns:
+        np.ndarray: :math:`\phi` angle.
+    """
 
     shift = 1 / 2
     if (t + 1 >= nside) & (t + 1 <= 3 * nside):
@@ -292,13 +313,41 @@ def p2phi_ring(t: int, p: int, nside: int) -> np.ndarray:
 
 
 def phis_equiang(L: int, sampling: str = "mw") -> np.ndarray:
+    r"""Compute :math:`\phi` samples for equiangular sampling scheme.
 
+    Args:
+        L (int, optional): Harmonic band-limit.
+
+        sampling (str, optional): Sampling scheme.  Supported equiangular sampling
+            schemes include {"mw", "mwss", "dh"}.  Defaults to "mw".
+
+    Returns:
+        np.ndarray: Array of :math:`\phi` samples for given sampling scheme.
+    """
     p = np.arange(0, nphi_equiang(L, sampling))
 
     return p2phi_equiang(L, p, sampling)
 
 
 def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
+    r"""Convert index to :math:`\phi` angle for sampling scheme.
+
+    Args:
+        L (int, optional): Harmonic band-limit.
+
+        p (int): :math:`\phi` index.
+
+        sampling (str, optional): Sampling scheme.  Supported equiangular sampling
+            schemes include {"mw", "mwss", "dh"}.  Defaults to "mw".
+
+    Raises:
+        ValueError: HEALPix sampling not support (only equiangular schemes supported).
+
+        ValueError: Unknown sampling scheme.
+
+    Returns:
+        np.ndarray: :math:`\phi` sample(s) for given sampling scheme.
+    """
 
     if sampling.lower() == "mw":
 
@@ -322,11 +371,34 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
 
 
 def flm_shape(L: int) -> tuple:
+    """Standard shape of harmonic coefficients.
+
+    Args:
+        L (int, optional): Harmonic band-limit.
+
+    Returns:
+        tuple: Sampling array shape.
+    """
 
     return L, 2 * L - 1
 
 
 def elm2ind(el: int, m: int) -> int:
+    """Convert from spherical harmonic 2D indexing of :math:`(\ell,m)` to 1D index.
+
+    1D index is defined by `el**2 + el + m`.
+
+    Warning:
+        Note that 1D storage of spherical harmonic coefficients is *not* the default.
+
+    Args:
+        el (int): Harmonic degree :math:`\ell`.
+
+        m (int): Harmonic order :math:`m`.
+
+    Returns:
+        int: Corresponding 1D index value.
+    """
 
     return el**2 + el + m
 
