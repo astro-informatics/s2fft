@@ -86,7 +86,15 @@ def quad_weights_mwss_theta_only(L, spin=0):
 
 
 def quad_weights_mw_theta_only(L, spin=0):
+    """_summary_
 
+    Args:
+        L (_type_): _description_
+        spin (int, optional): _description_. Defaults to 0.
+
+    Returns:
+        _type_: _description_
+    """
     w = np.zeros(2 * L - 1, dtype=np.complex128)
     for i in range(-(L - 1), L):
         w[i + L - 1] = mw_weights(i)
