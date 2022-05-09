@@ -14,14 +14,12 @@ def setup_logging(custom_yaml_path=None, default_level=logging.DEBUG):
     debug logging and 50 is critical logging.
 
     Args:
-
         custom_yaml_path (string): Complete pathname of desired yaml logging
             configuration. If empty will provide default logging config.
 
-        default_level (int): Logging level at which to configure.
+        default_level (int, optional): Logging level at which to configure.
 
     Raises:
-
         ValueError: Raised if logging.yaml is not in ./logs/ directory.
 
     """
