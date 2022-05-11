@@ -3,7 +3,21 @@ import s2fft.samples as samples
 
 
 def generate_flm(L: int, spin: int = 0, reality: bool = False) -> np.ndarray:
+    r"""Generate a 2D set of random harmonic coefficients.
 
+    Args:
+        L (int): Harmonic bandlimit.
+
+        spin (int): Angular spin.
+
+        reality (bool): Reality of signal (0 = Complex (default), 1 = Real).
+
+    Returns:
+        np.ndarray: Random set of harmonic coefficients.
+
+    Notes:
+        Real signals are explicitly produced from conjugate symmetry.
+    """
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
     for el in range(spin, L):
