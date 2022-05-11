@@ -83,17 +83,17 @@ def quad_weights_hp(nside: int) -> np.ndarray:
     r"""Compute HEALPix quadrature weights for :math:`\theta` and :math:`\phi`
     integration.
 
-    Note:
-        HEALPix weights are identical for all pixels.  Nevertheless, an array of
-        weights is returned (with identical values) for consistency of interface
-        across other sampling schemes.
-
     Args:
         nside (int): HEALPix Nside resolution parameter.
 
     Returns:
         np.ndarray: Weights computed for each :math:`\theta` (all weights in array are
         identical).
+    
+    Note:
+        HEALPix weights are identical for all pixels.  Nevertheless, an array of
+        weights is returned (with identical values) for consistency of interface
+        across other sampling schemes.
     """
 
     npix = 12 * nside**2
@@ -231,7 +231,8 @@ def mw_weights(m: int) -> float:
     MW weights are defined by
 
     .. math::
-        w(m^\prime) = \int_0^\pi \text{d} \theta \sin \theta \exp(i m^\prime\theta) ,
+
+        w(m^\prime) = \int_0^\pi \text{d} \theta \sin \theta \exp(i m^\prime\theta),
 
     which can be computed analytically.
 
