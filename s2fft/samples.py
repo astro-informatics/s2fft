@@ -410,7 +410,7 @@ def ind2elm(ind: int) -> tuple:
         Note that 1D storage of spherical harmonic coefficients is *not* the default.
 
     Args:
-        ind (_type_): 1D spherical harmonic index.
+        ind (int): 1D spherical harmonic index.
 
     Returns:
         tuple: `(el,m)` defining spherical harmonic degree and order.
