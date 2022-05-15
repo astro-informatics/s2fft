@@ -125,7 +125,7 @@ def quad_weight_dh_theta_only(theta: float, L: int) -> float:
     :math:`\theta`.
 
     Args:
-        theta(float): :math:`\theta` angle for which to compute weight.
+        theta (float): :math:`\theta` angle for which to compute weight.
 
         L (int): Harmonic band-limit.
 
