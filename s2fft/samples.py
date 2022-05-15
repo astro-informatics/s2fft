@@ -459,6 +459,9 @@ def _hp_zphi2pix(nside: int, z: float, phi: float) -> int:
     r"""Convert angles to HEALPix index for HEALPix ring ordering scheme, using
     :math:`z=\cos(\theta)`.
 
+    Note:
+        Translated function from HEALPix Java implementation.
+
     Args:
         nside (int): HEALPix Nside resolution parameter.
 
@@ -468,9 +471,6 @@ def _hp_zphi2pix(nside: int, z: float, phi: float) -> int:
 
     Returns:
         int: HEALPix map index for ring ordering scheme.
-
-    Notes:
-        Translated function from HEALPix Java implementation.
     """
 
     tt = 2 * phi / np.pi
@@ -629,6 +629,9 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
 
         healpix =  [flm_{0,0}, \dots, flm_{L,0}, flm_{1,1}, \dots, flm_{L,1}, \dots]
 
+    Note:
+        Returns harmonic coefficients of an explicitly real signal.
+
     Args:
         flm_hp (np.ndarray): HEALPix indexed harmonic coefficients.
 
@@ -636,9 +639,7 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
 
     Returns:
         np.ndarray: 2D indexed flms.
-
-    Notes:
-        Returns harmonic coefficients of an explicitly real signal.
+    
     """
     flm_2d = np.zeros(flm_shape(L), dtype=np.complex128)
 
@@ -677,17 +678,17 @@ def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
 
         healpix =  [flm_{0,0}, \dots, flm_{L,0}, flm_{1,1}, \dots, flm_{L,1}, \dots]
 
+    Note:
+        Returns harmonic coefficients of an explicitly real signal.
+
     Args:
         flm_2d (np.ndarray): 2D indexed harmonic coefficients.
 
         L (int): Harmonic band-limit.
-
         
     Returns:
         np.ndarray: HEALPix indexed flms.
-    
-    Notes:
-        Returns harmonic coefficients of an explicitly real signal.
+        
     """
 
     flm_hp = np.zeros(int(L * (L + 1) / 2), dtype=np.complex128)
