@@ -9,14 +9,14 @@ def generate_flm(L: int, spin: int = 0, reality: bool = False) -> np.ndarray:
         Real signals are explicitly produced from conjugate symmetry.
 
     Args:
-        L (int): Harmonic bandlimit.
+        L (int): Harmonic band-limit.
 
-        spin (int): Angular spin.
+        spin (int, optional): Harmonic spin. Defaults to 0.
 
-        reality (bool): Reality of signal (0 = Complex (default), 1 = Real).
+        reality (bool, optional): Reality of signal. Defaults to False.
 
     Returns:
-        np.ndarray: Random set of harmonic coefficients.
+        np.ndarray: Random set of spherical harmonic coefficients.
 
     """
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
