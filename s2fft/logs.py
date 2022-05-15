@@ -6,8 +6,8 @@ import s2fft
 import colorlog
 
 
-def setup_logging(custom_yaml_path=None, default_level=logging.DEBUG):
-    """initialise and configure logging.
+def setup_logging(custom_yaml_path: str = None, default_level: int = logging.DEBUG):
+    """Initialise and configure logging.
 
     Should be called at the beginning of code to initialise and configure the
     desired logging level. Logging levels can be ints in [0,50] where 10 is
@@ -60,50 +60,46 @@ def setup_logging(custom_yaml_path=None, default_level=logging.DEBUG):
         critical_log("Using custom config from {}".format(path))
 
 
-def debug_log(message):
+def debug_log(message: str):
     """Log a debug message (e.g. for background logs to assist debugging).
 
     Args:
-
-        message: Message to log.
+        message (str): Message to log.
 
     """
     logger = logging.getLogger("s2fft")
     logger.debug(message)
 
 
-def warning_log(message):
+def warning_log(message: str):
     """Log a warning (e.g. for internal code warnings such as large dynamic
     ranges).
 
     Args:
-
-        message: Warning to log.
+        message (str): Warning to log.
 
     """
     logger = logging.getLogger("s2fft")
     logger.warning(message)
 
 
-def critical_log(message):
+def critical_log(message: str):
     """Log a critical message (e.g. core code failures etc).
 
     Args:
-
-        message: Message to log.
+        message (str): Message to log.
 
     """
     logger = logging.getLogger("s2fft")
     logger.critical(message)
 
 
-def info_log(message):
+def info_log(message: str):
     """Log an information message (e.g. evidence value printing, run completion
     etc).
 
     Args:
-
-        message: Message to log.
+        message (str): Message to log.
 
     """
     logger = logging.getLogger("s2fft")
