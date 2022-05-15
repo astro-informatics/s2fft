@@ -353,9 +353,13 @@ def mw_to_mwss_theta(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
 
 
 def mw_to_mwss(f_mw: np.ndarray, L, spin: int = 0) -> np.ndarray:
-    """Convert signal on the sphere from MW sampling to MWSS sampling.
+    r"""Convert signal on the sphere from MW sampling to MWSS sampling.
 
-    Conversion is performed...
+    Conversion is performed by first performing a period extension in
+    :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space.  The
+    resulting signal is then unextend back to the :math:`\theta` domain of
+    :math:`[0,\pi]`.  Second, zero padding in harmonic space corresponding to
+    :math:`\phi` is performed.
 
     Args:
         f_mw (np.ndarray): Signal on the sphere sampled with MW sampling.
