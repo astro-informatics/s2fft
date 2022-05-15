@@ -670,12 +670,11 @@ def _arg_checks(dl: np.ndarray, L: int, el: int):
     """Check arguments of Trapani functions.
 
     Args:
+        dl (np.ndarray): Wigner-d plane of which to check shape.
 
-        dl: Wigner-d plane to check shape of.
+        L (int): Harmonic band-limit.
 
-        L: Harmonic band-limit.
-
-        el: Spherical harmonic degree :math:`\ell`.
+        el (int): Spherical harmonic degree :math:`\ell`.
     """
 
     # assert 0 < el < L
