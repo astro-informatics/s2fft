@@ -35,30 +35,29 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     :math:`\ell - 1`. For :math:`\ell = 1` the recusion must already be
     initialised (see :func:`~init`).
 
-    The Wigner-d plane :math:`d^\ell_{mm^\prime}(\pi/2)` (`el`) is indexed for
+    The Wigner-d plane :math:`d^\ell_{mm^\prime}(\pi/2)` is indexed for
     :math:`-L < m, m^\prime < L` by `dl[m + L - 1, m' + L - 1]` but is only
     computed for the eighth of the plane
-    :math:`m^\prime <= m < \ell, 0 <= m^\prime <= \ell`.
+    :math:`m^\prime <= m < \ell` and :math:`0 <= m^\prime <= \ell`.
     Symmetry relations can be used to fill in the remainder of the plane if
     required (see :func:`~fill_eighth2quarter`, :func:`~fill_quarter2half`,
     :func:`~fill_half2full`).
 
     Warning:
-
         This recursion may not be stable above :math:`\ell \gtrsim 1024`.
 
+    Note:
+        Loop-based implementation.
+
     Args:
+        dl (np.ndarray): Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.
 
-        dl: Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.  If :math:`\ell = 0`
-            the recursion is initialised internally and the `dl` argument is ignored.
+        L (int): Harmonic band-limit.
 
-        L: Harmonic band-limit.
-
-        el: Spherical harmonic degree :math:`\ell`.
+        el (int): Spherical harmonic degree :math:`\ell`.
 
     Returns:
-
-        Plane of Wigner-d for `el`, with eighth of plane computed.
+        np.ndarray: Plane of Wigner-d for `el`, with eighth of plane computed.
 
     """
 
@@ -206,20 +205,19 @@ def fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """Fill in quarter of Wigner-d plane from eighth.
 
     The Wigner-d plane passed as an argument should be computed for the eighth
-    of the plane :math:`m^\prime <= m <0 \ell, 0 <= m^\prime <= \ell`.  The
-    returned plane is computed by symmetry for :math:`0 <= m, m^\prime <= \ell`.
+    of the plane  :math:`m^\prime <= m < \ell` and :math:`0 <= m^\prime <= \ell`.
+    The returned plane is computed by symmetry for
+    :math:`0 <= m, m^\prime <= \ell`.
 
     Args:
+        dl (np.ndarray): Eighth of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
 
-        dl: Eighth of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
+        L (int): Harmonic band-limit.
 
-        L: Harmonic band-limit.
-
-        el: Spherical harmonic degree :math:`\ell`.
+        el (int): Spherical harmonic degree :math:`\ell`.
 
     Returns:
-
-        Plane of Wigner-d for `el`, with quarter of plane computed.
+        np.ndarray: Plane of Wigner-d for `el`, with quarter of plane computed.
     """
 
     _arg_checks(dl, L, el)
@@ -240,19 +238,18 @@ def fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     The Wigner-d plane passed as an argument should be computed for the quarter
     of the plane :math:`0 <= m, m^\prime <= \ell`.  The
     returned plane is computed by symmetry for
-    :math:`-\ell <= m <= \ell, 0 <= m^\prime <= \ell`.
+    :math:`-\ell <= m <= \ell` and :math:`0 <= m^\prime <= \ell`.
 
     Args:
 
-        dl: Quarter of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
+        dl (np.ndarray): Quarter of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
 
-        L: Harmonic band-limit.
+        L (int): Harmonic band-limit.
 
-        el: Spherical harmonic degree :math:`\ell`.
+        el (int): Spherical harmonic degree :math:`\ell`.
 
     Returns:
-
-        Plane of Wigner-d for `el`, with half of plane computed.
+        np.ndarray: Plane of Wigner-d for `el`, with half of plane computed.
     """
 
     _arg_checks(dl, L, el)
@@ -308,21 +305,19 @@ def fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     """Fill in full Wigner-d plane from half.
 
     The Wigner-d plane passed as an argument should be computed for the half
-    of the plane :math:`-\ell <= m <= \ell, 0 <= m^\prime <= \ell`.  The
-    returned plane is computed by symmetry for
+    of the plane :math:`-\ell <= m <= \ell` and :math:`0 <= m^\prime <= \ell`.
+    The returned plane is computed by symmetry for
     :math:`-\ell <= m, m^\prime <= \ell`.
 
     Args:
+        dl (np.ndarray): Quarter of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
 
-        dl: Quarter of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
+        L (int): Harmonic band-limit.
 
-        L: Harmonic band-limit.
-
-        el: Spherical harmonic degree :math:`\ell`.
+        el (int): Spherical harmonic degree :math:`\ell`.
 
     Returns:
-
-        Plane of Wigner-d for `el`, with full plane computed.
+        np.ndarray: Plane of Wigner-d for `el`, with full plane computed.
     """
 
     _arg_checks(dl, L, el)
@@ -386,29 +381,24 @@ def compute_full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     The Wigner-d plane :math:`d^\ell_{mm^\prime}(\pi/2)` (`el`) is indexed for
     :math:`-L < m, m^\prime < L` by `dl[m + L - 1, m' + L - 1]`. The plane is
     computed directly for the eighth of the plane
-    :math:`m^\prime <= m <0 \ell, 0 <= m^\prime <= \ell`
+    :math:`m^\prime <= m < \ell` and :math:`0 <= m^\prime <= \ell`
     (see :func:`~compute_eighth`).
     Symmetry relations are then used to fill in the remainder of the plane
     (see :func:`~fill_eighth2quarter`,
     :func:`~fill_quarter2half`, :func:`~fill_half2full`).
 
     Warning:
-
         This recursion may not be stable above :math:`\ell \gtrsim 1024`.
 
     Args:
+        dl (np.ndarray): Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.
 
-        dl: Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.  If
-        :math:`\ell = 0` the recursion is initialised internally and the `dl`
-        argument is ignored.
+        L (int): Harmonic band-limit.
 
-        L: Harmonic band-limit.
-
-        el: Spherical harmonic degree :math:`\ell`.
+        el (int): Spherical harmonic degree :math:`\ell`.
 
     Returns:
-
-        Plane of Wigner-d for `el`, with eighth of plane computed.
+        np.ndarray: Plane of Wigner-d for `el`, with eighth of plane computed.
 
     """
 
