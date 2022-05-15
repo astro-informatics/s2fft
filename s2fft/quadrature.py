@@ -23,7 +23,7 @@ def quad_weights_transform(L: int, sampling: str = "mwss", spin: int = 0) -> np.
 
     Returns:
         np.ndarray: Quadrature weights *to use in transform* for sampling scheme for
-        each :math:`\theta` (weights are identical as :mmath:`\phi` varies for given
+        each :math:`\theta` (weights are identical as :math:`\phi` varies for given
         :math:`\theta`).
     """
 
@@ -60,7 +60,7 @@ def quad_weights(
 
     Returns:
         np.ndarray: Quadrature weights for sampling scheme for each :math:`\theta`
-        (weights are identical as :mmath:`\phi` varies for given :math:`\theta`).
+        (weights are identical as :math:`\phi` varies for given :math:`\theta`).
     """
 
     if sampling.lower() == "mw":
@@ -83,17 +83,17 @@ def quad_weights_hp(nside: int) -> np.ndarray:
     r"""Compute HEALPix quadrature weights for :math:`\theta` and :math:`\phi`
     integration.
 
+    Note:
+        HEALPix weights are identical for all pixels.  Nevertheless, an array of
+        weights is returned (with identical values) for consistency of interface
+        across other sampling schemes.
+
     Args:
         nside (int): HEALPix Nside resolution parameter.
 
     Returns:
         np.ndarray: Weights computed for each :math:`\theta` (all weights in array are
         identical).
-    
-    Note:
-        HEALPix weights are identical for all pixels.  Nevertheless, an array of
-        weights is returned (with identical values) for consistency of interface
-        across other sampling schemes.
     """
 
     npix = 12 * nside**2
@@ -112,7 +112,7 @@ def quad_weights_dh(L: int) -> np.ndarray:
 
     Returns:
         np.ndarray: Weights computed for each :math:`\theta` (weights are identical
-        as :mmath:`\phi` varies for given :math:`\theta`).
+        as :math:`\phi` varies for given :math:`\theta`).
     """
 
     q = quad_weight_dh_theta_only(samples.thetas(L, sampling="dh"), L)
@@ -152,7 +152,7 @@ def quad_weights_mw(L: int, spin: int = 0) -> np.ndarray:
 
     Returns:
         np.ndarray: Weights computed for each :math:`\theta` (weights are identical
-        as :mmath:`\phi` varies for given :math:`\theta`).
+        as :math:`\phi` varies for given :math:`\theta`).
     """
 
     return quad_weights_mw_theta_only(L, spin) * 2 * np.pi / (2 * L - 1)
@@ -168,7 +168,7 @@ def quad_weights_mwss(L: int, spin: int = 0) -> np.ndarray:
 
     Returns:
         np.ndarray: Weights computed for each :math:`\theta` (weights are identical
-        as :mmath:`\phi` varies for given :math:`\theta`).
+        as :math:`\phi` varies for given :math:`\theta`).
     """
 
     return quad_weights_mwss_theta_only(L, spin) * 2 * np.pi / (2 * L)
