@@ -509,7 +509,7 @@ def _hp_zphi2pix(nside: int, z: float, phi: float) -> int:
 
 
 def hp_getidx(L: int, el: int, m: int) -> int:
-    r"""Returns healpix flm index for :math:`\ell=el` and :math:`m=em`
+    r"""Compute HEALPix harmonic index.
 
     Args:
         L (int): Harmonic band-limit.
@@ -525,21 +525,24 @@ def hp_getidx(L: int, el: int, m: int) -> int:
 
 
 def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
-    r"""Converts from 2d indexed flms to 1d indexed
+    r"""Convert from 2D indexed harmonic coefficients to 1D indexed coefficients.
     
-    Conventions for e.g. :math:`L = 3` 
+    Note:
+        Storage conventions for harmonic coefficients :math:`f_{(\ell,m)}`, for 
+        e.g. :math:`L = 3`, are as follows.
 
-    .. math::
+        .. math::
 
-        2D = \begin{bmatrix}
-                flm_{(2,-2)} & flm_{(2,-1)} & flm_{(2,0)} & flm_{(2,1)} & flm_{(2,2)}  \\
-                0 & flm_{(1,-1)} & flm_{(1,0)} & flm_{(1,1)} & 0 \\
-                0 & 0 & flm_{(0,0)} & 0 & 0
-            \end{bmatrix}
-    
-    .. math::
+            \text{ 2D data format}:
+                \begin{bmatrix}
+                    0 & 0 & f_{(0,0)} & 0 & 0 \\
+                    0 & f_{(1,-1)} & f_{(1,0)} & f_{(1,1)} & 0 \\
+                    f_{(2,-2)} & f_{(2,-1)} & f_{(2,0)} & f_{(2,1)} & f_{(2,2)}
+                \end{bmatrix}
+        
+        .. math::
 
-        1D =  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]
+            \text{1D data format}:  [f_{0,0}, f_{1,-1}, f_{1,0}, f_{1,1}, \dots]
 
     Args:
         flm_2d (np.ndarray): 2D indexed harmonic coefficients.
@@ -547,7 +550,7 @@ def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
         L (int): Harmonic band-limit.
 
     Returns:
-        np.ndarray: 1D indexed flms.
+        np.ndarray: 1D indexed harmonic coefficients.
     """
     flm_1d = np.zeros(ncoeff(L), dtype=np.complex128)
 
@@ -567,21 +570,24 @@ def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
 
 
 def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
-    r"""Converts from 1d indexed flms to 2d indexed
+    r"""Convert from 1D indexed harmnonic coefficients to 2D indexed coefficients.    
     
-    Conventions for e.g. :math:`L = 3` 
+    Note:
+        Storage conventions for harmonic coefficients :math:`f_{(\ell,m)}`, for 
+        e.g. :math:`L = 3`, are as follows.
 
-    .. math::
+        .. math::
 
-        2D = \begin{bmatrix}
-                flm_{(2,-2)} & flm_{(2,-1)} & flm_{(2,0)} & flm_{(2,1)} & flm_{(2,2)}  \\
-                0 & flm_{(1,-1)} & flm_{(1,0)} & flm_{(1,1)} & 0 \\
-                0 & 0 & flm_{(0,0)} & 0 & 0
-            \end{bmatrix}
-    
-    .. math::
+            \text{ 2D data format}:
+                \begin{bmatrix}
+                    0 & 0 & f_{(0,0)} & 0 & 0 \\
+                    0 & f_{(1,-1)} & f_{(1,0)} & f_{(1,1)} & 0 \\
+                    f_{(2,-2)} & f_{(2,-1)} & f_{(2,0)} & f_{(2,1)} & f_{(2,2)}
+                \end{bmatrix}
+        
+        .. math::
 
-        1D =  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]
+            \text{1D data format}:  [f_{0,0}, f_{1,-1}, f_{1,0}, f_{1,1}, \dots]
 
     Args:
         flm_1d (np.ndarray): 1D indexed harmonic coefficients.
@@ -589,8 +595,9 @@ def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
         L (int): Harmonic band-limit.
 
     Returns:
-        np.ndarray: 2D indexed flms
+        np.ndarray: 2D indexed harmonic coefficients.
     """
+
     flm_2d = np.zeros(flm_shape(L), dtype=np.complex128)
 
     if len(flm_1d.shape) != 1:
@@ -609,25 +616,29 @@ def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
 
 
 def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
-    r"""Converts from healpix indexed flms to 2d indexed
+    r"""Converts from HEALPix (healpy) indexed harmonic coefficients to 2D indexed
+    coefficients.
     
-    Note that healpix implicitly assumes conjugate symmetry and thus 
-    only stores positive m coefficients. Here we unpack that into 
-    harmonic coefficients of an explicitly real signal.
+    Notes:
+        HEALPix implicitly assumes conjugate symmetry and thus only stores positive `m` 
+        coefficients. Here we unpack that into harmonic coefficients of an 
+        explicitly real signal.
 
-    Conventions for e.g. :math:`L = 3` 
+    Note:
+        Storage conventions for harmonic coefficients :math:`f_{(\ell,m)}`, for 
+        e.g. :math:`L = 3`, are as follows.
 
-    .. math::
+        .. math::
+            \text{ 2D data format}:
+                \begin{bmatrix}
+                    0 & 0 & f_{(0,0)} & 0 & 0 \\
+                    0 & f_{(1,-1)} & f_{(1,0)} & f_{(1,1)} & 0 \\
+                    f_{(2,-2)} & f_{(2,-1)} & f_{(2,0)} & f_{(2,1)} & f_{(2,2)}
+                \end{bmatrix}
+        
+        .. math::
 
-        2D = \begin{bmatrix}
-                flm_{(2,-2)} & flm_{(2,-1)} & flm_{(2,0)} & flm_{(2,1)} & flm_{(2,2)}  \\
-                0 & flm_{(1,-1)} & flm_{(1,0)} & flm_{(1,1)} & 0 \\
-                0 & 0 & flm_{(0,0)} & 0 & 0
-            \end{bmatrix}
-    
-    .. math::
-
-        healpix =  [flm_{0,0}, \dots, flm_{L,0}, flm_{1,1}, \dots, flm_{L,1}, \dots]
+            \text{HEALPix}: [f_{(0,0)}, \dots, f_{(L,0)}, f_{(1,1)}, \dots, f_{(L,1)}, \dots]
 
     Note:
         Returns harmonic coefficients of an explicitly real signal.
@@ -638,7 +649,7 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
         L (int): Harmonic band-limit.
 
     Returns:
-        np.ndarray: 2D indexed flms.
+        np.ndarray: 2D indexed harmonic coefficients.
     
     """
     flm_2d = np.zeros(flm_shape(L), dtype=np.complex128)
@@ -656,29 +667,32 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
 
 
 def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
-    r"""Converts from 2d indexed flms to healpix indexed flms
+    r"""Converts from 2D indexed harmonic coefficients to HEALPix (healpy) indexed
+    coefficients.
     
-    Note that healpix implicitly assumes conjugate symmetry and thus 
-    only stores positive m coefficients. So this function discards the 
-    negative m values. This process is NOT invertible! See the 
-    `healpy api docs <https://healpy.readthedocs.io/en/latest/generated/healpy.sphtfunc.alm2map.html>`_ 
-    for details on healpix indexing and lengths.
-
-    Conventions for e.g. :math:`L = 3` 
-
-    .. math::
-
-        2D = \begin{bmatrix}
-                flm_{(2,-2)} & flm_{(2,-1)} & flm_{(2,0)} & flm_{(2,1)} & flm_{(2,2)}  \\
-                0 & flm_{(1,-1)} & flm_{(1,0)} & flm_{(1,1)} & 0 \\
-                0 & 0 & flm_{(0,0)} & 0 & 0
-            \end{bmatrix}
-    
-    .. math::
-
-        healpix =  [flm_{0,0}, \dots, flm_{L,0}, flm_{1,1}, \dots, flm_{L,1}, \dots]
+    Note:
+        HEALPix implicitly assumes conjugate symmetry and thus only stores positive `m` 
+        coefficients. So this function discards the negative `m` values. This process 
+        is NOT invertible! See the `healpy api docs <https://healpy.readthedocs.io/en/latest/generated/healpy.sphtfunc.alm2map.html>`_ 
+        for details on healpy indexing and lengths.
 
     Note:
+        Storage conventions for harmonic coefficients :math:`f_{(\ell,m)}`, for 
+        e.g. :math:`L = 3`, are as follows.
+
+        .. math::
+            \text{ 2D data format}:
+                \begin{bmatrix}
+                    0 & 0 & f_{(0,0)} & 0 & 0 \\
+                    0 & f_{(1,-1)} & f_{(1,0)} & f_{(1,1)} & 0 \\
+                    f_{(2,-2)} & f_{(2,-1)} & f_{(2,0)} & f_{(2,1)} & f_{(2,2)}
+                \end{bmatrix}
+        
+        .. math::
+
+            \text{HEALPix}: [f_{(0,0)}, \dots, f_{(L,0)}, f_{(1,1)}, \dots, f_{(L,1)}, \dots]
+
+    Warning:
         Returns harmonic coefficients of an explicitly real signal.
 
     Args:
@@ -687,14 +701,14 @@ def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
         L (int): Harmonic band-limit.
         
     Returns:
-        np.ndarray: HEALPix indexed flms.
+        np.ndarray: HEALPix indexed harmonic coefficients.
         
     """
 
     flm_hp = np.zeros(int(L * (L + 1) / 2), dtype=np.complex128)
 
     if len(flm_hp.shape) != 1:
-        raise ValueError(f"Healpix indexed flms are not flat")
+        raise ValueError(f"HEALPix indexed flms are not flat")
 
     for el in range(L):
         for m in range(0, el + 1):
