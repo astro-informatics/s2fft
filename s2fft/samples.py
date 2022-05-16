@@ -718,6 +718,39 @@ def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
 
 
 def lm2lm_hp(flm: np.ndarray, L: int) -> np.ndarray:
+    r"""Converts from 1D indexed harmonic coefficients to HEALPix (healpy) indexed
+    coefficients.
+    
+    Note:
+        HEALPix implicitly assumes conjugate symmetry and thus only stores positive `m` 
+        coefficients. So this function discards the negative `m` values. This process 
+        is NOT invertible! See the `healpy api docs <https://healpy.readthedocs.io/en/latest/generated/healpy.sphtfunc.alm2map.html>`_ 
+        for details on healpy indexing and lengths.
+
+    Note:
+        Storage conventions for harmonic coefficients :math:`f_{(\ell,m)}`, for 
+        e.g. :math:`L = 3`, are as follows.
+
+        .. math::
+            
+            \text{1D data format}:  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]
+        
+        .. math::
+
+            \text{HEALPix}: [flm_{(0,0)}, \dots, flm_{(L,0)}, flm_{(1,1)}, \dots, flm_{(L,1)}, \dots]
+
+    Warning:
+        Returns harmonic coefficients of an explicitly real signal.
+
+    Args:
+        flm (np.ndarray): 1D indexed harmonic coefficients.
+
+        L (int): Harmonic band-limit.
+        
+    Returns:
+        np.ndarray: HEALPix indexed harmonic coefficients.
+        
+    """
     flm_hp = np.zeros(int(L * (L + 1) / 2), dtype=np.complex128)
 
     for el in range(0, L):
