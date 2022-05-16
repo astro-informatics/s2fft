@@ -88,14 +88,14 @@ def forward_transform_cpu(f: np.ndarray, legendre_kernel: np.ndarray, L: int):
 
 
 @partial(jit, static_argnums=(2,))
-def forward_transform_gpu(f, legendre_kernel, L):
+def forward_transform_gpu(f: jnp.ndarray, legendre_kernel: jnp.ndarray, L: int):
     r"""Compute the forward spherical harmonic transform via precompute (JAX
     implementation).
 
     Args:
-        f (np.ndarray): Signal on sphere (shape: L, 2L-1).
+        f (jnp.ndarray): Signal on sphere (shape: L, 2L-1).
 
-        legendre_kernel (np.ndarray): Legendre transform kernel.
+        legendre_kernel (jnp.ndarray): Legendre transform kernel.
 
         L (int): Harmonic band-limit.
 
@@ -108,7 +108,7 @@ def forward_transform_gpu(f, legendre_kernel, L):
 
 
 def inverse_precompute(
-    flm, L=4, legendre_kernel=None, device="cpu", spin=0, save_dir="../../.matrices"
+    flm: np.ndarray, L: int = 4, legendre_kernel: np.ndarary = None, device: str = "cpu", spin: int = 0, save_dir: str = "../../.matrices"
 ):
     r"""Compute the inverse spherical harmonic transform via precompute.
 
@@ -148,7 +148,7 @@ def inverse_precompute(
         raise ValueError("Device not recognised.")
 
 
-def inverse_transform_cpu(flm, legendre_kernel, L):
+def inverse_transform_cpu(flm: np.ndarray, legendre_kernel: np.ndarray, L: int):
     r"""Compute the forward spherical harmonic transform via precompute (vectorized
     implementation).
 
@@ -168,14 +168,14 @@ def inverse_transform_cpu(flm, legendre_kernel, L):
 
 
 @partial(jit, static_argnums=(2,))
-def inverse_transform_gpu(flm, legendre_kernel, L):
+def inverse_transform_gpu(flm: jnp.ndarray, legendre_kernel: jnp.ndarray, L: int):
     r"""Compute the inverse spherical harmonic transform via precompute (JAX
     implementation).
 
     Args:
-        flm (np.ndarray): Harmonic coefficients (shape: L(2L-1)).
+        flm (jnp.ndarray): Harmonic coefficients (shape: L(2L-1)).
 
-        legendre_kernel (np.ndarray): Legendre transform kernel.
+        legendre_kernel (jnp.ndarray): Legendre transform kernel.
 
         L (int): Harmonic band-limit.
 
