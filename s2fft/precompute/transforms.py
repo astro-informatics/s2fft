@@ -47,7 +47,7 @@ def forward_precompute(
     """
     if legendre_kernel is None:
         kernel = load_legendre_matrix(
-            L=L, direction="forward", spin=spin, save_dir=save_dir
+            L=L, forward=True, spin=spin, save_dir=save_dir
         )
     else:
         kernel = legendre_kernel
@@ -135,7 +135,7 @@ def inverse_precompute(
     """
     if legendre_kernel is None:
         kernel = load_legendre_matrix(
-            L=L, direction="inverse", spin=spin, save_dir=save_dir
+            L=L, forward=False, spin=spin, save_dir=save_dir
         )
     else:
         kernel = legendre_kernel
