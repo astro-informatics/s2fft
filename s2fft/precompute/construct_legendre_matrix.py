@@ -19,7 +19,7 @@ def construct_legendre_matrix(
     Args:
         L (int): Harmonic band-limit.
 
-        sampling_method (str, optional): Sampling method to consider.
+        sampling_method (str, optional): Sampling method to consider (Currently "MW" only supported).
 
         save_dir (str, optional): Directory in which to save precomputed matrices.
 
@@ -92,7 +92,7 @@ def construct_legendre_matrix_inverse(
     Args:
         L (int): Harmonic band-limit.
 
-        sampling_method (str, optional): Sampling method to consider.
+        sampling_method (str, optional): Sampling method to consider (Currently "MW" only supported).
 
         save_dir (str, optional): Directory in which to save precomputed matrices.
 
@@ -190,7 +190,7 @@ def load_legendre_matrix(
     Args:
         L (int): Harmonic band-limit.
 
-        sampling_method (str, optional): Sampling method to consider.
+        sampling_method (str, optional): Sampling method to consider (Currently "MW" only supported).
 
         save_dir (str, optional): Directory from which to load precomputed matrices.
 

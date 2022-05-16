@@ -108,7 +108,12 @@ def forward_transform_gpu(f: jnp.ndarray, legendre_kernel: jnp.ndarray, L: int):
 
 
 def inverse_precompute(
-    flm: np.ndarray, L: int = 4, legendre_kernel: np.ndarary = None, device: str = "cpu", spin: int = 0, save_dir: str = "../../.matrices"
+    flm: np.ndarray,
+    L: int = 4,
+    legendre_kernel: np.ndarary = None,
+    device: str = "cpu",
+    spin: int = 0,
+    save_dir: str = "../../.matrices",
 ):
     r"""Compute the inverse spherical harmonic transform via precompute.
 
