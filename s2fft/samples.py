@@ -528,21 +528,21 @@ def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
     r"""Convert from 2D indexed harmonic coefficients to 1D indexed coefficients.
     
     Note:
-        Storage conventions for harmonic coefficients :math:`f_{(\ell,m)}`, for 
+        Storage conventions for harmonic coefficients :math:`flm_{(\ell,m)}`, for 
         e.g. :math:`L = 3`, are as follows.
 
         .. math::
 
             \text{ 2D data format}:
                 \begin{bmatrix}
-                    0 & 0 & f_{(0,0)} & 0 & 0 \\
-                    0 & f_{(1,-1)} & f_{(1,0)} & f_{(1,1)} & 0 \\
-                    f_{(2,-2)} & f_{(2,-1)} & f_{(2,0)} & f_{(2,1)} & f_{(2,2)}
+                    0 & 0 & flm_{(0,0)} & 0 & 0 \\
+                    0 & flm_{(1,-1)} & flm_{(1,0)} & flm_{(1,1)} & 0 \\
+                    flm_{(2,-2)} & flm_{(2,-1)} & flm_{(2,0)} & flm_{(2,1)} & flm_{(2,2)}
                 \end{bmatrix}
         
         .. math::
 
-            \text{1D data format}:  [f_{0,0}, f_{1,-1}, f_{1,0}, f_{1,1}, \dots]
+            \text{1D data format}:  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]
 
     Args:
         flm_2d (np.ndarray): 2D indexed harmonic coefficients.
@@ -573,21 +573,21 @@ def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
     r"""Convert from 1D indexed harmnonic coefficients to 2D indexed coefficients.    
     
     Note:
-        Storage conventions for harmonic coefficients :math:`f_{(\ell,m)}`, for 
+        Storage conventions for harmonic coefficients :math:`flm_{(\ell,m)}`, for 
         e.g. :math:`L = 3`, are as follows.
 
         .. math::
 
             \text{ 2D data format}:
                 \begin{bmatrix}
-                    0 & 0 & f_{(0,0)} & 0 & 0 \\
-                    0 & f_{(1,-1)} & f_{(1,0)} & f_{(1,1)} & 0 \\
-                    f_{(2,-2)} & f_{(2,-1)} & f_{(2,0)} & f_{(2,1)} & f_{(2,2)}
+                    0 & 0 & flm_{(0,0)} & 0 & 0 \\
+                    0 & flm_{(1,-1)} & flm_{(1,0)} & flm_{(1,1)} & 0 \\
+                    flm_{(2,-2)} & flm_{(2,-1)} & flm_{(2,0)} & flm_{(2,1)} & flm_{(2,2)}
                 \end{bmatrix}
         
         .. math::
 
-            \text{1D data format}:  [f_{0,0}, f_{1,-1}, f_{1,0}, f_{1,1}, \dots]
+            \text{1D data format}:  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]
 
     Args:
         flm_1d (np.ndarray): 1D indexed harmonic coefficients.
@@ -631,14 +631,14 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
         .. math::
             \text{ 2D data format}:
                 \begin{bmatrix}
-                    0 & 0 & f_{(0,0)} & 0 & 0 \\
-                    0 & f_{(1,-1)} & f_{(1,0)} & f_{(1,1)} & 0 \\
-                    f_{(2,-2)} & f_{(2,-1)} & f_{(2,0)} & f_{(2,1)} & f_{(2,2)}
+                    0 & 0 & flm_{(0,0)} & 0 & 0 \\
+                    0 & flm_{(1,-1)} & flm_{(1,0)} & flm_{(1,1)} & 0 \\
+                    flm_{(2,-2)} & flm_{(2,-1)} & flm_{(2,0)} & flm_{(2,1)} & flm_{(2,2)}
                 \end{bmatrix}
         
         .. math::
 
-            \text{HEALPix}: [f_{(0,0)}, \dots, f_{(L,0)}, f_{(1,1)}, \dots, f_{(L,1)}, \dots]
+            \text{HEALPix}: [flm_{(0,0)}, \dots, flm_{(L,0)}, flm_{(1,1)}, \dots, flm_{(L,1)}, \dots]
 
     Note:
         Returns harmonic coefficients of an explicitly real signal.
@@ -683,14 +683,14 @@ def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
         .. math::
             \text{ 2D data format}:
                 \begin{bmatrix}
-                    0 & 0 & f_{(0,0)} & 0 & 0 \\
-                    0 & f_{(1,-1)} & f_{(1,0)} & f_{(1,1)} & 0 \\
-                    f_{(2,-2)} & f_{(2,-1)} & f_{(2,0)} & f_{(2,1)} & f_{(2,2)}
+                    0 & 0 & flm_{(0,0)} & 0 & 0 \\
+                    0 & flm_{(1,-1)} & flm_{(1,0)} & flm_{(1,1)} & 0 \\
+                    flm_{(2,-2)} & flm_{(2,-1)} & flm_{(2,0)} & flm_{(2,1)} & flm_{(2,2)}
                 \end{bmatrix}
         
         .. math::
 
-            \text{HEALPix}: [f_{(0,0)}, \dots, f_{(L,0)}, f_{(1,1)}, \dots, f_{(L,1)}, \dots]
+            \text{HEALPix}: [flm_{(0,0)}, \dots, flm_{(L,0)}, flm_{(1,1)}, \dots, flm_{(L,1)}, \dots]
 
     Warning:
         Returns harmonic coefficients of an explicitly real signal.
