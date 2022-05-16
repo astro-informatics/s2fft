@@ -36,7 +36,7 @@ def compute_full(dl: np.ndarray, beta: float, el: int, L: int) -> np.ndarray:
             f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
         )
     dl[:, :] = 0
-    dl = turok_quarter(dl, beta, el, L)
+    dl = compute_quarter(dl, beta, el, L)
     dl = fill(dl, el, L)
     return dl
 
@@ -96,12 +96,12 @@ def compute_slice(dl: np.ndarray, beta: float, el: int, L: int, mm: int) -> np.n
     if dl.shape[0] != 2 * L - 1:
         raise ValueError(f"Wigner-d matrix is of incorrect shape={dl.shape[0]}")
     dl[:] = 0
-    dl = turok_quarter_slice(dl, beta, el, L, mm)
+    dl = compute_quarter_slice(dl, beta, el, L, mm)
 
     return dl
 
 
-def turok_quarter_slice(
+def compute_quarter_slice(
     dl: np.ndarray, beta: float, el: int, L: int, mm: int
 ) -> np.ndarray:
     r"""Compute a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated
@@ -213,7 +213,7 @@ def turok_quarter_slice(
     return dl
 
 
-def turok_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
+def compute_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
     """Compute the left quarter triangle of the Wigner-d matrix via Turok & Bucher
     recursion.
 
