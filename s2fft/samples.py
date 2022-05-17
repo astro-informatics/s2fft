@@ -511,6 +511,10 @@ def _hp_zphi2pix(nside: int, z: float, phi: float) -> int:
 def hp_getidx(L: int, el: int, m: int) -> int:
     r"""Compute HEALPix harmonic index.
 
+    Warning:
+        Note that the harmonic band-limit `L` differs to the HEALPix `lmax` convention,
+        where `L = lmax + 1`.
+
     Args:
         L (int): Harmonic band-limit.
 
@@ -624,6 +628,10 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
         coefficients. Here we unpack that into harmonic coefficients of an 
         explicitly real signal.
 
+    Warning:
+        Note that the harmonic band-limit `L` differs to the HEALPix `lmax` convention,
+        where `L = lmax + 1`.
+
     Note:
         Storage conventions for harmonic coefficients :math:`f_{(\ell,m)}`, for 
         e.g. :math:`L = 3`, are as follows.
@@ -695,6 +703,10 @@ def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
     Warning:
         Returns harmonic coefficients of an explicitly real signal.
 
+    Warning:
+        Note that the harmonic band-limit `L` differs to the HEALPix `lmax` convention,
+        where `L = lmax + 1`.
+
     Args:
         flm_2d (np.ndarray): 2D indexed harmonic coefficients.
 
@@ -741,6 +753,10 @@ def lm2lm_hp(flm: np.ndarray, L: int) -> np.ndarray:
 
     Warning:
         Returns harmonic coefficients of an explicitly real signal.
+
+    Warning:
+        Note that the harmonic band-limit `L` differs to the HEALPix `lmax` convention,
+        where `L = lmax + 1`.
 
     Args:
         flm (np.ndarray): 1D indexed harmonic coefficients.
