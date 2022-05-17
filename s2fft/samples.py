@@ -638,7 +638,7 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
         
         .. math::
 
-            \text{HEALPix}: [flm_{(0,0)}, \dots, flm_{(L,0)}, flm_{(1,1)}, \dots, flm_{(L,1)}, \dots]
+            \text{HEALPix}: [flm_{(0,0)}, \dots, flm_{(2,0)}, flm_{(1,1)}, \dots, flm_{(2,1)}, \dots]
 
     Note:
         Returns harmonic coefficients of an explicitly real signal.
@@ -690,7 +690,7 @@ def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
         
         .. math::
 
-            \text{HEALPix}: [flm_{(0,0)}, \dots, flm_{(L,0)}, flm_{(1,1)}, \dots, flm_{(L,1)}, \dots]
+            \text{HEALPix}: [flm_{(0,0)}, \dots, flm_{(2,0)}, flm_{(1,1)}, \dots, flm_{(2,1)}, \dots]
 
     Warning:
         Returns harmonic coefficients of an explicitly real signal.
@@ -737,7 +737,7 @@ def lm2lm_hp(flm: np.ndarray, L: int) -> np.ndarray:
         
         .. math::
 
-            \text{HEALPix}: [flm_{(0,0)}, \dots, flm_{(L,0)}, flm_{(1,1)}, \dots, flm_{(L,1)}, \dots]
+            \text{HEALPix}: [flm_{(0,0)}, \dots, flm_{(2,0)}, flm_{(1,1)}, \dots, flm_{(2,1)}, \dots]
 
     Warning:
         Returns harmonic coefficients of an explicitly real signal.
