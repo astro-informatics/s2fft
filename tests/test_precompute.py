@@ -54,9 +54,9 @@ def test_inverse_legendre_matrix_constructor(L: int, spin: int):
     )
 
 
-def test_legendre_matrix_constructor_compile_time_warning():
+def test_legendre_matrix_constructor_compute_time_warning():
     """Test compile time warning of legendre kernels"""
-    pre.construct_legendre_matrix.compile_warnings(256)
+    pre.construct_legendre_matrix.compute_warning(256)
 
 
 @pytest.mark.parametrize("L", [16, 32])

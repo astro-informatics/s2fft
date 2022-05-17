@@ -9,20 +9,24 @@ lg.setup_logging()
 
 
 def construct_legendre_matrix(
-    L=4, sampling_method="mw", save_dir="../../.matrices", spin=0
+    L: int = 4,
+    sampling_method: str = "mw",
+    save_dir: str = "../../.matrices",
+    spin: int = 0,
 ):
-    """Constructs associated Legendre matrix for precompute method
+    """Construct associated Legendre matrix for precompute method.
 
     Args:
+        L (int): Harmonic band-limit.
 
-        L (int): Angular bandlimit
-        sampling_method (str): Sampling method to consider
-        save_dir (str): Directory in which to save precomputed matrices
-        spin (int): Spin of the transform to consider
+        sampling_method (str, optional): Sampling method to consider (Currently "MW" only supported).
+
+        save_dir (str, optional): Directory in which to save precomputed matrices.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
 
     Returns:
-
-        Associated legendre matrix for forward harmonic transform
+        np.ndarray: Associated Legendre matrix for forward harmonic transform.
     """
 
     ntheta = samples.ntheta(L, sampling_method)
@@ -78,23 +82,27 @@ def construct_legendre_matrix(
 
 
 def construct_legendre_matrix_inverse(
-    L=4, sampling_method="mw", save_dir="../../.matrices", spin=0
+    L: int = 4,
+    sampling_method: str = "mw",
+    save_dir: str = "../../.matrices",
+    spin: int = 0,
 ):
-    """Constructs associated Legendre inverse matrix for precompute method
+    """Construct associated Legendre inverse matrix for precompute method.
 
     Args:
+        L (int): Harmonic band-limit.
 
-        L (int): Angular bandlimit
-        sampling_method (str): Sampling method to consider
-        save_dir (str): Directory in which to save precomputed matrices
-        spin (int): Spin of the transform to consider
+        sampling_method (str, optional): Sampling method to consider (Currently "MW" only supported).
+
+        save_dir (str, optional): Directory in which to save precomputed matrices.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
 
     Returns:
-
-        Associated legendre matrix for inverse harmonic transform
+        np.ndarray: Associated Legendre matrix for inverse harmonic transform.
     """
 
-    compile_warnings(L)
+    compute_warning(L)
 
     ntheta = samples.ntheta(L, sampling_method)
 
@@ -152,49 +160,50 @@ def construct_legendre_matrix_inverse(
     return Legendre_inverse
 
 
-def compile_warnings(L):
-    """Basic compiler warning for large Legendre precomputes
+def compute_warning(L):
+    r"""Basic compute warning for large Legendre precomputes.
 
     Args:
-
-        L (int): Angular bandlimit
+        L (int): Harmonic band-limit.
 
     Raises:
-
-        Warning: If the estimated time for precompute is large (L>128).
+        Warning: If the estimated time for precompute is large (:math:`L>128`).
     """
+
     base_value = 10
     if L >= 256:
         lg.warning_log(
             "Inverse associated Legendre matrix precomputation currently scales as L^5 -- get a coffee this may take a while."
         )
         lg.debug_log(
-            "L = {} matrix compilation takes ~{} hours".format(
+            "L = {} matrix computation takes ~{} hours".format(
                 L, (base_value * (L / 128) ** 2) / 60.0
             )
         )
 
 
 def load_legendre_matrix(
-    L=4, sampling_method="mw", save_dir="../../.matrices", direction="forward", spin=0
+    L=4, sampling_method="mw", save_dir="../../.matrices", forward=True, spin=0
 ):
-    """Constructs associated Legendre inverse matrix for precompute method
+    """Construct associated Legendre inverse matrix for precompute method.
 
     Args:
+        L (int): Harmonic band-limit.
 
-        L (int): Angular bandlimit
-        sampling_method (str): Sampling method to consider
-        save_dir (str): Directory from which to load precomputed matrices
-        direction (str): Whether to load the forward or inverse matrices
-        spin (int): Spin of the transform to consider
+        sampling_method (str, optional): Sampling method to consider (Currently "MW" only supported).
+
+        save_dir (str, optional): Directory from which to load precomputed matrices.
+
+        forward (bool, optional): Whether to load the forward or inverse matrices.
+
+        spin (int, optional): Spin of the transform to consider.
 
     Returns:
-
-        Associated legendre matrix for corresponding harmonic transform
+        np.ndarray: Associated Legendre matrix for corresponding harmonic transform.
     """
 
     dir_string = ""
-    if direction == "inverse":
+    if not forward:
         dir_string += "_inverse"
 
     filepath = "{}/legendre{}_matrix_{}_{}_spin_{}.npy".format(
@@ -202,14 +211,14 @@ def load_legendre_matrix(
     )
 
     if not os.path.isfile(filepath):
-        if direction == "forward":
+        if forward:
             construct_legendre_matrix(
                 L=L,
                 sampling_method=sampling_method,
                 save_dir=save_dir,
                 spin=spin,
             )
-        elif direction == "inverse":
+        else:
             construct_legendre_matrix_inverse(
                 L=L,
                 sampling_method=sampling_method,

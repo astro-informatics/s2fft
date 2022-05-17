@@ -17,27 +17,37 @@ lg.setup_logging()
 
 
 def forward_precompute(
-    f, L=4, legendre_kernel=None, device="cpu", spin=0, save_dir="../../.matrices"
+    f: np.ndarray,
+    L: int = 4,
+    legendre_kernel: np.ndarray = None,
+    device: str = "cpu",
+    spin: int = 0,
+    save_dir: str = "../../.matrices",
 ):
-    """Computes the forward spherical harmonic transform via precompute
+    r"""Compute forward spherical harmonic transform via precompute.
+
+    Note:
+        Only MW sampling supported at present.
 
     Args:
+        f (np.ndarray): Signal on sphere (shape: L, 2L-1).
 
-        f (np.ndarray): Pixel-space signal (shape: L, 2*L-1)
-        L (int): Angular bandlimit
-        legendre_kernel (np.ndarray): Legendre transform kernel
-        device (str): Evaluate on "cpu" or "gpu"
-        spin (int): Spin of the transform to consider
-        save_dir (str): Where to save legendre kernels
+        L (int): Harmonic band-limit.
+
+        legendre_kernel (np.ndarray): Legendre transform kernel.
+
+        device (str, optional): Evaluate on "cpu" or "gpu".
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        save_dir (str, optional): Directory to save legendre kernels.
 
     Returns:
-
-        Oversampled spherical harmonic coefficients i.e. L*(2*L-1)
-        coefficients indexed by [-L < n < L].
+        np.ndarray: 2D spherical harmonic coefficients, i.e. L x (2L-1).
     """
     if legendre_kernel is None:
         kernel = load_legendre_matrix(
-            L=L, direction="forward", spin=spin, save_dir=save_dir
+            L=L, forward=True, spin=spin, save_dir=save_dir
         )
     else:
         kernel = legendre_kernel
@@ -55,19 +65,22 @@ def forward_precompute(
         raise ValueError("Device not recognised.")
 
 
-def forward_transform_cpu(f, legendre_kernel, L):
-    """Computes the NumPy forward spherical harmonic transform via precompute
+def forward_transform_cpu(f: np.ndarray, legendre_kernel: np.ndarray, L: int):
+    r"""Compute the forward spherical harmonic transform via precompute
+    (vectorized implementation).
+
+    Note:
+        Only MW sampling supported at present.
 
     Args:
+        f (np.ndarray): Signal on sphere (shape: L, 2L-1).
 
-        f (np.ndarray): Pixel-space signal (shape: L, 2*L-1)
-        legendre_kernel (np.ndarray): Legendre transform kernel
-        L (int): Angular bandlimit
+        legendre_kernel (np.ndarray): Legendre transform kernel.
+
+        L (int): Harmonic band-limit.
 
     Returns:
-
-        Oversampled spherical harmonic coefficients i.e. L*(2*L-1)
-        coefficients indexed by [-L < n < L].
+        np.ndarray: 2D spherical harmonic coefficients, i.e. L x (2L-1).
     """
     fm = np.fft.fft(f)
     flm = np.einsum("lmi, im->lm", legendre_kernel, fm)
@@ -75,19 +88,19 @@ def forward_transform_cpu(f, legendre_kernel, L):
 
 
 @partial(jit, static_argnums=(2,))
-def forward_transform_gpu(f, legendre_kernel, L):
-    """Computes the JAX forward spherical harmonic transform via precompute
+def forward_transform_gpu(f: jnp.ndarray, legendre_kernel: jnp.ndarray, L: int):
+    r"""Compute the forward spherical harmonic transform via precompute (JAX
+    implementation).
 
     Args:
+        f (jnp.ndarray): Signal on sphere (shape: L, 2L-1).
 
-        f (np.ndarray): Pixel-space signal (shape: L, 2*L-1)
-        legendre_kernel (np.ndarray): Legendre transform kernel
-        L (static_int): Angular bandlimit
+        legendre_kernel (jnp.ndarray): Legendre transform kernel.
+
+        L (int): Harmonic band-limit.
 
     Returns:
-
-        Oversampled spherical harmonic coefficients i.e. L*(2*L-1)
-        coefficients indexed by [-L < n < L].
+        np.ndarray: 2D spherical harmonic coefficients, i.e. L x (2L-1).
     """
     fm = jnp.fft.fft(f)
     flm = jnp.einsum("lmi, im->lm", legendre_kernel, fm, optimize=True)
@@ -95,26 +108,34 @@ def forward_transform_gpu(f, legendre_kernel, L):
 
 
 def inverse_precompute(
-    flm, L=4, legendre_kernel=None, device="cpu", spin=0, save_dir="../../.matrices"
+    flm: np.ndarray,
+    L: int = 4,
+    legendre_kernel: np.ndarray = None,
+    device: str = "cpu",
+    spin: int = 0,
+    save_dir: str = "../../.matrices",
 ):
-    """Computes the inverse spherical harmonic transform via precompute
+    r"""Compute the inverse spherical harmonic transform via precompute.
 
     Args:
+        flm (np.ndarray): Harmonic coefficients (shape: L(2L-1)).
 
-        flm (np.ndarray): Harmonic-space signal (shape: L*(2*L-1))
-        L (int): Angular bandlimit
-        legendre_kernel (np.ndarray): Legendre transform kernel
-        device (str): Evaluate on "cpu" or "gpu"
-        spin (int): Spin of the transform to consider
-        save_dir (str): Where to save legendre kernels
+        L (int): Harmonic band-limit.
+
+        legendre_kernel (np.ndarray): Legendre transform kernel.
+
+        device (str, optional): Evaluate on "cpu" or "gpu".
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        save_dir (str, optional): Dorectory to save legendre kernels.
 
     Returns:
-
-        Pixel-space coefficients with shape [L, 2*L-1].
+        np.ndarray: Pixel-space coefficients with shape [L, 2L-1].
     """
     if legendre_kernel is None:
         kernel = load_legendre_matrix(
-            L=L, direction="inverse", spin=spin, save_dir=save_dir
+            L=L, forward=False, spin=spin, save_dir=save_dir
         )
     else:
         kernel = legendre_kernel
@@ -132,18 +153,19 @@ def inverse_precompute(
         raise ValueError("Device not recognised.")
 
 
-def inverse_transform_cpu(flm, legendre_kernel, L):
-    """Computes the NumPy forward spherical harmonic transform via precompute
+def inverse_transform_cpu(flm: np.ndarray, legendre_kernel: np.ndarray, L: int):
+    r"""Compute the forward spherical harmonic transform via precompute (vectorized
+    implementation).
 
     Args:
+        flm (np.ndarray): Harmonic coefficients (shape: L(2L-1)).
 
-        flm (np.ndarray): Harmonic-space signal (shape: L*(2*L-1))
-        legendre_kernel (np.ndarray): Legendre transform kernel
-        L (int): Angular bandlimit
+        legendre_kernel (np.ndarray): Legendre transform kernel.
+
+        L (int): Harmonic band-limit.
 
     Returns:
-
-        Pixel-space coefficients with shape [L, 2*L-1].
+        np.ndarray: Pixel-space coefficients with shape [L, 2L-1].
     """
     flm_shift = np.fft.ifftshift(flm, axes=1)
     fm = np.einsum("lmi, lm->im", legendre_kernel, flm_shift)
@@ -151,18 +173,19 @@ def inverse_transform_cpu(flm, legendre_kernel, L):
 
 
 @partial(jit, static_argnums=(2,))
-def inverse_transform_gpu(flm, legendre_kernel, L):
-    """Computes the JAX inverse spherical harmonic transform via precompute
+def inverse_transform_gpu(flm: jnp.ndarray, legendre_kernel: jnp.ndarray, L: int):
+    r"""Compute the inverse spherical harmonic transform via precompute (JAX
+    implementation).
 
     Args:
+        flm (jnp.ndarray): Harmonic coefficients (shape: L(2L-1)).
 
-        flm (np.ndarray): Harmonic-space signal (shape: L*(2*L-1))
-        legendre_kernel (np.ndarray): Legendre transform kernel
-        L (int): Angular bandlimit
+        legendre_kernel (jnp.ndarray): Legendre transform kernel.
+
+        L (int): Harmonic band-limit.
 
     Returns:
-
-        Pixel-space coefficients with shape [L, 2*L-1].
+        jnp.ndarray: Pixel-space coefficients with shape [L, 2L-1].
     """
     flm_shift = jnp.fft.ifftshift(flm, axes=1)
     fm = jnp.einsum("lmi, lm->im", legendre_kernel, flm_shift, optimize=True)
