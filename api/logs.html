@@ -67,6 +67,8 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">s2fft.logs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="legendre_matrix.html">s2fft.precompute.construct_legendre_matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="precompute_transforms.html">s2fft.precompute.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quadrature.html">s2fft.quadrature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resampling.html">s2fft.resampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">s2fft.samples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transforms.html">s2fft.transforms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">s2fft.utils</a></li>
@@ -124,42 +126,42 @@
 <span id="s2fft-logs"></span><h1>s2fft.logs<a class="headerlink" href="#module-s2fft.logs" title="Permalink to this headline"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.logs.critical_log">
-<span class="sig-prename descclassname"><span class="pre">s2fft.logs.</span></span><span class="sig-name descname"><span class="pre">critical_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.logs.critical_log" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.logs.</span></span><span class="sig-name descname"><span class="pre">critical_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.logs.critical_log" title="Permalink to this definition"></a></dt>
 <dd><p>Log a critical message (e.g. core code failures etc).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>message</strong> – Message to log.</p>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em>) – Message to log.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.logs.debug_log">
-<span class="sig-prename descclassname"><span class="pre">s2fft.logs.</span></span><span class="sig-name descname"><span class="pre">debug_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.logs.debug_log" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.logs.</span></span><span class="sig-name descname"><span class="pre">debug_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.logs.debug_log" title="Permalink to this definition"></a></dt>
 <dd><p>Log a debug message (e.g. for background logs to assist debugging).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>message</strong> – Message to log.</p>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em>) – Message to log.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.logs.info_log">
-<span class="sig-prename descclassname"><span class="pre">s2fft.logs.</span></span><span class="sig-name descname"><span class="pre">info_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.logs.info_log" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.logs.</span></span><span class="sig-name descname"><span class="pre">info_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.logs.info_log" title="Permalink to this definition"></a></dt>
 <dd><p>Log an information message (e.g. evidence value printing, run completion
 etc).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>message</strong> – Message to log.</p>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em>) – Message to log.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.logs.setup_logging">
-<span class="sig-prename descclassname"><span class="pre">s2fft.logs.</span></span><span class="sig-name descname"><span class="pre">setup_logging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">custom_yaml_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.logs.setup_logging" title="Permalink to this definition"></a></dt>
-<dd><p>initialise and configure logging.</p>
+<span class="sig-prename descclassname"><span class="pre">s2fft.logs.</span></span><span class="sig-name descname"><span class="pre">setup_logging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">custom_yaml_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.logs.setup_logging" title="Permalink to this definition"></a></dt>
+<dd><p>Initialise and configure logging.</p>
 <p>Should be called at the beginning of code to initialise and configure the
 desired logging level. Logging levels can be ints in [0,50] where 10 is
 debug logging and 50 is critical logging.</p>
@@ -168,7 +170,7 @@ debug logging and 50 is critical logging.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>custom_yaml_path</strong> (<em>string</em>) – Complete pathname of desired yaml logging
 configuration. If empty will provide default logging config.</p></li>
-<li><p><strong>default_level</strong> (<em>int</em>) – Logging level at which to configure.</p></li>
+<li><p><strong>default_level</strong> (<em>int</em><em>, </em><em>optional</em>) – Logging level at which to configure.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
@@ -179,12 +181,12 @@ configuration. If empty will provide default logging config.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.logs.warning_log">
-<span class="sig-prename descclassname"><span class="pre">s2fft.logs.</span></span><span class="sig-name descname"><span class="pre">warning_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.logs.warning_log" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.logs.</span></span><span class="sig-name descname"><span class="pre">warning_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.logs.warning_log" title="Permalink to this definition"></a></dt>
 <dd><p>Log a warning (e.g. for internal code warnings such as large dynamic
 ranges).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>message</strong> – Warning to log.</p>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em>) – Warning to log.</p>
 </dd>
 </dl>
 </dd></dl>

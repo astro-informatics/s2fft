@@ -19,6 +19,8 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script src="../_static/dark_mode_js/default_light.js"></script>
         <script src="../_static/dark_mode_js/theme_switcher.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -67,6 +69,8 @@
 <li class="toctree-l1"><a class="reference internal" href="logs.html">s2fft.logs</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">s2fft.precompute.construct_legendre_matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="precompute_transforms.html">s2fft.precompute.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quadrature.html">s2fft.quadrature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resampling.html">s2fft.resampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">s2fft.samples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transforms.html">s2fft.transforms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">s2fft.utils</a></li>
@@ -123,73 +127,82 @@
 <div class="section" id="s2fft-precompute-construct-legendre-matrix">
 <h1>s2fft.precompute.construct_legendre_matrix<a class="headerlink" href="#s2fft-precompute-construct-legendre-matrix" title="Permalink to this headline"></a></h1>
 <span class="target" id="module-s2fft.precompute.construct_legendre_matrix"></span><dl class="py function">
-<dt class="sig sig-object py" id="s2fft.precompute.construct_legendre_matrix.compile_warnings">
-<span class="sig-prename descclassname"><span class="pre">s2fft.precompute.construct_legendre_matrix.</span></span><span class="sig-name descname"><span class="pre">compile_warnings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.precompute.construct_legendre_matrix.compile_warnings" title="Permalink to this definition"></a></dt>
-<dd><p>Basic compiler warning for large Legendre precomputes</p>
+<dt class="sig sig-object py" id="s2fft.precompute.construct_legendre_matrix.compute_warning">
+<span class="sig-prename descclassname"><span class="pre">s2fft.precompute.construct_legendre_matrix.</span></span><span class="sig-name descname"><span class="pre">compute_warning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.precompute.construct_legendre_matrix.compute_warning" title="Permalink to this definition"></a></dt>
+<dd><p>Basic compute warning for large Legendre precomputes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>L</strong> (<em>int</em>) – Angular bandlimit</p>
+<dd class="field-odd"><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>Warning</strong> – If the estimated time for precompute is large (L&gt;128).</p>
+<dd class="field-even"><p><strong>Warning</strong> – If the estimated time for precompute is large (<span class="math notranslate nohighlight">\(L&gt;128\)</span>).</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.precompute.construct_legendre_matrix.construct_legendre_matrix">
-<span class="sig-prename descclassname"><span class="pre">s2fft.precompute.construct_legendre_matrix.</span></span><span class="sig-name descname"><span class="pre">construct_legendre_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'../../.matrices'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.precompute.construct_legendre_matrix.construct_legendre_matrix" title="Permalink to this definition"></a></dt>
-<dd><p>Constructs associated Legendre matrix for precompute method</p>
+<span class="sig-prename descclassname"><span class="pre">s2fft.precompute.construct_legendre_matrix.</span></span><span class="sig-name descname"><span class="pre">construct_legendre_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_method</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'../../.matrices'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.precompute.construct_legendre_matrix.construct_legendre_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>Construct associated Legendre matrix for precompute method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>L</strong> (<em>int</em>) – Angular bandlimit</p></li>
-<li><p><strong>sampling_method</strong> (<em>str</em>) – Sampling method to consider</p></li>
-<li><p><strong>save_dir</strong> (<em>str</em>) – Directory in which to save precomputed matrices</p></li>
-<li><p><strong>spin</strong> (<em>int</em>) – Spin of the transform to consider</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>sampling_method</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling method to consider (Currently “MW” only supported).</p></li>
+<li><p><strong>save_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory in which to save precomputed matrices.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Associated legendre matrix for forward harmonic transform</p>
+<dd class="field-even"><p>Associated Legendre matrix for forward harmonic transform.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.precompute.construct_legendre_matrix.construct_legendre_matrix_inverse">
-<span class="sig-prename descclassname"><span class="pre">s2fft.precompute.construct_legendre_matrix.</span></span><span class="sig-name descname"><span class="pre">construct_legendre_matrix_inverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'../../.matrices'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.precompute.construct_legendre_matrix.construct_legendre_matrix_inverse" title="Permalink to this definition"></a></dt>
-<dd><p>Constructs associated Legendre inverse matrix for precompute method</p>
+<span class="sig-prename descclassname"><span class="pre">s2fft.precompute.construct_legendre_matrix.</span></span><span class="sig-name descname"><span class="pre">construct_legendre_matrix_inverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_method</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'../../.matrices'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.precompute.construct_legendre_matrix.construct_legendre_matrix_inverse" title="Permalink to this definition"></a></dt>
+<dd><p>Construct associated Legendre inverse matrix for precompute method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>L</strong> (<em>int</em>) – Angular bandlimit</p></li>
-<li><p><strong>sampling_method</strong> (<em>str</em>) – Sampling method to consider</p></li>
-<li><p><strong>save_dir</strong> (<em>str</em>) – Directory in which to save precomputed matrices</p></li>
-<li><p><strong>spin</strong> (<em>int</em>) – Spin of the transform to consider</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>sampling_method</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling method to consider (Currently “MW” only supported).</p></li>
+<li><p><strong>save_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory in which to save precomputed matrices.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Associated legendre matrix for inverse harmonic transform</p>
+<dd class="field-even"><p>Associated Legendre matrix for inverse harmonic transform.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.precompute.construct_legendre_matrix.load_legendre_matrix">
-<span class="sig-prename descclassname"><span class="pre">s2fft.precompute.construct_legendre_matrix.</span></span><span class="sig-name descname"><span class="pre">load_legendre_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'../../.matrices'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'forward'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.precompute.construct_legendre_matrix.load_legendre_matrix" title="Permalink to this definition"></a></dt>
-<dd><p>Constructs associated Legendre inverse matrix for precompute method</p>
+<span class="sig-prename descclassname"><span class="pre">s2fft.precompute.construct_legendre_matrix.</span></span><span class="sig-name descname"><span class="pre">load_legendre_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'../../.matrices'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.precompute.construct_legendre_matrix.load_legendre_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>Construct associated Legendre inverse matrix for precompute method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>L</strong> (<em>int</em>) – Angular bandlimit</p></li>
-<li><p><strong>sampling_method</strong> (<em>str</em>) – Sampling method to consider</p></li>
-<li><p><strong>save_dir</strong> (<em>str</em>) – Directory from which to load precomputed matrices</p></li>
-<li><p><strong>direction</strong> (<em>str</em>) – Whether to load the forward or inverse matrices</p></li>
-<li><p><strong>spin</strong> (<em>int</em>) – Spin of the transform to consider</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>sampling_method</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling method to consider (Currently “MW” only supported).</p></li>
+<li><p><strong>save_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory from which to load precomputed matrices.</p></li>
+<li><p><strong>forward</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to load the forward or inverse matrices.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Spin of the transform to consider.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Associated legendre matrix for corresponding harmonic transform</p>
+<dd class="field-even"><p>Associated Legendre matrix for corresponding harmonic transform.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>

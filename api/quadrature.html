@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>s2fft.quadrature &mdash; ProjectName 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom_tabs.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/dark_mode_css/general.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/dark_mode_css/dark.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script src="../_static/dark_mode_js/default_light.js"></script>
+        <script src="../_static/dark_mode_js/theme_switcher.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="s2fft.resampling" href="resampling.html" />
+    <link rel="prev" title="s2fft.precompute.transforms" href="precompute_transforms.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html">
+            <img src="../_static/placeholder_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/install.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Background</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../background/index.html">Some background information</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Interactive Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/example_notebook.html">Notebook Template</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="trapani.html">s2fft.wigner.trapani</a></li>
+<li class="toctree-l1"><a class="reference internal" href="risbo.html">s2fft.wigner.risbo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="turok.html">s2fft.wigner.turok</a></li>
+<li class="toctree-l1"><a class="reference internal" href="logs.html">s2fft.logs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legendre_matrix.html">s2fft.precompute.construct_legendre_matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="precompute_transforms.html">s2fft.precompute.transforms</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">s2fft.quadrature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resampling.html">s2fft.resampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">s2fft.samples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transforms.html">s2fft.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">s2fft.utils</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ProjectName</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>s2fft.quadrature</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/quadrature.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="module-s2fft.quadrature">
+<span id="s2fft-quadrature"></span><h1>s2fft.quadrature<a class="headerlink" href="#module-s2fft.quadrature" title="Permalink to this headline"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.quadrature.mw_weights">
+<span class="sig-prename descclassname"><span class="pre">s2fft.quadrature.</span></span><span class="sig-name descname"><span class="pre">mw_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#s2fft.quadrature.mw_weights" title="Permalink to this definition"></a></dt>
+<dd><p>Compute MW weights given as a function of index m.</p>
+<p>MW weights are defined by</p>
+<div class="math notranslate nohighlight">
+\[w(m^\prime) = \int_0^\pi \text{d} \theta \sin \theta \exp(i m^\prime\theta),\]</div>
+<p>which can be computed analytically.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>m</strong> (<em>int</em>) – Harmonic weight index.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>MW weight.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.quadrature.quad_weight_dh_theta_only">
+<span class="sig-prename descclassname"><span class="pre">s2fft.quadrature.</span></span><span class="sig-name descname"><span class="pre">quad_weight_dh_theta_only</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#s2fft.quadrature.quad_weight_dh_theta_only" title="Permalink to this definition"></a></dt>
+<dd><p>Compute DH quadrature weight for <span class="math notranslate nohighlight">\(\theta\)</span> integration (only), for given
+<span class="math notranslate nohighlight">\(\theta\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> (<em>float</em>) – <span class="math notranslate nohighlight">\(\theta\)</span> angle for which to compute weight.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Weight computed for each <span class="math notranslate nohighlight">\(\theta\)</span>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.quadrature.quad_weights">
+<span class="sig-prename descclassname"><span class="pre">s2fft.quadrature.</span></span><span class="sig-name descname"><span class="pre">quad_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.quadrature.quad_weights" title="Permalink to this definition"></a></dt>
+<dd><p>Compute quadrature weights for <span class="math notranslate nohighlight">\(\theta\)</span> and <span class="math notranslate nohighlight">\(\phi\)</span>
+integration for various sampling schemes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.  Required if sampling not healpix.
+Defaults to None.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “healpix”}.  Defaults to “mw”.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
+if sampling=”healpix”.  Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Invalid sampling scheme.</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Quadrature weights for sampling scheme for each <span class="math notranslate nohighlight">\(\theta\)</span>
+(weights are identical as <span class="math notranslate nohighlight">\(\phi\)</span> varies for given <span class="math notranslate nohighlight">\(\theta\)</span>).</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.quadrature.quad_weights_dh">
+<span class="sig-prename descclassname"><span class="pre">s2fft.quadrature.</span></span><span class="sig-name descname"><span class="pre">quad_weights_dh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.quadrature.quad_weights_dh" title="Permalink to this definition"></a></dt>
+<dd><p>Compute DH quadrature weights for <span class="math notranslate nohighlight">\(\theta\)</span> and <span class="math notranslate nohighlight">\(\phi\)</span> integration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Weights computed for each <span class="math notranslate nohighlight">\(\theta\)</span> (weights are identical
+as <span class="math notranslate nohighlight">\(\phi\)</span> varies for given <span class="math notranslate nohighlight">\(\theta\)</span>).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.quadrature.quad_weights_hp">
+<span class="sig-prename descclassname"><span class="pre">s2fft.quadrature.</span></span><span class="sig-name descname"><span class="pre">quad_weights_hp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.quadrature.quad_weights_hp" title="Permalink to this definition"></a></dt>
+<dd><p>Compute HEALPix quadrature weights for <span class="math notranslate nohighlight">\(\theta\)</span> and <span class="math notranslate nohighlight">\(\phi\)</span>
+integration.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>HEALPix weights are identical for all pixels.  Nevertheless, an array of
+weights is returned (with identical values) for consistency of interface
+across other sampling schemes.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Weights computed for each <span class="math notranslate nohighlight">\(\theta\)</span> (all weights in array are
+identical).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.quadrature.quad_weights_mw">
+<span class="sig-prename descclassname"><span class="pre">s2fft.quadrature.</span></span><span class="sig-name descname"><span class="pre">quad_weights_mw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.quadrature.quad_weights_mw" title="Permalink to this definition"></a></dt>
+<dd><p>Compute MW quadrature weights for <span class="math notranslate nohighlight">\(\theta\)</span> and <span class="math notranslate nohighlight">\(\phi\)</span> integration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Weights computed for each <span class="math notranslate nohighlight">\(\theta\)</span> (weights are identical
+as <span class="math notranslate nohighlight">\(\phi\)</span> varies for given <span class="math notranslate nohighlight">\(\theta\)</span>).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.quadrature.quad_weights_mw_theta_only">
+<span class="sig-prename descclassname"><span class="pre">s2fft.quadrature.</span></span><span class="sig-name descname"><span class="pre">quad_weights_mw_theta_only</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.quadrature.quad_weights_mw_theta_only" title="Permalink to this definition"></a></dt>
+<dd><p>Compute MW quadrature weights for <span class="math notranslate nohighlight">\(\theta\)</span> integration (only).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Weights computed for each <span class="math notranslate nohighlight">\(\theta\)</span>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.quadrature.quad_weights_mwss">
+<span class="sig-prename descclassname"><span class="pre">s2fft.quadrature.</span></span><span class="sig-name descname"><span class="pre">quad_weights_mwss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.quadrature.quad_weights_mwss" title="Permalink to this definition"></a></dt>
+<dd><p>Compute MWSS quadrature weights for <span class="math notranslate nohighlight">\(\theta\)</span> and <span class="math notranslate nohighlight">\(\phi\)</span> integration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Weights computed for each <span class="math notranslate nohighlight">\(\theta\)</span> (weights are identical
+as <span class="math notranslate nohighlight">\(\phi\)</span> varies for given <span class="math notranslate nohighlight">\(\theta\)</span>).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.quadrature.quad_weights_mwss_theta_only">
+<span class="sig-prename descclassname"><span class="pre">s2fft.quadrature.</span></span><span class="sig-name descname"><span class="pre">quad_weights_mwss_theta_only</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.quadrature.quad_weights_mwss_theta_only" title="Permalink to this definition"></a></dt>
+<dd><p>Compute MWSS quadrature weights for <span class="math notranslate nohighlight">\(\theta\)</span> integration (only).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Weights computed for each <span class="math notranslate nohighlight">\(\theta\)</span>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.quadrature.quad_weights_transform">
+<span class="sig-prename descclassname"><span class="pre">s2fft.quadrature.</span></span><span class="sig-name descname"><span class="pre">quad_weights_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mwss'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.quadrature.quad_weights_transform" title="Permalink to this definition"></a></dt>
+<dd><p>Compute quadrature weights for <span class="math notranslate nohighlight">\(\theta\)</span> and <span class="math notranslate nohighlight">\(\phi\)</span>
+integration <em>to use in transform</em> for various sampling schemes.</p>
+<p>Quadrature weights to use in transform for MWSS correspond to quadrature weights
+are twice the base resolution, i.e. 2 * L.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mwss”, “dh”}.  Defaults to “mwss”.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Invalid sampling scheme.</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Quadrature weights <em>to use in transform</em> for sampling scheme for
+each <span class="math notranslate nohighlight">\(\theta\)</span> (weights are identical as <span class="math notranslate nohighlight">\(\phi\)</span> varies for given
+<span class="math notranslate nohighlight">\(\theta\)</span>).</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="precompute_transforms.html" class="btn btn-neutral float-left" title="s2fft.precompute.transforms" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="resampling.html" class="btn btn-neutral float-right" title="s2fft.resampling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Author names.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

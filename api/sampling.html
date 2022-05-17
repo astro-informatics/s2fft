@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="s2fft.transforms" href="transforms.html" />
-    <link rel="prev" title="s2fft.precompute.transforms" href="precompute_transforms.html" /> 
+    <link rel="prev" title="s2fft.resampling" href="resampling.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -69,6 +69,8 @@
 <li class="toctree-l1"><a class="reference internal" href="logs.html">s2fft.logs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="legendre_matrix.html">s2fft.precompute.construct_legendre_matrix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="precompute_transforms.html">s2fft.precompute.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quadrature.html">s2fft.quadrature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resampling.html">s2fft.resampling</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">s2fft.samples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transforms.html">s2fft.transforms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">s2fft.utils</a></li>
@@ -125,21 +127,60 @@
 <div class="section" id="module-s2fft.samples">
 <span id="s2fft-samples"></span><h1>s2fft.samples<a class="headerlink" href="#module-s2fft.samples" title="Permalink to this headline"></a></h1>
 <dl class="py function">
+<dt class="sig sig-object py" id="s2fft.samples.elm2ind">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">elm2ind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#s2fft.samples.elm2ind" title="Permalink to this definition"></a></dt>
+<dd><p>Convert from spherical harmonic 2D indexing of <span class="math notranslate nohighlight">\((\ell,m)\)</span> to 1D index.</p>
+<p>1D index is defined by <cite>el**2 + el + m</cite>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note that 1D storage of spherical harmonic coefficients is <em>not</em> the default.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>el</strong> (<em>int</em>) – Harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>m</strong> (<em>int</em>) – Harmonic order <span class="math notranslate nohighlight">\(m\)</span>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Corresponding 1D index value.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="s2fft.samples.flm_1d_to_2d">
 <span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">flm_1d_to_2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm_1d</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.samples.flm_1d_to_2d" title="Permalink to this definition"></a></dt>
-<dd><p>Converts from 1d indexed flms to 2d indexed</p>
-<p>Conventions for e.g. <span class="math notranslate nohighlight">\(L = 3\)</span></p>
+<dd><p>Convert from 1D indexed harmnonic coefficients to 2D indexed coefficients.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Storage conventions for harmonic coefficients <span class="math notranslate nohighlight">\(flm_{(\ell,m)}\)</span>, for
+e.g. <span class="math notranslate nohighlight">\(L = 3\)</span>, are as follows.</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}2D = \begin{bmatrix}
-        flm_{(2,-2)} &amp; flm_{(2,-1)} &amp; flm_{(2,0)} &amp; flm_{(2,1)} &amp; flm_{(2,2)}  \\
+\[\begin{split}\text{ 2D data format}:
+    \begin{bmatrix}
+        0 &amp; 0 &amp; flm_{(0,0)} &amp; 0 &amp; 0 \\
         0 &amp; flm_{(1,-1)} &amp; flm_{(1,0)} &amp; flm_{(1,1)} &amp; 0 \\
-        0 &amp; 0 &amp; flm_{(0,0)} &amp; 0 &amp; 0
+        flm_{(2,-2)} &amp; flm_{(2,-1)} &amp; flm_{(2,0)} &amp; flm_{(2,1)} &amp; flm_{(2,2)}
     \end{bmatrix}\end{split}\]</div>
 <div class="math notranslate nohighlight">
-\[1D =  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]\]</div>
+\[\text{1D data format}:  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]\]</div>
+</div>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>2D indexed flms</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>flm_1d</strong> (<em>np.ndarray</em>) – 1D indexed harmonic coefficients.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>2D indexed harmonic coefficients.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -147,19 +188,33 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.samples.flm_2d_to_1d">
 <span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">flm_2d_to_1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm_2d</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.samples.flm_2d_to_1d" title="Permalink to this definition"></a></dt>
-<dd><p>Converts from 2d indexed flms to 1d indexed</p>
-<p>Conventions for e.g. <span class="math notranslate nohighlight">\(L = 3\)</span></p>
+<dd><p>Convert from 2D indexed harmonic coefficients to 1D indexed coefficients.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Storage conventions for harmonic coefficients <span class="math notranslate nohighlight">\(flm_{(\ell,m)}\)</span>, for
+e.g. <span class="math notranslate nohighlight">\(L = 3\)</span>, are as follows.</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}2D = \begin{bmatrix}
-        flm_{(2,-2)} &amp; flm_{(2,-1)} &amp; flm_{(2,0)} &amp; flm_{(2,1)} &amp; flm_{(2,2)}  \\
+\[\begin{split}\text{ 2D data format}:
+    \begin{bmatrix}
+        0 &amp; 0 &amp; flm_{(0,0)} &amp; 0 &amp; 0 \\
         0 &amp; flm_{(1,-1)} &amp; flm_{(1,0)} &amp; flm_{(1,1)} &amp; 0 \\
-        0 &amp; 0 &amp; flm_{(0,0)} &amp; 0 &amp; 0
+        flm_{(2,-2)} &amp; flm_{(2,-1)} &amp; flm_{(2,0)} &amp; flm_{(2,1)} &amp; flm_{(2,2)}
     \end{bmatrix}\end{split}\]</div>
 <div class="math notranslate nohighlight">
-\[1D =  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]\]</div>
+\[\text{1D data format}:  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]\]</div>
+</div>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>1D indexed flms</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>flm_2d</strong> (<em>np.ndarray</em>) – 2D indexed harmonic coefficients.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>1D indexed harmonic coefficients.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -167,24 +222,50 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.samples.flm_2d_to_hp">
 <span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">flm_2d_to_hp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm_2d</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.samples.flm_2d_to_hp" title="Permalink to this definition"></a></dt>
-<dd><p>Converts from 2d indexed flms to healpix indexed flms</p>
-<p>Note that healpix implicitly assumes conjugate symmetry and thus
-only stores positive m coefficients. So this function discards the
-negative m values. This process is NOT invertible! See the
-<a class="reference external" href="https://healpy.readthedocs.io/en/latest/generated/healpy.sphtfunc.alm2map.html">healpy api docs</a>
-for details on healpix indexing and lengths.</p>
-<p>Conventions for e.g. <span class="math notranslate nohighlight">\(L = 3\)</span></p>
+<dd><p>Converts from 2D indexed harmonic coefficients to HEALPix (healpy) indexed
+coefficients.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>HEALPix implicitly assumes conjugate symmetry and thus only stores positive <cite>m</cite>
+coefficients. So this function discards the negative <cite>m</cite> values. This process
+is NOT invertible! See the <a class="reference external" href="https://healpy.readthedocs.io/en/latest/generated/healpy.sphtfunc.alm2map.html">healpy api docs</a>
+for details on healpy indexing and lengths.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Storage conventions for harmonic coefficients <span class="math notranslate nohighlight">\(f_{(\ell,m)}\)</span>, for
+e.g. <span class="math notranslate nohighlight">\(L = 3\)</span>, are as follows.</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}2D = \begin{bmatrix}
-        flm_{(2,-2)} &amp; flm_{(2,-1)} &amp; flm_{(2,0)} &amp; flm_{(2,1)} &amp; flm_{(2,2)}  \\
+\[\begin{split}\text{ 2D data format}:
+    \begin{bmatrix}
+        0 &amp; 0 &amp; flm_{(0,0)} &amp; 0 &amp; 0 \\
         0 &amp; flm_{(1,-1)} &amp; flm_{(1,0)} &amp; flm_{(1,1)} &amp; 0 \\
-        0 &amp; 0 &amp; flm_{(0,0)} &amp; 0 &amp; 0
+        flm_{(2,-2)} &amp; flm_{(2,-1)} &amp; flm_{(2,0)} &amp; flm_{(2,1)} &amp; flm_{(2,2)}
     \end{bmatrix}\end{split}\]</div>
 <div class="math notranslate nohighlight">
-\[healpix =  [flm_{0,0}, \dots, flm_{L,0}, flm_{1,1}, \dots, flm_{L,1}, \dots]\]</div>
+\[\text{HEALPix}: [flm_{(0,0)}, \dots, flm_{(2,0)}, flm_{(1,1)}, \dots, flm_{(L-1,1)}, \dots]\]</div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Returns harmonic coefficients of an explicitly real signal.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note that the harmonic band-limit <cite>L</cite> differs to the HEALPix <cite>lmax</cite> convention,
+where <cite>L = lmax + 1</cite>.</p>
+</div>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>healpix indexed flms of an implicitly real signal</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>flm_2d</strong> (<em>np.ndarray</em>) – 2D indexed harmonic coefficients.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>HEALPix indexed harmonic coefficients.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -192,22 +273,64 @@ for details on healpix indexing and lengths.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.samples.flm_hp_to_2d">
 <span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">flm_hp_to_2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm_hp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.samples.flm_hp_to_2d" title="Permalink to this definition"></a></dt>
-<dd><p>Converts from healpix indexed flms to 2d indexed</p>
-<p>Note that healpix implicitly assumes conjugate symmetry and thus
-only stores positive m coefficients. Here we unpack that into
-harmonic coefficients of an explicitly real signal.</p>
-<p>Conventions for e.g. <span class="math notranslate nohighlight">\(L = 3\)</span></p>
+<dd><p>Converts from HEALPix (healpy) indexed harmonic coefficients to 2D indexed
+coefficients.</p>
+<p class="rubric">Notes</p>
+<p>HEALPix implicitly assumes conjugate symmetry and thus only stores positive <cite>m</cite>
+coefficients. Here we unpack that into harmonic coefficients of an
+explicitly real signal.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note that the harmonic band-limit <cite>L</cite> differs to the HEALPix <cite>lmax</cite> convention,
+where <cite>L = lmax + 1</cite>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Storage conventions for harmonic coefficients <span class="math notranslate nohighlight">\(f_{(\ell,m)}\)</span>, for
+e.g. <span class="math notranslate nohighlight">\(L = 3\)</span>, are as follows.</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}2D = \begin{bmatrix}
-        flm_{(2,-2)} &amp; flm_{(2,-1)} &amp; flm_{(2,0)} &amp; flm_{(2,1)} &amp; flm_{(2,2)}  \\
+\[\begin{split}\text{ 2D data format}:
+    \begin{bmatrix}
+        0 &amp; 0 &amp; flm_{(0,0)} &amp; 0 &amp; 0 \\
         0 &amp; flm_{(1,-1)} &amp; flm_{(1,0)} &amp; flm_{(1,1)} &amp; 0 \\
-        0 &amp; 0 &amp; flm_{(0,0)} &amp; 0 &amp; 0
+        flm_{(2,-2)} &amp; flm_{(2,-1)} &amp; flm_{(2,0)} &amp; flm_{(2,1)} &amp; flm_{(2,2)}
     \end{bmatrix}\end{split}\]</div>
 <div class="math notranslate nohighlight">
-\[healpix =  [flm_{0,0}, \dots, flm_{L,0}, flm_{1,1}, \dots, flm_{L,1}, \dots]\]</div>
+\[\text{HEALPix}: [flm_{(0,0)}, \dots, flm_{(2,0)}, flm_{(1,1)}, \dots, flm_{(L-1,1)}, \dots]\]</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Returns harmonic coefficients of an explicitly real signal.</p>
+</div>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>2D indexed flms of a explicitly real signal</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>flm_hp</strong> (<em>np.ndarray</em>) – HEALPix indexed harmonic coefficients.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>2D indexed harmonic coefficients.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.samples.flm_shape">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">flm_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="headerlink" href="#s2fft.samples.flm_shape" title="Permalink to this definition"></a></dt>
+<dd><p>Standard shape of harmonic coefficients.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sampling array shape.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
 </dd>
 </dl>
 </dd></dl>
@@ -215,19 +338,388 @@ harmonic coefficients of an explicitly real signal.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.samples.hp_ang2pix">
 <span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">hp_ang2pix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#s2fft.samples.hp_ang2pix" title="Permalink to this definition"></a></dt>
-<dd><p>Translated function from healpix java implementation</p>
+<dd><p>Convert angles to HEALPix index for HEALPix ring ordering scheme.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Spherical <span class="math notranslate nohighlight">\(\theta\)</span> angle.</p></li>
+<li><p><strong>phi</strong> (<em>float</em>) – Spherical <span class="math notranslate nohighlight">\(\phi\)</span> angle.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>HEALPix map index for ring ordering scheme.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.samples.hp_getidx">
 <span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">hp_getidx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#s2fft.samples.hp_getidx" title="Permalink to this definition"></a></dt>
-<dd><p>Returns healpix flm index for l=el &amp; m=em</p>
+<dd><p>Compute HEALPix harmonic index.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note that the harmonic band-limit <cite>L</cite> differs to the HEALPix <cite>lmax</cite> convention,
+where <cite>L = lmax + 1</cite>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>el</strong> (<em>int</em>) – Harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>m</strong> (<em>int</em>) – Harmonic order <span class="math notranslate nohighlight">\(m\)</span>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Corresponding index for RING ordered HEALPix.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="s2fft.samples.zphi2pix">
-<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">zphi2pix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#s2fft.samples.zphi2pix" title="Permalink to this definition"></a></dt>
-<dd><p>Translated function from healpix java implementation</p>
+<dt class="sig sig-object py" id="s2fft.samples.ind2elm">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">ind2elm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ind</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="headerlink" href="#s2fft.samples.ind2elm" title="Permalink to this definition"></a></dt>
+<dd><p>Convert from 1D spherical harmonic index to 2D index of <span class="math notranslate nohighlight">\((\ell,m)\)</span>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note that 1D storage of spherical harmonic coefficients is <em>not</em> the default.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ind</strong> (<em>int</em>) – 1D spherical harmonic index.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><cite>(el,m)</cite> defining spherical harmonic degree and order.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.samples.lm2lm_hp">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">lm2lm_hp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.samples.lm2lm_hp" title="Permalink to this definition"></a></dt>
+<dd><p>Converts from 1D indexed harmonic coefficients to HEALPix (healpy) indexed
+coefficients.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>HEALPix implicitly assumes conjugate symmetry and thus only stores positive <cite>m</cite>
+coefficients. So this function discards the negative <cite>m</cite> values. This process
+is NOT invertible! See the <a class="reference external" href="https://healpy.readthedocs.io/en/latest/generated/healpy.sphtfunc.alm2map.html">healpy api docs</a>
+for details on healpy indexing and lengths.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Storage conventions for harmonic coefficients <span class="math notranslate nohighlight">\(f_{(\ell,m)}\)</span>, for
+e.g. <span class="math notranslate nohighlight">\(L = 3\)</span>, are as follows.</p>
+<div class="math notranslate nohighlight">
+\[\text{1D data format}:  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]\]</div>
+<div class="math notranslate nohighlight">
+\[\text{HEALPix}: [flm_{(0,0)}, \dots, flm_{(2,0)}, flm_{(1,1)}, \dots, flm_{(L-1,1)}, \dots]\]</div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Returns harmonic coefficients of an explicitly real signal.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note that the harmonic band-limit <cite>L</cite> differs to the HEALPix <cite>lmax</cite> convention,
+where <cite>L = lmax + 1</cite>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>flm</strong> (<em>np.ndarray</em>) – 1D indexed harmonic coefficients.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>HEALPix indexed harmonic coefficients.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.samples.ncoeff">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">ncoeff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#s2fft.samples.ncoeff" title="Permalink to this definition"></a></dt>
+<dd><p>Number of spherical harmonic coefficients for given band-limit L.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Number of spherical harmonic coefficients.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.samples.nphi_equiang">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">nphi_equiang</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#s2fft.samples.nphi_equiang" title="Permalink to this definition"></a></dt>
+<dd><p>Number of <span class="math notranslate nohighlight">\(\phi\)</span> samples for equiangular sampling scheme at specified
+resolution.</p>
+<p>Number of samples is independent of <span class="math notranslate nohighlight">\(\theta\)</span> since equiangular sampling
+scheme.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”}.  Defaults to “mw”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – HEALPix sampling scheme.</p></li>
+<li><p><strong>ValueError</strong> – Unknown sampling scheme.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Number of <span class="math notranslate nohighlight">\(\phi\)</span> samples.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.samples.nphi_ring">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">nphi_ring</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#s2fft.samples.nphi_ring" title="Permalink to this definition"></a></dt>
+<dd><p>Number of <span class="math notranslate nohighlight">\(\phi\)</span> samples for HEALPix sampling on given <span class="math notranslate nohighlight">\(\theta\)</span>
+ring.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>int</em>) – Index of HEALPix <span class="math notranslate nohighlight">\(\theta\)</span> ring.</p></li>
+<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Invalid ring index given nside.</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Number of <span class="math notranslate nohighlight">\(\phi\)</span> samples on given <span class="math notranslate nohighlight">\(\theta\)</span> ring.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.samples.ntheta">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">ntheta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#s2fft.samples.ntheta" title="Permalink to this definition"></a></dt>
+<dd><p>Number of <span class="math notranslate nohighlight">\(\theta\)</span> samples for sampling scheme at specified resolution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.  Required if sampling not healpix.
+Defaults to None.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “healpix”}.  Defaults to “mw”.</p></li>
+<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
+if sampling=”healpix”.  Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – L not specified when sampling not healpix.</p></li>
+<li><p><strong>ValueError</strong> – HEALPix sampling set but nside not specified.</p></li>
+<li><p><strong>ValueError</strong> – Sampling scheme not supported.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Number of <span class="math notranslate nohighlight">\(\theta\)</span> samples of sampling scheme at given resolution.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.samples.ntheta_extension">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">ntheta_extension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#s2fft.samples.ntheta_extension" title="Permalink to this definition"></a></dt>
+<dd><p>Number of <span class="math notranslate nohighlight">\(\theta\)</span> samples for MW/MWSS sampling when extended to
+<span class="math notranslate nohighlight">\(2\pi\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”}.  Defaults to “mw”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Sampling scheme other than MW/MWSS.</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Number of <span class="math notranslate nohighlight">\(\theta\)</span> samples when extended to <span class="math notranslate nohighlight">\(2\pi\)</span>.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.samples.p2phi_equiang">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">p2phi_equiang</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.samples.p2phi_equiang" title="Permalink to this definition"></a></dt>
+<dd><p>Convert index to <span class="math notranslate nohighlight">\(\phi\)</span> angle for sampling scheme.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>p</strong> (<em>int</em>) – <span class="math notranslate nohighlight">\(\phi\)</span> index.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported equiangular sampling
+schemes include {“mw”, “mwss”, “dh”}.  Defaults to “mw”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – HEALPix sampling not support (only equiangular schemes supported).</p></li>
+<li><p><strong>ValueError</strong> – Unknown sampling scheme.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><span class="math notranslate nohighlight">\(\phi\)</span> sample(s) for given sampling scheme.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.samples.p2phi_ring">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">p2phi_ring</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.samples.p2phi_ring" title="Permalink to this definition"></a></dt>
+<dd><p>Convert index to <span class="math notranslate nohighlight">\(\phi\)</span> angle for HEALPix for given <span class="math notranslate nohighlight">\(\theta\)</span> ring.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>int</em>) – <span class="math notranslate nohighlight">\(\theta\)</span> index of ring.</p></li>
+<li><p><strong>p</strong> (<em>int</em>) – <span class="math notranslate nohighlight">\(\phi\)</span> index within ring.</p></li>
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><span class="math notranslate nohighlight">\(\phi\)</span> angle.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.samples.phis_equiang">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">phis_equiang</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.samples.phis_equiang" title="Permalink to this definition"></a></dt>
+<dd><p>Compute <span class="math notranslate nohighlight">\(\phi\)</span> samples for equiangular sampling scheme.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported equiangular sampling
+schemes include {“mw”, “mwss”, “dh”}.  Defaults to “mw”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Array of <span class="math notranslate nohighlight">\(\phi\)</span> samples for given sampling scheme.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.samples.phis_ring">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">phis_ring</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.samples.phis_ring" title="Permalink to this definition"></a></dt>
+<dd><p>Compute <span class="math notranslate nohighlight">\(\phi\)</span> samples for given <span class="math notranslate nohighlight">\(\theta\)</span> HEALPix ring.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>int</em>) – <span class="math notranslate nohighlight">\(\theta\)</span> index.</p></li>
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><span class="math notranslate nohighlight">\(\phi\)</span> angles.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.samples.t2theta">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">t2theta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.samples.t2theta" title="Permalink to this definition"></a></dt>
+<dd><p>Convert index to <span class="math notranslate nohighlight">\(\theta\)</span> angle for sampling scheme.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>int</em>) – <span class="math notranslate nohighlight">\(\theta\)</span> index.</p></li>
+<li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.  Required if sampling not healpix.
+Defaults to None.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “healpix”}.  Defaults to “mw”.</p></li>
+<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
+if sampling=”healpix”.  Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – L not specified when sampling not healpix.</p></li>
+<li><p><strong>ValueError</strong> – HEALPix sampling set but nside not specified.</p></li>
+<li><p><strong>ValueError</strong> – Sampling scheme not supported.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><span class="math notranslate nohighlight">\(\theta\)</span> angle(s) for passed index or indices.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.samples.thetas">
+<span class="sig-prename descclassname"><span class="pre">s2fft.samples.</span></span><span class="sig-name descname"><span class="pre">thetas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.samples.thetas" title="Permalink to this definition"></a></dt>
+<dd><p>Compute <span class="math notranslate nohighlight">\(\theta\)</span> samples for given sampling scheme.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.  Required if sampling not healpix.
+Defaults to None.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “healpix”}.  Defaults to “mw”.</p></li>
+<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
+if sampling=”healpix”.  Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Array of <span class="math notranslate nohighlight">\(\theta\)</span> samples for given sampling scheme.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -236,7 +728,7 @@ harmonic coefficients of an explicitly real signal.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="precompute_transforms.html" class="btn btn-neutral float-left" title="s2fft.precompute.transforms" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="resampling.html" class="btn btn-neutral float-left" title="s2fft.resampling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="transforms.html" class="btn btn-neutral float-right" title="s2fft.transforms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
