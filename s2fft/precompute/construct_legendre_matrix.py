@@ -194,7 +194,7 @@ def load_legendre_matrix(
 
         save_dir (str, optional): Directory from which to load precomputed matrices.
 
-        direction (bool, optional): Whether to load the forward or inverse matrices.
+        forward (bool, optional): Whether to load the forward or inverse matrices.
 
         spin (int, optional): Spin of the transform to consider.
 
