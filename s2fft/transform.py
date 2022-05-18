@@ -38,15 +38,13 @@ def inverse_direct(
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
 
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
-
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -97,8 +95,6 @@ def inverse_sov(
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
 
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
-
     ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
 
@@ -106,7 +102,7 @@ def inverse_sov(
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -159,8 +155,6 @@ def inverse_sov_fft(
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
 
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
-
     nphi = samples.nphi_equiang(L, sampling)
     ftm = np.zeros((ntheta, nphi), dtype=np.complex128)
     for t, theta in enumerate(thetas):
@@ -169,7 +163,7 @@ def inverse_sov_fft(
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -226,8 +220,6 @@ def forward_direct(
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
 
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
-
     weights = quadrature.quad_weights(L, sampling)
     for t, theta in enumerate(thetas):
 
@@ -235,7 +227,7 @@ def forward_direct(
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -294,8 +286,6 @@ def forward_sov(
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
 
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
-
     ntheta = samples.ntheta(L, sampling)
     ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
@@ -313,7 +303,7 @@ def forward_sov(
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -370,14 +360,13 @@ def forward_sov_fft(
     # since accounted for already in periodic extension and upsampling.
     weights = quadrature.quad_weights_transform(L, sampling, spin=0)
     m_offset = 1 if sampling == "mwss" else 0
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
