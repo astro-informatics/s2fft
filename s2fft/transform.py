@@ -194,16 +194,16 @@ def inverse_sov_fft_vect(
 
     m_offset = 1 if sampling == "mwss" else 0
 
-    for t, theta in enumerate(thetas):
+    for el in range(spin, L):
 
-        for el in range(spin, L):
+        for t, theta in enumerate(thetas):
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
-            ftm[t, 0 + m_offset : 2 * L - 1 + m_offset] += elfactor * np.multiply(
-                dl, flm[el, 0 : 2 * L - 1]
+            ftm[t, m_offset : 2 * L - 1 + m_offset] += elfactor * np.multiply(
+                dl, flm[el, :]
             )
 
     ftm *= (-1) ** (spin)
