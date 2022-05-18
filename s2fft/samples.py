@@ -370,6 +370,41 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
 
+def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> tuple:
+    """Shape of spherical signal.
+
+    Args:
+        L (int, optional): Harmonic band-limit.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+    Returns:
+        tuple: Sampling array shape.
+    """
+
+    if sampling.lower() != "healpix" and L is None:
+        raise ValueError(
+            f"Sampling scheme sampling={sampling} with L={L} not supported"
+        )
+
+    if sampling.lower() == "healpix" and nside is None:
+        raise ValueError(
+            f"Sampling scheme sampling={sampling} with nside={nside} not supported"
+        )
+
+    if sampling.lower() == "healpix":
+
+        return 1, 12 * nside**2
+
+    else:
+
+        return ntheta(L, sampling), nphi_equiang(L, sampling)
+
+
 def flm_shape(L: int) -> tuple:
     """Standard shape of harmonic coefficients.
 
