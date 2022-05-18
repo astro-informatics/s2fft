@@ -199,7 +199,10 @@ def turok_quarter_slice(
         if i == 1:
             for m in range(el+1):
                 dl[lims[i] + sgn * m] = (-1)**((mm - m + el)%2) * dl[lims[i] + sgn * m] * renorm
-            
+    
+    for m in range(-el, el+1):
+        dl[m+L-1] *= (-1)**(abs(mm-m))
+
     return dl
 
 
