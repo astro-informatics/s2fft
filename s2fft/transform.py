@@ -29,7 +29,8 @@ def inverse_direct(
         np.ndarray: Signal on the sphere.
     """
 
-    # TODO: Check flm shape consistent with L
+    assert flm.shape == samples.flm_shape(L)
+    assert 0 <= spin < L
 
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
@@ -86,7 +87,8 @@ def inverse_sov(
         np.ndarray: Signal on the sphere.
     """
 
-    # TODO: Check flm shape consistent with L
+    assert flm.shape == samples.flm_shape(L)
+    assert 0 <= spin < L
 
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
@@ -143,7 +145,8 @@ def inverse_sov_fft(
         np.ndarray: Signal on the sphere.
     """
 
-    # TODO: Check flm shape consistent with L
+    assert flm.shape == samples.flm_shape(L)
+    assert 0 <= spin < L
 
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
@@ -175,11 +178,28 @@ def inverse_sov_fft(
     return f
 
 
-def inverse_sov_fft_vect(
+def inverse_sov_fft_vectorized(
     flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
 ) -> np.ndarray:
+    """Compute inverse spherical harmonic transform by separate of variables method
+    with FFTs (vectorized implementaiton).
 
-    # TODO: Check flm shape consistent with L
+    Args:
+        flm (np.ndarray): Spherical harmonic coefficients
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
+
+    Returns:
+        np.ndarray: Signal on the sphere.
+    """
+
+    assert flm.shape == samples.flm_shape(L)
+    assert 0 <= spin < L
 
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
@@ -233,7 +253,8 @@ def forward_direct(
         np.ndarray: Spherical harmonic coefficients
     """
 
-    # TODO: Check f shape consistent with L
+    assert f.shape == samples.f_shape(L, sampling)
+    assert 0 <= spin < L
 
     if sampling.lower() != "dh":
 
@@ -299,7 +320,8 @@ def forward_sov(
         np.ndarray: Spherical harmonic coefficients
     """
 
-    # TODO: Check f shape consistent with L
+    assert f.shape == samples.f_shape(L, sampling)
+    assert 0 <= spin < L
 
     if sampling.lower() != "dh":
 
@@ -366,7 +388,8 @@ def forward_sov_fft(
         np.ndarray: Spherical harmonic coefficients
     """
 
-    # TODO: Check f shape consistent with L
+    assert f.shape == samples.f_shape(L, sampling)
+    assert 0 <= spin < L
 
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -405,5 +428,65 @@ def forward_sov_fft(
                         * dl[m + L - 1]
                         * ftm[t, m + L - 1 + m_offset]
                     )
+
+    return flm
+
+
+def forward_sov_fft_vectorized(
+    f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+) -> np.ndarray:
+    """Compute forward spherical harmonic transform by separate of variables method
+    with FFTs (vectorized implementation).
+
+    Args:
+        f (np.ndarray): Signal on the sphere.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients
+    """
+
+    assert f.shape == samples.f_shape(L, sampling)
+    assert 0 <= spin < L
+
+    if sampling.lower() == "mw":
+        f = resampling.mw_to_mwss(f, L, spin)
+
+    if sampling.lower() in ["mw", "mwss"]:
+        sampling = "mwss"
+        f = resampling.upsample_by_two_mwss(f, L, spin)
+        thetas = samples.thetas(2 * L, sampling)
+    else:
+        thetas = samples.thetas(L, sampling)
+
+    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
+
+    ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
+
+    # Don't need to include spin in weights (even for spin signals)
+    # since accounted for already in periodic extension and upsampling.
+    weights = quadrature.quad_weights_transform(L, sampling, spin=0)
+    m_offset = 1 if sampling == "mwss" else 0
+    for t, theta in enumerate(thetas):
+
+        for el in range(spin, L):
+
+            dl = wigner.turok.compute_slice(theta, el, L, -spin)
+
+            elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+
+            flm[el, :] += (
+                weights[t]
+                * elfactor
+                * np.multiply(dl, ftm[t, m_offset : 2 * L - 1 + m_offset])
+            )
+
+    flm *= (-1) ** spin
 
     return flm
