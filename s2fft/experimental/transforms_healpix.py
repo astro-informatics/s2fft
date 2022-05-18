@@ -37,7 +37,6 @@ def inverse_direct_healpix(
                             * elfactor
                             * np.exp(1j * m * phi)
                             * dl[m + L - 1]
-                            * (-1) ** (-m - spin)
                             * flm[el, m + L - 1]
                         )
 
@@ -75,7 +74,6 @@ def inverse_sov_healpix(
                         (-1) ** spin
                         * elfactor
                         * dl[m + L - 1]
-                        * (-1) ** (-m - spin)
                         * flm[el, m + L - 1]
                     )
 
@@ -177,7 +175,6 @@ def forward_direct_healpix(
                             * elfactor
                             * np.exp(-1j * m * phi)
                             * dl[m + L - 1]
-                            * (-1) ** (-m - spin)
                             * f[samples.hp_ang2pix(nside, theta, phi)]
                         )
 
@@ -224,7 +221,6 @@ def forward_sov_healpix(f: np.ndarray, L: int, nside: int, spin: int = 0) -> np.
                         * (-1) ** spin
                         * elfactor
                         * dl[m + L - 1]
-                        * (-1) ** (-m - spin)
                         * ftm[t, m + L - 1]
                     )
 
