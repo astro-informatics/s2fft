@@ -155,6 +155,3 @@ def test_turok_exceptions():
 
     with pytest.raises(ValueError) as e:
         wigner.turok.compute_slice(beta=np.pi / 2, el=L, L=L, mm=0)
-
-    with pytest.raises(ValueError) as e:
-        wigner.turok.compute_slice(beta=np.pi / 2, el=L - 1, L=L, mm=0)
