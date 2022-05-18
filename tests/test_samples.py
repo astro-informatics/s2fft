@@ -21,7 +21,7 @@ def test_samples_n_and_angles(L: int, sampling: str):
 
     # Test thetas and phis
     t = np.arange(0, ntheta)
-    thetas = s2f.samples.t2theta(L, t, sampling)
+    thetas = s2f.samples.t2theta(t, L, sampling)
     p = np.arange(0, nphi)
     phis = s2f.samples.p2phi_equiang(L, p, sampling)
     thetas_ssht, phis_ssht = ssht.sample_positions(L, sampling.upper())
@@ -102,6 +102,9 @@ def test_samples_exceptions():
         s2f.samples.ntheta(L, sampling="healpix")
 
     with pytest.raises(ValueError) as e:
+        s2f.samples.ntheta(sampling="mw")
+
+    with pytest.raises(ValueError) as e:
         s2f.samples.ntheta(L, sampling="foo")
 
     with pytest.raises(ValueError) as e:
@@ -117,7 +120,10 @@ def test_samples_exceptions():
         s2f.samples.nphi_ring(-1, nside=2)
 
     with pytest.raises(ValueError) as e:
-        s2f.samples.t2theta(L, 0, sampling="healpix")
+        s2f.samples.t2theta(t=0, L=L, sampling="healpix")
 
     with pytest.raises(ValueError) as e:
-        s2f.samples.t2theta(L, 0, sampling="foo")
+        s2f.samples.t2theta(t=0, L=L, sampling="foo")
+
+    with pytest.raises(ValueError) as e:
+        s2f.samples.t2theta(t=0, sampling="mw")

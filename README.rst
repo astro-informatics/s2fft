@@ -11,7 +11,7 @@
 .. image:: http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat
     :target: https://arxiv.org/abs/xxxx.xxxxx
 
-|logo| S2FFT: JAX accelerated spin-spherical harmonic transforms
+|logo| S2FFT: Differentiable and accelerated spin-spherical harmonic transforms with JAX
 =================================================================================================================
 
 .. |logo| raw:: html

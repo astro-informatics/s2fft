@@ -3,79 +3,82 @@ import numpy as np
 
 
 def compute_full(dl: np.ndarray, beta: float, el: int, L: int) -> np.ndarray:
-    r"""Constructs the complete Wigner-d matrix at polar angle
-    :math:`\beta` using Turok recursion.
+    r"""Compute the complete Wigner-d matrix at polar angle :math:`\beta` using
+    Turok & Bucher recursion.
 
     The Wigner-d plane for a given :math:`\ell` (`el`) and :math:`\beta`
     is computed recursively over :math:`m, m^{\prime}`.
 
     The Wigner-d plane :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
-    :math:`-L < m, m^{\prime} < L` by dl[L - 1 + :math:`m`, L - 1 + :math:`m^{\prime}`] 
+    :math:`-L < m, m^{\prime} < L` by dl[L - 1 + :math:`m`, L - 1 + :math:`m^{\prime}`]
     but is only computed for the eighth of the plane
     :math:`m^{\prime} <= m < \ell, 0 <= m^{\prime} <= \ell`.
-    Symmetry relations can be used to fill in the remainder of the plane if
-    required (see :func:`~fill`).
+    Symmetry relations are used to fill in the remainder of the plane (see
+    :func:`~fill`).
 
     Args:
-
         dl (np.ndarray): Wigner-d matrix to populate (shape: 2L-1, 2L-1).
+
         beta (float): Polar angle in radians.
-        el (int): Harmonic degree of wigner-d matrix.
-        L (int): Harmonic bandlimit of overall transform.
+
+        el (int): Harmonic degree of Wigner-d matrix.
+
+        L (int): Harmonic band-limit.
 
     Raises:
-
         ValueError: If el is greater than L.
 
     Returns:
-
-        Wigner-d matrix of dimension [2L-1, 2L-1].
+        np.ndarray: Wigner-d matrix of dimension [2L-1, 2L-1].
     """
     if el >= L:
         raise ValueError(
             f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
         )
     dl[:, :] = 0
-    dl = turok_quarter(dl, beta, el, L)
+    dl = compute_quarter(dl, beta, el, L)
     dl = fill(dl, el, L)
     return dl
 
 
-def compute_slice(
-    dl: np.ndarray, beta: float, el: int,  L: int, mm: int) -> np.ndarray:
-    r"""Constructs a particular slice :math:`m^{\prime}`, denoted `mm`, 
-    of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok recursion.
+def compute_slice(dl: np.ndarray, beta: float, el: int, L: int, mm: int) -> np.ndarray:
+    r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
+    of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok & Bucher recursion.
 
     The Wigner-d slice for a given :math:`\ell` (`el`) and :math:`\beta`
     is computed recursively over :math:`m` labelled 'm' at a specific :math:`m^{\prime}`.
-    The Turok recursion is analytically correct from :math:`-\ell < m < \ell` 
-    however numerically it can become unstable for :math:`m > 0`. To avoid this we 
-    compute :math:`d_{m, m^{\prime}}^{\ell}(\beta)` for negative :math:`m` and then evaluate 
-    :math:`d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m, m^{\prime}}^{\ell}(\beta)` 
-    which we can again evaluate using a Turok recursion.
+    The Turok & Bucher recursion is analytically correct from :math:`-\ell < m < \ell`
+    however numerically it can become unstable for :math:`m > 0`. To avoid this we
+    compute :math:`d_{m, m^{\prime}}^{\ell}(\beta)` for negative :math:`m` and then evaluate
+    :math:`d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m, m^{\prime}}^{\ell}(\beta)`
+    which we can again evaluate using a Turok & Bucher recursion.
 
     The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
-    :math:`-L < m < L` by `dl[L - 1 - m]`. This implementation has computational 
-    scaling :math:`\mathcal{O}(L)`, and typically requires :math:`\sim 2L` operations.
+    :math:`-L < m < L` by `dl[L - 1 - m]`. This implementation has computational
+    scaling :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L` operations.
 
     Args:
-    
         dl (np.ndarray): Wigner-d matrix slice to populate (shape: 2L-1).
+
         beta (float): Polar angle in radians.
-        el (int): Harmonic degree of wigner-d matrix.
-        L (int): Harmonic bandlimit of overall transform.
-        mm (int): Harmonic degree at which to slice the matrix.
+
+        el (int): Harmonic degree of Wigner-d matrix.
+
+        L (int): Harmonic band-limit.
+
+        mm (int): Harmonic order at which to slice the matrix.
 
     Raises:
-
         ValueError: If el is greater than L.
+
         ValueError: If el is less than mm.
+
         ValueError: If dl dimension is not 1.
+
         ValueError: If dl shape is incorrect.
 
     Returns:
-
-        Wigner-d matrix mm slice of dimension [2L-1].
+        np.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
     """
     if el < mm:
         raise ValueError(f"Wigner-D not valid for l={el} < mm={mm}.")
@@ -84,46 +87,51 @@ def compute_slice(
         raise ValueError(
             f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
         )
-    
+
     if len(dl.shape) != 1:
-        raise ValueError(f"Wigner-d matrix slice is of dimension 1, NOT dimension={dl.shape}")
-      
-    if dl.shape[0] != 2*L-1:
+        raise ValueError(
+            f"Wigner-d matrix slice is of dimension 1, NOT dimension={dl.shape}"
+        )
+
+    if dl.shape[0] != 2 * L - 1:
         raise ValueError(f"Wigner-d matrix is of incorrect shape={dl.shape[0]}")
     dl[:] = 0
-    dl = turok_quarter_slice(dl, beta, el, L, mm)
+    dl = compute_quarter_slice(dl, beta, el, L, mm)
 
     return dl
 
 
-def turok_quarter_slice(
-    dl: np.ndarray, beta: float, el: int, L: int, mm: int) -> np.ndarray:
-    r"""Evaluates a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated 
+def compute_quarter_slice(
+    dl: np.ndarray, beta: float, el: int, L: int, mm: int
+) -> np.ndarray:
+    r"""Compute a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated
     at :math:`\beta`.
 
     Args:
-    
-        dl (np.ndarray): Wigner-d matrix slice to populate (shape: 2L-1). 
+        dl (np.ndarray): Wigner-d matrix slice to populate (shape: 2L-1).
+
         beta (float): Polar angle in radians.
+
         l (int): Harmonic degree of Wigner-d matrix.
-        L (int): Harmonic bandlimit of overall transform.
-        mm (int): Harmonic degree at which to slice the matrix.
+
+        L (int): Harmonic band-limit.
+
+        mm (int): Harmonic order at which to slice the matrix.
 
     Returns:
-
-        Wigner-d matrix slice of dimension [2L-1] populated only on the mm slice.
+        np.ndarray: Wigner-d matrix slice of dimension [2L-1] populated only on the mm slice.
     """
     # Analytically evaluate singularities
     if np.isclose(beta, 0, atol=1e-8):
-        dl[L-1+mm] = 1
+        dl[L - 1 + mm] = 1
         return dl
 
     if np.isclose(beta, np.pi, atol=1e-8):
-        dl[L - 1 - mm] = (-1) ** (el + mm)  
+        dl[L - 1 - mm] = (-1) ** (el + mm)
         return dl
 
     if el == 0:
-        dl[L-1] = 1
+        dl[L - 1] = 1
         return dl
 
     # These constants handle overflow by retrospectively renormalising
@@ -138,10 +146,10 @@ def turok_quarter_slice(
     lt = np.log(np.abs(t))
     c2 = np.cos(beta / 2.0)
     omc = 1.0 - c
-    
+
     # Indexing boundaries
     half_slices = [el + mm + 1, el - mm + 1]
-    lims = [L-1-el, L-1+el]
+    lims = [L - 1 - el, L - 1 + el]
 
     # Vectors with indexing -L < m < L adopted throughout
     lrenorm = np.zeros(2, dtype=np.float64)
@@ -153,34 +161,34 @@ def turok_quarter_slice(
     # Populate vectors for first row
     log_first_row[0] = 2.0 * el * np.log(np.abs(c2))
 
-    for i in range(2, np.max(half_slices)+1):
-        ratio = (2*el+2-i)/(i-1)
-        log_first_row[i - 1] = log_first_row[i - 2] + np.log(ratio)/2 + lt
-    
+    for i in range(2, np.max(half_slices) + 1):
+        ratio = (2 * el + 2 - i) / (i - 1)
+        log_first_row[i - 1] = log_first_row[i - 2] + np.log(ratio) / 2 + lt
+
     for i, slice in enumerate(half_slices):
-        sign[i] = (t/np.abs(t))**((slice-1)%2)
-        
+        sign[i] = (t / np.abs(t)) ** ((slice - 1) % 2)
+
     # Initialising coefficients cp(m)= cplus(l-m).
-    cpi[0] = 2.0 / np.sqrt(2*el)
-    for m in range(2, el+1):
-        cpi[m - 1] = 2.0 / np.sqrt(m*(2*el+1-m))
+    cpi[0] = 2.0 / np.sqrt(2 * el)
+    for m in range(2, el + 1):
+        cpi[m - 1] = 2.0 / np.sqrt(m * (2 * el + 1 - m))
         cp2[m - 1] = cpi[m - 1] / cpi[m - 2]
 
-    # Use Turok recursion to evaluate a single half row
-    # Then evaluate the negative half row and reflect using 
+    # Use Turok & Bucher recursion to evaluate a single half row
+    # Then evaluate the negative half row and reflect using
     # Wigner-d symmetry relation.
-    
+
     for i, slice in enumerate(half_slices):
-        sgn = (-1)**(i)
-        
+        sgn = (-1) ** (i)
+
         # Initialise the vector
         dl[lims[i]] = 1.0
         lamb = ((el + 1) * omc - slice + c) / s
         dl[lims[i] + sgn * 1] = lamb * dl[lims[i]] * cpi[0]
-        
-        for m in range(2, el+1):
+
+        for m in range(2, el + 1):
             lamb = ((el + 1) * omc - slice + m * c) / s
-            dl[lims[i] + sgn *  m] = (
+            dl[lims[i] + sgn * m] = (
                 lamb * cpi[m - 1] * dl[lims[i] + sgn * (m - 1)]
                 - cp2[m - 1] * dl[lims[i] + sgn * (m - 2)]
             )
@@ -188,14 +196,14 @@ def turok_quarter_slice(
                 lrenorm[i] = lrenorm[i] - lbig
                 for im in range(m + 1):
                     dl[lims[i] + sgn * im] = dl[lims[i] + sgn * im] * bigi
-    
-        # Apply renormalisation         
+
+        # Apply renormalisation
         renorm = sign[i] * np.exp(log_first_row[slice - 1] - lrenorm[i])
-        
+
         if i == 0:
             for m in range(el):
                 dl[lims[i] + sgn * m] = dl[lims[i] + sgn * m] * renorm
-        
+
         if i == 1:
             for m in range(el+1):
                 dl[lims[i] + sgn * m] = (-1)**((mm - m + el)%2) * dl[lims[i] + sgn * m] * renorm
@@ -206,23 +214,28 @@ def turok_quarter_slice(
     return dl
 
 
-def turok_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
-    """Evaluates the left quarter triangle of the Wigner-d matrix via Turok recursion
+def compute_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
+    """Compute the left quarter triangle of the Wigner-d matrix via Turok & Bucher
+    recursion.
 
     Args:
-    
         dl (np.ndarray): Wigner-d matrix slice to populate (shape: 2L-1, 2L-1).
+
         beta (float): Polar angle in radians.
+
         l (int): Harmonic degree of Wigner-d matrix.
-        L (int): Harmonic bandlimit of overall transform.
+
+        L (int): Harmonic band-limit.
 
     Returns:
-
-        Wigner-d matrix of dimension [2L-1, 2L-1] with left quarter triangle populated.
+        np.ndarray: Wigner-d matrix of dimension [2L-1, 2L-1] with left quarter
+        triangle populated.
     """
     # Analytically evaluate singularities
     if np.isclose(beta, 0, atol=1e-8):
-        dl[L - 1 - l : L + l, L - 1 - l : L + l] = np.identity(2 * l + 1, dtype=np.float64)
+        dl[L - 1 - l : L + l, L - 1 - l : L + l] = np.identity(
+            2 * l + 1, dtype=np.float64
+        )
         return dl
 
     if np.isclose(beta, np.pi, atol=1e-8):
@@ -231,7 +244,7 @@ def turok_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
         return dl
 
     if l == 0:
-        dl[L-1,L-1] = 1
+        dl[L - 1, L - 1] = 1
         return dl
 
     # Define constants adopted throughout
@@ -280,7 +293,7 @@ def turok_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
     dl[1 - lp1, 1 - lp1] = 1.0
     dl[2 * l + 1 - lp1, 1 - lp1] = 1.0
 
-    # Use Turok recursion to fill from diagonal to horizontal (lower left eight)
+    # Use Turok & Bucher recursion to fill from diagonal to horizontal (lower left eight)
     for index in range(2, l + 2):
         dl[index - lp1, 1 - lp1] = 1.0
         lamb = ((l + 1) * omc - index + c) / s
@@ -298,7 +311,7 @@ def turok_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
                     for im in range(1, m + 2):
                         dl[index - lp1, im - lp1] = dl[index - lp1, im - lp1] * bigi
 
-    # Use Turok recursion to fill horizontal to anti-diagonal (upper left eight)
+    # Use Turok & Bucher recursion to fill horizontal to anti-diagonal (upper left eight)
     for index in range(l + 2, 2 * l + 1):
         dl[index - lp1, 1 - lp1] = 1.0
         lamb = ((l + 1) * omc - index + c) / s
@@ -330,20 +343,21 @@ def turok_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
 
 
 def fill(dl: np.ndarray, l: int, L: int) -> np.ndarray:
-    """Reflects Turok Wigner-d quarter plane to complete matrix by 
-    using symmetry properties of the Wigner-d matrices.
+    """Reflects Wigner-d quarter plane to complete full matrix by using symmetry
+    properties of the Wigner-d matrices.
 
     Args:
         dl (np.ndarray): Wigner-d matrix to populate by symmetry.
+
         l (int): Harmonic degree of Wigner-d matrix.
-        L (int): Harmonic bandlimit of overall transform.
+
+        L (int): Harmonic band-limit.
 
     Returns:
-
-        The complete Wigner-d matrix of dimension [2L-1, 2L-1].
+        np.ndarray: A complete Wigner-d matrix of dimension [2L-1, 2L-1].
     """
     lp1 = 1 - (L - 1 - l)  # Offset for indexing (currently -L < m < L in 2D)
-    
+
     # Reflect across anti-diagonal
     for i in range(1, l + 1):
         for j in range(l + 1, 2 * l + 1 - i + 1):
@@ -359,7 +373,7 @@ def fill(dl: np.ndarray, l: int, L: int) -> np.ndarray:
     # Fill right matrix
     for i in range(l + 2, 2 * l + 2):
         sgn = (-1) ** (i + 1)
-        
+
         for j in range(1, 2 * l + 2 - i + 1):
             dl[j - lp1, i - lp1] = dl[i - lp1, j - lp1] * sgn
             sgn = sgn * (-1)

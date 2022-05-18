@@ -3,9 +3,27 @@ import logs
 
 
 def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
-    """TODO"""
+    r"""Compute Wigner-d at argument :math:`\beta` for full plane using
+    Risbo recursion.
 
-    _arg_checks(dl, L, el)
+    The Wigner-d plane is computed by recursion over :math:`\ell` (`el`).
+    Thus, for :math:`\ell > 0` the plane must be computed already for
+    :math:`\ell - 1`. At present, for :math:`\ell = 0` the recusion is initialised.
+
+    Args:
+        dl (np.ndarray): Wigner-d plane for :math:`\ell - 1` at :math:`\beta`.
+
+        beta (float): Argument :math:`\beta` at which to compute Wigner-d plane.
+
+        L (int): Harmonic band-limit.
+
+        el (int): Spherical harmonic degree :math:`\ell`.
+
+    Returns:
+        np.ndarray: Plane of Wigner-d for `el` and `beta`, with full plane computed.
+    """
+
+    _arg_checks(dl, beta, L, el)
 
     if el == 0:
 
@@ -92,19 +110,17 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
     return dl
 
 
-def _arg_checks(dl: np.ndarray, L: int, el: int):
-    """TODO: Refactor into general utils for specialfuncs
-
-    Also need to check theta.
+def _arg_checks(dl: np.ndarray, beta: float, L: int, el: int):
+    """Check arguments of Risbo functions.
 
     Args:
+        dl (np.ndarray): Wigner-d plane of which to check shape.
 
-        dl: Wigner-d plane to check shape of.
+        L (int): Harmonic band-limit.
 
-        L: Harmonic band-limit.
-
-        ell: Spherical harmonic degree :math:`\ell`.
+        el (int): Spherical harmonic degree :math:`\ell`.
     """
 
-    assert 0 <= el < L  # should be < not <= once have init routine
+    assert 0 <= el < L  # Should be < not <= once have init routine.
     assert dl.shape[0] == dl.shape[1] == 2 * L - 1
+    assert 0 <= beta <= np.pi
