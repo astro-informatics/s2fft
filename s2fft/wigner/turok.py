@@ -80,10 +80,6 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> np.ndarray:
         raise ValueError(
             f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
         )
-
-    if dl.shape[0] != 2 * L - 1:
-        raise ValueError(f"Wigner-d matrix is of incorrect shape={dl.shape[0]}")
-
     dl = np.zeros(2 * L - 1, dtype=np.float64)
     dl[:] = 0
     dl = compute_quarter_slice(dl, beta, el, L, mm)
