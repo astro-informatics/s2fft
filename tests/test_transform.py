@@ -99,6 +99,22 @@ def test_transform_inverse_sov_fft(flm_generator, L: int, spin: int, sampling: s
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
+def test_transform_inverse_sov_fft_vect(
+    flm_generator, L: int, spin: int, sampling: str
+):
+
+    flm = flm_generator(L=L, spin=spin, reality=False)
+
+    f = s2f.transform.inverse_sov_fft_vect(flm, L, spin, sampling)
+
+    f_check = s2f.transform.inverse_sov_fft(flm, L, spin, sampling)
+
+    np.testing.assert_allclose(f, f_check, atol=1e-14)
+
+
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("spin", spin_to_test)
 @pytest.mark.parametrize("sampling", ["dh"])
 def test_transform_forward_direct(flm_generator, L: int, spin: int, sampling: str):
 

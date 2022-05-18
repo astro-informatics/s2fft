@@ -109,10 +109,7 @@ def inverse_sov(
                 for m in range(-el, el + 1):
 
                     ftm[t, m + L - 1] += (
-                        (-1) ** spin
-                        * elfactor
-                        * dl[m + L - 1]
-                        * flm[el, m + L - 1]
+                        (-1) ** spin * elfactor * dl[m + L - 1] * flm[el, m + L - 1]
                     )
 
     for t, theta in enumerate(thetas):
@@ -171,10 +168,80 @@ def inverse_sov_fft(
 
                     m_offset = 1 if sampling == "mwss" else 0
                     ftm[t, m + L - 1 + m_offset] += (
-                        (-1) ** spin
-                        * elfactor
-                        * dl[m + L - 1]
-                        * flm[el, m + L - 1]
+                        (-1) ** spin * elfactor * dl[m + L - 1] * flm[el, m + L - 1]
+                    )
+
+    f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+
+    return f
+
+
+def inverse_sov_fft_vect(
+    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+) -> np.ndarray:
+
+    # TODO: Check flm shape consistent with L
+
+    ntheta = samples.ntheta(L, sampling)
+    nphi = samples.nphi_equiang(L, sampling)
+    f = np.zeros((ntheta, nphi), dtype=np.complex128)
+
+    thetas = samples.thetas(L, sampling)
+    phis_equiang = samples.phis_equiang(L, sampling)
+
+    nphi = samples.nphi_equiang(L, sampling)
+    ftm = np.zeros((ntheta, nphi), dtype=np.complex128)
+
+    m_offset = 1 if sampling == "mwss" else 0
+
+    for t, theta in enumerate(thetas):
+
+        for el in range(spin, L):
+
+            dl = wigner.turok.compute_slice(theta, el, L, -spin)
+
+            elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+
+            ftm[t, 0 + m_offset : 2 * L - 1 + m_offset] += elfactor * np.multiply(
+                dl, flm[el, 0 : 2 * L - 1]
+            )
+
+    ftm *= (-1) ** (spin)
+    f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+
+    return f
+
+
+def inverse_sov_fft_vect_compare(
+    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+) -> np.ndarray:
+
+    # TODO: Check flm shape consistent with L
+
+    ntheta = samples.ntheta(L, sampling)
+    nphi = samples.nphi_equiang(L, sampling)
+    f = np.zeros((ntheta, nphi), dtype=np.complex128)
+
+    thetas = samples.thetas(L, sampling)
+    phis_equiang = samples.phis_equiang(L, sampling)
+
+    nphi = samples.nphi_equiang(L, sampling)
+    ftm = np.zeros((ntheta, nphi), dtype=np.complex128)
+    for t, theta in enumerate(thetas):
+
+        for el in range(0, L):
+
+            if el >= np.abs(spin):
+
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
+
+                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+
+                for m in range(-el, el + 1):
+
+                    m_offset = 1 if sampling == "mwss" else 0
+                    ftm[t, m + L - 1 + m_offset] += (
+                        (-1) ** spin * elfactor * dl[m + L - 1] * flm[el, m + L - 1]
                     )
 
     f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
