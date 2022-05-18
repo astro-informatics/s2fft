@@ -128,7 +128,7 @@
 <span id="s2fft-wigner-turok"></span><h1>s2fft.wigner.turok<a class="headerlink" href="#module-s2fft.wigner.turok" title="Permalink to this headline"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.wigner.turok.compute_full">
-<span class="sig-prename descclassname"><span class="pre">s2fft.wigner.turok.</span></span><span class="sig-name descname"><span class="pre">compute_full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.turok.compute_full" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.wigner.turok.</span></span><span class="sig-name descname"><span class="pre">compute_full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.turok.compute_full" title="Permalink to this definition"></a></dt>
 <dd><p>Compute the complete Wigner-d matrix at polar angle <span class="math notranslate nohighlight">\(\beta\)</span> using
 Turok &amp; Bucher recursion.</p>
 <p>The Wigner-d plane for a given <span class="math notranslate nohighlight">\(\ell\)</span> (<cite>el</cite>) and <span class="math notranslate nohighlight">\(\beta\)</span>
@@ -142,7 +142,6 @@ Symmetry relations are used to fill in the remainder of the plane (see
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dl</strong> (<em>np.ndarray</em>) – Wigner-d matrix to populate (shape: 2L-1, 2L-1).</p></li>
 <li><p><strong>beta</strong> (<em>float</em>) – Polar angle in radians.</p></li>
 <li><p><strong>el</strong> (<em>int</em>) – Harmonic degree of Wigner-d matrix.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
@@ -210,7 +209,7 @@ at <span class="math notranslate nohighlight">\(\beta\)</span>.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.wigner.turok.compute_slice">
-<span class="sig-prename descclassname"><span class="pre">s2fft.wigner.turok.</span></span><span class="sig-name descname"><span class="pre">compute_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.turok.compute_slice" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.wigner.turok.</span></span><span class="sig-name descname"><span class="pre">compute_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.turok.compute_slice" title="Permalink to this definition"></a></dt>
 <dd><p>Compute a particular slice <span class="math notranslate nohighlight">\(m^{\prime}\)</span>, denoted <cite>mm</cite>,
 of the complete Wigner-d matrix at polar angle <span class="math notranslate nohighlight">\(\beta\)</span> using Turok &amp; Bucher recursion.</p>
 <p>The Wigner-d slice for a given <span class="math notranslate nohighlight">\(\ell\)</span> (<cite>el</cite>) and <span class="math notranslate nohighlight">\(\beta\)</span>
@@ -226,7 +225,6 @@ scaling <span class="math notranslate nohighlight">\(\mathcal{O}(L)\)</span> and
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dl</strong> (<em>np.ndarray</em>) – Wigner-d matrix slice to populate (shape: 2L-1).</p></li>
 <li><p><strong>beta</strong> (<em>float</em>) – Polar angle in radians.</p></li>
 <li><p><strong>el</strong> (<em>int</em>) – Harmonic degree of Wigner-d matrix.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
@@ -237,8 +235,6 @@ scaling <span class="math notranslate nohighlight">\(\mathcal{O}(L)\)</span> and
 <dd class="field-even"><ul class="simple">
 <li><p><strong>ValueError</strong> – If el is greater than L.</p></li>
 <li><p><strong>ValueError</strong> – If el is less than mm.</p></li>
-<li><p><strong>ValueError</strong> – If dl dimension is not 1.</p></li>
-<li><p><strong>ValueError</strong> – If dl shape is incorrect.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Returns</dt>
