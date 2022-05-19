@@ -5,9 +5,50 @@ from functools import partial
 import logs
 
 
-def init(dl: np.ndarray, L: int) -> np.ndarray:
+def init(dl: np.ndarray, L: int, implementation: str = "vectorized") -> np.ndarray:
     r"""Initialise Wigner-d at argument :math:`\pi/2` for :math:`\ell=0` for
-    Trapani & Navaza recursion.
+    Trapani & Navaza recursion (multiple implementations).
+
+    Args:
+        dl (np.ndarray): Wigner-d plane :math:`d^\ell_{mm^\prime}(\pi/2)` allocated
+            for all :math:`-L < m, m^\prime < L`, to be indexed by
+            `dl[m + L - 1, m' + L - 1]`.
+
+        L (int): Harmonic band-limit.
+
+        implementation (str, optional): Implementation to adopt.  Supported
+            implementations include {"loop", "vectorized", "jax"}.  Defaults to
+            "vectorized".
+
+    Returns:
+        np.ndarray: Plane of Wigner-d initialised for :math:`\ell=0`,
+    """
+
+    if implementation.lower() == "loop":
+
+        return init_nonjax(dl, L)
+
+    elif implementation == "vectorized":
+
+        return init_nonjax(dl, L)
+
+    elif implementation == "jax":
+
+        return init_jax(dl, L)
+
+    else:
+
+        raise ValueError(f"Implementation {implementation} not supported")
+
+
+def init_nonjax(dl: np.ndarray, L: int) -> np.ndarray:
+    r"""Initialise Wigner-d at argument :math:`\pi/2` for :math:`\ell=0` for
+    Trapani & Navaza recursion (loop-based/vectorized implementation).
+
+    See :func:`~init` for further details.
+
+    Note:
+        Loop-based/vectorized implementation.
 
     Args:
         dl (np.ndarray): Wigner-d plane :math:`d^\ell_{mm^\prime}(\pi/2)` allocated
@@ -517,9 +558,11 @@ def fill_half2full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
     return dl
 
 
-def compute_full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+def compute_full(
+    dl: np.ndarray, L: int, el: int, implementation: str = "vectorized"
+) -> np.ndarray:
     r"""Compute Wigner-d at argument :math:`\pi/2` for full plane using
-    Trapani & Navaza recursion.
+    Trapani & Navaza recursion (multiple implementations).
 
     The Wigner-d plane is computed by recursion over :math:`\ell` (`el`).
     Thus, for :math:`\ell > 0` the plane must be computed already for
@@ -534,6 +577,51 @@ def compute_full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     Symmetry relations are then used to fill in the remainder of the plane
     (see :func:`~fill_eighth2quarter`,
     :func:`~fill_quarter2half`, :func:`~fill_half2full`).
+
+    Warning:
+        This recursion may not be stable above :math:`\ell \gtrsim 1024`.
+
+    Args:
+        dl (np.ndarray): Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.
+
+        L (int): Harmonic band-limit.
+
+        el (int): Spherical harmonic degree :math:`\ell`.
+
+        implementation (str, optional): Implementation to adopt.  Supported
+            implementations include {"loop", "vectorized", "jax"}.  Defaults to
+            "vectorized".
+
+    Returns:
+        np.ndarray: Plane of Wigner-d for `el`, with full plane computed.
+
+    """
+
+    if implementation.lower() == "loop":
+
+        return compute_full_loop(dl, L, el)
+
+    elif implementation == "vectorized":
+
+        return compute_full_vectorized(dl, L, el)
+
+    elif implementation == "jax":
+
+        return compute_full_jax(dl, L, el)
+
+    else:
+
+        raise ValueError(f"Implementation {implementation} not supported")
+
+
+def compute_full_loop(dl: np.ndarray, L: int, el: int) -> np.ndarray:
+    r"""Compute Wigner-d at argument :math:`\pi/2` for full plane using
+    Trapani & Navaza recursion (loop-based implementation).
+
+    See :func:`~compute_full` for further details.
+
+    Note:
+        Loop-based implementation.
 
     Warning:
         This recursion may not be stable above :math:`\ell \gtrsim 1024`.
