@@ -169,9 +169,9 @@ required (see <a class="reference internal" href="#s2fft.wigner.trapani.fill_eig
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.wigner.trapani.compute_full">
-<span class="sig-prename descclassname"><span class="pre">s2fft.wigner.trapani.</span></span><span class="sig-name descname"><span class="pre">compute_full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.trapani.compute_full" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.wigner.trapani.</span></span><span class="sig-name descname"><span class="pre">compute_full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">implementation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'vectorized'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.trapani.compute_full" title="Permalink to this definition"></a></dt>
 <dd><p>Compute Wigner-d at argument <span class="math notranslate nohighlight">\(\pi/2\)</span> for full plane using
-Trapani &amp; Navaza recursion.</p>
+Trapani &amp; Navaza recursion (multiple implementations).</p>
 <p>The Wigner-d plane is computed by recursion over <span class="math notranslate nohighlight">\(\ell\)</span> (<cite>el</cite>).
 Thus, for <span class="math notranslate nohighlight">\(\ell &gt; 0\)</span> the plane must be computed already for
 <span class="math notranslate nohighlight">\(\ell - 1\)</span>. For <span class="math notranslate nohighlight">\(\ell = 1\)</span> the recusion must already be
@@ -194,6 +194,9 @@ Symmetry relations are then used to fill in the remainder of the plane
 <li><p><strong>dl</strong> (<em>np.ndarray</em>) – Wigner-d plane for <span class="math notranslate nohighlight">\(\ell - 1\)</span> at <span class="math notranslate nohighlight">\(\pi/2\)</span>.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 <li><p><strong>el</strong> (<em>int</em>) – Spherical harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+<li><p><strong>implementation</strong> (<em>str</em><em>, </em><em>optional</em>) – Implementation to adopt.  Supported
+implementations include {“loop”, “vectorized”, “jax”}.  Defaults to
+“vectorized”.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -214,6 +217,37 @@ Trapani &amp; Navaza recursion (JAX implementation).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>JAX implementation.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This recursion may not be stable above <span class="math notranslate nohighlight">\(\ell \gtrsim 1024\)</span>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dl</strong> (<em>np.ndarray</em>) – Wigner-d plane for <span class="math notranslate nohighlight">\(\ell - 1\)</span> at <span class="math notranslate nohighlight">\(\pi/2\)</span>.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>el</strong> (<em>int</em>) – Spherical harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Plane of Wigner-d for <cite>el</cite>, with full plane computed.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.wigner.trapani.compute_full_loop">
+<span class="sig-prename descclassname"><span class="pre">s2fft.wigner.trapani.</span></span><span class="sig-name descname"><span class="pre">compute_full_loop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.trapani.compute_full_loop" title="Permalink to this definition"></a></dt>
+<dd><p>Compute Wigner-d at argument <span class="math notranslate nohighlight">\(\pi/2\)</span> for full plane using
+Trapani &amp; Navaza recursion (loop-based implementation).</p>
+<p>See <a class="reference internal" href="#s2fft.wigner.trapani.compute_full" title="s2fft.wigner.trapani.compute_full"><code class="xref py py-func docutils literal notranslate"><span class="pre">compute_full()</span></code></a> for further details.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Loop-based implementation.</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -565,9 +599,9 @@ returned plane is computed by symmetry for
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.wigner.trapani.init">
-<span class="sig-prename descclassname"><span class="pre">s2fft.wigner.trapani.</span></span><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.trapani.init" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.wigner.trapani.</span></span><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">implementation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'vectorized'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.trapani.init" title="Permalink to this definition"></a></dt>
 <dd><p>Initialise Wigner-d at argument <span class="math notranslate nohighlight">\(\pi/2\)</span> for <span class="math notranslate nohighlight">\(\ell=0\)</span> for
-Trapani &amp; Navaza recursion.</p>
+Trapani &amp; Navaza recursion (multiple implementations).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -575,6 +609,9 @@ Trapani &amp; Navaza recursion.</p>
 for all <span class="math notranslate nohighlight">\(-L &lt; m, m^\prime &lt; L\)</span>, to be indexed by
 <cite>dl[m + L - 1, m’ + L - 1]</cite>.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>implementation</strong> (<em>str</em><em>, </em><em>optional</em>) – Implementation to adopt.  Supported
+implementations include {“loop”, “vectorized”, “jax”}.  Defaults to
+“vectorized”.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -610,6 +647,34 @@ for all <span class="math notranslate nohighlight">\(-L &lt; m, m^\prime &lt; L\
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.wigner.trapani.init_nonjax">
+<span class="sig-prename descclassname"><span class="pre">s2fft.wigner.trapani.</span></span><span class="sig-name descname"><span class="pre">init_nonjax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.trapani.init_nonjax" title="Permalink to this definition"></a></dt>
+<dd><p>Initialise Wigner-d at argument <span class="math notranslate nohighlight">\(\pi/2\)</span> for <span class="math notranslate nohighlight">\(\ell=0\)</span> for
+Trapani &amp; Navaza recursion (loop-based/vectorized implementation).</p>
+<p>See <a class="reference internal" href="#s2fft.wigner.trapani.init" title="s2fft.wigner.trapani.init"><code class="xref py py-func docutils literal notranslate"><span class="pre">init()</span></code></a> for further details.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Loop-based/vectorized implementation.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dl</strong> (<em>np.ndarray</em>) – Wigner-d plane <span class="math notranslate nohighlight">\(d^\ell_{mm^\prime}(\pi/2)\)</span> allocated
+for all <span class="math notranslate nohighlight">\(-L &lt; m, m^\prime &lt; L\)</span>, to be indexed by
+<cite>dl[m + L - 1, m’ + L - 1]</cite>.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Plane of Wigner-d initialised for <span class="math notranslate nohighlight">\(\ell=0\)</span>,</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
