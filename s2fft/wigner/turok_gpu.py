@@ -5,7 +5,7 @@ import jax.numpy as jnp
 from functools import partial
 
 
-@partial(jit, static_argnums=(1, 2, 3))
+@partial(jit, static_argnums=(2, 3))
 def compute_slice(beta: float, el: int, L: int, mm: int
 ) -> jnp.ndarray:
     r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
@@ -44,13 +44,13 @@ def compute_slice(beta: float, el: int, L: int, mm: int
     Returns:
         jnp.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
     """
-    if el < mm:
-        raise ValueError(f"Wigner-D not valid for l={el} < mm={mm}.")
+    # if el < mm:
+    #     raise ValueError(f"Wigner-D not valid for l={el} < mm={mm}.")
 
-    if el >= L:
-        raise ValueError(
-            f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
-        )
+    # if el >= L:
+    #     raise ValueError(
+    #         f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
+    #     )
 
     dl = jnp.zeros(2 * L - 1, dtype=jnp.float64)
     
@@ -62,7 +62,7 @@ def compute_slice(beta: float, el: int, L: int, mm: int
     return dl
 
 
-@partial(jit, static_argnums=(2, 3, 4))
+@partial(jit, static_argnums=(3, 4))
 def compute_quarter_slice(dl: jnp.array, beta: float, el: int, L: int, mm: int
 ) -> jnp.ndarray:
     r"""Compute a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated
@@ -107,14 +107,14 @@ def compute_quarter_slice(dl: jnp.array, beta: float, el: int, L: int, mm: int
     # Vectors with indexing -L < m < L adopted throughout
     lrenorm = jnp.zeros(2, dtype=jnp.float64)
     sign = jnp.zeros(2, dtype=jnp.float64)
-    cpi = jnp.zeros(el + 1, dtype=jnp.float64)
-    cp2 = jnp.zeros(el + 1, dtype=jnp.float64)
+    cpi = jnp.zeros(L + 1, dtype=jnp.float64)
+    cp2 = jnp.zeros(L + 1, dtype=jnp.float64)
     log_first_row = jnp.zeros(2 * L + 1, dtype=jnp.float64)
 
     # Populate vectors for first row
     log_first_row = log_first_row.at[0].set(2.0 * el * jnp.log(jnp.abs(c2)))
 
-    for i in range(2, el + np.abs(mm) + 2):
+    for i in range(2, L + np.abs(mm) + 2):
         ratio = (2 * el + 2 - i) / (i - 1)
         log_first_row = log_first_row.at[i - 1].set(
             log_first_row[i - 2] + jnp.log(ratio) / 2 + lt
@@ -125,7 +125,7 @@ def compute_quarter_slice(dl: jnp.array, beta: float, el: int, L: int, mm: int
 
     # Initialising coefficients cp(m)= cplus(l-m).
     cpi = cpi.at[0].set(2.0 / jnp.sqrt(2 * el))
-    for m in range(2, el + 1):
+    for m in range(2, L + 1):
         cpi = cpi.at[m - 1].set(2.0 / jnp.sqrt(m * (2 * el + 1 - m)))
         cp2 = cp2.at[m - 1].set(cpi[m - 1] / cpi[m - 2])
 
@@ -133,7 +133,7 @@ def compute_quarter_slice(dl: jnp.array, beta: float, el: int, L: int, mm: int
     # Then evaluate the negative half row and reflect using
     # Wigner-d symmetry relation.
 
-    em = jnp.arange(el+1)
+    em = jnp.arange(L+1)
 
     for i in range(2):
         sgn = (-1) ** (i)
@@ -143,7 +143,7 @@ def compute_quarter_slice(dl: jnp.array, beta: float, el: int, L: int, mm: int
         lamb = ((el + 1) * omc - half_slices[i] + c) / s
         dl = dl.at[lims[i] + sgn].set(lamb * dl[lims[i]] * cpi[0])
 
-        for m in range(2, el + 1):
+        for m in range(2, L + 1):
             lamb = ((el + 1) * omc - half_slices[i] + m * c) / s
             dl = dl.at[lims[i] + sgn * m].set(
                 lamb * cpi[m - 1] * dl[lims[i] + sgn * (m - 1)]
@@ -163,7 +163,7 @@ def compute_quarter_slice(dl: jnp.array, beta: float, el: int, L: int, mm: int
 
     return dl
 
-@partial(jit, static_argnums=(2,3,4))
+# @partial(jit, static_argnums=(1,2,3,4))
 def renormalise(dl, lrenorm, lims, lbig, bigi, sgn, i, m) -> jnp.ndarray:
     lrenorm = lrenorm.at[i].set( lrenorm[i]- lbig)
     for im in range(m + 1):
@@ -175,7 +175,7 @@ def north_pole(dl, L, mm) -> jnp.ndarray:
     dl = dl.at[L - 1 + mm].set(1)
     return dl 
 
-@partial(jit, static_argnums=(1,2,3))
+@partial(jit, static_argnums=(1,3))
 def south_pole(dl, L, el, mm) -> jnp.ndarray:
     dl = dl.at[L - 1 - mm].set(-1) ** (el + mm)
     return dl

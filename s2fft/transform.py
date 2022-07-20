@@ -1,6 +1,12 @@
 from random import sample
 import numpy as np
+import jax.numpy as jnp
+import jax.lax as lax 
+from jax import jit
+from functools import partial
+
 import numpy.fft as fft
+import jax.numpy.fft as jfft
 import s2fft.samples as samples
 import s2fft.quadrature as quadrature
 import s2fft.resampling as resampling
@@ -398,4 +404,61 @@ def forward_sov_fft(
                     )
 
     return flm
+
+@partial(jit, static_argnums=(1, 2, 3))
+def inverse_gpu(
+    flm: jnp.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+) -> jnp.ndarray:
+    """Compute inverse spherical harmonic transform by separate of variables method
+    with FFTs via JAX on a GPU/TPU.
+
+    Args:
+        flm (jnp.ndarray): Spherical harmonic coefficients
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
+
+    Returns:
+        jnp.ndarray: Signal on the sphere.
+    """
+
+    ntheta = samples.ntheta(L, sampling)
+    nphi = samples.nphi_equiang(L, sampling)
+    f = jnp.zeros((ntheta, nphi), dtype=jnp.complex128)
+
+    thetas = samples.thetas(L, sampling)
+    phis_equiang = samples.phis_equiang(L, sampling)
+
+    nphi = samples.nphi_equiang(L, sampling)
+    ftm = jnp.zeros((ntheta, nphi), dtype=jnp.complex128)
+
+    for t, theta in enumerate(thetas):
+
+        for el in range(0, L):
+
+            if el >= np.abs(spin):
+
+                dl = wigner.turok_gpu.compute_slice(theta, el, L, -spin)
+
+                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+
+                for m in range(-el, el + 1):
+                    m_offset = 0
+                    m_offset = lax.cond(sampling =="mwss", lambda x: x+1, lambda x: x, m_offset)
+
+                    ftm = ftm.at[t, m + L - 1 + m_offset].set(
+                        (-1) ** spin
+                        * elfactor
+                        * dl[m + L - 1]
+                        * (-1) ** (-m - spin)
+                        * flm[el, m + L - 1]
+                    )
+
+    f = jfft.ifft(jfft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+
+    return f
     
