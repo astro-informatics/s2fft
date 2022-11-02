@@ -5,8 +5,6 @@ from s2fft.experimental import transforms_healpix as s2fhp
 import pyssht as ssht
 import healpy as hp
 
-from .utils import *
-
 
 L_to_test = [3, 4, 5]
 nside_to_test = [2, 4, 8]
