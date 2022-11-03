@@ -36,9 +36,9 @@ extra_link_args = []
 
 setup(
     classifiers=[
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Operating System :: OS Independent",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
@@ -50,6 +50,7 @@ setup(
     author="Authors & Contributors",
     author_email="primary.author.e-mail@ucl.ac.uk",
     license="GNU General Public License v3 (GPLv3)",
+    python_requires=">=3.8",
     install_requires=required,
     description="A witty project description!",
     long_description_content_type="text/x-rst",
