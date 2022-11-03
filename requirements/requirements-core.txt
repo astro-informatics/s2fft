@@ -4,4 +4,6 @@ colorlog
 pyyaml
 pyssht
 pytest
-jax[cpu]
+# jax[cpu]
+jaxlib==0.3.10
+jax==0.3.13

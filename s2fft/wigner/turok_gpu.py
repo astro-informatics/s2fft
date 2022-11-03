@@ -90,11 +90,11 @@ def _compute_quarter_slice(
     omc = 1.0 - c
 
     # Indexing boundaries
-    half_slices = jnp.zeros(2, dtype=jnp.int16)
+    half_slices = jnp.zeros(2, dtype=jnp.int64)
     half_slices = half_slices.at[0].set(el + mm + 1)
     half_slices = half_slices.at[1].set(el - mm + 1)
 
-    lims = jnp.zeros(2, dtype=jnp.int16)
+    lims = jnp.zeros(2, dtype=jnp.int64)
     lims = lims.at[0].set(0)
     lims = lims.at[1].set(-1)
 
