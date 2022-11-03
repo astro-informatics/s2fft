@@ -183,7 +183,7 @@ def compute_warning(L):
 
 
 def load_legendre_matrix(
-    L=4, sampling_method="mw", save_dir="../../.matrices", direction="forward", spin=0
+    L=4, sampling_method="mw", save_dir="../../.matrices", forward=True, spin=0
 ):
     """Construct associated Legendre inverse matrix for precompute method.
 
@@ -194,7 +194,7 @@ def load_legendre_matrix(
 
         save_dir (str, optional): Directory from which to load precomputed matrices.
 
-        direction (str): Whether to load the forward or inverse matrices.
+        forward (bool, optional): Whether to load the forward or inverse matrices.
 
         spin (int, optional): Spin of the transform to consider.
 
@@ -203,7 +203,7 @@ def load_legendre_matrix(
     """
 
     dir_string = ""
-    if direction == "inverse":
+    if not forward:
         dir_string += "_inverse"
 
     filepath = "{}/legendre{}_matrix_{}_{}_spin_{}.npy".format(
@@ -211,14 +211,14 @@ def load_legendre_matrix(
     )
 
     if not os.path.isfile(filepath):
-        if direction == "forward":
+        if forward:
             construct_legendre_matrix(
                 L=L,
                 sampling_method=sampling_method,
                 save_dir=save_dir,
                 spin=spin,
             )
-        elif direction == "inverse":
+        else:
             construct_legendre_matrix_inverse(
                 L=L,
                 sampling_method=sampling_method,

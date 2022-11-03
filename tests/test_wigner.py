@@ -14,6 +14,7 @@ spin_to_test = np.arange(-2, 2)
 sampling_schemes = ["mw", "mwss", "dh", "healpix"]
 
 
+
 def test_trapani_with_ssht():
     """Test Trapani computation against ssht"""
 
@@ -28,7 +29,7 @@ def test_trapani_with_ssht():
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
     dl = wigner.trapani.init(dl, L)
     for el in range(1, L):
-        dl = wigner.trapani.compute_full(dl, L, el)
+        dl = wigner.trapani.compute_full_loop(dl, L, el)
         np.testing.assert_allclose(dl_array[el, :, :], dl, atol=1e-10)
 
 
@@ -44,7 +45,7 @@ def test_trapani_vectorized():
     dl_vect = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
     dl_vect = wigner.trapani.init(dl_vect, L)
     for el in range(1, L):
-        dl = wigner.trapani.compute_full(dl, L, el)
+        dl = wigner.trapani.compute_full_loop(dl, L, el)
         dl_vect = wigner.trapani.compute_full_vectorized(dl_vect, L, el)
         np.testing.assert_allclose(
             dl[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
@@ -72,6 +73,45 @@ def test_trapani_jax():
             dl_jax[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
             atol=1e-10,
         )
+
+
+def test_trapani_interfaces():
+    """Test Trapani interfaces"""
+
+    # Test all dl(pi/2) terms up to L.
+    L = 5
+
+    dl_loop = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl_loop = wigner.trapani.init(dl_loop, L, implementation="loop")
+
+    dl_vect = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl_vect = wigner.trapani.init(dl_vect, L, implementation="vectorized")
+
+    dl_jax = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    dl_jax = wigner.trapani.init(dl_jax, L, implementation="jax")
+
+    for el in range(1, L):
+        dl_loop = wigner.trapani.compute_full(dl_loop, L, el, implementation="loop")
+        dl_vect = wigner.trapani.compute_full(
+            dl_vect, L, el, implementation="vectorized"
+        )
+        dl_jax = wigner.trapani.compute_full(dl_jax, L, el, implementation="jax")
+        np.testing.assert_allclose(
+            dl_loop[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            dl_vect[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            atol=1e-10,
+        )
+        np.testing.assert_allclose(
+            dl_vect[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            dl_jax[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            atol=1e-10,
+        )
+
+    with pytest.raises(ValueError) as e:
+        wigner.trapani.init(dl_loop, L, implementation="unexpected")
+
+    with pytest.raises(ValueError) as e:
+        wigner.trapani.compute_full(dl_jax, L, el, implementation="unexpected")
 
 
 def test_trapani_checks():
@@ -143,7 +183,7 @@ def test_turok_slice_with_ssht(L: int, spin: int, sampling: str):
                 dl_turok = wigner.turok.compute_slice(dl, beta, el, L, -spin)
 
                 np.testing.assert_allclose(
-                    dl_turok, dl_array[el][L - 1 - spin], atol=1e-10, rtol=1e-12
+                    dl_turok, dl_array[el][L - 1 + spin], atol=1e-10, rtol=1e-12
                 )
 
 

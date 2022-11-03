@@ -99,6 +99,22 @@ def test_transform_inverse_sov_fft(flm_generator, L: int, spin: int, sampling: s
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
+def test_transform_inverse_sov_fft_vectorized(
+    flm_generator, L: int, spin: int, sampling: str
+):
+
+    flm = flm_generator(L=L, spin=spin, reality=False)
+
+    f = s2f.transform.inverse_sov_fft_vectorized(flm, L, spin, sampling)
+
+    f_check = s2f.transform.inverse_sov_fft(flm, L, spin, sampling)
+
+    np.testing.assert_allclose(f, f_check, atol=1e-14)
+
+
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("spin", spin_to_test)
 @pytest.mark.parametrize("sampling", ["dh"])
 def test_transform_forward_direct(flm_generator, L: int, spin: int, sampling: str):
 
@@ -176,6 +192,37 @@ def test_transform_forward_sov_fft(flm_generator, L: int, spin: int, sampling: s
     )
 
     flm_recov = s2f.transform.forward_sov_fft(f, L, spin, sampling)
+
+    np.set_printoptions(linewidth=150, precision=4)
+    print(f"f = {f}")
+    print(f"flm = {flm}")
+    print(f"flm_recov = {flm_recov}")
+
+    np.testing.assert_allclose(flm, flm_recov, atol=1e-14)
+
+
+@pytest.mark.parametrize("L", [5])
+@pytest.mark.parametrize("spin", [0, 1, 2])
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
+# @pytest.mark.parametrize("sampling", ["mw"])
+def test_transform_forward_sov_fft_vectorized(
+    flm_generator, L: int, spin: int, sampling: str
+):
+
+    # TODO: move this and potentially do better
+    np.random.seed(2)
+
+    flm = flm_generator(L=L, spin=spin, reality=False)
+
+    f = ssht.inverse(
+        s2f.samples.flm_2d_to_1d(flm, L),
+        L,
+        Method=sampling.upper(),
+        Spin=spin,
+        Reality=False,
+    )
+
+    flm_recov = s2f.transform.forward_sov_fft_vectorized(f, L, spin, sampling)
 
     np.set_printoptions(linewidth=150, precision=4)
     print(f"f = {f}")

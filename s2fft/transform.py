@@ -35,7 +35,8 @@ def inverse_direct(
         np.ndarray: Signal on the sphere.
     """
 
-    # TODO: Check flm shape consistent with L
+    assert flm.shape == samples.flm_shape(L)
+    assert 0 <= spin < L
 
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
@@ -44,15 +45,13 @@ def inverse_direct(
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
 
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
-
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -65,7 +64,6 @@ def inverse_direct(
                             * elfactor
                             * np.exp(1j * m * phi)
                             * dl[m + L - 1]
-                            * (-1) ** (-m - spin)
                             * flm[el, m + L - 1]
                         )
 
@@ -95,7 +93,8 @@ def inverse_sov(
         np.ndarray: Signal on the sphere.
     """
 
-    # TODO: Check flm shape consistent with L
+    assert flm.shape == samples.flm_shape(L)
+    assert 0 <= spin < L
 
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
@@ -104,8 +103,6 @@ def inverse_sov(
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
 
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
-
     ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
 
@@ -113,18 +110,14 @@ def inverse_sov(
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
                 for m in range(-el, el + 1):
 
                     ftm[t, m + L - 1] += (
-                        (-1) ** spin
-                        * elfactor
-                        * dl[m + L - 1]
-                        * (-1) ** (-m - spin)
-                        * flm[el, m + L - 1]
+                        (-1) ** spin * elfactor * dl[m + L - 1] * flm[el, m + L - 1]
                     )
 
     for t, theta in enumerate(thetas):
@@ -158,7 +151,8 @@ def inverse_sov_fft(
         np.ndarray: Signal on the sphere.
     """
 
-    # TODO: Check flm shape consistent with L
+    assert flm.shape == samples.flm_shape(L)
+    assert 0 <= spin < L
 
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
@@ -167,31 +161,74 @@ def inverse_sov_fft(
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
 
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
-
-    nphi = samples.nphi_equiang(L, sampling)
     ftm = np.zeros((ntheta, nphi), dtype=np.complex128)
+    m_offset = 1 if sampling == "mwss" else 0
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
                 for m in range(-el, el + 1):
 
-                    m_offset = 1 if sampling == "mwss" else 0
                     ftm[t, m + L - 1 + m_offset] += (
-                        (-1) ** spin
-                        * elfactor
-                        * dl[m + L - 1]
-                        * (-1) ** (-m - spin)
-                        * flm[el, m + L - 1]
+                        (-1) ** spin * elfactor * dl[m + L - 1] * flm[el, m + L - 1]
                     )
 
+    f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+
+    return f
+
+
+def inverse_sov_fft_vectorized(
+    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+) -> np.ndarray:
+    """Compute inverse spherical harmonic transform by separate of variables method
+    with FFTs (vectorized implementaiton).
+
+    Args:
+        flm (np.ndarray): Spherical harmonic coefficients
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
+
+    Returns:
+        np.ndarray: Signal on the sphere.
+    """
+
+    assert flm.shape == samples.flm_shape(L)
+    assert 0 <= spin < L
+
+    ntheta = samples.ntheta(L, sampling)
+    nphi = samples.nphi_equiang(L, sampling)
+    f = np.zeros((ntheta, nphi), dtype=np.complex128)
+
+    thetas = samples.thetas(L, sampling)
+    phis_equiang = samples.phis_equiang(L, sampling)
+
+    ftm = np.zeros((ntheta, nphi), dtype=np.complex128)
+    m_offset = 1 if sampling == "mwss" else 0
+    for el in range(spin, L):
+
+        for t, theta in enumerate(thetas):
+
+            dl = wigner.turok.compute_slice(theta, el, L, -spin)
+
+            elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+
+            ftm[t, m_offset : 2 * L - 1 + m_offset] += elfactor * np.multiply(
+                dl, flm[el, :]
+            )
+
+    ftm *= (-1) ** (spin)
     f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
     return f
@@ -222,7 +259,8 @@ def forward_direct(
         np.ndarray: Spherical harmonic coefficients
     """
 
-    # TODO: Check f shape consistent with L
+    assert f.shape == samples.f_shape(L, sampling)
+    assert 0 <= spin < L
 
     if sampling.lower() != "dh":
 
@@ -235,8 +273,6 @@ def forward_direct(
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
 
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
-
     weights = quadrature.quad_weights(L, sampling)
     for t, theta in enumerate(thetas):
 
@@ -244,7 +280,7 @@ def forward_direct(
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -258,7 +294,6 @@ def forward_direct(
                             * elfactor
                             * np.exp(-1j * m * phi)
                             * dl[m + L - 1]
-                            * (-1) ** (-m - spin)
                             * f[t, p]
                         )
 
@@ -291,7 +326,8 @@ def forward_sov(
         np.ndarray: Spherical harmonic coefficients
     """
 
-    # TODO: Check f shape consistent with L
+    assert f.shape == samples.f_shape(L, sampling)
+    assert 0 <= spin < L
 
     if sampling.lower() != "dh":
 
@@ -303,8 +339,6 @@ def forward_sov(
 
     thetas = samples.thetas(L, sampling)
     phis_equiang = samples.phis_equiang(L, sampling)
-
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
 
     ntheta = samples.ntheta(L, sampling)
     ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
@@ -323,7 +357,7 @@ def forward_sov(
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -334,7 +368,6 @@ def forward_sov(
                         * (-1) ** spin
                         * elfactor
                         * dl[m + L - 1]
-                        * (-1) ** (-m - spin)
                         * ftm[t, m + L - 1]
                     )
 
@@ -361,7 +394,8 @@ def forward_sov_fft(
         np.ndarray: Spherical harmonic coefficients
     """
 
-    # TODO: Check f shape consistent with L
+    assert f.shape == samples.f_shape(L, sampling)
+    assert 0 <= spin < L
 
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -381,14 +415,13 @@ def forward_sov_fft(
     # since accounted for already in periodic extension and upsampling.
     weights = quadrature.quad_weights_transform(L, sampling, spin=0)
     m_offset = 1 if sampling == "mwss" else 0
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(dl, theta, el, L, -spin)
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -399,21 +432,19 @@ def forward_sov_fft(
                         * (-1) ** spin
                         * elfactor
                         * dl[m + L - 1]
-                        * (-1) ** (-m - spin)
                         * ftm[t, m + L - 1 + m_offset]
                     )
 
     return flm
 
-@partial(jit, static_argnums=(1, 2, 3))
-def inverse_gpu(
-    flm: jnp.ndarray, L: int, spin: int = 0, sampling: str = "mw"
-) -> jnp.ndarray:
-    """Compute inverse spherical harmonic transform by separate of variables method
-    with FFTs via JAX on a GPU/TPU.
+def forward_sov_fft_vectorized(
+    f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+) -> np.ndarray:
+    """Compute forward spherical harmonic transform by separate of variables method
+    with FFTs (vectorized implementation).
 
     Args:
-        flm (jnp.ndarray): Spherical harmonic coefficients
+        f (np.ndarray): Signal on the sphere.
 
         L (int): Harmonic band-limit.
 
@@ -423,42 +454,44 @@ def inverse_gpu(
             {"mw", "mwss", "dh"}.  Defaults to "mw".
 
     Returns:
-        jnp.ndarray: Signal on the sphere.
+        np.ndarray: Spherical harmonic coefficients
     """
 
-    ntheta = samples.ntheta(L, sampling)
-    nphi = samples.nphi_equiang(L, sampling)
-    f = jnp.zeros((ntheta, nphi), dtype=jnp.complex128)
+    assert f.shape == samples.f_shape(L, sampling)
+    assert 0 <= spin < L
 
-    thetas = samples.thetas(L, sampling)
-    phis_equiang = samples.phis_equiang(L, sampling)
+    if sampling.lower() == "mw":
+        f = resampling.mw_to_mwss(f, L, spin)
 
-    nphi = samples.nphi_equiang(L, sampling)
-    ftm = jnp.zeros((ntheta, nphi), dtype=jnp.complex128)
+    if sampling.lower() in ["mw", "mwss"]:
+        sampling = "mwss"
+        f = resampling.upsample_by_two_mwss(f, L, spin)
+        thetas = samples.thetas(2 * L, sampling)
+    else:
+        thetas = samples.thetas(L, sampling)
 
+    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
+
+    ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
+
+    # Don't need to include spin in weights (even for spin signals)
+    # since accounted for already in periodic extension and upsampling.
+    weights = quadrature.quad_weights_transform(L, sampling, spin=0)
+    m_offset = 1 if sampling == "mwss" else 0
     for t, theta in enumerate(thetas):
 
-        for el in range(0, L):
+        for el in range(spin, L):
 
-            if el >= np.abs(spin):
+            dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
-                dl = wigner.turok_gpu.compute_slice(theta, el, L, -spin)
+            elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
-                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+            flm[el, :] += (
+                weights[t]
+                * elfactor
+                * np.multiply(dl, ftm[t, m_offset : 2 * L - 1 + m_offset])
+            )
 
-                for m in range(-el, el + 1):
-                    m_offset = 0
-                    m_offset = lax.cond(sampling =="mwss", lambda x: x+1, lambda x: x, m_offset)
+    flm *= (-1) ** spin
 
-                    ftm = ftm.at[t, m + L - 1 + m_offset].set(
-                        (-1) ** spin
-                        * elfactor
-                        * dl[m + L - 1]
-                        * (-1) ** (-m - spin)
-                        * flm[el, m + L - 1]
-                    )
-
-    f = jfft.ifft(jfft.ifftshift(ftm, axes=1), axis=1, norm="forward")
-
-    return f
-    
+    return flm

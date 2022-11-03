@@ -2,7 +2,7 @@ from re import I
 import numpy as np
 
 
-def compute_full(dl: np.ndarray, beta: float, el: int, L: int) -> np.ndarray:
+def compute_full(beta: float, el: int, L: int) -> np.ndarray:
     r"""Compute the complete Wigner-d matrix at polar angle :math:`\beta` using
     Turok & Bucher recursion.
 
@@ -17,8 +17,6 @@ def compute_full(dl: np.ndarray, beta: float, el: int, L: int) -> np.ndarray:
     :func:`~fill`).
 
     Args:
-        dl (np.ndarray): Wigner-d matrix to populate (shape: 2L-1, 2L-1).
-
         beta (float): Polar angle in radians.
 
         el (int): Harmonic degree of Wigner-d matrix.
@@ -35,13 +33,14 @@ def compute_full(dl: np.ndarray, beta: float, el: int, L: int) -> np.ndarray:
         raise ValueError(
             f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
         )
+    dl = np.zeros((2 * L - 1, 2 * L -1), dtype=np.float64)
     dl[:, :] = 0
     dl = compute_quarter(dl, beta, el, L)
     dl = fill(dl, el, L)
     return dl
 
 
-def compute_slice(dl: np.ndarray, beta: float, el: int, L: int, mm: int) -> np.ndarray:
+def compute_slice(beta: float, el: int, L: int, mm: int) -> np.ndarray:
     r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
     of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok & Bucher recursion.
 
@@ -58,8 +57,6 @@ def compute_slice(dl: np.ndarray, beta: float, el: int, L: int, mm: int) -> np.n
     scaling :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L` operations.
 
     Args:
-        dl (np.ndarray): Wigner-d matrix slice to populate (shape: 2L-1).
-
         beta (float): Polar angle in radians.
 
         el (int): Harmonic degree of Wigner-d matrix.
@@ -73,10 +70,6 @@ def compute_slice(dl: np.ndarray, beta: float, el: int, L: int, mm: int) -> np.n
 
         ValueError: If el is less than mm.
 
-        ValueError: If dl dimension is not 1.
-
-        ValueError: If dl shape is incorrect.
-
     Returns:
         np.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
     """
@@ -87,14 +80,7 @@ def compute_slice(dl: np.ndarray, beta: float, el: int, L: int, mm: int) -> np.n
         raise ValueError(
             f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
         )
-
-    if len(dl.shape) != 1:
-        raise ValueError(
-            f"Wigner-d matrix slice is of dimension 1, NOT dimension={dl.shape}"
-        )
-
-    if dl.shape[0] != 2 * L - 1:
-        raise ValueError(f"Wigner-d matrix is of incorrect shape={dl.shape[0]}")
+    dl = np.zeros(2 * L - 1, dtype=np.float64)
     dl[:] = 0
     dl = compute_quarter_slice(dl, beta, el, L, mm)
 
@@ -205,10 +191,11 @@ def compute_quarter_slice(
                 dl[lims[i] + sgn * m] = dl[lims[i] + sgn * m] * renorm
 
         if i == 1:
-            for m in range(el + 1):
-                dl[lims[i] + sgn * m] = (
-                    (-1) ** ((mm - m + el) % 2) * dl[lims[i] + sgn * m] * renorm
-                )
+            for m in range(el+1):
+                dl[lims[i] + sgn * m] = (-1)**((mm - m + el)%2) * dl[lims[i] + sgn * m] * renorm
+    
+    for m in range(-el, el+1):
+        dl[m+L-1] *= (-1)**(abs(mm-m))
 
     return dl
 
