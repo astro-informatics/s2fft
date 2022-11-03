@@ -14,7 +14,6 @@ spin_to_test = np.arange(-2, 2)
 sampling_schemes = ["mw", "mwss", "dh", "healpix"]
 
 
-
 def test_trapani_with_ssht():
     """Test Trapani computation against ssht"""
 
@@ -188,7 +187,7 @@ def test_turok_slice_with_ssht(L: int, spin: int, sampling: str):
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
 @pytest.mark.parametrize("sampling", sampling_schemes)
-def test_turok_slice_gpu_with_ssht(L: int, spin: int, sampling: str):
+def test_turok_slice_jax_with_ssht(L: int, spin: int, sampling: str):
     """Test Turok spin slice computation against ssht"""
 
     # Test all dl() terms up to L.
@@ -201,7 +200,7 @@ def test_turok_slice_gpu_with_ssht(L: int, spin: int, sampling: str):
         for el in range(L):
             if el >= np.abs(spin):
 
-                dl_turok = wigner.turok_gpu.compute_slice(beta, el, L, -spin)
+                dl_turok = wigner.turok_jax.compute_slice(beta, el, L, -spin)
 
                 np.testing.assert_allclose(
                     dl_turok[L - 1 - el : L - 1 + el + 1],
