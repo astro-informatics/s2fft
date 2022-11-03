@@ -1,13 +1,12 @@
 import numpy as np
-import jax.lax as lax 
+import jax.lax as lax
 from jax import jit
 import jax.numpy as jnp
 from functools import partial
 
 
-@partial(jit, static_argnums=(2, 3))
-def compute_slice(beta: float, el: int, L: int, mm: int
-) -> jnp.ndarray:
+@partial(jit, static_argnums=(1, 2, 3))
+def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
     r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
     of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok & Bucher recursion.
 
@@ -32,38 +31,33 @@ def compute_slice(beta: float, el: int, L: int, mm: int
 
         mm (int): Harmonic order at which to slice the matrix.
 
-    Raises:
-        ValueError: If el is greater than L.
-
-        ValueError: If el is less than mm.
-
-        ValueError: If dl dimension is not 1.
-
-        ValueError: If dl shape is incorrect.
-
     Returns:
         jnp.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
     """
-    # if el < mm:
-    #     raise ValueError(f"Wigner-D not valid for l={el} < mm={mm}.")
-
-    # if el >= L:
-    #     raise ValueError(
-    #         f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
-    #     )
-
     dl = jnp.zeros(2 * L - 1, dtype=jnp.float64)
-    
-    dl = lax.cond(jnp.abs(beta) < 1e-8, lambda x: north_pole(x, L, mm), lambda x: x, dl)
-    dl = lax.cond(jnp.abs(beta - jnp.pi) < 1e-8, lambda x: south_pole(x, L, el, mm), lambda x: x, dl)
-    dl = lax.cond(el == 0, lambda x: el0(x, L), lambda x: x, dl)
-    dl = lax.cond(jnp.any(dl), lambda x: x, lambda x: compute_quarter_slice(x, beta, el, L, mm), dl)
+    dl = lax.cond(
+        jnp.abs(beta) < 1e-10, lambda x: _north_pole(x, el, L, mm), lambda x: x, dl
+    )
+    dl = lax.cond(
+        jnp.abs(beta - jnp.pi) < 1e-10,
+        lambda x: _south_pole(x, el, L, mm),
+        lambda x: x,
+        dl,
+    )
+    dl = lax.cond(el == 0, lambda x: _el0(x, L), lambda x: x, dl)
+    dl = lax.cond(
+        jnp.any(dl),
+        lambda x: x,
+        lambda x: _compute_quarter_slice(x, beta, el, L, mm),
+        dl,
+    )
 
-    return dl
+    return _reindex(dl, el, L)
 
 
 @partial(jit, static_argnums=(3, 4))
-def compute_quarter_slice(dl: jnp.array, beta: float, el: int, L: int, mm: int
+def _compute_quarter_slice(
+    dl: jnp.array, beta: float, el: int, L: int, mm: int
 ) -> jnp.ndarray:
     r"""Compute a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated
     at :math:`\beta`.
@@ -101,8 +95,8 @@ def compute_quarter_slice(dl: jnp.array, beta: float, el: int, L: int, mm: int
     half_slices = half_slices.at[1].set(el - mm + 1)
 
     lims = jnp.zeros(2, dtype=jnp.int16)
-    lims = lims.at[0].set(L - 1 - el)
-    lims = lims.at[1].set(L - 1 + el)
+    lims = lims.at[0].set(0)
+    lims = lims.at[1].set(-1)
 
     # Vectors with indexing -L < m < L adopted throughout
     lrenorm = jnp.zeros(2, dtype=jnp.float64)
@@ -114,7 +108,7 @@ def compute_quarter_slice(dl: jnp.array, beta: float, el: int, L: int, mm: int
     # Populate vectors for first row
     log_first_row = log_first_row.at[0].set(2.0 * el * jnp.log(jnp.abs(c2)))
 
-    for i in range(2, L + np.abs(mm) + 2):
+    for i in range(2, L + 1 + np.abs(mm)):
         ratio = (2 * el + 2 - i) / (i - 1)
         log_first_row = log_first_row.at[i - 1].set(
             log_first_row[i - 2] + jnp.log(ratio) / 2 + lt
@@ -133,7 +127,7 @@ def compute_quarter_slice(dl: jnp.array, beta: float, el: int, L: int, mm: int
     # Then evaluate the negative half row and reflect using
     # Wigner-d symmetry relation.
 
-    em = jnp.arange(L+1)
+    em = jnp.arange(1, L + 1)
 
     for i in range(2):
         sgn = (-1) ** (i)
@@ -143,44 +137,78 @@ def compute_quarter_slice(dl: jnp.array, beta: float, el: int, L: int, mm: int
         lamb = ((el + 1) * omc - half_slices[i] + c) / s
         dl = dl.at[lims[i] + sgn].set(lamb * dl[lims[i]] * cpi[0])
 
-        for m in range(2, L + 1):
+        for m in range(2, L):
             lamb = ((el + 1) * omc - half_slices[i] + m * c) / s
             dl = dl.at[lims[i] + sgn * m].set(
                 lamb * cpi[m - 1] * dl[lims[i] + sgn * (m - 1)]
                 - cp2[m - 1] * dl[lims[i] + sgn * (m - 2)]
             )
-
-            dl = lax.cond(dl[lims[i] + sgn * m] > big_const, lambda x: renormalise(x, lrenorm, lims, lbig, bigi, sgn, i, m), lambda x: x, dl)
+            lrenorm = lax.cond(
+                dl[lims[i] + sgn * m] > big_const,
+                lambda x: _increment_normalisation(x, i, lbig),
+                lambda x: x,
+                lrenorm,
+            )
+            dl = lax.cond(
+                dl[lims[i] + sgn * m] > big_const,
+                lambda x: _renormalise(x, lims, sgn, i, m, bigi),
+                lambda x: x,
+                dl,
+            )
 
         # Apply renormalisation
         renorm = sign[i] * jnp.exp(log_first_row[half_slices[i] - 1] - lrenorm[i])
 
         if i == 0:
-            dl = dl.at[lims[i] + sgn * em[:-1]].multiply(renorm)
+            dl = dl.at[: L - 1].multiply(renorm)
 
         if i == 1:
-            dl = dl.at[lims[i] + sgn * em].multiply((-1) ** ((mm - em + el) % 2) * renorm)
+            dl = dl.at[-em].multiply((-1) ** ((mm - em + el + 1) % 2) * renorm)
 
-    return dl
+    return jnp.nan_to_num(dl, neginf=0, posinf=0)
 
-# @partial(jit, static_argnums=(1,2,3,4))
-def renormalise(dl, lrenorm, lims, lbig, bigi, sgn, i, m) -> jnp.ndarray:
-    lrenorm = lrenorm.at[i].set( lrenorm[i]- lbig)
+
+@partial(jit, static_argnums=(4))
+def _renormalise(dl, lims, sgn, i, m, bigi) -> jnp.ndarray:
     for im in range(m + 1):
         dl = dl.at[lims[i] + sgn * im].multiply(bigi)
     return dl
 
-@partial(jit, static_argnums=(1,2))
-def north_pole(dl, L, mm) -> jnp.ndarray:
-    dl = dl.at[L - 1 + mm].set(1)
-    return dl 
 
-@partial(jit, static_argnums=(1,3))
-def south_pole(dl, L, el, mm) -> jnp.ndarray:
-    dl = dl.at[L - 1 - mm].set(-1) ** (el + mm)
+@partial(jit)
+def _increment_normalisation(lrenorm, i, lbig) -> jnp.ndarray:
+    lrenorm = lrenorm.at[i].set(lrenorm[i] - lbig)
+    return lrenorm
+
+
+@partial(jit, static_argnums=(2, 3))
+def _north_pole(dl, el, L, mm) -> jnp.ndarray:
+    dl = dl.at[:].set(0)
+    if mm < 0:
+        dl = dl.at[el + mm].set(1)
+    else:
+        dl = dl.at[2 * L - 2 - el + mm].set(1)
     return dl
+
+
+@partial(jit, static_argnums=(2, 3))
+def _south_pole(dl, el, L, mm) -> jnp.ndarray:
+    dl = dl.at[:].set(0)
+    if mm > 0:
+        dl = dl.at[el - mm].set((-1) ** (el + mm))
+    else:
+        dl = dl.at[2 * L - 2 - el - mm].set((-1) ** (el + mm))
+    return dl
+
 
 @partial(jit, static_argnums=(1))
-def el0(dl, L) -> jnp.ndarray:
-    dl = dl.at[L - 1].set(1)
+def _el0(dl, L) -> jnp.ndarray:
+    dl = dl.at[:].set(0)
+    dl = dl.at[-1].set(1)
     return dl
+
+
+@partial(jit, static_argnums=(2))
+def _reindex(dl, el, L) -> jnp.ndarray:
+    dl = dl.at[: L - 1].set(jnp.roll(dl, L - el - 1)[: L - 1])
+    return dl.at[L - 1 :].set(jnp.roll(dl, -(L - el - 1))[L - 1 :])
