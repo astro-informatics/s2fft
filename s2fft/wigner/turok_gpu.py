@@ -5,7 +5,7 @@ import jax.numpy as jnp
 from functools import partial
 
 
-@partial(jit, static_argnums=(1, 2, 3))
+@partial(jit, static_argnums=(2, 3))
 def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
     r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
     of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok & Bucher recursion.

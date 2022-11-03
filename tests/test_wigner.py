@@ -150,7 +150,6 @@ def test_turok_with_ssht(L: int, sampling: str):
 
     # Test all dl() terms up to L.
     betas = samples.thetas(L, sampling, int(L / 2))
-    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
     # Compute using SSHT.
     for beta in betas:
@@ -158,7 +157,7 @@ def test_turok_with_ssht(L: int, sampling: str):
 
         for el in range(L):
 
-            dl_turok = wigner.turok.compute_full(dl, beta, el, L)
+            dl_turok = wigner.turok.compute_full(beta, el, L)
 
             np.testing.assert_allclose(dl_turok, dl_array[el], atol=1e-14)
 
@@ -171,7 +170,6 @@ def test_turok_slice_with_ssht(L: int, spin: int, sampling: str):
 
     # Test all dl() terms up to L.
     betas = samples.thetas(L, sampling, int(L / 2))
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
 
     # Compute using SSHT.
     for beta in betas:
@@ -180,7 +178,7 @@ def test_turok_slice_with_ssht(L: int, spin: int, sampling: str):
         for el in range(L):
             if el >= np.abs(spin):
 
-                dl_turok = wigner.turok.compute_slice(dl, beta, el, L, -spin)
+                dl_turok = wigner.turok.compute_slice(beta, el, L, -spin)
 
                 np.testing.assert_allclose(
                     dl_turok, dl_array[el][L - 1 + spin], atol=1e-10, rtol=1e-12
