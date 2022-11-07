@@ -8,19 +8,23 @@ from functools import partial
 @partial(jit, static_argnums=(2, 3))
 def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
     r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
-    of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok & Bucher recursion.
+    of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok &
+    Bucher recursion.
 
-    The Wigner-d slice for a given :math:`\ell` (`el`) and :math:`\beta`
-    is computed recursively over :math:`m` labelled 'm' at a specific :math:`m^{\prime}`.
-    The Turok & Bucher recursion is analytically correct from :math:`-\ell < m < \ell`
-    however numerically it can become unstable for :math:`m > 0`. To avoid this we
-    compute :math:`d_{m, m^{\prime}}^{\ell}(\beta)` for negative :math:`m` and then evaluate
-    :math:`d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m, m^{\prime}}^{\ell}(\beta)`
-    which we can again evaluate using a Turok & Bucher recursion.
+    The Wigner-d slice for a given :math:`\ell` (`el`) and :math:`\beta` is
+    computed recursively over :math:`m` labelled 'm' at a specific
+    :math:`m^{\prime}`. The Turok & Bucher recursion is analytically correct
+    from :math:`-\ell < m < \ell` however numerically it can become unstable for
+    :math:`m > 0`. To avoid this we compute :math:`d_{m,
+    m^{\prime}}^{\ell}(\beta)` for negative :math:`m` and then evaluate
+    :math:`d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m,
+    m^{\prime}}^{\ell}(\beta)` which we can again evaluate using a Turok &
+    Bucher recursion.
 
     The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
     :math:`-L < m < L` by `dl[L - 1 - m]`. This implementation has computational
-    scaling :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L` operations.
+    scaling :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L`
+    operations.
 
     Args:
         beta (float): Polar angle in radians.
@@ -74,7 +78,8 @@ def _compute_quarter_slice(
         mm (int): Harmonic order at which to slice the matrix.
 
     Returns:
-        jnp.ndarray: Wigner-d matrix slice of dimension [2L-1] populated only on the mm slice.
+        jnp.ndarray: Wigner-d matrix slice of dimension [2L-1] populated only on the mm
+            slice.
     """
     # These constants handle overflow by retrospectively renormalising
     big_const = 1e10
@@ -200,7 +205,8 @@ def _increment_normalisation(lrenorm, i, lbig) -> jnp.ndarray:
 
         i (float): Which half-line recursion is being considered.
 
-        lbig (float): The logarithm of a very large number used to avoid over/underflows.
+        lbig (float): The logarithm of a very large number used to avoid
+            over/underflows.
 
     Returns:
         jnp.ndarray: Renormalised Wigner-d matrix slice of dimension [2L-1].
@@ -211,7 +217,8 @@ def _increment_normalisation(lrenorm, i, lbig) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(2, 3))
 def _north_pole(dl, el, L, mm) -> jnp.ndarray:
-    r"""Edge case where theta index is located on the north pole.
+    r"""Compute Wigner-d matrix for edge case where theta index is located on the
+    north pole.
 
     Args:
         dl (np.ndarray): Wigner-d matrix to populate (shape: 2L-1).
@@ -235,7 +242,8 @@ def _north_pole(dl, el, L, mm) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(2, 3))
 def _south_pole(dl, el, L, mm) -> jnp.ndarray:
-    r"""Edge case where theta index is located on the south pole.
+    r"""Compute Wigner-d matrix for edge case where theta index is located on the
+    south pole.
 
     Args:
         dl (np.ndarray): Wigner-d matrix to populate (shape: 2L-1).
@@ -259,7 +267,8 @@ def _south_pole(dl, el, L, mm) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(1))
 def _el0(dl, L) -> jnp.ndarray:
-    r"""Edge case where the harmonic degree is 0 (monopole term)
+    r"""Compute Wigner-d matrix for edge case where the harmonic degree is 0
+    (monopole term).
 
     Args:
         dl (np.ndarray): Wigner-d matrix to populate (shape: 2L-1).
