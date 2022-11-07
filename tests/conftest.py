@@ -1,8 +1,6 @@
 """Collection of shared fixtures"""
 from functools import partial
 import pytest
-import numpy as np
-import s2fft as s2f
 
 
 DEFAULT_SEED = 8966433580120847635
@@ -29,9 +27,15 @@ def pytest_generate_tests(metafunc):
 
 @pytest.fixture
 def rng(seed):
+    # Import numpy locally to avoid `RuntimeWarning: numpy.ndarray size changed`
+    # when importing at module level
+    import numpy as np
     return np.random.default_rng(seed)
 
 
 @pytest.fixture
 def flm_generator(rng):
+    # Import s2fft (and indirectly numpy_ locally to avoid
+    # `RuntimeWarning: numpy.ndarray size changed` when importing at module level
+    import s2fft as s2f
     return partial(s2f.utils.generate_flm, rng)
