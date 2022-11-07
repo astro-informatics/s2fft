@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>s2fft.wigner.turok_jax &mdash; ProjectName 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom_tabs.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/dark_mode_css/general.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/dark_mode_css/dark.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script src="../_static/dark_mode_js/default_light.js"></script>
+        <script src="../_static/dark_mode_js/theme_switcher.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="s2fft.logs" href="logs.html" />
+    <link rel="prev" title="s2fft.wigner.turok" href="turok.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html">
+            <img src="../_static/placeholder_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/install.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Background</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../background/index.html">Some background information</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Interactive Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/example_notebook.html">Notebook Template</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="trapani.html">s2fft.wigner.trapani</a></li>
+<li class="toctree-l1"><a class="reference internal" href="risbo.html">s2fft.wigner.risbo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="turok.html">s2fft.wigner.turok</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">s2fft.wigner.turok_jax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="logs.html">s2fft.logs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legendre_matrix.html">s2fft.precompute.construct_legendre_matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="precompute_transforms.html">s2fft.precompute.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quadrature.html">s2fft.quadrature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resampling.html">s2fft.resampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">s2fft.samples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transforms.html">s2fft.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">s2fft.utils</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ProjectName</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>s2fft.wigner.turok_jax</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/turok_jax.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="module-s2fft.wigner.turok_jax">
+<span id="s2fft-wigner-turok-jax"></span><h1>s2fft.wigner.turok_jax<a class="headerlink" href="#module-s2fft.wigner.turok_jax" title="Permalink to this headline"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.wigner.turok_jax.compute_slice">
+<span class="sig-prename descclassname"><span class="pre">s2fft.wigner.turok_jax.</span></span><span class="sig-name descname"><span class="pre">compute_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax._src.numpy.ndarray.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.turok_jax.compute_slice" title="Permalink to this definition"></a></dt>
+<dd><p>Compute a particular slice <span class="math notranslate nohighlight">\(m^{\prime}\)</span>, denoted <cite>mm</cite>,
+of the complete Wigner-d matrix at polar angle <span class="math notranslate nohighlight">\(\beta\)</span> using Turok &amp;
+Bucher recursion.</p>
+<p>The Wigner-d slice for a given <span class="math notranslate nohighlight">\(\ell\)</span> (<cite>el</cite>) and <span class="math notranslate nohighlight">\(\beta\)</span> is
+computed recursively over <span class="math notranslate nohighlight">\(m\)</span> labelled ‘m’ at a specific
+<span class="math notranslate nohighlight">\(m^{\prime}\)</span>. The Turok &amp; Bucher recursion is analytically correct
+from <span class="math notranslate nohighlight">\(-\ell &lt; m &lt; \ell\)</span> however numerically it can become unstable for
+<span class="math notranslate nohighlight">\(m &gt; 0\)</span>. To avoid this we compute <span class="math notranslate nohighlight">\(d_{m,
+m^{\prime}}^{\ell}(\beta)\)</span> for negative <span class="math notranslate nohighlight">\(m\)</span> and then evaluate
+<span class="math notranslate nohighlight">\(d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m,
+m^{\prime}}^{\ell}(\beta)\)</span> which we can again evaluate using a Turok &amp;
+Bucher recursion.</p>
+<p>The Wigner-d slice <span class="math notranslate nohighlight">\(d^\ell_{m, m^{\prime}}(\beta)\)</span> is indexed for
+<span class="math notranslate nohighlight">\(-L &lt; m &lt; L\)</span> by <cite>dl[L - 1 - m]</cite>. This implementation has computational
+scaling <span class="math notranslate nohighlight">\(\mathcal{O}(L)\)</span> and typically requires <span class="math notranslate nohighlight">\(\sim 2L\)</span>
+operations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>beta</strong> (<em>float</em>) – Polar angle in radians.</p></li>
+<li><p><strong>el</strong> (<em>int</em>) – Harmonic degree of Wigner-d matrix.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>mm</strong> (<em>int</em>) – Harmonic order at which to slice the matrix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Wigner-d matrix mm slice of dimension [2L-1].</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.wigner.turok_jax.reindex">
+<span class="sig-prename descclassname"><span class="pre">s2fft.wigner.turok_jax.</span></span><span class="sig-name descname"><span class="pre">reindex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax._src.numpy.ndarray.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.turok_jax.reindex" title="Permalink to this definition"></a></dt>
+<dd><p>Reorders indexing of Wigner-d matrix.</p>
+<p>Reindexes the Wigner-d matrix to centre m values around L-1.
+The original indexing is given by
+<span class="math notranslate nohighlight">\([-m \rightarrow -1, \dots, 0 \rightarrow m]\)</span> and the
+resulting indexing is given by
+<span class="math notranslate nohighlight">\([\dots, -m \rightarrow 0 \rightarrow m, \dots]\)</span>, where
+<span class="math notranslate nohighlight">\(\dots\)</span> represents entries in which the values should be
+ignored. These extra entries are necessary to ensure <a class="reference internal" href="#s2fft.wigner.turok_jax.compute_slice" title="s2fft.wigner.turok_jax.compute_slice"><code class="xref py py-func docutils literal notranslate"><span class="pre">compute_slice()</span></code></a>
+can operate with static length.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dl</strong> (<em>np.ndarray</em>) – Wigner-d matrix to populate (shape: 2L-1).</p></li>
+<li><p><strong>el</strong> (<em>int</em>) – Harmonic degree of Wigner-d matrix.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Wigner-d matrix slice of dimension [2L-1].</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="turok.html" class="btn btn-neutral float-left" title="s2fft.wigner.turok" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="logs.html" class="btn btn-neutral float-right" title="s2fft.logs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Author names.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
