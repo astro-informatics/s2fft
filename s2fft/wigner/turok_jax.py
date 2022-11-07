@@ -108,16 +108,22 @@ def _compute_quarter_slice(
     sign = jnp.zeros(2, dtype=jnp.float64)
     cpi = jnp.zeros(L + 1, dtype=jnp.float64)
     cp2 = jnp.zeros(L + 1, dtype=jnp.float64)
-    log_first_row = jnp.zeros(2 * L + 1, dtype=jnp.float64)
 
     # Populate vectors for first row
-    log_first_row = log_first_row.at[0].set(2.0 * el * jnp.log(jnp.abs(c2)))
+    def compute_next_entry_given_current(log_first_row_i_minus_1, i):
+        ratio = (2 * el + 2 - i - 1) / i
+        log_first_row_i = log_first_row_i_minus_1 + jnp.log(ratio) / 2 + lt
+        return log_first_row_i, log_first_row_i
 
-    for i in range(2, L + 1 + np.abs(mm)):
-        ratio = (2 * el + 2 - i) / (i - 1)
-        log_first_row = log_first_row.at[i - 1].set(
-            log_first_row[i - 2] + jnp.log(ratio) / 2 + lt
-        )
+    log_first_row_0 = 2 * el * jnp.log(abs(c2))
+    _, log_first_row_1_to_L_plus_abs_mm = lax.scan(
+        compute_next_entry_given_current, log_first_row_0, np.arange(1, L + abs(mm))
+    )
+    log_first_row = jnp.concatenate((
+        jnp.atleast_1d(log_first_row_0),
+        log_first_row_1_to_L_plus_abs_mm,
+        jnp.zeros(L + 1 - abs(mm)))
+    )
 
     sign = sign.at[0].set((t / jnp.abs(t)) ** ((half_slices[0] - 1) % 2))
     sign = sign.at[1].set((t / jnp.abs(t)) ** ((half_slices[1] - 1) % 2))
