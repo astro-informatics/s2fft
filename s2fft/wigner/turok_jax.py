@@ -191,9 +191,7 @@ def _renormalise(dl, lim, sgn, m, bigi) -> jnp.ndarray:
     Returns:
         jnp.ndarray: Renormalised Wigner-d matrix slice of dimension [2L-1].
     """
-    for im in range(m + 1):
-        dl = dl.at[lim + sgn * im].multiply(bigi)
-    return dl
+    return dl.at[lim + sgn * jnp.arange(m + 1)].multiply(bigi)
 
 
 @partial(jit)
