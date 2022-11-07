@@ -95,17 +95,12 @@ def _compute_quarter_slice(
     omc = 1.0 - c
 
     # Indexing boundaries
-    half_slices = jnp.zeros(2, dtype=jnp.int64)
-    half_slices = half_slices.at[0].set(el + mm + 1)
-    half_slices = half_slices.at[1].set(el - mm + 1)
+    half_slices = jnp.array([el + mm + 1, el - mm + 1], dtype=jnp.int64)
 
-    lims = jnp.zeros(2, dtype=jnp.int64)
-    lims = lims.at[0].set(0)
-    lims = lims.at[1].set(-1)
+    lims = jnp.array([0, -1], dtype=jnp.int64)
 
     # Vectors with indexing -L < m < L adopted throughout
     lrenorm = jnp.zeros(2, dtype=jnp.float64)
-    sign = jnp.zeros(2, dtype=jnp.float64)
     cpi = jnp.zeros(L + 1, dtype=jnp.float64)
     cp2 = jnp.zeros(L + 1, dtype=jnp.float64)
 
@@ -125,8 +120,7 @@ def _compute_quarter_slice(
         jnp.zeros(L + 1 - abs(mm)))
     )
 
-    sign = sign.at[0].set((t / jnp.abs(t)) ** ((half_slices[0] - 1) % 2))
-    sign = sign.at[1].set((t / jnp.abs(t)) ** ((half_slices[1] - 1) % 2))
+    sign = (t / abs(t)) ** ((half_slices - 1) % 2)
 
     # Initialising coefficients cp(m)= cplus(l-m).
     cpi = cpi.at[0].set(2.0 / jnp.sqrt(2 * el))
