@@ -9,8 +9,9 @@ from jax.config import config
 
 config.update("jax_enable_x64", True)
 
-L_to_test = [8, 16, 32]
-spin_to_test = np.arange(-3, 3)
+L_to_test = [8, 16]
+spin_to_test = np.arange(-2, 2)
+sampling_schemes = ["mw", "mwss", "dh", "healpix"]
 
 
 def test_trapani_with_ssht():
@@ -162,7 +163,7 @@ def test_turok_with_ssht(L: int, sampling: str):
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
-@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "healpix"])
+@pytest.mark.parametrize("sampling", sampling_schemes)
 def test_turok_slice_with_ssht(L: int, spin: int, sampling: str):
     """Test Turok spin slice computation against ssht"""
 
@@ -183,8 +184,36 @@ def test_turok_slice_with_ssht(L: int, spin: int, sampling: str):
                 )
 
 
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("spin", spin_to_test)
+@pytest.mark.parametrize("sampling", sampling_schemes)
+def test_turok_slice_jax_with_ssht(L: int, spin: int, sampling: str):
+    """Test Turok spin slice computation against ssht"""
+
+    # Test all dl() terms up to L.
+    betas = samples.thetas(L, sampling, int(L / 2))
+
+    # Compute using SSHT.
+    for beta in betas:
+        dl_array = ssht.generate_dl(beta, L)
+
+        for el in range(L):
+            if el >= np.abs(spin):
+
+                dl_turok = wigner.turok_jax.compute_slice(beta, el, L, -spin)
+
+                np.testing.assert_allclose(
+                    dl_turok[L - 1 - el : L - 1 + el + 1],
+                    dl_array[el][L - 1 - spin][L - 1 - el : L - 1 + el + 1],
+                    atol=1e-10,
+                    rtol=1e-12,
+                )
+
+
 def test_turok_exceptions():
     L = 10
+    dl = np.zeros(2 * L - 1, dtype=np.float64)
+    dl_full = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
     with pytest.raises(ValueError) as e:
         wigner.turok.compute_full(np.pi / 2, L, L)
