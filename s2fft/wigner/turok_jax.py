@@ -56,7 +56,7 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
         dl,
     )
 
-    return _reindex(dl, el, L)
+    return reindex(dl, el, L)
 
 
 @partial(jit, static_argnums=(3, 4))
@@ -284,14 +284,17 @@ def _el0(dl, L) -> jnp.ndarray:
 
 
 @partial(jit, static_argnums=(2))
-def _reindex(dl, el, L) -> jnp.ndarray:
+def reindex(dl, el, L) -> jnp.ndarray:
     r"""Reorders indexing of Wigner-d matrix.
 
     Reindexes the Wigner-d matrix to centre m values around L-1. 
     The original indexing is given by 
-    :math:`[-m \rightarrow -1, \dots, 0, \dots, 1 \rightarrow m]` and the 
+    :math:`[-m \rightarrow -1, \dots, 0 \rightarrow m]` and the 
     resulting indexing is given by 
-    :math:`[\dots, -m \rightarrow 0 \rightarrow m, \dots]`.
+    :math:`[\dots, -m \rightarrow 0 \rightarrow m, \dots]`, where 
+    :math:`\dots` represents entries in which the values should be 
+    ignored. These extra entries are necessary to ensure :func:`~compute_slice` 
+    can operate with static length.
 
     Args:
         dl (np.ndarray): Wigner-d matrix to populate (shape: 2L-1).
