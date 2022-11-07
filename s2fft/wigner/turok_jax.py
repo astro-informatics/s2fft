@@ -287,13 +287,13 @@ def _el0(dl, L) -> jnp.ndarray:
 def reindex(dl, el, L) -> jnp.ndarray:
     r"""Reorders indexing of Wigner-d matrix.
 
-    Reindexes the Wigner-d matrix to centre m values around L-1. 
-    The original indexing is given by 
-    :math:`[-m \rightarrow -1, \dots, 0 \rightarrow m]` and the 
-    resulting indexing is given by 
-    :math:`[\dots, -m \rightarrow 0 \rightarrow m, \dots]`, where 
-    :math:`\dots` represents entries in which the values should be 
-    ignored. These extra entries are necessary to ensure :func:`~compute_slice` 
+    Reindexes the Wigner-d matrix to centre m values around L-1.
+    The original indexing is given by
+    :math:`[-m \rightarrow -1, \dots, 0 \rightarrow m]` and the
+    resulting indexing is given by
+    :math:`[\dots, -m \rightarrow 0 \rightarrow m, \dots]`, where
+    :math:`\dots` represents entries in which the values should be
+    ignored. These extra entries are necessary to ensure :func:`~compute_slice`
     can operate with static length.
 
     Args:
