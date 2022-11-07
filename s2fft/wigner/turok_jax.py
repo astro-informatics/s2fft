@@ -289,9 +289,9 @@ def _reindex(dl, el, L) -> jnp.ndarray:
 
     Reindexes the Wigner-d matrix to centre m values around L-1. 
     The original indexing is given by 
-    :math:`[-m, \dots, -1, \dots, 0, \dots, 1, \dots m]` and the 
+    :math:`[-m \rightarrow -1, \dots, 0, \dots, 1 \rightarrow m]` and the 
     resulting indexing is given by 
-    :math:`[\dots, -m, \dots, 0, \dots m, \dots]`.
+    :math:`[\dots, -m \rightarrow 0 \rightarrow m, \dots]`.
 
     Args:
         dl (np.ndarray): Wigner-d matrix to populate (shape: 2L-1).
