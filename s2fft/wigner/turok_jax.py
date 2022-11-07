@@ -285,7 +285,13 @@ def _el0(dl, L) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(2))
 def _reindex(dl, el, L) -> jnp.ndarray:
-    r"""Reorders indexing of Wigner-d matrix to match fftshift indexing.
+    r"""Reorders indexing of Wigner-d matrix.
+
+    Reindexes the Wigner-d matrix to centre m values around L-1. 
+    The original indexing is given by 
+    :math:`[-m, \dots, -1, \dots, 0, \dots, 1, \dots m]` and the 
+    resulting indexing is given by 
+    :math:`[\dots, -m, \dots, 0, \dots m, \dots]`.
 
     Args:
         dl (np.ndarray): Wigner-d matrix to populate (shape: 2L-1).
