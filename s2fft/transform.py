@@ -14,7 +14,7 @@ import s2fft.wigner as wigner
 
 
 def inverse_direct(
-    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw", nside: int = None,
 ) -> np.ndarray:
     """Compute inverse spherical harmonic transform by direct method.
 
@@ -29,7 +29,9 @@ def inverse_direct(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+        
+        nside (int): HEALPix Nside resolution parameter.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -38,12 +40,17 @@ def inverse_direct(
     assert flm.shape == samples.flm_shape(L)
     assert 0 <= spin < L
 
-    ntheta = samples.ntheta(L, sampling)
-    nphi = samples.nphi_equiang(L, sampling)
-    f = np.zeros((ntheta, nphi), dtype=np.complex128)
+    if sampling.lower() != "healpix":
+        ntheta = samples.ntheta(L, sampling)
+        nphi = samples.nphi_equiang(L, sampling)
+        phis_equiang = samples.phis_equiang(L, sampling)
+        f = np.zeros((ntheta, nphi), dtype=np.complex128)
+    elif sampling.lower() == "healpix":
+        f = np.zeros(12 * nside**2, dtype=np.complex128)
+    else:
+        raise ValueError(f"Sampling scheme not recognised")
 
-    thetas = samples.thetas(L, sampling)
-    phis_equiang = samples.phis_equiang(L, sampling)
+    thetas = samples.thetas(L, sampling, nside)
 
     for t, theta in enumerate(thetas):
 
@@ -56,10 +63,18 @@ def inverse_direct(
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
                 for m in range(-el, el + 1):
+                
+                    if sampling.lower() == "healpix":
+                        phis_equiang = samples.phis_ring(t, nside)
 
                     for p, phi in enumerate(phis_equiang):
+                    
+                        if sampling.lower() != "healpix":
+                            entry = (t, p) 
+                        else:
+                            entry = samples.hp_ang2pix(nside, theta, phi)
 
-                        f[t, p] += (
+                        f[entry] += (
                             (-1) ** spin
                             * elfactor
                             * np.exp(1j * m * phi)
@@ -71,7 +86,7 @@ def inverse_direct(
 
 
 def inverse_sov(
-    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw", nside: int = None,
 ) -> np.ndarray:
     """Compute inverse spherical harmonic transform by separate of variables method
     (without FFTs).
@@ -87,7 +102,9 @@ def inverse_sov(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+        
+        nside (int): HEALPix Nside resolution parameter.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -96,14 +113,20 @@ def inverse_sov(
     assert flm.shape == samples.flm_shape(L)
     assert 0 <= spin < L
 
-    ntheta = samples.ntheta(L, sampling)
-    nphi = samples.nphi_equiang(L, sampling)
-    f = np.zeros((ntheta, nphi), dtype=np.complex128)
+    ntheta = samples.ntheta(L, sampling, nside=nside)
+    thetas = samples.thetas(L, sampling, nside=nside)
 
-    thetas = samples.thetas(L, sampling)
-    phis_equiang = samples.phis_equiang(L, sampling)
+    if sampling.lower() != "healpix":
+        nphi = samples.nphi_equiang(L, sampling)
+        phis_equiang = samples.phis_equiang(L, sampling)
+        f = np.zeros((ntheta, nphi), dtype=np.complex128)
+    elif sampling.lower() == "healpix":
+        f = np.zeros(12 * nside**2, dtype=np.complex128)
+    else:
+        raise ValueError(f"Sampling scheme not recognised")
 
     ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
+
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
@@ -122,11 +145,19 @@ def inverse_sov(
 
     for t, theta in enumerate(thetas):
 
+        if sampling.lower() == "healpix":
+            phis_equiang = samples.phis_ring(t, nside)
+
         for p, phi in enumerate(phis_equiang):
 
             for m in range(-(L - 1), L):
 
-                f[t, p] += ftm[t, m + L - 1] * np.exp(1j * m * phi)
+                if sampling.lower() != "healpix":
+                            entry = (t, p) 
+                else:
+                    entry = samples.hp_ang2pix(nside, theta, phi)
+
+                f[entry] += ftm[t, m + L - 1] * np.exp(1j * m * phi)
 
     return f
 
@@ -235,7 +266,7 @@ def inverse_sov_fft_vectorized(
 
 
 def forward_direct(
-    f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+    f: np.ndarray, L: int, spin: int = 0, sampling: str = "dh", nside: int = None,
 ) -> np.ndarray:
     """Compute forward spherical harmonic transform by direct method.
 
@@ -250,30 +281,35 @@ def forward_direct(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"dh", "healpix"}.  Defaults to "dh".
+        
+        nside (int): HEALPix Nside resolution parameter.
+        
+        
 
     Raises:
-        ValueError: Only DH sampling supported at present.
+        ValueError: Only DH & HEALPix sampling supported at present.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients
     """
-
-    assert f.shape == samples.f_shape(L, sampling)
+    assert f.shape == samples.f_shape(L, sampling, nside)
     assert 0 <= spin < L
 
-    if sampling.lower() != "dh":
+    if sampling.lower() not in ["dh", "healpix"]:
 
         raise ValueError(
-            f"Sampling scheme sampling={sampling} not implement (only DH supported at present)"
+            f"Sampling scheme sampling={sampling} not implement (only DH & HEALPix supported at present)"
         )
 
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
-    thetas = samples.thetas(L, sampling)
-    phis_equiang = samples.phis_equiang(L, sampling)
+    thetas = samples.thetas(L, sampling, nside=nside)
+    weights = quadrature.quad_weights(L, sampling, spin, nside)
 
-    weights = quadrature.quad_weights(L, sampling)
+    if sampling.lower() == "dh":
+        phis_equiang = samples.phis_equiang(L, sampling)
+
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
@@ -286,22 +322,30 @@ def forward_direct(
 
                 for m in range(-el, el + 1):
 
+                    if sampling.lower() == "healpix":
+                        phis_equiang = samples.phis_ring(t, nside)
+
                     for p, phi in enumerate(phis_equiang):
 
+                        if sampling.lower() == "dh":
+                            entry = (t,p)
+                        else:
+                            entry = samples.hp_ang2pix(nside, theta, phi)
+                    
                         flm[el, m + L - 1] += (
                             weights[t]
                             * (-1) ** spin
                             * elfactor
                             * np.exp(-1j * m * phi)
                             * dl[m + L - 1]
-                            * f[t, p]
+                            * f[entry]
                         )
 
     return flm
 
 
 def forward_sov(
-    f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+    f: np.ndarray, L: int, spin: int = 0, sampling: str = "dh", nside: int = None,
 ) -> np.ndarray:
     """Compute forward spherical harmonic transform by separate of variables method
     (without FFTs).
@@ -317,40 +361,53 @@ def forward_sov(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"dh", "healpix}.  Defaults to "dh".
+
+        nside (int): HEALPix Nside resolution parameter.
 
     Raises:
-        ValueError: Only DH sampling supported at present.
+        ValueError: Only DH & HEALPix sampling supported at present.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients
     """
 
-    assert f.shape == samples.f_shape(L, sampling)
+    assert f.shape == samples.f_shape(L, sampling, nside)
     assert 0 <= spin < L
 
-    if sampling.lower() != "dh":
+    if sampling.lower() not in ["dh", "healpix"]:
 
         raise ValueError(
-            f"Sampling scheme sampling={sampling} not implement (only DH supported at present)"
+            f"Sampling scheme sampling={sampling} not implement (only DH & HEALPix supported at present)"
         )
 
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
-    thetas = samples.thetas(L, sampling)
-    phis_equiang = samples.phis_equiang(L, sampling)
+    ntheta = samples.ntheta(L, sampling, nside=nside)
+    thetas = samples.thetas(L, sampling, nside=nside)
+    
+    if sampling.lower() == "dh":
+        phis_equiang = samples.phis_equiang(L, sampling)
 
-    ntheta = samples.ntheta(L, sampling)
     ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
 
         for m in range(-(L - 1), L):
 
+            if sampling.lower() == "healpix":
+                phis_equiang = samples.phis_ring(t, nside)
+
             for p, phi in enumerate(phis_equiang):
 
-                ftm[t, m + L - 1] += np.exp(-1j * m * phi) * f[t, p]
+                if sampling.lower() == "dh":
+                            entry = (t,p)
+                else:
+                    entry = samples.hp_ang2pix(nside, theta, phi)
 
-    weights = quadrature.quad_weights(L, sampling)
+                ftm[t, m + L - 1] += np.exp(-1j * m * phi) * f[entry]
+
+    weights = quadrature.quad_weights(L, sampling, spin, nside)
+
     for t, theta in enumerate(thetas):
 
         for el in range(0, L):
