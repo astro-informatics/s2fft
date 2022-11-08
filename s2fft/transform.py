@@ -297,18 +297,28 @@ def forward_direct(
     assert f.shape == samples.f_shape(L, sampling, nside)
     assert 0 <= spin < L
 
-    if sampling.lower() not in ["dh", "healpix"]:
+    # if sampling.lower() not in ["dh", "healpix"]:
 
-        raise ValueError(
-            f"Sampling scheme sampling={sampling} not implement (only DH & HEALPix supported at present)"
-        )
+    #     raise ValueError(
+    #         f"Sampling scheme sampling={sampling} not implement (only DH & HEALPix supported at present)"
+    #     )
 
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
-    thetas = samples.thetas(L, sampling, nside=nside)
-    weights = quadrature.quad_weights(L, sampling, spin, nside)
+    if sampling.lower() == "mw":
+        f = resampling.mw_to_mwss(f, L, spin)
+    
+    if sampling.lower() in ["mw", "mwss"]:
+        sampling = "mwss"
+        f = resampling.upsample_by_two_mwss(f, L, spin)
+        thetas = samples.thetas(2 * L, sampling)
+    
+    else:
+        thetas = samples.thetas(L, sampling, nside)
 
-    if sampling.lower() == "dh":
+    weights = quadrature.quad_weights_transform(L, sampling, spin=0, nside=nside)
+
+    if sampling.lower() != "healpix":
         phis_equiang = samples.phis_equiang(L, sampling)
 
     for t, theta in enumerate(thetas):
@@ -328,10 +338,10 @@ def forward_direct(
 
                     for p, phi in enumerate(phis_equiang):
 
-                        if sampling.lower() == "dh":
-                            entry = (t,p)
-                        else:
+                        if sampling.lower() == "healpix":
                             entry = samples.hp_ang2pix(nside, theta, phi)
+                        else:
+                            entry = (t,p)
                     
                         flm[el, m + L - 1] += (
                             weights[t]

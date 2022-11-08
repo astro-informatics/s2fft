@@ -116,7 +116,7 @@ def test_transform_inverse_sov_fft_vectorized(
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
-@pytest.mark.parametrize("sampling", ["dh"])
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
 def test_transform_forward_direct(flm_generator, L: int, spin: int, sampling: str):
 
     # TODO: move this and potentially do better
