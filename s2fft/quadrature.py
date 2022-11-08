@@ -3,7 +3,7 @@ import numpy.fft as fft
 import s2fft.samples as samples
 
 
-def quad_weights_transform(L: int, sampling: str = "mwss", spin: int = 0) -> np.ndarray:
+def quad_weights_transform(L: int, sampling: str = "mwss", spin: int = 0, nside: int = 0) -> np.ndarray:
     r"""Compute quadrature weights for :math:`\theta` and :math:`\phi`
     integration *to use in transform* for various sampling schemes.
 
@@ -14,9 +14,12 @@ def quad_weights_transform(L: int, sampling: str = "mwss", spin: int = 0) -> np.
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mwss", "dh"}.  Defaults to "mwss".
+            {"mwss", "dh", "healpix}.  Defaults to "mwss".
 
         spin (int, optional): Harmonic spin. Defaults to 0.
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
 
     Raises:
         ValueError: Invalid sampling scheme.
@@ -32,6 +35,9 @@ def quad_weights_transform(L: int, sampling: str = "mwss", spin: int = 0) -> np.
 
     elif sampling.lower() == "dh":
         return quad_weights_dh(L)
+    
+    elif sampling.lower() == "healpix":
+        return quad_weights_hp(nside)
 
     else:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")

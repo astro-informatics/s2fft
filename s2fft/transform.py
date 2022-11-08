@@ -122,10 +122,11 @@ def inverse_sov(
         f = np.zeros((ntheta, nphi), dtype=np.complex128)
     elif sampling.lower() == "healpix":
         f = np.zeros(12 * nside**2, dtype=np.complex128)
+        nphi = 4 * nside
     else:
         raise ValueError(f"Sampling scheme not recognised")
 
-    ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
+    ftm = np.zeros((ntheta, nphi), dtype=np.complex128)
 
     for t, theta in enumerate(thetas):
 
@@ -375,21 +376,28 @@ def forward_sov(
     assert f.shape == samples.f_shape(L, sampling, nside)
     assert 0 <= spin < L
 
-    if sampling.lower() not in ["dh", "healpix"]:
+    if sampling.lower() == "mw":
+        f = resampling.mw_to_mwss(f, L, spin)
+    
+    if sampling.lower() in ["mw", "mwss"]:
+        sampling = "mwss"
+        f = resampling.upsample_by_two_mwss(f, L, spin)
+        thetas = samples.thetas(2 * L, sampling)
+        nphi = samples.nphi_equiang(L, sampling)
 
-        raise ValueError(
-            f"Sampling scheme sampling={sampling} not implement (only DH & HEALPix supported at present)"
-        )
+    elif sampling.lower() == "dh":
+        thetas = samples.thetas(L, sampling, nside)
+        nphi = samples.nphi_equiang(L, sampling)
+    else:
+        thetas = samples.thetas(L, sampling, nside)
+        nphi = 4 * nside
 
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
-
-    ntheta = samples.ntheta(L, sampling, nside=nside)
-    thetas = samples.thetas(L, sampling, nside=nside)
     
-    if sampling.lower() == "dh":
+    if sampling.lower() != "healpix":
         phis_equiang = samples.phis_equiang(L, sampling)
 
-    ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
+    ftm = np.zeros((len(thetas), nphi), dtype=np.complex128)
     for t, theta in enumerate(thetas):
 
         for m in range(-(L - 1), L):
@@ -399,14 +407,14 @@ def forward_sov(
 
             for p, phi in enumerate(phis_equiang):
 
-                if sampling.lower() == "dh":
-                            entry = (t,p)
-                else:
+                if sampling.lower() == "healpix":
                     entry = samples.hp_ang2pix(nside, theta, phi)
+                else:
+                    entry = (t,p)
 
                 ftm[t, m + L - 1] += np.exp(-1j * m * phi) * f[entry]
 
-    weights = quadrature.quad_weights(L, sampling, spin, nside)
+    weights = quadrature.quad_weights_transform(L, sampling, spin=0, nside=nside)
 
     for t, theta in enumerate(thetas):
 
