@@ -35,7 +35,7 @@ def rng(seed):
 
 @pytest.fixture
 def flm_generator(rng):
-    # Import s2fft (and indirectly numpy_ locally to avoid
+    # Import s2fft (and indirectly numpy) locally to avoid
     # `RuntimeWarning: numpy.ndarray size changed` when importing at module level
     import s2fft as s2f
     return partial(s2f.utils.generate_flm, rng)
