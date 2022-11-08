@@ -5,6 +5,7 @@ import s2fft.quadrature as quadrature
 import s2fft.resampling as resampling
 import s2fft.wigner as wigner
 
+
 def inverse_sov_fft_healpix(
     flm: np.ndarray, L: int, nside: int, spin: int = 0
 ) -> np.ndarray:
@@ -44,8 +45,10 @@ def inverse_sov_fft_healpix(
                         * dl[m + L - 1, -spin + L - 1]
                         * flm[el, m + L - 1]
                     ) * np.exp(1j * m * psi_0_y)
+
     index = 0
     for t, theta in enumerate(thetas):
+
         nphi = samples.nphi_ring(t, nside)
         f_ring = fft.ifft(fft.ifftshift(ftm[t]), norm="forward")
         f_ring = resample(f_ring, nphi)

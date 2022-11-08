@@ -398,7 +398,7 @@ def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> tuple:
 
     if sampling.lower() == "healpix":
 
-        return 12 * nside**2,
+        return (12 * nside**2,)
 
     else:
 

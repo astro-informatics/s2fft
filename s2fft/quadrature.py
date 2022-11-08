@@ -3,7 +3,9 @@ import numpy.fft as fft
 import s2fft.samples as samples
 
 
-def quad_weights_transform(L: int, sampling: str = "mwss", spin: int = 0, nside: int = 0) -> np.ndarray:
+def quad_weights_transform(
+    L: int, sampling: str = "mwss", spin: int = 0, nside: int = 0
+) -> np.ndarray:
     r"""Compute quadrature weights for :math:`\theta` and :math:`\phi`
     integration *to use in transform* for various sampling schemes.
 
@@ -35,7 +37,7 @@ def quad_weights_transform(L: int, sampling: str = "mwss", spin: int = 0, nside:
 
     elif sampling.lower() == "dh":
         return quad_weights_dh(L)
-    
+
     elif sampling.lower() == "healpix":
         return quad_weights_hp(nside)
 
