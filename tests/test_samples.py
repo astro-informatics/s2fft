@@ -4,7 +4,6 @@ import s2fft as s2f
 import pyssht as ssht
 import healpy as hp
 
-from .utils import *
 
 nside_to_test = [32, 64, 128]
 

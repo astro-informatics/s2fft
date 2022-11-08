@@ -3,8 +3,6 @@ import numpy as np
 import s2fft as s2f
 import pyssht as ssht
 
-from .utils import *
-
 
 def test_flm_reindexing_functions(flm_generator):
 
