@@ -96,7 +96,7 @@ def _compute_quarter_slice(
 
     # Indexing boundaries
     half_slices = jnp.array([el + mm + 1, el - mm + 1], dtype=jnp.int64)
-    lims = jnp.array([0, -1], dtype=jnp.int64)
+    lims = np.array([0, -1], dtype=np.int64)
 
     # Vectors with indexing -L < m < L adopted throughout
 
@@ -110,17 +110,19 @@ def _compute_quarter_slice(
     _, log_first_row_1_to_L_plus_abs_mm = lax.scan(
         log_first_row_iteration, log_first_row_0, np.arange(1, L + abs(mm))
     )
-    log_first_row = jnp.concatenate((
-        jnp.atleast_1d(log_first_row_0),
-        log_first_row_1_to_L_plus_abs_mm,
-        jnp.zeros(L + 1 - abs(mm)))
+    log_first_row = jnp.concatenate(
+        (
+            jnp.atleast_1d(log_first_row_0),
+            log_first_row_1_to_L_plus_abs_mm,
+            jnp.zeros(L + 1 - abs(mm)),
+        )
     )
 
     sign = (t / abs(t)) ** ((half_slices - 1) % 2)
 
     # Initialising coefficients cp(m)= cplus(l-m).
     m = jnp.arange(L)
-    cpi = jnp.concatenate((2 / ((m + 1) * (2 * el - m))**0.5, jnp.zeros(1)))
+    cpi = jnp.concatenate((2 / ((m + 1) * (2 * el - m)) ** 0.5, jnp.zeros(1)))
     cp2 = jnp.concatenate((jnp.zeros(1), cpi[1:] / cpi[:-1]))
 
     # Use Turok & Bucher recursion to evaluate a single half row
@@ -130,6 +132,9 @@ def _compute_quarter_slice(
     em = jnp.arange(1, L + 1)
     lrenorm = jnp.zeros(2, dtype=jnp.float64)
 
+    # Static array of indices for first dimension of dl array
+    indices = jnp.arange(2 * L - 1)
+
     for i in range(2):
         sgn = (-1) ** (i)
 
@@ -138,24 +143,27 @@ def _compute_quarter_slice(
         lamb = ((el + 1) * omc - half_slices[i] + c) / s
         dl = dl.at[lims[i] + sgn].set(lamb * dl[lims[i]] * cpi[0])
 
-        for m in range(2, L):
+        def renorm_iteration(m, dl_lrenorm):
+            dl, lrenorm = dl_lrenorm
             lamb = ((el + 1) * omc - half_slices[i] + m * c) / s
             dl = dl.at[lims[i] + sgn * m].set(
                 lamb * cpi[m - 1] * dl[lims[i] + sgn * (m - 1)]
                 - cp2[m - 1] * dl[lims[i] + sgn * (m - 2)]
             )
-            lrenorm = lax.cond(
-                dl[lims[i] + sgn * m] > big_const,
-                lambda x: _increment_normalisation(x, i, lbig),
-                lambda x: x,
-                lrenorm,
-            )
-            dl = lax.cond(
-                dl[lims[i] + sgn * m] > big_const,
-                lambda x: _renormalise(x, lims[i], sgn, m, bigi),
-                lambda x: x,
-                dl,
-            )
+            condition = dl[lims[i] + sgn * m] > big_const
+            increment = lax.cond(condition, lambda _: -lbig, lambda _: 0.0, None)
+            lrenorm = lrenorm.at[i].add(increment)
+            multiplier = lax.cond(condition, lambda _: bigi, lambda _: 1.0, None)
+            # multiply first m elements (if i == 0) or last m elements (if i == 1) of
+            # dl array by multiplier - use jnp.where rather than directly updating
+            # array using 'in-place' update such as
+            #     dl = dl.at[lims[i]:lims[i] + sgn * (m + 1):sgn].multiply(multiplier)
+            # to avoid non-static array slice (due to m dependence) that will raise an
+            # IndexError exception when used with lax.fori_loop
+            dl = jnp.where((indices < (m + 1))[::sgn], multiplier * dl, dl)
+            return dl, lrenorm
+
+        dl, lrenorm = lax.fori_loop(2, L, renorm_iteration, (dl, lrenorm))
 
         # Apply renormalisation
         renorm = sign[i] * jnp.exp(log_first_row[half_slices[i] - 1] - lrenorm[i])
@@ -167,46 +175,6 @@ def _compute_quarter_slice(
             dl = dl.at[-em].multiply((-1) ** ((mm - em + el + 1) % 2) * renorm)
 
     return jnp.nan_to_num(dl, neginf=0, posinf=0)
-
-
-@partial(jit, static_argnums=(3))
-def _renormalise(dl, lim, sgn, m, bigi) -> jnp.ndarray:
-    r"""Renormalises the recursion of the Wigner-d matrix to avoid over/underflow.
-
-    Args:
-        dl (np.ndarray): Wigner-d matrix to populate (shape: 2L-1).
-
-        lim (float): Starting index of half-line under consideration.
-
-        sgn (int): Direction that the half-line is computed.
-
-        m (int): recursion iterant at which stabilisation is needed.
-
-        bigi (float): The inverse of a very large number used to avoid over/underflows.
-
-    Returns:
-        jnp.ndarray: Renormalised Wigner-d matrix slice of dimension [2L-1].
-    """
-    return dl.at[lim + sgn * jnp.arange(m + 1)].multiply(bigi)
-
-
-@partial(jit)
-def _increment_normalisation(lrenorm, i, lbig) -> jnp.ndarray:
-    r"""Increments the renormalisation vector to be removed after computation.
-
-    Args:
-        lrenorm (np.ndarray): Log-renormalisation vector (shape: 2L-1).
-
-        i (float): Which half-line recursion is being considered.
-
-        lbig (float): The logarithm of a very large number used to avoid
-            over/underflows.
-
-    Returns:
-        jnp.ndarray: Renormalised Wigner-d matrix slice of dimension [2L-1].
-    """
-    lrenorm = lrenorm.at[i].set(lrenorm[i] - lbig)
-    return lrenorm
 
 
 @partial(jit, static_argnums=(2, 3))
