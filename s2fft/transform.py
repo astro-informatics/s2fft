@@ -45,7 +45,7 @@ def inverse_direct(
 
         ntheta = samples.ntheta(L, sampling)
         nphi = samples.nphi_equiang(L, sampling)
-        phis_equiang = samples.phis_equiang(L, sampling)
+        phis_ring = samples.phis_equiang(L, sampling)
         f = np.zeros((ntheta, nphi), dtype=np.complex128)
 
     elif sampling.lower() == "healpix":
@@ -71,12 +71,13 @@ def inverse_direct(
                 for m in range(-el, el + 1):
 
                     if sampling.lower() == "healpix":
-                        phis_equiang = samples.phis_ring(t, nside)
+                        phis_ring = samples.phis_ring(t, nside)
 
-                    for p, phi in enumerate(phis_equiang):
+                    for p, phi in enumerate(phis_ring):
 
                         if sampling.lower() != "healpix":
                             entry = (t, p)
+
                         else:
                             entry = samples.hp_ang2pix(nside, theta, phi)
 
@@ -110,7 +111,8 @@ def inverse_sov(
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
-        nside (int): HEALPix Nside resolution parameter.
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -125,7 +127,7 @@ def inverse_sov(
     if sampling.lower() != "healpix":
 
         nphi = samples.nphi_equiang(L, sampling)
-        phis_equiang = samples.phis_equiang(L, sampling)
+        phis_ring = samples.phis_equiang(L, sampling)
         f = np.zeros((ntheta, nphi), dtype=np.complex128)
 
     elif sampling.lower() == "healpix":
@@ -158,14 +160,15 @@ def inverse_sov(
     for t, theta in enumerate(thetas):
 
         if sampling.lower() == "healpix":
-            phis_equiang = samples.phis_ring(t, nside)
+            phis_ring = samples.phis_ring(t, nside)
 
-        for p, phi in enumerate(phis_equiang):
+        for p, phi in enumerate(phis_ring):
 
             for m in range(-(L - 1), L):
 
                 if sampling.lower() != "healpix":
                     entry = (t, p)
+
                 else:
                     entry = samples.hp_ang2pix(nside, theta, phi)
 
@@ -331,10 +334,12 @@ def forward_direct(
     else:
         thetas = samples.thetas(L, sampling, nside)
 
+    # Don't need to include spin in weights (even for spin signals)
+    # since accounted for already in periodic extension and upsampling.
     weights = quadrature.quad_weights_transform(L, sampling, spin=0, nside=nside)
 
     if sampling.lower() != "healpix":
-        phis_equiang = samples.phis_equiang(L, sampling)
+        phis_ring = samples.phis_equiang(L, sampling)
 
     for t, theta in enumerate(thetas):
 
@@ -349,9 +354,9 @@ def forward_direct(
                 for m in range(-el, el + 1):
 
                     if sampling.lower() == "healpix":
-                        phis_equiang = samples.phis_ring(t, nside)
+                        phis_ring = samples.phis_ring(t, nside)
 
-                    for p, phi in enumerate(phis_equiang):
+                    for p, phi in enumerate(phis_ring):
 
                         if sampling.lower() == "healpix":
                             entry = samples.hp_ang2pix(nside, theta, phi)
@@ -424,7 +429,7 @@ def forward_sov(
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
     if sampling.lower() != "healpix":
-        phis_equiang = samples.phis_equiang(L, sampling)
+        phis_ring = samples.phis_equiang(L, sampling)
 
     ftm = np.zeros((len(thetas), nphi), dtype=np.complex128)
     for t, theta in enumerate(thetas):
@@ -432,9 +437,9 @@ def forward_sov(
         for m in range(-(L - 1), L):
 
             if sampling.lower() == "healpix":
-                phis_equiang = samples.phis_ring(t, nside)
+                phis_ring = samples.phis_ring(t, nside)
 
-            for p, phi in enumerate(phis_equiang):
+            for p, phi in enumerate(phis_ring):
 
                 if sampling.lower() == "healpix":
                     entry = samples.hp_ang2pix(nside, theta, phi)
@@ -443,6 +448,8 @@ def forward_sov(
 
                 ftm[t, m + L - 1] += np.exp(-1j * m * phi) * f[entry]
 
+    # Don't need to include spin in weights (even for spin signals)
+    # since accounted for already in periodic extension and upsampling.
     weights = quadrature.quad_weights_transform(L, sampling, spin=0, nside=nside)
 
     for t, theta in enumerate(thetas):

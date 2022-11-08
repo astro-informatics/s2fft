@@ -363,7 +363,7 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
 
     elif sampling.lower() == "healpix":
 
-        raise ValueError(f"Sampling scheme sampling={sampling} not implemented")
+        raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
     else:
 
