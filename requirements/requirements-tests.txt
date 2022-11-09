@@ -1,11 +1,6 @@
-# Beautifiers
-black 
-pytest-black 
-
 # Testing
 pytest 
 pytest-cov
-codecov
 
 # Healpix Sampling
 healpy
