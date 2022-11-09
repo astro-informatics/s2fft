@@ -1,5 +1,5 @@
 import numpy as np
-from jax import jit
+from jax import jit, lax
 import jax.numpy as jnp
 from functools import partial
 
@@ -315,10 +315,22 @@ def compute_quarter_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
     t2_fact = jnp.sqrt(
         (el - ms_clip - 1) * (el + ms_clip + 2) / (el - ms_clip) / (el + ms_clip + 1)
     )
-    for i, m in enumerate(ms):  # compute quarter plane since vectorizes
-        t1 = 2 * mm / t1_fact[i] * dl[m + 1 + (L - 1), mm + (L - 1)]
-        t2 = t2_fact[i] * dl[m + 2 + (L - 1), mm + (L - 1)]
-        dl = dl.at[m + (L - 1), mm + (L - 1)].set(t1 - t2)
+
+    def compute_dl_submatrix_slice(dl_slice_1_dl_slice_2, t1_fact_i_t2_fact_i):
+        t1_fact_i, t2_fact_i, = t1_fact_i_t2_fact_i
+        dl_slice_1, dl_slice_2 = dl_slice_1_dl_slice_2
+        t1 = 2 * mm / t1_fact_i * dl_slice_1
+        t2 = t2_fact_i * dl_slice_2
+        dl_slice_0 = t1 - t2
+        return (dl_slice_0, dl_slice_1), dl_slice_0
+
+    _, dl_submatrix = lax.scan(
+        compute_dl_submatrix_slice,
+        (dl[el - 1 + (L - 1), mm + (L - 1)], dl[el + (L - 1), mm + (L - 1)]),
+        (t1_fact, t2_fact)
+    )
+
+    dl = dl.at[ms[:, None] + (L - 1), mm[None] + (L - 1)].set(dl_submatrix)
 
     return dl
 
