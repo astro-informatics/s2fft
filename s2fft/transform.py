@@ -29,7 +29,7 @@ def inverse_direct(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "dh".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -99,7 +99,7 @@ def inverse_sov(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "dh".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -107,7 +107,7 @@ def inverse_sov(
     Raises:
 
         ValueError: 4*nside is not greater than 2*L-1.
-        ValueError: sampling scheme not recognised
+        ValueError: Sampling scheme not recognised.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -118,7 +118,7 @@ def inverse_sov(
 
     if sampling.lower() == "healpix":
         if 4*nside < 2 * L - 1:
-            raise ValueError("HEALPix nside must be 2*L or greater.")
+            raise ValueError("Maximum nphi for HEALPix must be 2*L or greater.")
 
     ntheta = samples.ntheta(L, sampling, nside=nside)
     thetas = samples.thetas(L, sampling, nside=nside)
@@ -187,7 +187,7 @@ def inverse_sov_fft(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh"}.  Defaults to "dh".
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -240,7 +240,7 @@ def inverse_sov_fft_vectorized(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh"}.  Defaults to "dh".
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -296,7 +296,7 @@ def forward_direct(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "dh".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -382,7 +382,7 @@ def forward_sov(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "dh".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -400,7 +400,7 @@ def forward_sov(
 
     if sampling.lower() == "healpix":
         if 4*nside < 2 * L - 1:
-            raise ValueError("HEALPix nside must be 2*L or greater.")
+            raise ValueError("Maximum nphi for HEALPix must be 2*L or greater.")
 
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -481,7 +481,7 @@ def forward_sov_fft(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh"}.  Defaults to "dh".
 
     Returns:
         np.ndarray: Spherical harmonic coefficients
@@ -545,7 +545,7 @@ def forward_sov_fft_vectorized(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh"}.  Defaults to "dh".
 
     Returns:
         np.ndarray: Spherical harmonic coefficients
