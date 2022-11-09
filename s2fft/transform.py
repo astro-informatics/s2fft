@@ -43,19 +43,10 @@ def inverse_direct(
 
     if sampling.lower() != "healpix":
 
-        f_shape = samples.f_shape(L, sampling, nside)
         phis_ring = samples.phis_equiang(L, sampling)
 
-    elif sampling.lower() == "healpix":
-
-        f_shape = samples.f_shape(L, sampling, nside)
-
-    else:
-
-        raise ValueError(f"Sampling scheme not recognised")
-
     thetas = samples.thetas(L, sampling, nside)
-    f = np.zeros(f_shape, dtype=np.complex128)
+    f = np.zeros(samples.f_shape(L, sampling, nside), dtype=np.complex128)
 
     for t, theta in enumerate(thetas):
 
@@ -115,7 +106,8 @@ def inverse_sov(
 
     Raises:
 
-        ValueError: nside is not greater than 2*L-1.
+        ValueError: 4*nside is not greater than 2*L-1.
+        ValueError: sampling scheme not recognised
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -125,19 +117,17 @@ def inverse_sov(
     assert 0 <= spin < L
 
     if sampling.lower() == "healpix":
-        if nside < 2 * L - 1:
+        if 4*nside < 2 * L - 1:
             raise ValueError("HEALPix nside must be 2*L or greater.")
 
     ntheta = samples.ntheta(L, sampling, nside=nside)
     thetas = samples.thetas(L, sampling, nside=nside)
 
     if sampling.lower() != "healpix":
-        f_shape = samples.f_shape(L, sampling, nside)
         nphi = samples.nphi_equiang(L, sampling)
         phis_ring = samples.phis_equiang(L, sampling)
 
     elif sampling.lower() == "healpix":
-        f_shape = samples.f_shape(L, sampling, nside)
         nphi = 4 * nside
 
     else:
@@ -145,7 +135,7 @@ def inverse_sov(
         raise ValueError(f"Sampling scheme not recognised")
 
     ftm = np.zeros((ntheta, nphi), dtype=np.complex128)
-    f = np.zeros(f_shape, dtype=np.complex128)
+    f = np.zeros(samples.f_shape(L, sampling, nside), dtype=np.complex128)
 
     for t, theta in enumerate(thetas):
 
@@ -399,7 +389,7 @@ def forward_sov(
 
     Raises:
 
-        ValueError: nside is not greater than 2*L-1.
+        ValueError: 4*nside is not greater than 2*L-1.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients
@@ -409,7 +399,7 @@ def forward_sov(
     assert 0 <= spin < L
 
     if sampling.lower() == "healpix":
-        if nside < 2 * L - 1:
+        if 4*nside < 2 * L - 1:
             raise ValueError("HEALPix nside must be 2*L or greater.")
 
     if sampling.lower() == "mw":
