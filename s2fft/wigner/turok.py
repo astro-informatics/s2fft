@@ -33,7 +33,7 @@ def compute_full(beta: float, el: int, L: int) -> np.ndarray:
         raise ValueError(
             f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
         )
-    dl = np.zeros((2 * L - 1, 2 * L -1), dtype=np.float64)
+    dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
     dl[:, :] = 0
     dl = compute_quarter(dl, beta, el, L)
     dl = fill(dl, el, L)
@@ -191,11 +191,13 @@ def compute_quarter_slice(
                 dl[lims[i] + sgn * m] = dl[lims[i] + sgn * m] * renorm
 
         if i == 1:
-            for m in range(el+1):
-                dl[lims[i] + sgn * m] = (-1)**((mm - m + el)%2) * dl[lims[i] + sgn * m] * renorm
-    
-    for m in range(-el, el+1):
-        dl[m+L-1] *= (-1)**(abs(mm-m))
+            for m in range(el + 1):
+                dl[lims[i] + sgn * m] = (
+                    (-1) ** ((mm - m + el) % 2) * dl[lims[i] + sgn * m] * renorm
+                )
+
+    for m in range(-el, el + 1):
+        dl[m + L - 1] *= (-1) ** (abs(mm - m))
 
     return dl
 

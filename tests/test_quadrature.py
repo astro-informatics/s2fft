@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 import s2fft as s2f
-from .utils import *
 
 
 @pytest.mark.parametrize("L", [5, 6])

@@ -1,6 +1,12 @@
 from random import sample
 import numpy as np
+import jax.numpy as jnp
+import jax.lax as lax 
+from jax import jit
+from functools import partial
+
 import numpy.fft as fft
+import jax.numpy.fft as jfft
 import s2fft.samples as samples
 import s2fft.quadrature as quadrature
 import s2fft.resampling as resampling
@@ -448,7 +454,7 @@ def forward_sov_fft( # with separation of variables and FFT --how is this with f
     return flm
 
 
-def forward_sov_fft_vectorized( # vectorised
+def forward_sov_fft_vectorized(
     f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
 ) -> np.ndarray:
     """Compute forward spherical harmonic transform by separate of variables method

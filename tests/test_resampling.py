@@ -2,8 +2,6 @@ import pytest
 import numpy as np
 import s2fft as s2f
 
-from .utils import *
-
 
 def test_periodic_extension_invalid_sampling():
 

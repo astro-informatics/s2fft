@@ -5,8 +5,7 @@ from jax import jit, device_put
 import s2fft as s2f
 import s2fft.precompute as pre
 import pyssht as ssht
-
-from .utils import *
+import pytest
 
 
 from jax.config import config
