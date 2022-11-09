@@ -2,7 +2,6 @@ import numpy as np
 from jax import jit
 import jax.numpy as jnp
 from functools import partial
-import logs
 
 
 def init(dl: np.ndarray, L: int, implementation: str = "vectorized") -> np.ndarray:

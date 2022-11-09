@@ -6,7 +6,7 @@ build/
 _build/
 *~
 .DS_Store
-logs/*.log
+*.log
 .coverage
 .test.dat
 notebooks/.ipynb_checkpoints/

@@ -28,22 +28,22 @@ handlers:
     info_file_handler:
         class: logging.FileHandler
         level: INFO
-        formatter: simple
-        filename: /logs/info.log
+        formatter: colored
+        filename: info.log
         encoding: utf8
 
     debug_file_handler:
         class: logging.FileHandler
         level: DEBUG
         formatter: simple
-        filename: /logs/debug.log
+        filename: debug.log
         encoding: utf8
 
     critical_file_handler:
         class: logging.FileHandler
         level: CRITICAL
         formatter: simple
-        filename: /logs/critical.log
+        filename: critical.log
         encoding: utf8
 
 loggers:
