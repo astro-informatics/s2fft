@@ -151,16 +151,21 @@ def _compute_quarter_slice(
                 - cp2[m - 1] * dl[lims[i] + sgn * (m - 2)]
             )
             condition = dl[lims[i] + sgn * m] > big_const
-            increment = lax.cond(condition, lambda _: -lbig, lambda _: 0.0, None)
-            lrenorm = lrenorm.at[i].add(increment)
-            multiplier = lax.cond(condition, lambda _: bigi, lambda _: 1.0, None)
-            # multiply first m elements (if i == 0) or last m elements (if i == 1) of
-            # dl array by multiplier - use jnp.where rather than directly updating
-            # array using 'in-place' update such as
-            #     dl = dl.at[lims[i]:lims[i] + sgn * (m + 1):sgn].multiply(multiplier)
-            # to avoid non-static array slice (due to m dependence) that will raise an
-            # IndexError exception when used with lax.fori_loop
-            dl = jnp.where((indices < (m + 1))[::sgn], multiplier * dl, dl)
+            lrenorm = lax.cond(
+                condition, lambda x: x.at[i].add(-lbig), lambda x: x, lrenorm
+            )
+            dl = lax.cond(
+                condition,
+                # multiply first m elements (if i == 0) or last m elements (if i == 1)
+                # of dl array by bigi - use jnp.where rather than directly updating
+                # array using 'in-place' update such as
+                #     dl.at[lims[i]:lims[i] + sgn * (m + 1):sgn].multiply(bigi)
+                # to avoid non-static array slice (due to m dependence) that will raise
+                # an IndexError exception when used with lax.fori_loop
+                lambda x: jnp.where((indices < (m + 1))[::sgn], bigi * x, x),
+                lambda x: x,
+                dl
+            )
             return dl, lrenorm
 
         dl, lrenorm = lax.fori_loop(2, L, renorm_iteration, (dl, lrenorm))
