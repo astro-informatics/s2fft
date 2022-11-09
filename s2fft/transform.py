@@ -113,12 +113,20 @@ def inverse_sov(
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
+    Raises:
+
+        ValueError: nside is not greater than 2*L-1.
+
     Returns:
         np.ndarray: Signal on the sphere.
     """
 
     assert flm.shape == samples.flm_shape(L)
     assert 0 <= spin < L
+
+    if sampling.lower() == "healpix":
+        if nside < 2 * L - 1:
+            raise ValueError("HEALPix nside must be 2*L or greater.")
 
     ntheta = samples.ntheta(L, sampling, nside=nside)
     thetas = samples.thetas(L, sampling, nside=nside)
@@ -389,12 +397,20 @@ def forward_sov(
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
+    Raises:
+
+        ValueError: nside is not greater than 2*L-1.
+
     Returns:
         np.ndarray: Spherical harmonic coefficients
     """
 
     assert f.shape == samples.f_shape(L, sampling, nside)
     assert 0 <= spin < L
+
+    if sampling.lower() == "healpix":
+        if nside < 2 * L - 1:
+            raise ValueError("HEALPix nside must be 2*L or greater.")
 
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)

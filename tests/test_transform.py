@@ -142,9 +142,9 @@ def test_transform_forward_direct(flm_generator, L: int, spin: int, sampling: st
 def test_transform_forward_direct_healpix(flm_generator, L: int):
     nside = 2 * L
     flm = flm_generator(L=L, reality=True)
-    f = s2f.transform.inverse_direct(flm, L, sampling='healpix', nside=nside)
+    f = s2f.transform.inverse_direct(flm, L, sampling="healpix", nside=nside)
 
-    flm_direct = s2f.transform.forward_direct(f, L, sampling='healpix', nside=nside)
+    flm_direct = s2f.transform.forward_direct(f, L, sampling="healpix", nside=nside)
     flm_direct_hp = s2f.samples.flm_2d_to_hp(flm_direct, L)
 
     flm_check = hp.sphtfunc.map2alm(np.real(f), lmax=L - 1, iter=0)
@@ -247,4 +247,3 @@ def test_transform_forward_sov_healpix(flm_generator, L: int):
     flm_check = hp.sphtfunc.map2alm(np.real(f), lmax=L - 1, iter=0)
 
     np.testing.assert_allclose(flm_direct_hp, flm_check, atol=1e-14)
-
