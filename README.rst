@@ -21,6 +21,71 @@
 This is a very loose framework for people to start python projects from. To get up and running, go through the code carefully replacing ``Project-name`` with your 
 desired project name (check all documents!), don't forget to change the directory s2fft as well! You will also need to update the links in all badges!
 
+Installation
+============
+
+The Python dependencies for the `s2fft` package are listed in the file ``requirements/requirements-core.txt`` and can be installed 
+into the active Python environment using `pip` by running
+
+.. code-block:: bash 
+
+    pip install -r requirements/requirements-core.txt
+    
+from the root directory of the repository.
+    
+To install the `s2fft` package in editable mode in the current Python environment run
+
+.. code-block:: bash
+    
+    pip install -e .
+    
+from the root directory of the repository.
+
+
+Tests
+=====
+
+To run the tests the additional dependencies in the file ``requirements/requirements-test.txt`` will also need to be installed in the active environment.
+
+The tests can then be run directly
+
+.. code-block:: bash
+    
+    pytest tests
+    
+from the root directory of the repository, or if ``tox`` is installed then it can be used to create a temporary virtual environment with the package dependencies and run the tests in that environment using
+
+.. code-block:: bash
+    
+    tox -e py38
+    
+
+Documentation
+=============
+
+o build the documentation the additional dependencies in the file ``requirements/requirements-docs.txt`` will also need to be installed in the active environment. 
+
+``pandoc`` also needs to be installed to allow building the tutorial notebook documentation - this can be done using ``conda`` by running
+
+.. code-block:: bash
+    
+    conda install pandoc=1.19.2.1 -y
+
+The HTML documentation can then be built by running
+
+.. code-block:: bash
+    
+    sphinx-build -M html docs docs/_build -Q
+    
+from the root directory of the repository, or if ``tox`` is installed then it can be used to build the HTML documentation by running
+
+.. code-block:: bash
+    
+    tox -e docs
+    
+from the root directory of the repository.
+
+
 Interface
 =========
 
