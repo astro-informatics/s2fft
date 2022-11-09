@@ -43,20 +43,19 @@ def inverse_direct(
 
     if sampling.lower() != "healpix":
 
-        ntheta = samples.ntheta(L, sampling)
-        nphi = samples.nphi_equiang(L, sampling)
+        f_shape = samples.f_shape(L, sampling, nside)
         phis_ring = samples.phis_equiang(L, sampling)
-        f = np.zeros((ntheta, nphi), dtype=np.complex128)
 
     elif sampling.lower() == "healpix":
 
-        f = np.zeros(12 * nside**2, dtype=np.complex128)
+        f_shape = samples.f_shape(L, sampling, nside)
 
     else:
 
         raise ValueError(f"Sampling scheme not recognised")
 
     thetas = samples.thetas(L, sampling, nside)
+    f = np.zeros(f_shape, dtype=np.complex128)
 
     for t, theta in enumerate(thetas):
 
@@ -125,14 +124,12 @@ def inverse_sov(
     thetas = samples.thetas(L, sampling, nside=nside)
 
     if sampling.lower() != "healpix":
-
+        f_shape = samples.f_shape(L, sampling, nside)
         nphi = samples.nphi_equiang(L, sampling)
         phis_ring = samples.phis_equiang(L, sampling)
-        f = np.zeros((ntheta, nphi), dtype=np.complex128)
 
     elif sampling.lower() == "healpix":
-
-        f = np.zeros(12 * nside**2, dtype=np.complex128)
+        f_shape = samples.f_shape(L, sampling, nside)
         nphi = 4 * nside
 
     else:
@@ -140,6 +137,7 @@ def inverse_sov(
         raise ValueError(f"Sampling scheme not recognised")
 
     ftm = np.zeros((ntheta, nphi), dtype=np.complex128)
+    f = np.zeros(f_shape, dtype=np.complex128)
 
     for t, theta in enumerate(thetas):
 
@@ -300,26 +298,16 @@ def forward_direct(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"dh", "healpix"}.  Defaults to "dh".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
-        nside (int): HEALPix Nside resolution parameter.
-
-
-
-    Raises:
-        ValueError: Only DH & HEALPix sampling supported at present.
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients
     """
     assert f.shape == samples.f_shape(L, sampling, nside)
     assert 0 <= spin < L
-
-    # if sampling.lower() not in ["dh", "healpix"]:
-
-    #     raise ValueError(
-    #         f"Sampling scheme sampling={sampling} not implement (only DH & HEALPix supported at present)"
-    #     )
 
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
@@ -358,10 +346,10 @@ def forward_direct(
 
                     for p, phi in enumerate(phis_ring):
 
-                        if sampling.lower() == "healpix":
-                            entry = samples.hp_ang2pix(nside, theta, phi)
-                        else:
+                        if sampling.lower() != "healpix":
                             entry = (t, p)
+                        else:
+                            entry = samples.hp_ang2pix(nside, theta, phi)
 
                         flm[el, m + L - 1] += (
                             weights[t]
@@ -396,12 +384,10 @@ def forward_sov(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"dh", "healpix}.  Defaults to "dh".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
-        nside (int): HEALPix Nside resolution parameter.
-
-    Raises:
-        ValueError: Only DH & HEALPix sampling supported at present.
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients
@@ -441,10 +427,10 @@ def forward_sov(
 
             for p, phi in enumerate(phis_ring):
 
-                if sampling.lower() == "healpix":
-                    entry = samples.hp_ang2pix(nside, theta, phi)
-                else:
+                if sampling.lower() != "healpix":
                     entry = (t, p)
+                else:
+                    entry = samples.hp_ang2pix(nside, theta, phi)
 
                 ftm[t, m + L - 1] += np.exp(-1j * m * phi) * f[entry]
 
