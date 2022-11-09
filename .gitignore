@@ -19,3 +19,4 @@ s2fft.egg-info/
 resources/
 .matrices/
 s2fft.code-workspace
+.tox
