@@ -28,7 +28,7 @@ handlers:
     info_file_handler:
         class: logging.FileHandler
         level: INFO
-        formatter: colored
+        formatter: simple
         filename: info.log
         encoding: utf8
 
