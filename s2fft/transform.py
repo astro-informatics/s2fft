@@ -29,7 +29,7 @@ def inverse_direct(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "dh".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -99,16 +99,10 @@ def inverse_sov(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "dh".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
-
-    Raises:
-
-        ValueError: 4*nside is not greater than or equal to 2*L-1.
-
-        ValueError: Sampling scheme not recognised.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -117,23 +111,14 @@ def inverse_sov(
     assert flm.shape == samples.flm_shape(L)
     assert 0 <= spin < L
 
-    if sampling.lower() == "healpix":
-        if 4 * nside < 2 * L - 1:
-            raise ValueError("Maximum nphi for HEALPix must be 2*L or greater.")
-
     ntheta = samples.ntheta(L, sampling, nside=nside)
     thetas = samples.thetas(L, sampling, nside=nside)
 
     if sampling.lower() != "healpix":
-        nphi = samples.nphi_equiang(L, sampling)
         phis_ring = samples.phis_equiang(L, sampling)
-
-    elif sampling.lower() == "healpix":
-        nphi = 4 * nside
-
+        nphi = samples.nphi_equiang(L, sampling)
     else:
-
-        raise ValueError(f"Sampling scheme not recognised")
+        nphi = samples.nphi_equitorial_band(nside)
 
     ftm = np.zeros((ntheta, nphi), dtype=np.complex128)
     f = np.zeros(samples.f_shape(L, sampling, nside), dtype=np.complex128)
@@ -188,7 +173,7 @@ def inverse_sov_fft(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "dh".
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -241,7 +226,7 @@ def inverse_sov_fft_vectorized(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "dh".
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -281,7 +266,7 @@ def forward_direct(
     f: np.ndarray,
     L: int,
     spin: int = 0,
-    sampling: str = "dh",
+    sampling: str = "mw",
     nside: int = None,
 ) -> np.ndarray:
     """Compute forward spherical harmonic transform by direct method.
@@ -297,7 +282,7 @@ def forward_direct(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "dh".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -366,7 +351,7 @@ def forward_sov(
     f: np.ndarray,
     L: int,
     spin: int = 0,
-    sampling: str = "dh",
+    sampling: str = "mw",
     nside: int = None,
 ) -> np.ndarray:
     """Compute forward spherical harmonic transform by separate of variables method
@@ -383,14 +368,11 @@ def forward_sov(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "dh".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-    Raises:
-
-        ValueError: 4*nside is not greater than or equal to 2*L-1.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
@@ -399,10 +381,6 @@ def forward_sov(
     assert f.shape == samples.f_shape(L, sampling, nside)
     assert 0 <= spin < L
 
-    if sampling.lower() == "healpix":
-        if 4 * nside < 2 * L - 1:
-            raise ValueError("Maximum nphi for HEALPix must be 2*L or greater.")
-
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
 
@@ -410,19 +388,17 @@ def forward_sov(
         sampling = "mwss"
         f = resampling.upsample_by_two_mwss(f, L, spin)
         thetas = samples.thetas(2 * L, sampling)
-        nphi = samples.nphi_equiang(L, sampling)
 
-    elif sampling.lower() == "dh":
-        thetas = samples.thetas(L, sampling, nside)
-        nphi = samples.nphi_equiang(L, sampling)
     else:
         thetas = samples.thetas(L, sampling, nside)
-        nphi = 4 * nside
 
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
     if sampling.lower() != "healpix":
         phis_ring = samples.phis_equiang(L, sampling)
+        nphi = samples.nphi_equiang(L, sampling)
+    else:
+        nphi = samples.nphi_equitorial_band(nside)
 
     ftm = np.zeros((len(thetas), nphi), dtype=np.complex128)
     for t, theta in enumerate(thetas):
@@ -482,7 +458,7 @@ def forward_sov_fft(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "dh".
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
 
     Returns:
         np.ndarray: Spherical harmonic coefficients
@@ -546,7 +522,7 @@ def forward_sov_fft_vectorized(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "dh".
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
 
     Returns:
         np.ndarray: Spherical harmonic coefficients

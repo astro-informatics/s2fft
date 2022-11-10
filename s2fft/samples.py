@@ -134,6 +134,19 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
     return 1
 
 
+def nphi_equitorial_band(nside: int) -> int:
+    r"""Number of :math:`\phi` samples within the equitorial band for
+    "healpix" sampling scheme.
+
+    Args:
+        nside (int, optional): HEALPix Nside resolution parameter.
+
+    Returns:
+        int: Number of :math:`\phi` samples.
+    """
+    return 4 * nside
+
+
 def nphi_ring(t: int, nside: int = None) -> int:
     r"""Number of :math:`\phi` samples for HEALPix sampling on given :math:`\theta`
     ring.
