@@ -376,3 +376,120 @@ def mw_to_mwss(f_mw: np.ndarray, L, spin: int = 0) -> np.ndarray:
     # phi samples there).
 
     return mw_to_mwss_phi(mw_to_mwss_theta(f_mw, L, spin), L)
+
+
+def spectral_folding(ftm: np.ndarray, nphi: int, L: int) -> np.ndarray:
+    """Folds higher frequency Fourier coefficients back onto lower frequency
+    coefficients, i.e. mitigates aliasing.
+
+    Args:
+        ftm (np.ndarray): Partial array of Fourier coefficients for latitude t.
+
+        nphi (int): Total number of pixel space phi samples for latitude t.
+
+        L (int): Harmonic band-limit.
+
+    Returns:
+        np.ndarray: Lower resolution set of aliased Fourier coefficients.
+    """
+    slice_start = L - int(nphi / 2)
+    slice_stop = slice_start + nphi
+    ftm_slice = ftm[slice_start:slice_stop]
+
+    idx = 1
+    while slice_start - idx >= 0:
+        ftm_slice[-idx % nphi] += ftm[slice_start - idx]
+        idx += 1
+    idx = 0
+    while slice_stop + idx < len(ftm):
+        ftm_slice[idx % nphi] += ftm[slice_stop + idx]
+        idx += 1
+
+    return ftm_slice
+
+
+def spectral_backprojection(f: np.ndarray, nphi: int, L: int) -> np.ndarray:
+    """Reflects lower frequency Fourier coefficients onto higher frequency
+    coefficients, i.e. imposed periodicity in Fourier space.
+
+    Args:
+        f (np.ndarray): Pixel-space coefficients for ring at latitute t.
+
+        nphi (int): Total number of pixel space phi samples for latitude t.
+
+        L (int): Harmonic band-limit.
+
+    Returns:
+        np.ndarray: Higher resolution set of periodic Fourier coefficients.
+    """
+    slice_start = L - int(nphi / 2)
+    slice_stop = slice_start + nphi
+    ftm = np.zeros(2 * L, dtype=np.complex128)
+    ftm[slice_start:slice_stop] = f
+
+    idx = 1
+    while slice_start - idx >= 0:
+        ftm[slice_start - idx] = f[-idx % nphi]
+        idx += 1
+    idx = 0
+    while slice_stop + idx < len(ftm):
+        ftm[slice_stop + idx] = f[idx % nphi]
+        idx += 1
+
+    return ftm
+
+
+def healpix_fft(f: np.ndarray, ntheta: int, L: int, nside: int) -> np.ndarray:
+    """Computes the Forward Fast Fourier Transform with spectral back-projection
+    in the polar regions to manually enforce Fourier periodicity.
+
+    Args:
+        f (np.ndarray): HEALPix pixel-space array.
+
+        ntheta (int): Total number of latitudinal samples (rings).
+
+        L (int): Harmonic band-limit.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+    Returns:
+        np.ndarray: Array of Fourier coefficients for all latitudes.
+    """
+    index = 0
+    ftm = np.zeros((ntheta, 4 * nside), dtype=np.complex128)
+    for t in range(ntheta):
+        nphi = samples.nphi_ring(t, nside)
+        ftm_chunk = fft.fftshift(fft.fft(f[index : index + nphi], norm="backward"))
+        ftm[t] = (
+            ftm_chunk
+            if nphi == 4 * nside
+            else spectral_backprojection(ftm_chunk, nphi, L)
+        )
+        index += nphi
+    return ftm
+
+
+def healpix_ifft(ftm: np.ndarray, ntheta: int, L: int, nside: int) -> np.ndarray:
+    """Computes the Inverse Fast Fourier Transform with spectral folding in the polar
+    regions to mitigate aliasing.
+
+    Args:
+        ftm (np.ndarray): Array of Fourier coefficients for all latitudes.
+
+        ntheta (int): Total number of latitudinal samples (rings).
+
+        L (int): Harmonic band-limit.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+    Returns:
+        np.ndarray: HEALPix pixel-space array.
+    """
+    f = np.zeros(samples.f_shape(L, "healpix", nside), dtype=np.complex128)
+    index = 0
+    for t in range(ntheta):
+        nphi = samples.nphi_ring(t, nside)
+        ftm_slice = ftm[t] if nphi == 4 * nside else spectral_folding(ftm[t], nphi, L)
+        f[index : index + nphi] = fft.ifft(fft.ifftshift(ftm_slice), norm="forward")
+        index += nphi
+    return f

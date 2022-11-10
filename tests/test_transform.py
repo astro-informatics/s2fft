@@ -98,12 +98,13 @@ def test_transform_inverse_sov_fft(flm_generator, L: int, spin: int, sampling: s
 # @pytest.mark.skip(reason="Temporarily skipped for faster development")
 @pytest.mark.parametrize("nside", nside_to_test)
 def test_transform_inverse_sov_fft_healpix(flm_generator, nside: int):
+    sampling = "healpix"
     L = 2 * nside
     flm = flm_generator(L=L, reality=True)
     flm_hp = s2f.samples.flm_2d_to_hp(flm, L)
     f_check = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
 
-    f = s2f.experimental.transforms_healpix.inverse_sov_fft_healpix(flm, L, nside)
+    f = s2f.transform.inverse_sov_fft(flm, L, 0, sampling, nside)
 
     np.testing.assert_allclose(np.real(f), np.real(f_check), atol=1e-14)
 
@@ -266,7 +267,7 @@ def test_transform_forward_sov_fft_healpix(flm_generator, nside: int):
     flm = flm_generator(L=L, reality=True)
     f = s2f.transform.inverse_sov(flm, L, 0, sampling, nside=nside)
 
-    flm_direct = s2f.experimental.transforms_healpix.forward_sov_fft_healpix(f, L, nside)
+    flm_direct = s2f.transform.forward_sov_fft(f, L, 0, sampling, nside)
     flm_direct_hp = s2f.samples.flm_2d_to_hp(flm_direct, L)
 
     flm_check = hp.sphtfunc.map2alm(np.real(f), lmax=L - 1, iter=0)
