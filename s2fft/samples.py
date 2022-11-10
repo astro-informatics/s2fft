@@ -136,7 +136,7 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
 
 def nphi_equitorial_band(nside: int) -> int:
     r"""Number of :math:`\phi` samples within the equitorial band for
-    "healpix" sampling scheme.
+    HEALPix sampling scheme.
 
     Args:
         nside (int, optional): HEALPix Nside resolution parameter.
