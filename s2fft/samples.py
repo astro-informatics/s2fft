@@ -94,8 +94,8 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
     resolution.
 
     Number of samples is independent of :math:`\theta` since equiangular sampling
-    scheme. For "healpix" sampling the number of samples in the equitorial band is 
-    returned. 
+    scheme. For "healpix" sampling the number of samples in the equitorial band is
+    returned.
 
     Args:
         L (int): Harmonic band-limit.

@@ -386,9 +386,6 @@ def forward_sov(
         f = resampling.upsample_by_two_mwss(f, L, spin)
         thetas = samples.thetas(2 * L, sampling)
 
-    elif sampling.lower() == "dh":
-        thetas = samples.thetas(L, sampling, nside)
-
     else:
         thetas = samples.thetas(L, sampling, nside)
 
@@ -397,7 +394,9 @@ def forward_sov(
     if sampling.lower() != "healpix":
         phis_ring = samples.phis_equiang(L, sampling)
 
-    ftm = np.zeros((len(thetas), samples.nphi_equiang(L, sampling)), dtype=np.complex128)
+    ftm = np.zeros(
+        (len(thetas), samples.nphi_equiang(L, sampling)), dtype=np.complex128
+    )
     for t, theta in enumerate(thetas):
 
         for m in range(-(L - 1), L):
