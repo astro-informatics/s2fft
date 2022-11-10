@@ -63,7 +63,7 @@ from the root directory of the repository, or if ``tox`` is installed then it ca
 Documentation
 =============
 
-o build the documentation the additional dependencies in the file ``requirements/requirements-docs.txt`` will also need to be installed in the active environment. 
+To build the documentation the additional dependencies in the file ``requirements/requirements-docs.txt`` will also need to be installed in the active environment. 
 
 ``pandoc`` also needs to be installed to allow building the tutorial notebook documentation - this can be done using ``conda`` by running
 
