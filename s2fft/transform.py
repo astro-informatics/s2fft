@@ -116,8 +116,11 @@ def inverse_sov(
 
     if sampling.lower() != "healpix":
         phis_ring = samples.phis_equiang(L, sampling)
+        nphi = samples.nphi_equiang(L, sampling)
+    else:
+        nphi = samples.nphi_equitorial_band(nside)
 
-    ftm = np.zeros((ntheta, samples.nphi_equiang(L, sampling)), dtype=np.complex128)
+    ftm = np.zeros((ntheta, nphi), dtype=np.complex128)
     f = np.zeros(samples.f_shape(L, sampling, nside), dtype=np.complex128)
 
     for t, theta in enumerate(thetas):
@@ -393,10 +396,11 @@ def forward_sov(
 
     if sampling.lower() != "healpix":
         phis_ring = samples.phis_equiang(L, sampling)
+        nphi = samples.nphi_equiang(L, sampling)
+    else:
+        nphi = samples.nphi_equitorial_band(nside)
 
-    ftm = np.zeros(
-        (len(thetas), samples.nphi_equiang(L, sampling)), dtype=np.complex128
-    )
+    ftm = np.zeros((len(thetas), nphi), dtype=np.complex128)
     for t, theta in enumerate(thetas):
 
         for m in range(-(L - 1), L):
