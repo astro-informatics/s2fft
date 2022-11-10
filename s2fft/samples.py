@@ -94,17 +94,16 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
     resolution.
 
     Number of samples is independent of :math:`\theta` since equiangular sampling
-    scheme.
+    scheme. For "healpix" sampling the number of samples in the equitorial band is 
+    returned. 
 
     Args:
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
     Raises:
-        ValueError: HEALPix sampling scheme.
-
         ValueError: Unknown sampling scheme.
 
     Returns:
@@ -125,7 +124,7 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
 
     elif sampling.lower() == "healpix":
 
-        raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+        return 2 * L
 
     else:
 
