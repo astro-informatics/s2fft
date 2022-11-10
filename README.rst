@@ -65,11 +65,13 @@ Documentation
 
 To build the documentation the additional dependencies in the file ``requirements/requirements-docs.txt`` will also need to be installed in the active environment. 
 
-``pandoc`` also needs to be installed to allow building the tutorial notebook documentation - this can be done using ``conda`` by running
+Pandoc also needs to be installed to allow building the tutorial notebook documentation - this can be done using ``conda`` by running
 
 .. code-block:: bash
     
-    conda install pandoc=1.19.2.1 -y
+    conda install -c conda-forge pandoc
+    
+Note that this installs the Pandoc Haskell library and command-line tool rather than [the `pandoc` Python package on PyPI](https://pypi.org/project/pandoc/) which wraps this library.
 
 The HTML documentation can then be built by running
 
