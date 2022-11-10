@@ -106,7 +106,8 @@ def inverse_sov(
 
     Raises:
 
-        ValueError: 4*nside is not greater than 2*L-1.
+        ValueError: 4*nside is not greater than or equal to 2*L-1.
+
         ValueError: Sampling scheme not recognised.
 
     Returns:
@@ -117,7 +118,7 @@ def inverse_sov(
     assert 0 <= spin < L
 
     if sampling.lower() == "healpix":
-        if 4*nside < 2 * L - 1:
+        if 4 * nside < 2 * L - 1:
             raise ValueError("Maximum nphi for HEALPix must be 2*L or greater.")
 
     ntheta = samples.ntheta(L, sampling, nside=nside)
@@ -302,7 +303,7 @@ def forward_direct(
             if sampling="healpix".  Defaults to None.
 
     Returns:
-        np.ndarray: Spherical harmonic coefficients
+        np.ndarray: Spherical harmonic coefficients.
     """
     assert f.shape == samples.f_shape(L, sampling, nside)
     assert 0 <= spin < L
@@ -389,17 +390,17 @@ def forward_sov(
 
     Raises:
 
-        ValueError: 4*nside is not greater than 2*L-1.
+        ValueError: 4*nside is not greater than or equal to 2*L-1.
 
     Returns:
-        np.ndarray: Spherical harmonic coefficients
+        np.ndarray: Spherical harmonic coefficients.
     """
 
     assert f.shape == samples.f_shape(L, sampling, nside)
     assert 0 <= spin < L
 
     if sampling.lower() == "healpix":
-        if 4*nside < 2 * L - 1:
+        if 4 * nside < 2 * L - 1:
             raise ValueError("Maximum nphi for HEALPix must be 2*L or greater.")
 
     if sampling.lower() == "mw":
