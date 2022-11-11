@@ -1,5 +1,3 @@
-from random import sample
-from re import I
 import numpy as np
 import jax.numpy as jnp
 import jax.lax as lax
