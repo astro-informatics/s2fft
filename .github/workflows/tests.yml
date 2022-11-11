@@ -25,13 +25,12 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     
-    - name: Install package
+    - name: Install dependencies
       run: |
-        sudo apt install pandoc
-        python -m pip install --upgrade pip    
-        bash build_s2fft.sh
+        python -m pip install --upgrade pip
+        python -m pip install tox
     
     - name: Run tests
       run: |
-        pytest --cov-report term --cov=s2fft --cov-config=.coveragerc 
-        codecov --token 298dc7ee-bb9f-4221-b31f-3576cc6cb702
+        tox -e py38
+        tox -e codecov -- --token 298dc7ee-bb9f-4221-b31f-3576cc6cb702
