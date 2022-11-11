@@ -392,6 +392,8 @@ def spectral_folding(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
     Returns:
         np.ndarray: Lower resolution set of aliased Fourier coefficients.
     """
+    assert nphi <= 2 * L
+
     slice_start = L - nphi // 2
     slice_stop = slice_start + nphi
     ftm_slice = fm[slice_start:slice_stop]
@@ -422,6 +424,8 @@ def spectral_periodic_extension(fm: np.ndarray, nphi: int, L: int) -> np.ndarray
     Returns:
         np.ndarray: Higher resolution set of periodic Fourier coefficients.
     """
+    assert nphi <= 2 * L
+
     slice_start = L - nphi // 2
     slice_stop = slice_start + nphi
     fm_full = np.zeros(2 * L, dtype=np.complex128)
@@ -439,14 +443,12 @@ def spectral_periodic_extension(fm: np.ndarray, nphi: int, L: int) -> np.ndarray
     return fm_full
 
 
-def healpix_fft(f: np.ndarray, ntheta: int, L: int, nside: int) -> np.ndarray:
+def healpix_fft(f: np.ndarray, L: int, nside: int) -> np.ndarray:
     """Computes the Forward Fast Fourier Transform with spectral back-projection
     in the polar regions to manually enforce Fourier periodicity.
 
     Args:
         f (np.ndarray): HEALPix pixel-space array.
-
-        ntheta (int): Total number of latitudinal samples (rings).
 
         L (int): Harmonic band-limit.
 
@@ -455,28 +457,29 @@ def healpix_fft(f: np.ndarray, ntheta: int, L: int, nside: int) -> np.ndarray:
     Returns:
         np.ndarray: Array of Fourier coefficients for all latitudes.
     """
+    assert L >= 2 * nside
+
     index = 0
-    ftm = np.zeros((ntheta, 4 * nside), dtype=np.complex128)
+    ftm = np.zeros(samples.ftm_shape(L, "healpix", nside), dtype=np.complex128)
+    ntheta = ftm.shape[0]
     for t in range(ntheta):
         nphi = samples.nphi_ring(t, nside)
         fm_chunk = fft.fftshift(fft.fft(f[index : index + nphi], norm="backward"))
         ftm[t] = (
             fm_chunk
-            if nphi == 4 * nside
+            if nphi == 2 * L
             else spectral_periodic_extension(fm_chunk, nphi, L)
         )
         index += nphi
     return ftm
 
 
-def healpix_ifft(ftm: np.ndarray, ntheta: int, L: int, nside: int) -> np.ndarray:
+def healpix_ifft(ftm: np.ndarray, L: int, nside: int) -> np.ndarray:
     """Computes the Inverse Fast Fourier Transform with spectral folding in the polar
     regions to mitigate aliasing.
 
     Args:
         ftm (np.ndarray): Array of Fourier coefficients for all latitudes.
-
-        ntheta (int): Total number of latitudinal samples (rings).
 
         L (int): Harmonic band-limit.
 
@@ -485,11 +488,14 @@ def healpix_ifft(ftm: np.ndarray, ntheta: int, L: int, nside: int) -> np.ndarray
     Returns:
         np.ndarray: HEALPix pixel-space array.
     """
-    f = np.zeros(samples.f_shape(L, "healpix", nside), dtype=np.complex128)
+    assert L >= 2 * nside
+
+    f = np.zeros(samples.f_shape(sampling="healpix", nside=nside), dtype=np.complex128)
+    ntheta = ftm.shape[0]
     index = 0
     for t in range(ntheta):
         nphi = samples.nphi_ring(t, nside)
-        fm_chunk = ftm[t] if nphi == 4 * nside else spectral_folding(ftm[t], nphi, L)
+        fm_chunk = ftm[t] if nphi == 2 * L else spectral_folding(ftm[t], nphi, L)
         f[index : index + nphi] = fft.ifft(fft.ifftshift(fm_chunk), norm="forward")
         index += nphi
     return f

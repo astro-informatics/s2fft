@@ -6,8 +6,9 @@ import healpy as hp
 
 
 L_to_test = [3, 4, 5]
-nside_to_test = [2, 4, 8]
 spin_to_test = [0, 1, 2]
+nside_to_test = [2, 4, 8]
+L_to_nside_ratio = [2, 3]
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -64,9 +65,10 @@ def test_transform_inverse_sov(flm_generator, L: int, spin: int, sampling: str):
 
 # @pytest.mark.skip(reason="Temporarily skipped for faster development")
 @pytest.mark.parametrize("nside", nside_to_test)
-def test_transform_inverse_sov_healpix(flm_generator, nside: int):
+@pytest.mark.parametrize("ratio", L_to_nside_ratio)
+def test_transform_inverse_sov_healpix(flm_generator, nside: int, ratio: int):
     sampling = "healpix"
-    L = 2 * nside
+    L = ratio * nside
     flm = flm_generator(L=L, reality=True)
     flm_hp = s2f.samples.flm_2d_to_hp(flm, L)
     f_check = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
@@ -95,11 +97,13 @@ def test_transform_inverse_sov_fft(flm_generator, L: int, spin: int, sampling: s
 
     np.testing.assert_allclose(f, f_check, atol=1e-14)
 
+
 # @pytest.mark.skip(reason="Temporarily skipped for faster development")
 @pytest.mark.parametrize("nside", nside_to_test)
-def test_transform_inverse_sov_fft_healpix(flm_generator, nside: int):
+@pytest.mark.parametrize("ratio", L_to_nside_ratio)
+def test_transform_inverse_sov_fft_healpix(flm_generator, nside: int, ratio: int):
     sampling = "healpix"
-    L = 2 * nside
+    L = ratio * nside
     flm = flm_generator(L=L, reality=True)
     flm_hp = s2f.samples.flm_2d_to_hp(flm, L)
     f_check = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
@@ -246,9 +250,10 @@ def test_transform_forward_sov_fft_vectorized(
 
 # @pytest.mark.skip(reason="Temporarily skipped for faster development")
 @pytest.mark.parametrize("nside", nside_to_test)
-def test_transform_forward_sov_healpix(flm_generator, nside: int):
+@pytest.mark.parametrize("ratio", L_to_nside_ratio)
+def test_transform_forward_sov_healpix(flm_generator, nside: int, ratio: int):
     sampling = "healpix"
-    L = 2 * nside
+    L = ratio * nside
     flm = flm_generator(L=L, reality=True)
     f = s2f.transform.inverse_sov(flm, L, 0, sampling, nside=nside)
 
@@ -259,11 +264,13 @@ def test_transform_forward_sov_healpix(flm_generator, nside: int):
 
     np.testing.assert_allclose(flm_direct_hp, flm_check, atol=1e-14)
 
+
 # @pytest.mark.skip(reason="Temporarily skipped for faster development")
 @pytest.mark.parametrize("nside", nside_to_test)
-def test_transform_forward_sov_fft_healpix(flm_generator, nside: int):
+@pytest.mark.parametrize("ratio", L_to_nside_ratio)
+def test_transform_forward_sov_fft_healpix(flm_generator, nside: int, ratio: int):
     sampling = "healpix"
-    L = 2 * nside
+    L = ratio * nside
     flm = flm_generator(L=L, reality=True)
     f = s2f.transform.inverse_sov(flm, L, 0, sampling, nside=nside)
 
@@ -273,3 +280,18 @@ def test_transform_forward_sov_fft_healpix(flm_generator, nside: int):
     flm_check = hp.sphtfunc.map2alm(np.real(f), lmax=L - 1, iter=0)
 
     np.testing.assert_allclose(flm_direct_hp, flm_check, atol=1e-14)
+
+
+@pytest.mark.parametrize("nside", nside_to_test)
+def test_healpix_nside_to_L_exceptions(flm_generator, nside: int):
+    sampling = "healpix"
+    L = 2 * nside - 1
+
+    flm = flm_generator(L=L, reality=True)
+    f = s2f.transform.inverse_sov(flm, L, 0, sampling, nside)
+
+    with pytest.raises(AssertionError) as e:
+        s2f.transform.forward_sov_fft(f, L, 0, sampling, nside)
+
+    with pytest.raises(AssertionError) as e:
+        s2f.transform.inverse_sov_fft(flm, L, 0, sampling, nside)

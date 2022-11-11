@@ -116,7 +116,7 @@ def inverse_sov(
     if sampling.lower() != "healpix":
         phis_ring = samples.phis_equiang(L, sampling)
 
-    ftm = np.zeros((ntheta, 2*L-1), dtype=np.complex128)
+    ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
     f = np.zeros(samples.f_shape(L, sampling, nside), dtype=np.complex128)
 
     for t, theta in enumerate(thetas):
@@ -180,22 +180,17 @@ def inverse_sov_fft(
 
     assert flm.shape == samples.flm_shape(L)
     assert 0 <= spin < L
+    if sampling.lower() == "healpix":
+        assert L >= 2 * nside
 
-    ntheta = samples.ntheta(L, sampling, nside)
     thetas = samples.thetas(L, sampling, nside)
 
-    if sampling.lower() != "healpix":
-        nphi = samples.nphi_equiang(L, sampling)
-        phase_shift = 1
-    else:
-        nphi = samples.nphi_equitorial_band(nside)
-
-    ftm = np.zeros((ntheta, nphi), dtype=np.complex128)
+    ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     for t, theta in enumerate(thetas):
         if sampling.lower() == "healpix":
-            psi_0_y = samples.p2phi_ring(t, 0, nside)
+            phi_ring_offset = samples.p2phi_ring(t, 0, nside)
 
         for el in range(0, L):
 
@@ -207,15 +202,18 @@ def inverse_sov_fft(
 
                 for m in range(-el, el + 1):
 
-                    if sampling.lower() == "healpix":
-                        phase_shift = np.exp(1j * m * psi_0_y)
+                    phase_shift = (
+                        np.exp(1j * m * phi_ring_offset)
+                        if sampling.lower() == "healpix"
+                        else 1
+                    )
 
                     ftm[t, m + L - 1 + m_offset] += (
                         (-1) ** spin * elfactor * dl[m + L - 1] * flm[el, m + L - 1]
                     ) * phase_shift
 
     if sampling.lower() == "healpix":
-        f = resampling.healpix_ifft(ftm, ntheta, L, nside)
+        f = resampling.healpix_ifft(ftm, L, nside)
     else:
         f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
@@ -407,7 +405,7 @@ def forward_sov(
     if sampling.lower() != "healpix":
         phis_ring = samples.phis_equiang(L, sampling)
 
-    ftm = np.zeros((len(thetas), 2*L-1), dtype=np.complex128)
+    ftm = np.zeros((len(thetas), 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
 
         for m in range(-(L - 1), L):
@@ -473,6 +471,8 @@ def forward_sov_fft(
 
     assert f.shape == samples.f_shape(L, sampling, nside)
     assert 0 <= spin < L
+    if sampling.lower() == "healpix":
+        assert L >= 2 * nside
 
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -487,7 +487,7 @@ def forward_sov_fft(
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
     if sampling.lower() == "healpix":
-        ftm = resampling.healpix_fft(f, len(thetas), L, nside)
+        ftm = resampling.healpix_fft(f, L, nside)
     else:
         ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
 
@@ -495,11 +495,10 @@ def forward_sov_fft(
     # since accounted for already in periodic extension and upsampling.
     weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
-    phase_shift = 1
 
     for t, theta in enumerate(thetas):
         if sampling.lower() == "healpix":
-            psi_0_y = samples.p2phi_ring(t, 0, nside)
+            phi_ring_offset = samples.p2phi_ring(t, 0, nside)
 
         for el in range(0, L):
 
@@ -511,8 +510,11 @@ def forward_sov_fft(
 
                 for m in range(-el, el + 1):
 
-                    if sampling.lower() == "healpix":
-                        phase_shift = np.exp(-1j * m * psi_0_y)
+                    phase_shift = (
+                        np.exp(-1j * m * phi_ring_offset)
+                        if sampling.lower() == "healpix"
+                        else 1
+                    )
 
                     flm[el, m + L - 1] += (
                         weights[t]

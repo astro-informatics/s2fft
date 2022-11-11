@@ -134,6 +134,39 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
     return 1
 
 
+def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> int:
+    r"""stuff and things
+
+    Args:
+        L (int): Harmonic band-limit.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.
+
+    Raises:
+        ValueError: Unknown sampling scheme.
+
+    Returns:
+        int:
+    """
+
+    if sampling.lower() in ["mwss", "healpix"]:
+
+        return ntheta(L, sampling, nside), 2 * L
+
+    elif sampling.lower() in ["mw", "dh"]:
+
+        return ntheta(L, sampling, nside), 2 * L - 1
+
+    else:
+
+        raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+
+    return 1
+
+
 def nphi_equitorial_band(nside: int) -> int:
     r"""Number of :math:`\phi` samples within the equitorial band for
     HEALPix sampling scheme.
