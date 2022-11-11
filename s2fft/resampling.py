@@ -380,7 +380,7 @@ def mw_to_mwss(f_mw: np.ndarray, L, spin: int = 0) -> np.ndarray:
 
 def spectral_folding(ftm: np.ndarray, nphi: int, L: int) -> np.ndarray:
     """Folds higher frequency Fourier coefficients back onto lower frequency
-    coefficients, i.e. mitigates aliasing.
+    coefficients, i.e. aliasing high frequencies.
 
     Args:
         ftm (np.ndarray): Partial array of Fourier coefficients for latitude t.
@@ -392,7 +392,7 @@ def spectral_folding(ftm: np.ndarray, nphi: int, L: int) -> np.ndarray:
     Returns:
         np.ndarray: Lower resolution set of aliased Fourier coefficients.
     """
-    slice_start = L - int(nphi / 2)
+    slice_start = L - nphi // 2
     slice_stop = slice_start + nphi
     ftm_slice = ftm[slice_start:slice_stop]
 
@@ -408,8 +408,8 @@ def spectral_folding(ftm: np.ndarray, nphi: int, L: int) -> np.ndarray:
     return ftm_slice
 
 
-def spectral_backprojection(f: np.ndarray, nphi: int, L: int) -> np.ndarray:
-    """Reflects lower frequency Fourier coefficients onto higher frequency
+def spectral_periodic_extension(f: np.ndarray, nphi: int, L: int) -> np.ndarray:
+    """Extends lower frequency Fourier coefficients onto higher frequency
     coefficients, i.e. imposed periodicity in Fourier space.
 
     Args:
@@ -422,7 +422,7 @@ def spectral_backprojection(f: np.ndarray, nphi: int, L: int) -> np.ndarray:
     Returns:
         np.ndarray: Higher resolution set of periodic Fourier coefficients.
     """
-    slice_start = L - int(nphi / 2)
+    slice_start = L - nphi // 2
     slice_stop = slice_start + nphi
     ftm = np.zeros(2 * L, dtype=np.complex128)
     ftm[slice_start:slice_stop] = f
@@ -463,7 +463,7 @@ def healpix_fft(f: np.ndarray, ntheta: int, L: int, nside: int) -> np.ndarray:
         ftm[t] = (
             ftm_chunk
             if nphi == 4 * nside
-            else spectral_backprojection(ftm_chunk, nphi, L)
+            else spectral_periodic_extension(ftm_chunk, nphi, L)
         )
         index += nphi
     return ftm
