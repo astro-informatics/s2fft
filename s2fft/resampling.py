@@ -378,12 +378,12 @@ def mw_to_mwss(f_mw: np.ndarray, L, spin: int = 0) -> np.ndarray:
     return mw_to_mwss_phi(mw_to_mwss_theta(f_mw, L, spin), L)
 
 
-def spectral_folding(ftm: np.ndarray, nphi: int, L: int) -> np.ndarray:
+def spectral_folding(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
     """Folds higher frequency Fourier coefficients back onto lower frequency
     coefficients, i.e. aliasing high frequencies.
 
     Args:
-        ftm (np.ndarray): Partial array of Fourier coefficients for latitude t.
+        fm (np.ndarray): Slice of Fourier coefficients corresponding to ring at latitute t.
 
         nphi (int): Total number of pixel space phi samples for latitude t.
 
@@ -394,26 +394,26 @@ def spectral_folding(ftm: np.ndarray, nphi: int, L: int) -> np.ndarray:
     """
     slice_start = L - nphi // 2
     slice_stop = slice_start + nphi
-    ftm_slice = ftm[slice_start:slice_stop]
+    ftm_slice = fm[slice_start:slice_stop]
 
     idx = 1
     while slice_start - idx >= 0:
-        ftm_slice[-idx % nphi] += ftm[slice_start - idx]
+        ftm_slice[-idx % nphi] += fm[slice_start - idx]
         idx += 1
     idx = 0
-    while slice_stop + idx < len(ftm):
-        ftm_slice[idx % nphi] += ftm[slice_stop + idx]
+    while slice_stop + idx < len(fm):
+        ftm_slice[idx % nphi] += fm[slice_stop + idx]
         idx += 1
 
     return ftm_slice
 
 
-def spectral_periodic_extension(f: np.ndarray, nphi: int, L: int) -> np.ndarray:
+def spectral_periodic_extension(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
     """Extends lower frequency Fourier coefficients onto higher frequency
     coefficients, i.e. imposed periodicity in Fourier space.
 
     Args:
-        f (np.ndarray): Pixel-space coefficients for ring at latitute t.
+        fm (np.ndarray): Slice of Fourier coefficients corresponding to ring at latitute t.
 
         nphi (int): Total number of pixel space phi samples for latitude t.
 
@@ -424,19 +424,19 @@ def spectral_periodic_extension(f: np.ndarray, nphi: int, L: int) -> np.ndarray:
     """
     slice_start = L - nphi // 2
     slice_stop = slice_start + nphi
-    ftm = np.zeros(2 * L, dtype=np.complex128)
-    ftm[slice_start:slice_stop] = f
+    fm_full = np.zeros(2 * L, dtype=np.complex128)
+    fm_full[slice_start:slice_stop] = fm
 
     idx = 1
     while slice_start - idx >= 0:
-        ftm[slice_start - idx] = f[-idx % nphi]
+        fm_full[slice_start - idx] = fm[-idx % nphi]
         idx += 1
     idx = 0
-    while slice_stop + idx < len(ftm):
-        ftm[slice_stop + idx] = f[idx % nphi]
+    while slice_stop + idx < len(fm_full):
+        fm_full[slice_stop + idx] = fm[idx % nphi]
         idx += 1
 
-    return ftm
+    return fm_full
 
 
 def healpix_fft(f: np.ndarray, ntheta: int, L: int, nside: int) -> np.ndarray:
@@ -459,11 +459,11 @@ def healpix_fft(f: np.ndarray, ntheta: int, L: int, nside: int) -> np.ndarray:
     ftm = np.zeros((ntheta, 4 * nside), dtype=np.complex128)
     for t in range(ntheta):
         nphi = samples.nphi_ring(t, nside)
-        ftm_chunk = fft.fftshift(fft.fft(f[index : index + nphi], norm="backward"))
+        fm_chunk = fft.fftshift(fft.fft(f[index : index + nphi], norm="backward"))
         ftm[t] = (
-            ftm_chunk
+            fm_chunk
             if nphi == 4 * nside
-            else spectral_periodic_extension(ftm_chunk, nphi, L)
+            else spectral_periodic_extension(fm_chunk, nphi, L)
         )
         index += nphi
     return ftm
@@ -489,7 +489,7 @@ def healpix_ifft(ftm: np.ndarray, ntheta: int, L: int, nside: int) -> np.ndarray
     index = 0
     for t in range(ntheta):
         nphi = samples.nphi_ring(t, nside)
-        ftm_slice = ftm[t] if nphi == 4 * nside else spectral_folding(ftm[t], nphi, L)
-        f[index : index + nphi] = fft.ifft(fft.ifftshift(ftm_slice), norm="forward")
+        fm_chunk = ftm[t] if nphi == 4 * nside else spectral_folding(ftm[t], nphi, L)
+        f[index : index + nphi] = fft.ifft(fft.ifftshift(fm_chunk), norm="forward")
         index += nphi
     return f
