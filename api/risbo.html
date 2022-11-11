@@ -19,8 +19,6 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script src="../_static/dark_mode_js/default_light.js"></script>
         <script src="../_static/dark_mode_js/theme_switcher.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -125,34 +123,8 @@
     text-align: unset;
 }
 </style>
-<div class="section" id="module-s2fft.wigner.risbo">
-<span id="s2fft-wigner-risbo"></span><h1>s2fft.wigner.risbo<a class="headerlink" href="#module-s2fft.wigner.risbo" title="Permalink to this headline"></a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.wigner.risbo.compute_full">
-<span class="sig-prename descclassname"><span class="pre">s2fft.wigner.risbo.</span></span><span class="sig-name descname"><span class="pre">compute_full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.wigner.risbo.compute_full" title="Permalink to this definition"></a></dt>
-<dd><p>Compute Wigner-d at argument <span class="math notranslate nohighlight">\(\beta\)</span> for full plane using
-Risbo recursion.</p>
-<p>The Wigner-d plane is computed by recursion over <span class="math notranslate nohighlight">\(\ell\)</span> (<cite>el</cite>).
-Thus, for <span class="math notranslate nohighlight">\(\ell &gt; 0\)</span> the plane must be computed already for
-<span class="math notranslate nohighlight">\(\ell - 1\)</span>. At present, for <span class="math notranslate nohighlight">\(\ell = 0\)</span> the recusion is initialised.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dl</strong> (<em>np.ndarray</em>) – Wigner-d plane for <span class="math notranslate nohighlight">\(\ell - 1\)</span> at <span class="math notranslate nohighlight">\(\beta\)</span>.</p></li>
-<li><p><strong>beta</strong> (<em>float</em>) – Argument <span class="math notranslate nohighlight">\(\beta\)</span> at which to compute Wigner-d plane.</p></li>
-<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>el</strong> (<em>int</em>) – Spherical harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Plane of Wigner-d for <cite>el</cite> and <cite>beta</cite>, with full plane computed.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="s2fft-wigner-risbo">
+<h1>s2fft.wigner.risbo<a class="headerlink" href="#s2fft-wigner-risbo" title="Permalink to this headline"></a></h1>
 </div>
 
 
