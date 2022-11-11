@@ -577,7 +577,7 @@ def forward_sov_fft_vectorized(
 
     ftm = fft.fftshift(
         fft.fft(f, axis=1, norm="backward"), axes=1
-    )  # FFT to input signal?
+    ) 
 
     # Don't need to include spin in weights (even for spin signals)
     # since accounted for already in periodic extension and upsampling.
@@ -589,7 +589,7 @@ def forward_sov_fft_vectorized(
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
-            elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))  # make agnostic (**0.5)
+            elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))  
 
             flm[el, :] += (
                 weights[t]
@@ -639,7 +639,7 @@ def forward_sov_fft_vectorized_jax_turok(
 
     ftm = fft.fftshift(
         fft.fft(f, axis=1, norm="backward"), axes=1
-    )  # FFT to input signal?
+    ) 
 
     # Don't need to include spin in weights (even for spin signals)
     # since accounted for already in periodic extension and upsampling.
@@ -651,7 +651,7 @@ def forward_sov_fft_vectorized_jax_turok(
 
             dl = wigner.turok_jax.compute_slice(theta, el, L, -spin)
 
-            elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))  # make agnostic (**0.5)
+            elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))  
 
             flm[el, :] += (
                 weights[t]
