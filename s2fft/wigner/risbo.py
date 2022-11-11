@@ -1,5 +1,4 @@
 import numpy as np
-import logs
 
 
 def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
