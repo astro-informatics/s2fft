@@ -105,7 +105,7 @@ def quad_weights_hp(nside: int) -> np.ndarray:
     """
 
     npix = 12 * nside**2
-    rings = samples.ntheta(0, "healpix", nside)
+    rings = samples.ntheta(sampling="healpix", nside=nside)
     hp_weights = np.zeros(rings, dtype=np.float64)
     hp_weights[:] = 4 * np.pi / npix
 
