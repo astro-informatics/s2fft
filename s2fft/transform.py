@@ -1,11 +1,5 @@
 import numpy as np
-import jax.numpy as jnp
-import jax.lax as lax
-from jax import jit
-from functools import partial
-
 import numpy.fft as fft
-import jax.numpy.fft as jfft
 import s2fft.samples as samples
 import s2fft.quadrature as quadrature
 import s2fft.resampling as resampling
