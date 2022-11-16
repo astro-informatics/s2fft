@@ -21,6 +21,15 @@ import s2fft.wigner as wigner
 import s2fft.samples as samples
 import pyssht as ssht
 
+# summary of available compute resources
+var = {}
+var["jax_devices"] = jax.devices()
+var["jax_local_devices"] = jax.local_devices()
+var["jax_devices_cpu"] = jax.devices("cpu")
+var["jax_device_count_cpu"] = jax.device_count("cpu")
+# var['jax_devices_gpu'] = jax.devices('gpu')
+# var['jax_device_count_gpu'] = jax.device_count('gpu')
+
 # list of different parameters to benchmark
 par = {}
 # recursions
