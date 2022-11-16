@@ -47,3 +47,33 @@ par["BANDLIMIT"] = [32, 64]
 # par["SAMPLING"] = ["mw", "mwss", "dh", "healpix"]
 # colatitude
 par["COLATITUDE"] = [np.pi / 2.0]
+
+
+T = {}
+for count_recursion in par["RECURSION"]:
+    for count_datatype in par["DATATYPE"]:
+        for count_implementation in par["IMPLEMENTATION"]:
+            for count_colatitude in par["COLATITUDE"]:
+                for count_bandlimit in par["BANDLIMIT"]:
+                    func = partial(
+                        func_benchmark_runtime,
+                        count_recursion,
+                        count_implementation,
+                        count_bandlimit,
+                        count_colatitude,
+                        count_datatype,
+                    )
+                    tempT = timeit.timeit(func, number=10)
+                    if count_implementation in ["jax"]:
+                        tempT = timeit.timeit(func, number=10)
+                    # T[count_recursion][str(count_datatype)] = tempT
+                    print(
+                        "{:7}".format(count_recursion),
+                        "{:10}".format(count_implementation),
+                        "T(" + "{:09.4f}".format(tempT) + "s) "
+                        "L(" + "{:04d}".format(count_bandlimit) + ") ",
+                        "beta("
+                        + "{:03.4f}".format(count_colatitude * 180 / (2 * np.pi))
+                        + ") ",
+                        count_datatype,
+                    )
