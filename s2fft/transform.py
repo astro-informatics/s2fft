@@ -12,178 +12,109 @@ import s2fft.resampling as resampling
 import s2fft.wigner as wigner
 
 
-def inverse_direct(
-    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw", nside: int = None
-) -> np.ndarray:
-    """Compute inverse spherical harmonic transform by direct method.
-
-    Warning:
-        This implmentation is very slow and intended for testing purposes only.
-
-    Args:
-        flm (np.ndarray): Spherical harmonic coefficients
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-    Returns:
-        np.ndarray: Signal on the sphere.
-    """
-
+def _inverse_transform(
+    do_transform: callable, flm: np.ndarray, L: int, spin: int, sampling: str, **kwargs
+):
+    """Helper function to perform shared setup for inverse transform implementations."""
     assert flm.shape == samples.flm_shape(L)
     assert 0 <= spin < L
-
-    if sampling.lower() != "healpix":
-
-        phis_ring = samples.phis_equiang(L, sampling)
-
+    nside = kwargs.get("nside", None)
     thetas = samples.thetas(L, sampling, nside)
-    f = np.zeros(samples.f_shape(L, sampling, nside), dtype=np.complex128)
+    return do_transform(flm, L, spin, sampling, thetas, **kwargs)
 
+
+def _compute_inverse_direct(
+    flm: np.ndarray,
+    L: int,
+    spin: int,
+    sampling: str,
+    thetas: np.ndarray,
+    nside: int,
+    **kwargs
+):
+    """Compute inverse SHT by direct method."""
+
+    ftm = np.zeros((len(thetas), 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
-
         for el in range(0, L):
-
             if el >= np.abs(spin):
-
                 dl = wigner.turok.compute_slice(theta, el, L, -spin)
-
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
-
                 for m in range(-el, el + 1):
-
-                    if sampling.lower() == "healpix":
-                        phis_ring = samples.phis_ring(t, nside)
-
-                    for p, phi in enumerate(phis_ring):
-
-                        if sampling.lower() != "healpix":
-                            entry = (t, p)
-
-                        else:
-                            entry = samples.hp_ang2pix(nside, theta, phi)
-
-                        f[entry] += (
-                            (-1) ** spin
-                            * elfactor
-                            * np.exp(1j * m * phi)
-                            * dl[m + L - 1]
-                            * flm[el, m + L - 1]
-                        )
-
-    return f
-
-
-def inverse_sov(
-    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw", nside: int = None
-) -> np.ndarray:
-    """Compute inverse spherical harmonic transform by separate of variables method
-    (without FFTs).
-
-    Warning:
-        This implmentation is intended for testing purposes only.
-
-    Args:
-        flm (np.ndarray): Spherical harmonic coefficients
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-    Returns:
-        np.ndarray: Signal on the sphere.
-    """
-
-    assert flm.shape == samples.flm_shape(L)
-    assert 0 <= spin < L
-
-    ntheta = samples.ntheta(L, sampling, nside=nside)
-    thetas = samples.thetas(L, sampling, nside=nside)
-
-    if sampling.lower() != "healpix":
-        phis_ring = samples.phis_equiang(L, sampling)
-
-    ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
-    f = np.zeros(samples.f_shape(L, sampling, nside), dtype=np.complex128)
-
-    for t, theta in enumerate(thetas):
-
-        for el in range(0, L):
-
-            if el >= np.abs(spin):
-
-                dl = wigner.turok.compute_slice(theta, el, L, -spin)
-
-                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
-
-                for m in range(-el, el + 1):
-
                     ftm[t, m + L - 1] += (
                         (-1) ** spin * elfactor * dl[m + L - 1] * flm[el, m + L - 1]
                     )
 
+    f = np.zeros(samples.f_shape(L, sampling, nside), dtype=np.complex128)
+    if sampling.lower() != "healpix":
+        phis_ring = samples.phis_equiang(L, sampling)
     for t, theta in enumerate(thetas):
-
         if sampling.lower() == "healpix":
             phis_ring = samples.phis_ring(t, nside)
-
         for p, phi in enumerate(phis_ring):
-
             for m in range(-(L - 1), L):
-
                 if sampling.lower() != "healpix":
                     entry = (t, p)
-
                 else:
                     entry = samples.hp_ang2pix(nside, theta, phi)
-
                 f[entry] += ftm[t, m + L - 1] * np.exp(1j * m * phi)
 
     return f
 
 
-def inverse_sov_fft(
-    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw", nside: int = None
-) -> np.ndarray:
-    """Compute inverse spherical harmonic transform by separate of variables method
-    with FFTs.
+def _compute_inverse_sov(
+    flm: np.ndarray,
+    L: int,
+    spin: int,
+    sampling: str,
+    thetas: np.ndarray,
+    nside: int,
+    **kwargs
+):
+    """Compute inverse SHT by separation of variables method without FFTs."""
 
-    Args:
-        flm (np.ndarray): Spherical harmonic coefficients
+    ntheta = samples.ntheta(L, sampling, nside=nside)
+    ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
+    for t, theta in enumerate(thetas):
+        for el in range(0, L):
+            if el >= np.abs(spin):
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
+                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+                for m in range(-el, el + 1):
+                    ftm[t, m + L - 1] += (
+                        (-1) ** spin * elfactor * dl[m + L - 1] * flm[el, m + L - 1]
+                    )
 
-        L (int): Harmonic band-limit.
+    f = np.zeros(samples.f_shape(L, sampling, nside), dtype=np.complex128)
+    if sampling.lower() != "healpix":
+        phis_ring = samples.phis_equiang(L, sampling)
+    for t, theta in enumerate(thetas):
+        if sampling.lower() == "healpix":
+            phis_ring = samples.phis_ring(t, nside)
+        for p, phi in enumerate(phis_ring):
+            for m in range(-(L - 1), L):
+                if sampling.lower() != "healpix":
+                    entry = (t, p)
+                else:
+                    entry = samples.hp_ang2pix(nside, theta, phi)
+                f[entry] += ftm[t, m + L - 1] * np.exp(1j * m * phi)
 
-        spin (int, optional): Harmonic spin. Defaults to 0.
+    return f
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+def _compute_inverse_sov_fft(
+    flm: np.ndarray,
+    L: int,
+    spin: int,
+    sampling: str,
+    thetas: np.ndarray,
+    nside: int,
+    **kwargs
+):
+    """Compute inverse SHT by separation of variables method with FFTs."""
 
-    Returns:
-        np.ndarray: Signal on the sphere.
-    """
-
-    assert flm.shape == samples.flm_shape(L)
-    assert 0 <= spin < L
     if sampling.lower() == "healpix":
         assert L >= 2 * nside
-
-    thetas = samples.thetas(L, sampling, nside)
 
     ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
@@ -213,11 +144,116 @@ def inverse_sov_fft(
                     ) * phase_shift
 
     if sampling.lower() == "healpix":
-        f = resampling.healpix_ifft(ftm, L, nside)
+        return resampling.healpix_ifft(ftm, L, nside)
     else:
-        f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+        return fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
+
+def _compute_inverse_sov_fft_vectorized(
+    flm: np.ndarray,
+    L: int,
+    spin: int,
+    sampling: str,
+    thetas: np.ndarray,
+    **kwargs
+):
+    """Compute inverse SHT by separation of variables method with FFTs (vectorized)."""
+    ftm = np.zeros(samples.f_shape(L, sampling), dtype=np.complex128)
+    m_offset = 1 if sampling == "mwss" else 0
+    for el in range(spin, L):
+        for t, theta in enumerate(thetas):
+            dl = wigner.turok.compute_slice(theta, el, L, -spin)
+            elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+            ftm[t, m_offset : 2 * L - 1 + m_offset] += elfactor * dl * flm[el, :]
+    ftm *= (-1) ** (spin)
+    f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
     return f
+
+
+def inverse_direct(
+    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw", nside: int = None
+) -> np.ndarray:
+    """Compute inverse spherical harmonic transform by direct method.
+
+    Warning:
+        This implmentation is very slow and intended for testing purposes only.
+
+    Args:
+        flm (np.ndarray): Spherical harmonic coefficients
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+    Returns:
+        np.ndarray: Signal on the sphere.
+    """
+    return _inverse_transform(
+        _compute_inverse_direct, flm, L, spin, sampling, nside=nside
+    )
+
+
+def inverse_sov(
+    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw", nside: int = None
+) -> np.ndarray:
+    """Compute inverse spherical harmonic transform by separate of variables method
+    (without FFTs).
+
+    Warning:
+        This implmentation is intended for testing purposes only.
+
+    Args:
+        flm (np.ndarray): Spherical harmonic coefficients
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+    Returns:
+        np.ndarray: Signal on the sphere.
+    """
+    return _inverse_transform(
+        _compute_inverse_sov, flm, L, spin, sampling, nside=nside
+    )
+
+
+def inverse_sov_fft(
+    flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw", nside: int = None
+) -> np.ndarray:
+    """Compute inverse spherical harmonic transform by separate of variables method
+    with FFTs.
+
+    Args:
+        flm (np.ndarray): Spherical harmonic coefficients
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+    Returns:
+        np.ndarray: Signal on the sphere.
+    """
+    return _inverse_transform(
+        _compute_inverse_sov_fft, flm, L, spin, sampling, nside=nside
+    )
 
 
 def inverse_sov_fft_vectorized(
@@ -239,35 +275,9 @@ def inverse_sov_fft_vectorized(
     Returns:
         np.ndarray: Signal on the sphere.
     """
-
-    assert flm.shape == samples.flm_shape(L)
-    assert 0 <= spin < L
-
-    ntheta = samples.ntheta(L, sampling)
-    nphi = samples.nphi_equiang(L, sampling)
-    f = np.zeros((ntheta, nphi), dtype=np.complex128)
-
-    thetas = samples.thetas(L, sampling)
-    phis_equiang = samples.phis_equiang(L, sampling)
-
-    ftm = np.zeros((ntheta, nphi), dtype=np.complex128)
-    m_offset = 1 if sampling == "mwss" else 0
-    for el in range(spin, L):
-
-        for t, theta in enumerate(thetas):
-
-            dl = wigner.turok.compute_slice(theta, el, L, -spin)
-
-            elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
-
-            ftm[t, m_offset : 2 * L - 1 + m_offset] += elfactor * np.multiply(
-                dl, flm[el, :]
-            )
-
-    ftm *= (-1) ** (spin)
-    f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
-
-    return f
+    return _inverse_transform(
+        _compute_inverse_sov_fft_vectorized, flm, L, spin, sampling
+    )
 
 
 def _forward_transform(
