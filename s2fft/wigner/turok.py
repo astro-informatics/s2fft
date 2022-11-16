@@ -134,7 +134,7 @@ def compute_quarter_slice(
     omc = 1.0 - c
 
     # Indexing boundaries
-    half_slices = [el - mm + 1, el + mm + 1]
+    half_slices = [el + mm + 1, el - mm + 1]
     lims = [L - 1 - el, L - 1 + el]
 
     # Vectors with indexing -L < m < L adopted throughout
@@ -199,7 +199,7 @@ def compute_quarter_slice(
     for m in range(-el, el + 1):
         dl[m + L - 1] *= (-1) ** (abs(mm - m))
 
-    return np.flip(dl)
+    return dl
 
 
 def compute_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
