@@ -177,10 +177,10 @@ def test_turok_slice_with_ssht(L: int, spin: int, sampling: str):
         for el in range(L):
             if el >= np.abs(spin):
 
-                dl_turok = np.flip(wigner.turok.compute_slice(beta, el, L, -spin))
+                dl_turok = wigner.turok.compute_slice(beta, el, L, -spin)
 
                 np.testing.assert_allclose(
-                    dl_turok, dl_array[el][L - 1 + spin], atol=1e-10, rtol=1e-12
+                    dl_turok, dl_array[el][L - 1 - spin], atol=1e-10, rtol=1e-12
                 )
 
 
