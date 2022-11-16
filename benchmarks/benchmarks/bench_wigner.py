@@ -48,6 +48,33 @@ par["BANDLIMIT"] = [32, 64]
 # colatitude
 par["COLATITUDE"] = [np.pi / 2.0]
 
+# create/store partial function objects for the different implementations
+def func_benchmark_runtime(recursion, implementation, bandlimit, colatitude, datatype):
+    #
+    L = bandlimit
+    beta = colatitude
+    #
+    xnp = {}
+    xinit = {}
+    ximplementation = {}
+    if recursion == "risbo":
+        xnp["loop"] = np
+        ximplementation["loop"] = "compute_full"
+    #
+    if implementation in ximplementation.keys():
+        if recursion in ["trapani", "risbo", "turok"]:
+            module_recursion = importlib.import_module("s2fft.wigner" + "." + recursion)
+            if implementation in xnp.keys():
+                func_array = xnp[implementation]
+            if implementation in xinit.keys():
+                func_init = getattr(module_recursion, xinit[implementation])
+            func_compute = getattr(module_recursion, ximplementation[implementation])
+        #
+        if recursion in ["risbo"]:
+            dl = func_array.zeros((2 * L - 1, 2 * L - 1), dtype=datatype)
+            for el in range(1, L):
+                dl = func_compute(dl, beta, L, el)
+
 
 T = {}
 for count_recursion in par["RECURSION"]:
