@@ -60,6 +60,16 @@ def func_benchmark_runtime(recursion, implementation, bandlimit, colatitude, dat
     if recursion == "risbo":
         xnp["loop"] = np
         ximplementation["loop"] = "compute_full"
+    elif recursion == "trapani":
+        xnp["loop"] = np
+        xnp["vectorized"] = np
+        xnp["jax"] = jnp
+        xinit["loop"] = "init"
+        xinit["vectorized"] = "init"
+        xinit["jax"] = "init_jax"
+        ximplementation["loop"] = "compute_full_loop"
+        ximplementation["vectorized"] = "compute_full_vectorized"
+        ximplementation["jax"] = "compute_full_jax"
     #
     if implementation in ximplementation.keys():
         if recursion in ["trapani", "risbo", "turok"]:
@@ -74,6 +84,11 @@ def func_benchmark_runtime(recursion, implementation, bandlimit, colatitude, dat
             dl = func_array.zeros((2 * L - 1, 2 * L - 1), dtype=datatype)
             for el in range(1, L):
                 dl = func_compute(dl, beta, L, el)
+        if recursion in ["trapani"]:
+            dl = func_array.zeros((2 * L - 1, 2 * L - 1), dtype=datatype)
+            dl = func_init(dl, L)
+            for el in range(1, L):
+                dl = func_compute(dl, L, el)
 
 
 T = {}
