@@ -56,7 +56,7 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
         dl,
     )
 
-    return reindex(dl, el, L)
+    return reindex(dl, el, L, mm)
 
 
 @partial(jit, static_argnums=(3, 4))
@@ -178,6 +178,7 @@ def _compute_quarter_slice(
 
         if i == 1:
             dl = dl.at[-em].multiply((-1) ** ((mm - em + el + 1) % 2) * renorm)
+    
 
     return jnp.nan_to_num(dl, neginf=0, posinf=0)
 
@@ -250,8 +251,8 @@ def _el0(dl, L) -> jnp.ndarray:
     return dl
 
 
-@partial(jit, static_argnums=(2))
-def reindex(dl, el, L) -> jnp.ndarray:
+@partial(jit, static_argnums=(2, 3))
+def reindex(dl, el, L, mm) -> jnp.ndarray:
     r"""Reorders indexing of Wigner-d matrix.
 
     Reindexes the Wigner-d matrix to centre m values around L-1.
@@ -270,8 +271,16 @@ def reindex(dl, el, L) -> jnp.ndarray:
 
         L (int): Harmonic band-limit.
 
+        mm (int): Harmonic order at which to slice the matrix.
+
     Returns:
         jnp.ndarray: Wigner-d matrix slice of dimension [2L-1].
     """
     dl = dl.at[: L - 1].set(jnp.roll(dl, L - el - 1)[: L - 1])
-    return dl.at[L - 1 :].set(jnp.roll(dl, -(L - el - 1))[L - 1 :])
+    dl = dl.at[L - 1 :].set(jnp.roll(dl, -(L - el - 1))[L - 1 :])
+
+    for m in range(-L, L+1):
+        dl = dl.at[L-1+m].multiply((-1)**(abs(mm - m)))
+    if (mm%2):
+        dl = dl.at[-1].multiply(-1)
+    return dl
