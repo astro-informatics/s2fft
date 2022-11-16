@@ -70,6 +70,9 @@ def func_benchmark_runtime(recursion, implementation, bandlimit, colatitude, dat
         ximplementation["loop"] = "compute_full_loop"
         ximplementation["vectorized"] = "compute_full_vectorized"
         ximplementation["jax"] = "compute_full_jax"
+    elif recursion == "turok":
+        xnp["loop"] = np
+        ximplementation["loop"] = "compute_full"
     #
     if implementation in ximplementation.keys():
         if recursion in ["trapani", "risbo", "turok"]:
@@ -89,6 +92,9 @@ def func_benchmark_runtime(recursion, implementation, bandlimit, colatitude, dat
             dl = func_init(dl, L)
             for el in range(1, L):
                 dl = func_compute(dl, L, el)
+        if recursion in ["turok"]:
+            el = L - 1
+            dl = func_compute(beta, el, L)
 
 
 T = {}
