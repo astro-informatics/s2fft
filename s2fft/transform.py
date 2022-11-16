@@ -270,38 +270,14 @@ def inverse_sov_fft_vectorized(
     return f
 
 
-def forward_direct(
-    f: np.ndarray,
-    L: int,
-    spin: int = 0,
-    sampling: str = "mw",
-    nside: int = None,
-) -> np.ndarray:
-    """Compute forward spherical harmonic transform by direct method.
+def _forward_transform(
+    do_transform: callable, f: np.ndarray, L: int, spin: int, sampling: str, **kwargs
+):
+    """Helper function to perform shared setup for forward transform implementations."""
 
-    Warning:
-        This implmentation is very slow and intended for testing purposes only.
-
-    Args:
-        f (np.ndarray): Signal on the sphere.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-    Returns:
-        np.ndarray: Spherical harmonic coefficients.
-    """
+    nside = kwargs.get("nside", None)
     assert f.shape == samples.f_shape(L, sampling, nside)
     assert 0 <= spin < L
-
-    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -317,6 +293,14 @@ def forward_direct(
     # Don't need to include spin in weights (even for spin signals)
     # since accounted for already in periodic extension and upsampling.
     weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
+
+    return do_transform(f, L, spin, sampling, thetas, weights, **kwargs)
+
+
+def _compute_forward_direct(f, L, spin, sampling, thetas, weights, nside, **kwargs):
+    """Compute forward SHT by direct method."""
+
+    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
     if sampling.lower() != "healpix":
         phis_ring = samples.phis_equiang(L, sampling)
@@ -355,52 +339,8 @@ def forward_direct(
     return flm
 
 
-def forward_sov(
-    f: np.ndarray,
-    L: int,
-    spin: int = 0,
-    sampling: str = "mw",
-    nside: int = None,
-) -> np.ndarray:
-    """Compute forward spherical harmonic transform by separate of variables method
-    (without FFTs).
-
-    Warning:
-        This implmentation is intended for testing purposes only.
-
-    Args:
-        f (np.ndarray): Signal on the sphere.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-
-    Returns:
-        np.ndarray: Spherical harmonic coefficients.
-    """
-
-    assert f.shape == samples.f_shape(L, sampling, nside)
-    assert 0 <= spin < L
-
-    if sampling.lower() == "mw":
-        f = resampling.mw_to_mwss(f, L, spin)
-
-    if sampling.lower() in ["mw", "mwss"]:
-        sampling = "mwss"
-        f = resampling.upsample_by_two_mwss(f, L, spin)
-        thetas = samples.thetas(2 * L, sampling)
-
-    else:
-        thetas = samples.thetas(L, sampling, nside)
-
-    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
+def _compute_forward_sov(f, L, spin, sampling, thetas, weights, nside, **kwargs):
+    """Compute forward SHT by separation of variables method without FFTs."""
 
     if sampling.lower() != "healpix":
         phis_ring = samples.phis_equiang(L, sampling)
@@ -422,9 +362,7 @@ def forward_sov(
 
                 ftm[t, m + L - 1] += np.exp(-1j * m * phi) * f[entry]
 
-    # Don't need to include spin in weights (even for spin signals)
-    # since accounted for already in periodic extension and upsampling.
-    weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
+    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
     for t, theta in enumerate(thetas):
 
@@ -449,51 +387,16 @@ def forward_sov(
     return flm
 
 
-def forward_sov_fft(
-    f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw", nside: int = None
-) -> np.ndarray:
-    """Compute forward spherical harmonic transform by separate of variables method
-    with FFTs.
-
-    Args:
-        f (np.ndarray): Signal on the sphere.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
-
-    Returns:
-        np.ndarray: Spherical harmonic coefficients
-    """
-
-    assert f.shape == samples.f_shape(L, sampling, nside)
-    assert 0 <= spin < L
-    if sampling.lower() == "healpix":
-        assert L >= 2 * nside
-
-    if sampling.lower() == "mw":
-        f = resampling.mw_to_mwss(f, L, spin)
-
-    if sampling.lower() in ["mw", "mwss"]:
-        sampling = "mwss"
-        f = resampling.upsample_by_two_mwss(f, L, spin)
-        thetas = samples.thetas(2 * L, sampling)
-    else:
-        thetas = samples.thetas(L, sampling, nside)
-
-    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
+def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside, **kwargs):
+    """Compute forward SHT by separation of variables method with FFTs."""
 
     if sampling.lower() == "healpix":
         ftm = resampling.healpix_fft(f, L, nside)
     else:
         ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
 
-    # Don't need to include spin in weights (even for spin signals)
-    # since accounted for already in periodic extension and upsampling.
-    weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
+    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
+
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     for t, theta in enumerate(thetas):
@@ -527,6 +430,128 @@ def forward_sov_fft(
     return flm
 
 
+def _compute_forward_sov_fft_vectorized(
+    f, L, spin, sampling, thetas, weights, **kwargs
+):
+    """Compute forward SHT by separation of variables method with FFTs (vectorized)."""
+
+    ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
+
+    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
+
+    m_offset = 1 if sampling == "mwss" else 0
+
+    for t, theta in enumerate(thetas):
+
+        for el in range(spin, L):
+
+            dl = wigner.turok.compute_slice(theta, el, L, -spin)
+
+            elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+
+            flm[el, :] += (
+                weights[t]
+                * elfactor
+                * np.multiply(dl, ftm[t, m_offset : 2 * L - 1 + m_offset])
+            )
+
+    flm *= (-1) ** spin
+
+    return flm
+
+
+def forward_direct(
+    f: np.ndarray,
+    L: int,
+    spin: int = 0,
+    sampling: str = "mw",
+    nside: int = None,
+) -> np.ndarray:
+    """Compute forward spherical harmonic transform by direct method.
+
+    Warning:
+        This implmentation is very slow and intended for testing purposes only.
+
+    Args:
+        f (np.ndarray): Signal on the sphere.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients.
+    """
+    return _forward_transform(
+        _compute_forward_direct, f, L, spin, sampling, nside=nside
+    )
+
+
+def forward_sov(
+    f: np.ndarray,
+    L: int,
+    spin: int = 0,
+    sampling: str = "mw",
+    nside: int = None,
+) -> np.ndarray:
+    """Compute forward spherical harmonic transform by separate of variables method
+    (without FFTs).
+
+    Warning:
+        This implmentation is intended for testing purposes only.
+
+    Args:
+        f (np.ndarray): Signal on the sphere.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients.
+    """
+    return _forward_transform(
+        _compute_forward_sov, f, L, spin, sampling, nside=nside
+    )
+
+
+def forward_sov_fft(
+    f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw", nside: int = None
+) -> np.ndarray:
+    """Compute forward spherical harmonic transform by separate of variables method
+    with FFTs.
+
+    Args:
+        f (np.ndarray): Signal on the sphere.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients
+    """
+    return _forward_transform(
+        _compute_forward_sov_fft, f, L, spin, sampling, nside=nside
+    )
+
+
 def forward_sov_fft_vectorized(
     f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
 ) -> np.ndarray:
@@ -546,42 +571,6 @@ def forward_sov_fft_vectorized(
     Returns:
         np.ndarray: Spherical harmonic coefficients
     """
-
-    assert f.shape == samples.f_shape(L, sampling)
-    assert 0 <= spin < L
-
-    if sampling.lower() == "mw":
-        f = resampling.mw_to_mwss(f, L, spin)
-
-    if sampling.lower() in ["mw", "mwss"]:
-        sampling = "mwss"
-        f = resampling.upsample_by_two_mwss(f, L, spin)
-        thetas = samples.thetas(2 * L, sampling)
-    else:
-        thetas = samples.thetas(L, sampling)
-
-    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
-
-    ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
-
-    # Don't need to include spin in weights (even for spin signals)
-    # since accounted for already in periodic extension and upsampling.
-    weights = quadrature.quad_weights_transform(L, sampling, spin=0)
-    m_offset = 1 if sampling == "mwss" else 0
-    for t, theta in enumerate(thetas):
-
-        for el in range(spin, L):
-
-            dl = wigner.turok.compute_slice(theta, el, L, -spin)
-
-            elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
-
-            flm[el, :] += (
-                weights[t]
-                * elfactor
-                * np.multiply(dl, ftm[t, m_offset : 2 * L - 1 + m_offset])
-            )
-
-    flm *= (-1) ** spin
-
-    return flm
+    return _forward_transform(
+        _compute_forward_sov_fft_vectorized, f, L, spin, sampling
+    )
