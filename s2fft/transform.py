@@ -649,7 +649,7 @@ def forward_sov_fft_vectorized_jax_turok(
 
         for el in range(spin, L):
 
-            dl = wigner.turok_jax.compute_slice(theta, el, L, -spin)
+            dl = jnp.flip(wigner.turok_jax.compute_slice(theta, el, L, -spin)) #=---------------------
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))  
 
@@ -660,6 +660,67 @@ def forward_sov_fft_vectorized_jax_turok(
             )
 
     flm *= (-1) ** spin
+
+    return flm
+
+def forward_sov_fft_vectorized_00(
+    f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
+) -> np.ndarray:
+    """Compute forward spherical harmonic transform by separate of variables method
+    with FFTs (vectorized implementation).
+
+    Args:
+        f (np.ndarray): Signal on the sphere.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients
+    """
+
+    assert f.shape == samples.f_shape(L, sampling)
+    assert 0 <= spin < L
+
+    if sampling.lower() == "mw":
+        f = resampling.mw_to_mwss(f, L, spin)
+
+    if sampling.lower() in ["mw", "mwss"]:
+        sampling = "mwss"
+        f = resampling.upsample_by_two_mwss(f, L, spin)
+        thetas = samples.thetas(2 * L, sampling)
+    else:
+        thetas = samples.thetas(L, sampling)
+
+    flm = jnp.zeros(samples.flm_shape(L), dtype=jnp.complex128)
+
+    ftm = jnp.fft.fftshift(
+        jnp.fft.fft(f, axis=1, norm="backward"), axes=1
+    ) 
+
+    # Don't need to include spin in weights (even for spin signals)
+    # since accounted for already in periodic extension and upsampling.
+    weights = quadrature.quad_weights_transform(L, sampling, spin=0)
+    m_offset = 1 if sampling == "mwss" else 0
+    for t, theta in enumerate(thetas):
+
+        for el in range(spin, L):
+
+            dl = wigner.turok_jax.compute_slice(theta, el, L, -spin)
+
+            elfactor = jnp.sqrt((2 * el + 1) / (4 * jnp.pi))  
+
+            flm.at[el, :].add(
+                weights[t]
+                * elfactor
+                * jnp.multiply(dl, ftm[t, m_offset : 2 * L - 1 + m_offset])
+            )
+
+    flm.at[:,:].multiply((-1) ** spin)
 
     return flm
 
@@ -773,7 +834,7 @@ def forward_sov_fft_vectorized_jax_1(  # vectorised
     thetas = jax.device_put(thetas)
 
     # ftm array
-    ftm = jnp.fft.fftshift(jnp.fft.fft(f, axis=1, norm="backward"), axes=1)
+    ftm = jnp.fft.fftshift(jnp.fft.fft(f, axis=1, norm="backward"), axes=1)  # same device as f right?
 
     # Don't need to include spin in weights (even for spin signals)
     # since accounted for already in periodic extension and upsampling.
@@ -802,7 +863,7 @@ def forward_sov_fft_vectorized_jax_1(  # vectorised
     # Compute flm
     flm = (
         (
-            jnp.expand_dims(weights, axis=(0, 1))  # weights[None, None, :]
+            jnp.expand_dims(weights, axis=(0, 1))  # weights[None, None, :] --agnostic but seems slower?
             * jnp.expand_dims(
                 jnp.sqrt((2 * jnp.array(range(spin, L), dtype=np.float64) + 1) / (4 * jnp.pi)),
                 axis=(-1, -2),
