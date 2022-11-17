@@ -279,8 +279,7 @@ def reindex(dl, el, L, mm) -> jnp.ndarray:
     dl = dl.at[: L - 1].set(jnp.roll(dl, L - el - 1)[: L - 1])
     dl = dl.at[L - 1 :].set(jnp.roll(dl, -(L - el - 1))[L - 1 :])
 
-    for m in range(-L, L+1):
-        dl = dl.at[L-1+m].multiply((-1)**(abs(mm - m)))
-    if (mm%2):
-        dl = dl.at[-1].multiply(-1)
+    m = jnp.arange(-L+1, L+1)
+    dl = dl.at[L-1+m].multiply((-1)**((mm - m)%2))
+
     return dl
