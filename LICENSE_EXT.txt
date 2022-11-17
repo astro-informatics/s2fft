@@ -10,7 +10,7 @@ conditions in the License, the grant of rights under the License will not
 include, and the License does not grant to you, the right to use the Software
 for commercial uses.
 
-Software: harmonic
+Software: s2fft
 
 License: See LICENSE.txt (GPL-3)
 
