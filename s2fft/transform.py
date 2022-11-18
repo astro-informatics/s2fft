@@ -12,7 +12,7 @@ def _inverse_transform(
     """Helper function to perform shared setup for inverse transform implementations."""
     assert flm.shape == samples.flm_shape(L)
     assert 0 <= spin < L
-    nside = kwargs.get("nside", None)
+    nside = kwargs.get("nside")
     thetas = samples.thetas(L, sampling, nside)
     return do_transform(flm, L, spin, sampling, thetas, **kwargs)
 
