@@ -1,4 +1,4 @@
-|GitHub| |Build Status| |Docs| |CodeCov| |GPL license| |ArXiv|
+|GitHub| |Build Status| |Docs| |CodeCov| |MIT Licence| |ArXiv|
 
 .. |GitHub| image:: https://img.shields.io/badge/GitHub-PyTemplate-brightgreen.svg?style=flat
     :target: https://github.com/astro-informatics/s2fft
@@ -8,8 +8,8 @@
     :target: https://astro-informatics.github.io/s2fft
 .. |CodeCov| image:: https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE
     :target: https://codecov.io/gh/astro-informatics/s2fft
-.. |GPL License| image:: https://img.shields.io/badge/License-GPL-blue.svg
-    :target: http://perso.crans.org/besson/LICENSE.html
+.. |MIT Licence| image:: https://img.shields.io/badge/License-MIT-yellow.svg
+    :target: https://opensource.org/licenses/MIT
 .. |ArXiv| image:: http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat
     :target: https://arxiv.org/abs/xxxx.xxxxx
 
