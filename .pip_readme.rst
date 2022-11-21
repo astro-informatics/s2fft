@@ -6,8 +6,8 @@
     :target: https://astro-informatics.github.io/s2fft
 .. image:: https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE
     :target: https://codecov.io/gh/astro-informatics/s2fft
-.. image:: https://img.shields.io/badge/License-GPL-blue.svg
-    :target: http://perso.crans.org/besson/LICENSE.html
+.. image:: https://img.shields.io/badge/License-MIT-yellow.svg
+    :target: https://opensource.org/licenses/MIT
 .. image:: http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat
     :target: https://arxiv.org/abs/xxxx.xxxxx
 
