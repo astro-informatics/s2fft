@@ -38,7 +38,7 @@ def inverse_direct(
     """
 
     assert flm.shape == samples.flm_shape(L)
-    assert 0 <= spin < L
+    assert 0 <= np.abs(spin) < L
 
     if sampling.lower() != "healpix":
 
@@ -108,7 +108,7 @@ def inverse_sov(
     """
 
     assert flm.shape == samples.flm_shape(L)
-    assert 0 <= spin < L
+    assert 0 <= np.abs(spin) < L
 
     ntheta = samples.ntheta(L, sampling, nside=nside)
     thetas = samples.thetas(L, sampling, nside=nside)
@@ -179,7 +179,7 @@ def inverse_sov_fft(
     """
 
     assert flm.shape == samples.flm_shape(L)
-    assert 0 <= spin < L
+    assert 0 <= np.abs(spin) < L
     if sampling.lower() == "healpix":
         assert L >= 2 * nside
 
@@ -241,7 +241,7 @@ def inverse_sov_fft_vectorized(
     """
 
     assert flm.shape == samples.flm_shape(L)
-    assert 0 <= spin < L
+    assert 0 <= np.abs(spin) < L
 
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
@@ -299,7 +299,7 @@ def forward_direct(
         np.ndarray: Spherical harmonic coefficients.
     """
     assert f.shape == samples.f_shape(L, sampling, nside)
-    assert 0 <= spin < L
+    assert 0 <= np.abs(spin) < L
 
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
@@ -387,7 +387,7 @@ def forward_sov(
     """
 
     assert f.shape == samples.f_shape(L, sampling, nside)
-    assert 0 <= spin < L
+    assert 0 <= np.abs(spin) < L
 
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -470,7 +470,7 @@ def forward_sov_fft(
     """
 
     assert f.shape == samples.f_shape(L, sampling, nside)
-    assert 0 <= spin < L
+    assert 0 <= np.abs(spin) < L
     if sampling.lower() == "healpix":
         assert L >= 2 * nside
 
@@ -548,7 +548,7 @@ def forward_sov_fft_vectorized(
     """
 
     assert f.shape == samples.f_shape(L, sampling)
-    assert 0 <= spin < L
+    assert 0 <= np.abs(spin) < L
 
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
