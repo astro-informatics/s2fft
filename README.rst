@@ -166,16 +166,14 @@ A BibTeX entry for <project-name> is:
 License
 =======
 
-``<project-name>`` is released under the GPL-3 license (see `LICENSE.txt <https://github.com/astro-informatics/code_template/blob/main/LICENSE.txt>`_), subject to 
-the non-commercial use condition (see `LICENSE_EXT.txt <https://github.com/astro-informatics/code_template/blob/main/LICENSE_EXT.txt>`_)
+``<project-name>`` is released under the MIT license (see `LICENSE.txt <https://github.com/astro-informatics/code_template/blob/main/LICENCE.txt>`_).
 
 .. code-block::
 
-     LatentWaves
+     S2fft
      Copyright (C) 2022 Author names & contributors
 
-     This program is released under the GPL-3 license (see LICENSE.txt), 
-     subject to a non-commercial use condition (see LICENSE_EXT.txt).
+     This program is released under the MIT license (see LICENCE.txt).
 
      This program is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
