@@ -106,4 +106,6 @@ License
    api/resampling 
    api/sampling 
    api/transforms 
+   api/wigner_samples
+   api/wigner_transform
    api/utils
