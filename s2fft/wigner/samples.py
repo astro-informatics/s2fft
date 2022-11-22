@@ -138,7 +138,7 @@ def _ngamma(N: int) -> int:
     return 2 * N - 1
 
 
-def elm2ind(el: int, m: int, n: int, L: int, N: int = 1) -> int:
+def elmn2ind(el: int, m: int, n: int, L: int, N: int = 1) -> int:
     """Convert from Wigner space 3D indexing of :math:`(\ell,m, n)` to 1D index.
 
     Args:
@@ -190,7 +190,7 @@ def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int = 1) -> np.ndarray:
     for n in range(-N + 1, N):
         for el in range(L):
             for m in range(-el, el + 1):
-                flmn_1d[elm2ind(el, m, n, L, N)] = flmn_3d[el, L - 1 + m, N - 1 + n]
+                flmn_1d[elmn2ind(el, m, n, L, N)] = flmn_3d[el, L - 1 + m, N - 1 + n]
 
     return flmn_1d
 
@@ -225,6 +225,6 @@ def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int = 1) -> np.ndarray:
     for n in range(-N + 1, N):
         for el in range(L):
             for m in range(-el, el + 1):
-                flmn_3d[el, L - 1 + m, N - 1 + n] = flmn_1d[elm2ind(el, m, n, L, N)]
+                flmn_3d[el, L - 1 + m, N - 1 + n] = flmn_1d[elmn2ind(el, m, n, L, N)]
 
     return flmn_3d
