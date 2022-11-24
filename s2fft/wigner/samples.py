@@ -53,7 +53,7 @@ def flmn_shape(L: int, N: int) -> Tuple[int, int, int]:
     return L, 2 * L - 1, 2 * N - 1
 
 
-def flmn_n_size(L: int, N: int) -> int:
+def flmn_shape_1d(L: int, N: int) -> int:
     r"""Computes the number of non-zero Wigner coefficients.
 
     TODO: Add support for compact storage etc.
@@ -186,13 +186,13 @@ def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int = 1) -> np.ndarray:
     Returns:
         np.ndarray: 1D indexed Wigner coefficients, C flatten index priority :math:`n, \ell, m`.
     """
-    flmn_1d = np.zeros(flmn_n_size(L, N), dtype=np.complex128)
+    flmn_1d = np.zeros(flmn_shape_1d(L, N), dtype=np.complex128)
 
     if len(flmn_3d.shape) == 1:
         raise ValueError(f"flmn is already 1D indexed")
     elif len(flmn_3d.shape) != 3:
         raise ValueError(
-            f"Cannot convert flmn of dimension {flm_3d.shape} to 1D indexing"
+            f"Cannot convert flmn of dimension {flmn_3d.shape} to 1D indexing"
         )
 
     for n in range(-N + 1, N):
@@ -229,7 +229,7 @@ def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int = 1) -> np.ndarray:
         raise ValueError(f"Flmn is already 3D indexed")
     elif len(flmn_1d.shape) != 1:
         raise ValueError(
-            f"Cannot convert flmn of dimension {flm_1d.shape} to 3D indexing"
+            f"Cannot convert flmn of dimension {flmn_1d.shape} to 3D indexing"
         )
 
     for n in range(-N + 1, N):

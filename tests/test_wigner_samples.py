@@ -27,7 +27,7 @@ def test_flmn_shape(s2fft_to_so3_sampling, L: int, N: int, sampling: str):
     params = so3.create_parameter_dict(
         L=L, N=N, sampling_scheme_str=s2fft_to_so3_sampling(sampling)
     )
-    assert samples.flmn_n_size(L, N) == so3.flmn_size(params)
+    assert samples.flmn_shape_1d(L, N) == so3.flmn_size(params)
 
 
 @pytest.mark.parametrize("L", L_to_test)
