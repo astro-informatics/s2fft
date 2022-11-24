@@ -11,7 +11,6 @@ nside_to_test = [2, 4, 8]
 L_to_nside_ratio = [2, 3]
 sampling_to_test = ["mw", "mwss", "dh"]
 method_to_test = ["direct", "sov", "sov_fft", "sov_fft_vectorized"]
-method_to_test_hp = ["direct", "sov", "sov_fft"]
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -37,7 +36,7 @@ def test_transform_inverse(
 
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.parametrize("ratio", L_to_nside_ratio)
-@pytest.mark.parametrize("method", method_to_test_hp)
+@pytest.mark.parametrize("method", method_to_test)
 def test_transform_inverse_healpix(flm_generator, nside: int, ratio: int, method: str):
     sampling = "healpix"
     L = ratio * nside
@@ -75,7 +74,7 @@ def test_transform_forward(
 
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.parametrize("ratio", L_to_nside_ratio)
-@pytest.mark.parametrize("method", method_to_test_hp)
+@pytest.mark.parametrize("method", method_to_test)
 def test_transform_forward_healpix(flm_generator, nside: int, ratio: int, method: str):
     sampling = "healpix"
     L = ratio * nside

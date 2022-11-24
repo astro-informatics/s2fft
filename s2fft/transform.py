@@ -29,7 +29,7 @@ def inverse(
     Returns:
         np.ndarray: Signal on the sphere.
     """
-    return _inverse(flm, L, spin, sampling, nside=nside, method="sov_fft")
+    return _inverse(flm, L, spin, sampling, nside=nside, method="sov_fft_vectorized")
 
 
 def _inverse(
@@ -76,7 +76,7 @@ def forward(
     Returns:
         np.ndarray: Spheircal harmonic coefficients.
     """
-    return _forward(f, L, spin, sampling, nside=nside, method="sov_fft")
+    return _forward(f, L, spin, sampling, nside=nside, method="sov_fft_vectorized")
 
 
 def _forward(
@@ -233,16 +233,21 @@ def _compute_inverse_sov_fft_vectorized(
     nside: int = None,
 ):
     """Compute inverse SHT by separation of variables method with FFTs (vectorized)."""
-    ftm = np.zeros(samples.f_shape(L, sampling), dtype=np.complex128)
-    m_offset = 1 if sampling == "mwss" else 0
+    ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
+    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     for el in range(spin, L):
         for t, theta in enumerate(thetas):
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
-            ftm[t, m_offset : 2 * L - 1 + m_offset] += elfactor * dl * flm[el, :]
+            if sampling.lower() == "healpix":
+                ftm[t, m_offset : 2 * L - 1 + m_offset] += elfactor * dl * flm[el, :] * samples.phase_shift(L, t, nside, False)
+            else:
+                ftm[t, m_offset : 2 * L - 1 + m_offset] += elfactor * dl * flm[el, :]
     ftm *= (-1) ** (spin)
-    f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
-    return f
+    if sampling.lower() == "healpix":
+        return resampling.healpix_ifft(ftm, L, nside)
+    else:
+        return fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
 
 def _compute_forward_direct(f, L, spin, sampling, thetas, weights, nside):
@@ -381,11 +386,14 @@ def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
 def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, nside):
     """Compute forward SHT by separation of variables method with FFTs (vectorized)."""
 
-    ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
+    if sampling.lower() == "healpix":
+        ftm = resampling.healpix_fft(f, L, nside)
+    else:
+        ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
 
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
-    m_offset = 1 if sampling == "mwss" else 0
+    m_offset = 1 if sampling in ["mwss","healpix"] else 0
 
     for t, theta in enumerate(thetas):
 
@@ -395,11 +403,18 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
-            flm[el, :] += (
+            if sampling.lower() == "healpix":
+                flm[el, :] += (
                 weights[t]
                 * elfactor
                 * np.multiply(dl, ftm[t, m_offset : 2 * L - 1 + m_offset])
-            )
+                ) * samples.phase_shift(L, t, nside, True)
+            else:
+                flm[el, :] += (
+                    weights[t]
+                    * elfactor
+                    * np.multiply(dl, ftm[t, m_offset : 2 * L - 1 + m_offset])
+                )
 
     flm *= (-1) ** spin
 

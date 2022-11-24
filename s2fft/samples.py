@@ -415,6 +415,27 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
 
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
+def phase_shift(L: int, t: int, nside: int, forward: bool = False) -> np.ndarray:
+    r"""Generates a phase shift vector for HEALPix for a given :math:`\theta` ring.
+
+    Args:
+        L (int, optional): Harmonic band-limit.
+
+        t (int): :math:`\theta` index of ring.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+        forward (bool, optional): Whether to provide forward or inverse shift.
+            Defaults to False.
+
+    Returns:
+        np.ndarray: Vector of phase shifts with shape :math:`[2L-1]`.
+    """
+    phi_offset = p2phi_ring(t, 0, nside)
+    if forward:
+        return np.exp(-1j*np.arange(-L+1, L)*phi_offset)
+    else:
+        return np.exp(1j*np.arange(-L+1, L)*phi_offset)
 
 def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> tuple:
     """Shape of spherical signal.
