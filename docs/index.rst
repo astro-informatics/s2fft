@@ -16,7 +16,7 @@
 S2FFT: JAX accelerated spin-spherical harmonic transforms
 =================================================================================================================
 
-Add some basic discussion about ``<project-name>`` here.
+Add some basic discussion about ``S2FFT`` here.
 
 Installation
 ============
@@ -34,11 +34,11 @@ Author names & Contributors
 
 Attribution
 ===========
-A BibTeX entry for <project-name> is:
+A BibTeX entry for ``S2FFT`` is:
 
 .. code-block:: 
 
-     @article{<project-name>, 
+     @article{S2FFT, 
         author = {Author~List},
          title = {"A totally amazing name"},
        journal = {ArXiv},
@@ -49,18 +49,14 @@ A BibTeX entry for <project-name> is:
 License
 =======
 
-``<project-name>`` is released under the MIT license (see `LICENSE.txt <https://github.com/astro-informatics/code_template/blob/main/LICENCE.txt>`_).
+``S2FFT`` is released under the MIT license (see `LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
 
 .. code-block::
 
      S2fft
      Copyright (C) 2022 Author names & contributors
 
-     This program is released under the MIT license (see LICENCE.txt).
-
-     This program is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+     This program is released under the MIT license (see `LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
 
 .. bibliography:: 
     :notcited:

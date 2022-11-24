@@ -37,7 +37,7 @@ def inverse_wigner_transform(
     flmn /= np.sqrt(16*np.pi**3)
 
     for n in range(-N + 1, N):
-        fabn[..., N - 1 + n] = (-1) ** n * s2f.inverse_sov_fft(
+        fabn[..., N - 1 + n] = (-1) ** n * s2f.inverse(
             flmn[..., N - 1 + n], L, spin=-n, sampling=sampling
         )
 
@@ -76,7 +76,7 @@ def forward_wigner_transform(
     fabn = fft.fftshift(fft.fft(f, axis=2, norm="forward"), axes=2)
 
     for n in range(-N + 1, N):
-        flmn[..., N - 1 + n] = (-1) ** n * s2f.forward_sov_fft(
+        flmn[..., N - 1 + n] = (-1) ** n * s2f.forward(
             fabn[..., N - 1 + n], L, spin=-n, sampling=sampling
         )
 
