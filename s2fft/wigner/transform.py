@@ -7,7 +7,8 @@ import s2fft.wigner.samples as samples
 def inverse_wigner_transform(
     flmn: np.ndarray, L: int, N: int = 1, sampling: str = "mw"
 ) -> np.ndarray:
-    r"""Function to compute the inverse Wigner transform, i.e. inverse Fourier transform on :math:`SO(3)`.
+    r"""Function to compute the inverse Wigner transform, i.e. inverse Fourier transform
+    on :math:`SO(3)`.
 
     Args:
         flmn (np.ndarray): Array of Wigner coefficients with shape :math:`[L, 2L-1, N]`.
@@ -24,7 +25,8 @@ def inverse_wigner_transform(
         ValueError: Sampling scheme not currently supported.
 
     Returns:
-        (np.ndarray): Pixel-space samples of the rotation group with shape :math:`[n_{\beta}, n_{\alpha}, n_{\gamma}]`.
+        (np.ndarray): Pixel-space samples of the rotation group with shape
+            :math:`[n_{\beta}, n_{\alpha}, n_{\gamma}]`.
     """
     assert flmn.shape == samples.flmn_shape(L, N)
 
@@ -33,8 +35,8 @@ def inverse_wigner_transform(
 
     fabn = np.zeros(samples.f_shape(L, N, sampling), dtype=np.complex128)
 
-    flmn = np.einsum('ijk,i->ijk', flmn, np.sqrt((2 * np.arange(L) + 1)))
-    flmn /= np.sqrt(16*np.pi**3)
+    flmn = np.einsum("ijk,i->ijk", flmn, np.sqrt((2 * np.arange(L) + 1)))
+    flmn /= np.sqrt(16 * np.pi**3)
 
     for n in range(-N + 1, N):
         fabn[..., N - 1 + n] = (-1) ** n * s2f.inverse(
@@ -47,10 +49,12 @@ def inverse_wigner_transform(
 def forward_wigner_transform(
     f: np.ndarray, L: int, N: int = 1, sampling: str = "mw"
 ) -> np.ndarray:
-    r"""Function to compute the forward Wigner transform, i.e. Fourier transform on :math:`SO(3)`.
+    r"""Function to compute the forward Wigner transform, i.e. Fourier transform on
+    :math:`SO(3)`.
 
     Args:
-        f (np.ndarray): Array of samples on :math:`SO(3)` with shape :math:`[n_{\alpha}, n_{\beta}, n_{\gamma}]`.
+        f (np.ndarray): Array of samples on :math:`SO(3)` with shape
+            :math:`[n_{\alpha}, n_{\beta}, n_{\gamma}]`.
 
         L (int): Harmonic bandlimit.
 
@@ -80,7 +84,7 @@ def forward_wigner_transform(
             fabn[..., N - 1 + n], L, spin=-n, sampling=sampling
         )
 
-    flmn = np.einsum('ijk,i->ijk', flmn, 1/np.sqrt((2 * np.arange(L) + 1)))
-    flmn *= np.sqrt(16*np.pi**3)
+    flmn = np.einsum("ijk,i->ijk", flmn, 1 / np.sqrt((2 * np.arange(L) + 1)))
+    flmn *= np.sqrt(16 * np.pi**3)
 
     return flmn
