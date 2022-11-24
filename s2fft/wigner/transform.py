@@ -3,7 +3,7 @@ import numpy.fft as fft
 import s2fft.transform as s2f
 import s2fft.wigner.samples as samples
 
-# TODO: Extend to exploit conjugate symmetry for real transforms.
+
 def inverse_wigner_transform(
     flmn: np.ndarray, L: int, N: int = 1, sampling: str = "mw"
 ) -> np.ndarray:

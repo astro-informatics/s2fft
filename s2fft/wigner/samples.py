@@ -39,8 +39,6 @@ def flmn_shape(L: int, N: int) -> Tuple[int, int, int]:
     r"""Computes the shape of Wigner coefficients for signal on the rotation group
     :math:`SO(3)`.
 
-    TODO: Add support for compact storage etc.
-
     Args:
         L (int): Harmonic band-limit.
 
@@ -55,8 +53,6 @@ def flmn_shape(L: int, N: int) -> Tuple[int, int, int]:
 
 def flmn_shape_1d(L: int, N: int) -> int:
     r"""Computes the number of non-zero Wigner coefficients.
-
-    TODO: Add support for compact storage etc.
 
     Args:
         L (int): Harmonic band-limit.
