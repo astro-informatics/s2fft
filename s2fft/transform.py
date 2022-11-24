@@ -178,30 +178,41 @@ def _compute_inverse_direct(
     Returns:
         np.ndarray: Signal on the sphere.
     """
-    ftm = np.zeros((len(thetas), 2 * L - 1), dtype=np.complex128)
-    for t, theta in enumerate(thetas):
-        for el in range(0, L):
-            if el >= np.abs(spin):
-                dl = wigner.turok.compute_slice(theta, el, L, -spin)
-                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
-                for m in range(-el, el + 1):
-                    ftm[t, m + L - 1] += (
-                        (-1) ** spin * elfactor * dl[m + L - 1] * flm[el, m + L - 1]
-                    )
-
-    f = np.zeros(samples.f_shape(L, sampling, nside), dtype=np.complex128)
     if sampling.lower() != "healpix":
         phis_ring = samples.phis_equiang(L, sampling)
+
+    f = np.zeros(samples.f_shape(L, sampling, nside), dtype=np.complex128)
+
     for t, theta in enumerate(thetas):
-        if sampling.lower() == "healpix":
-            phis_ring = samples.phis_ring(t, nside)
-        for p, phi in enumerate(phis_ring):
-            for m in range(-(L - 1), L):
-                if sampling.lower() != "healpix":
-                    entry = (t, p)
-                else:
-                    entry = samples.hp_ang2pix(nside, theta, phi)
-                f[entry] += ftm[t, m + L - 1] * np.exp(1j * m * phi)
+
+        for el in range(0, L):
+
+            if el >= np.abs(spin):
+
+                dl = wigner.turok.compute_slice(theta, el, L, -spin)
+
+                elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
+
+                for m in range(-el, el + 1):
+
+                    if sampling.lower() == "healpix":
+                        phis_ring = samples.phis_ring(t, nside)
+
+                    for p, phi in enumerate(phis_ring):
+
+                        if sampling.lower() != "healpix":
+                            entry = (t, p)
+
+                        else:
+                            entry = samples.hp_ang2pix(nside, theta, phi)
+
+                        f[entry] += (
+                            (-1) ** spin
+                            * elfactor
+                            * np.exp(1j * m * phi)
+                            * dl[m + L - 1]
+                            * flm[el, m + L - 1]
+                        )
 
     return f
 
