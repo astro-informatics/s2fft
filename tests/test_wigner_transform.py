@@ -1,8 +1,7 @@
 import pytest
 import so3
 import numpy as np
-import s2fft.wigner.samples as samples
-import s2fft.wigner.transform as transform
+import s2fft as s2f
 
 
 L_to_test = [8, 16]
@@ -21,11 +20,11 @@ def test_inverse_wigner_transform(
     )
 
     flmn_3D = flmn_generator(L=L, N=N, reality=False)
-    flmn_1D = samples.flmn_3d_to_1d(flmn_3D, L, N)
+    flmn_1D = s2f.wigner.samples.flmn_3d_to_1d(flmn_3D, L, N)
 
     f_check = so3.inverse(flmn_1D, params)
 
-    f = transform.inverse_wigner_transform(flmn_3D, L, N, sampling)
+    f = s2f.wigner.transform.inverse(flmn_3D, L, N, sampling)
     f = np.moveaxis(f, -1, 0).flatten("C")
 
     np.testing.assert_allclose(f, f_check, atol=1e-14)
@@ -42,15 +41,17 @@ def test_forward_wigner_transform(
     )
 
     flmn_3D = flmn_generator(L=L, N=N, reality=False)
-    flmn_1D = samples.flmn_3d_to_1d(flmn_3D, L, N)
+    flmn_1D = s2f.wigner.samples.flmn_3d_to_1d(flmn_3D, L, N)
 
     f_1D = so3.inverse(flmn_1D, params)
     f_3D = f_1D.reshape(
-        samples._ngamma(N), samples._nbeta(L, sampling), samples._nalpha(L, sampling)
+        s2f.wigner.samples._ngamma(N),
+        s2f.wigner.samples._nbeta(L, sampling),
+        s2f.wigner.samples._nalpha(L, sampling),
     )
     f_3D = np.moveaxis(f_3D, 0, -1)
 
-    flmn_check = samples.flmn_1d_to_3d(so3.forward(f_1D, params), L, N)
-    flmn = transform.forward_wigner_transform(f_3D, L, N, sampling)
+    flmn_check = s2f.wigner.samples.flmn_1d_to_3d(so3.forward(f_1D, params), L, N)
+    flmn = s2f.wigner.transform.forward(f_3D, L, N, sampling)
 
     np.testing.assert_allclose(flmn, flmn_check, atol=1e-14)

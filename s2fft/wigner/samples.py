@@ -141,7 +141,7 @@ def _ngamma(N: int) -> int:
     return 2 * N - 1
 
 
-def elmn2ind(el: int, m: int, n: int, L: int, N: int = 1) -> int:
+def elmn2ind(el: int, m: int, n: int, L: int, N: int) -> int:
     """Convert from Wigner space 3D indexing of :math:`(\ell,m, n)` to 1D index.
 
     Args:
@@ -163,7 +163,7 @@ def elmn2ind(el: int, m: int, n: int, L: int, N: int = 1) -> int:
     return n_offset + el_offset + el + m
 
 
-def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int = 1) -> np.ndarray:
+def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int) -> np.ndarray:
     r"""Convert from 3D indexed Wigner coefficients to 1D indexed coefficients.
 
     Args:
@@ -172,7 +172,7 @@ def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int = 1) -> np.ndarray:
 
         L (int): Harmonic band-limit.
 
-        N (int, optional): Directional band-limit. Defaults to 1.
+        N (int, optional): Directional band-limit.
 
     Raises:
         ValueError: `flmn` is already 1D indexed.
@@ -199,7 +199,7 @@ def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int = 1) -> np.ndarray:
     return flmn_1d
 
 
-def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int = 1) -> np.ndarray:
+def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int) -> np.ndarray:
     r"""Convert from 1D indexed Wigner coefficients to 3D indexed coefficients.
 
     Args:
@@ -208,8 +208,7 @@ def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int = 1) -> np.ndarray:
 
         L (int): Harmonic band-limit.
 
-        N (int, optional): Number of Fourier coefficients for tangent plane rotations
-            (i.e. directionality). Defaults to 1.
+        N (int): Directional band-limit.
 
     Raises:
         ValueError: `flmn` is already 3D indexed.
