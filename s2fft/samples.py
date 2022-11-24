@@ -432,10 +432,8 @@ def phase_shift(L: int, t: int, nside: int, forward: bool = False) -> np.ndarray
         np.ndarray: Vector of phase shifts with shape :math:`[2L-1]`.
     """
     phi_offset = p2phi_ring(t, 0, nside)
-    if forward:
-        return np.exp(-1j*np.arange(-L+1, L)*phi_offset)
-    else:
-        return np.exp(1j*np.arange(-L+1, L)*phi_offset)
+    sign = -1 if forward else 1
+    return np.exp(sign*1j*np.arange(-L+1, L)*phi_offset)
 
 def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> tuple:
     """Shape of spherical signal.
