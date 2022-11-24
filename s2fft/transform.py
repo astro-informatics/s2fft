@@ -4,6 +4,7 @@ import s2fft.samples as samples
 import s2fft.quadrature as quadrature
 import s2fft.resampling as resampling
 import s2fft.wigner as wigner
+import s2fft.healpix_funcs as hp
 
 
 def inverse(
@@ -11,7 +12,7 @@ def inverse(
 ) -> np.ndarray:
     """Compute inverse spherical harmonic transform.
 
-    Uses separation of variables method with FFT.
+    Uses a vectorised separation of variables method with FFT.
 
     Args:
         flm (np.ndarray): Spherical harmonic coefficients
@@ -58,7 +59,7 @@ def forward(
 ) -> np.ndarray:
     """Compute forward spherical harmonic transform.
 
-    Uses separation of variables method with FFT.
+    Uses a vectorised separation of variables method with FFT.
 
     Args:
         f (np.ndarray): Signal on the sphere.
@@ -219,7 +220,7 @@ def _compute_inverse_sov_fft(
                     ) * phase_shift
 
     if sampling.lower() == "healpix":
-        return resampling.healpix_ifft(ftm, L, nside)
+        return hp.healpix_ifft(ftm, L, nside)
     else:
         return fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
@@ -239,11 +240,17 @@ def _compute_inverse_sov_fft_vectorized(
         for t, theta in enumerate(thetas):
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
-            phase_shift = samples.phase_shift(L, t, nside, False) if sampling.lower() == "healpix" else 1.0
-            ftm[t, m_offset : 2 * L - 1 + m_offset] += elfactor * dl * flm[el, :] * phase_shift
+            phase_shift = (
+                samples.ring_phase_shift_hp(L, t, nside, False)
+                if sampling.lower() == "healpix"
+                else 1.0
+            )
+            ftm[t, m_offset : 2 * L - 1 + m_offset] += (
+                elfactor * dl * flm[el, :] * phase_shift
+            )
     ftm *= (-1) ** (spin)
     if sampling.lower() == "healpix":
-        return resampling.healpix_ifft(ftm, L, nside)
+        return hp.healpix_ifft(ftm, L, nside)
     else:
         return fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
@@ -342,7 +349,7 @@ def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
     """Compute forward SHT by separation of variables method with FFTs."""
 
     if sampling.lower() == "healpix":
-        ftm = resampling.healpix_fft(f, L, nside)
+        ftm = hp.healpix_fft(f, L, nside)
     else:
         ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
 
@@ -385,13 +392,13 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
     """Compute forward SHT by separation of variables method with FFTs (vectorized)."""
 
     if sampling.lower() == "healpix":
-        ftm = resampling.healpix_fft(f, L, nside)
+        ftm = hp.healpix_fft(f, L, nside)
     else:
         ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
 
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
-    m_offset = 1 if sampling in ["mwss","healpix"] else 0
+    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     for t, theta in enumerate(thetas):
 
@@ -401,18 +408,16 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
-            if sampling.lower() == "healpix":
-                flm[el, :] += (
+            phase_shift = (
+                samples.ring_phase_shift_hp(L, t, nside, True)
+                if sampling.lower() == "healpix"
+                else 1.0
+            )
+            flm[el, :] += (
                 weights[t]
                 * elfactor
                 * np.multiply(dl, ftm[t, m_offset : 2 * L - 1 + m_offset])
-                ) * samples.phase_shift(L, t, nside, True)
-            else:
-                flm[el, :] += (
-                    weights[t]
-                    * elfactor
-                    * np.multiply(dl, ftm[t, m_offset : 2 * L - 1 + m_offset])
-                )
+            ) * phase_shift
 
     flm *= (-1) ** spin
 
