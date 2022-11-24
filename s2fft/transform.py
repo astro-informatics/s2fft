@@ -44,13 +44,15 @@ def _inverse(
     assert flm.shape == samples.flm_shape(L)
     assert 0 <= spin < L
     thetas = samples.thetas(L, sampling, nside)
-    transform_methods = {
+    inverse_transform_methods = {
         "direct": _compute_inverse_direct,
         "sov": _compute_inverse_sov,
         "sov_fft": _compute_inverse_sov_fft,
         "sov_fft_vectorized": _compute_inverse_sov_fft_vectorized,
     }
-    return transform_methods[method](flm, L, spin, sampling, thetas, nside=nside)
+    return inverse_transform_methods[method](
+        flm, L, spin, sampling, thetas, nside=nside
+    )
 
 
 def forward(
@@ -107,19 +109,21 @@ def _forward(
     # since accounted for already in periodic extension and upsampling.
     weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
 
-    transform_methods = {
+    forward_transform_methods = {
         "direct": _compute_forward_direct,
         "sov": _compute_forward_sov,
         "sov_fft": _compute_forward_sov_fft,
         "sov_fft_vectorized": _compute_forward_sov_fft_vectorized,
     }
-    return transform_methods[method](f, L, spin, sampling, thetas, weights, nside=nside)
+    return forward_transform_methods[method](
+        f, L, spin, sampling, thetas, weights, nside=nside
+    )
 
 
 def _compute_inverse_direct(
     flm: np.ndarray, L: int, spin: int, sampling: str, thetas: np.ndarray, nside: int
 ):
-    """Compute inverse SHT by direct method."""
+    """Compute inverse spherical harmonic transform by direct method."""
 
     ftm = np.zeros((len(thetas), 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
@@ -152,7 +156,8 @@ def _compute_inverse_direct(
 def _compute_inverse_sov(
     flm: np.ndarray, L: int, spin: int, sampling: str, thetas: np.ndarray, nside: int
 ):
-    """Compute inverse SHT by separation of variables method without FFTs."""
+    """Compute inverse spherical harmonic transform by separation of variables method
+    without FFTs."""
 
     ntheta = samples.ntheta(L, sampling, nside=nside)
     ftm = np.zeros((ntheta, 2 * L - 1), dtype=np.complex128)
@@ -186,7 +191,8 @@ def _compute_inverse_sov(
 def _compute_inverse_sov_fft(
     flm: np.ndarray, L: int, spin: int, sampling: str, thetas: np.ndarray, nside: int
 ):
-    """Compute inverse SHT by separation of variables method with FFTs."""
+    """Compute inverse spherical harmonic transform by separation of variables method
+    with FFTs."""
 
     if sampling.lower() == "healpix":
         assert L >= 2 * nside
@@ -232,21 +238,27 @@ def _compute_inverse_sov_fft_vectorized(
     thetas: np.ndarray,
     nside: int = None,
 ):
-    """Compute inverse SHT by separation of variables method with FFTs (vectorized)."""
+    """Compute inverse spherical harmonic transform by separation of variables method
+    with FFTs (vectorized)."""
+
     ftm = np.zeros(samples.f_shape(L, sampling), dtype=np.complex128)
     m_offset = 1 if sampling == "mwss" else 0
+
     for el in range(spin, L):
+
         for t, theta in enumerate(thetas):
+
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
             ftm[t, m_offset : 2 * L - 1 + m_offset] += elfactor * dl * flm[el, :]
+
     ftm *= (-1) ** (spin)
     f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
     return f
 
 
 def _compute_forward_direct(f, L, spin, sampling, thetas, weights, nside):
-    """Compute forward SHT by direct method."""
+    """Compute forward spherical harmonic transform by direct method."""
 
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
@@ -288,7 +300,8 @@ def _compute_forward_direct(f, L, spin, sampling, thetas, weights, nside):
 
 
 def _compute_forward_sov(f, L, spin, sampling, thetas, weights, nside):
-    """Compute forward SHT by separation of variables method without FFTs."""
+    """Compute forward spherical harmonic transform by separation of variables method
+    without FFTs."""
 
     if sampling.lower() != "healpix":
         phis_ring = samples.phis_equiang(L, sampling)
@@ -336,7 +349,8 @@ def _compute_forward_sov(f, L, spin, sampling, thetas, weights, nside):
 
 
 def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
-    """Compute forward SHT by separation of variables method with FFTs."""
+    """Compute forward spherical harmonic transform by separation of variables method
+    with FFTs."""
 
     if sampling.lower() == "healpix":
         ftm = resampling.healpix_fft(f, L, nside)
@@ -379,7 +393,8 @@ def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
 
 
 def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, nside):
-    """Compute forward SHT by separation of variables method with FFTs (vectorized)."""
+    """Compute forward spherical harmonic transform by separation of variables method
+    with FFTs (vectorized)."""
 
     ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
 
