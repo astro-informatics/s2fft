@@ -1,27 +1,29 @@
 import numpy as np
 from typing import Tuple
 
-# TODO: Extend to other sampling schemes, currently "healpix" not supported.
-def f_shape(L: int, N: int, sampling: str = "mw") -> Tuple[int, int, int]:
-    r"""Computes the pixel-space sampling shape for rotation group :math:`SO(3)`.
 
-    Importantly, the convention we are using is the :math:`yzz` euler convention, i.e.
-    :math:`[\beta, \alpha, \gamma]` which is to simplify indexing for internal FFTs.
+def f_shape(L: int, N: int, sampling: str = "mw") -> Tuple[int, int, int]:
+    r"""Computes the pixel-space sampling shape for signal on the rotation group
+    :math:`SO(3)`.
+
+    Importantly, the convention we are using for storage is :math:`[\beta, \alpha,
+    \gamma]` in order to simplify indexing for internal use. For a given :math:`\gamma`
+    we thus recover a signal on the sphere indexed by :math:`[\theta, \phi]`, i.e. we
+    associate :math:`\beta` with :math:`\theta` and :math:`\alpha` with :math:`\phi`.
 
     Args:
         L (int): Harmonic band-limit.
 
-        N (int): Number of Fourier coefficients for tangent plane rotations (i.e.
-        directionality).
+        N (int): Directional band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
 
     Raises:
         ValueError: Unknown sampling scheme.
 
     Returns:
-        (Tuple[int,int,int]): Shape of pixel-space sampling of rotation group
+        Tuple[int,int,int]: Shape of pixel-space sampling of rotation group
         :math:`SO(3)`.
     """
     if sampling in ["mw", "mwss", "dh"]:
@@ -34,19 +36,19 @@ def f_shape(L: int, N: int, sampling: str = "mw") -> Tuple[int, int, int]:
 
 
 def flmn_shape(L: int, N: int) -> Tuple[int, int, int]:
-    r"""Computes the shape of Wigner coefficients for rotation group :math:`SO(3)`.
+    r"""Computes the shape of Wigner coefficients for signal on the rotation group
+    :math:`SO(3)`.
 
     TODO: Add support for compact storage etc.
 
     Args:
         L (int): Harmonic band-limit.
 
-        N (int): Number of Fourier coefficients for tangent plane rotations (i.e.
-        directionality).
+        N (int): Directional band-limit.
 
     Returns:
-        (Tuple[int,int,int]): Shape of Wigner space sampling of rotation group
-        :math:`SO(3)`.
+        Tuple[int,int,int]: Shape of Wigner space sampling of rotation group
+            :math:`SO(3)`.
     """
     return L, 2 * L - 1, 2 * N - 1
 
@@ -59,11 +61,10 @@ def flmn_n_size(L: int, N: int) -> int:
     Args:
         L (int): Harmonic band-limit.
 
-        N (int): Number of Fourier coefficients for tangent plane rotations (i.e.
-            directionality).
+        N (int): Directional band-limit.
 
     Returns:
-        (int): Total number of non-zero Wigner coefficients.
+        int: Total number of non-zero Wigner coefficients.
     """
     return (2 * N - 1) * L * L
 
@@ -75,13 +76,13 @@ def _nalpha(L: int, sampling: str = "mw") -> int:
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
 
     Raises:
         ValueError: Unknown sampling scheme.
 
     Returns:
-        (int): Number of :math:`\alpha` samples.
+        int: Number of :math:`\alpha` samples.
     """
     if sampling.lower() in ["mw", "dh"]:
 
@@ -105,13 +106,13 @@ def _nbeta(L: int, sampling: str = "mw") -> int:
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
 
     Raises:
         ValueError: Unknown sampling scheme.
 
     Returns:
-        (int): Number of :math:`\beta` samples.
+        int: Number of :math:`\beta` samples.
     """
     if sampling.lower() == "mw":
 
@@ -136,11 +137,10 @@ def _ngamma(N: int) -> int:
     r"""Computes the number of :math:`\gamma` samples.
 
     Args:
-        N (int): Number of Fourier coefficients for tangent plane rotations (i.e.
-        directionality).
+        N (int): Directional band-limit.
 
     Returns:
-        (int): Number of :math:`\gamma` samples, by default :math:`2N-1`.
+        int: Number of :math:`\gamma` samples, by default :math:`2N-1`.
     """
     return 2 * N - 1
 
@@ -157,11 +157,10 @@ def elmn2ind(el: int, m: int, n: int, L: int, N: int = 1) -> int:
 
         L (int): Harmonic band-limit.
 
-        N (int, optional): Number of Fourier coefficients for tangent plane rotations
-            (i.e. directionality). Defaults to 1.
+        N (int, optional): Directional band-limit. Defaults to 1.
 
     Returns:
-        (int): Corresponding 1D index in Wigner space.
+        int: Corresponding 1D index in Wigner space.
     """
     n_offset = (N - 1 + n) * L * L
     el_offset = el * el
@@ -172,32 +171,30 @@ def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int = 1) -> np.ndarray:
     r"""Convert from 3D indexed Wigner coefficients to 1D indexed coefficients.
 
     Args:
-        flm_3d (np.ndarray): 3D indexed Wigner coefficients, index order :math:`[\el, m,
-        n]`.
+        flm_3d (np.ndarray): 3D indexed Wigner coefficients, index order
+            :math:`[\ell, m, n]`.
 
         L (int): Harmonic band-limit.
 
-        N (int, optional): Number of Fourier coefficients for tangent plane rotations
-            (i.e. directionality). Defaults to 1.
+        N (int, optional): Directional band-limit. Defaults to 1.
 
     Raises:
-        ValueError: Flmn is already 1D indexed.
+        ValueError: `flmn` is already 1D indexed.
 
-        ValueError: Flmn is not 3D.
+        ValueError: `flmn` is not 3D.
 
     Returns:
-        np.ndarray: 1D indexed Wigner coefficients, C flatten index priority :math:`n,
-        \el, m`.
+        np.ndarray: 1D indexed Wigner coefficients, C flatten index priority :math:`n, \ell, m`.
     """
     flmn_1d = np.zeros(flmn_n_size(L, N), dtype=np.complex128)
 
-    if len(flmn_3d.shape) != 3:
-        if len(flmn_3d.shape) == 1:
-            raise ValueError(f"Flmn is already 1D indexed")
-        else:
-            raise ValueError(
-                f"Cannot convert flmn of dimension {flm_3d.shape} to 1D indexing"
-            )
+    if len(flmn_3d.shape) == 1:
+        raise ValueError(f"flmn is already 1D indexed")
+    elif len(flmn_3d.shape) != 3:
+        raise ValueError(
+            f"Cannot convert flmn of dimension {flm_3d.shape} to 1D indexing"
+        )
+
     for n in range(-N + 1, N):
         for el in range(L):
             for m in range(-el, el + 1):
@@ -211,7 +208,7 @@ def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int = 1) -> np.ndarray:
 
     Args:
         flm_1d (np.ndarray): 1D indexed Wigner coefficients, C flatten index priority
-        :math:`n, \el, m`.
+            :math:`n, \ell, m`.
 
         L (int): Harmonic band-limit.
 
@@ -219,22 +216,22 @@ def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int = 1) -> np.ndarray:
             (i.e. directionality). Defaults to 1.
 
     Raises:
-        ValueError: Flmn is already 3D indexed.
+        ValueError: `flmn` is already 3D indexed.
 
-        ValueError: Flmn is not 1D.
+        ValueError: `flmn` is not 1D.
 
     Returns:
-        np.ndarray: 3D indexed Wigner coefficients, index order :math:`[\el, m, n]`.
+        np.ndarray: 3D indexed Wigner coefficients, index order :math:`[\ell, m, n]`.
     """
     flmn_3d = np.zeros(flmn_shape(L, N), dtype=np.complex128)
 
-    if len(flmn_1d.shape) != 1:
-        if len(flmn_1d.shape) == 3:
-            raise ValueError(f"Flmn is already 3D indexed")
-        else:
-            raise ValueError(
-                f"Cannot convert flmn of dimension {flm_1d.shape} to 3D indexing"
-            )
+    if len(flmn_1d.shape) == 3:
+        raise ValueError(f"Flmn is already 3D indexed")
+    elif len(flmn_1d.shape) != 1:
+        raise ValueError(
+            f"Cannot convert flmn of dimension {flm_1d.shape} to 3D indexing"
+        )
+
     for n in range(-N + 1, N):
         for el in range(L):
             for m in range(-el, el + 1):
