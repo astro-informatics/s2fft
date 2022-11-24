@@ -239,10 +239,8 @@ def _compute_inverse_sov_fft_vectorized(
         for t, theta in enumerate(thetas):
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
-            if sampling.lower() == "healpix":
-                ftm[t, m_offset : 2 * L - 1 + m_offset] += elfactor * dl * flm[el, :] * samples.phase_shift(L, t, nside, False)
-            else:
-                ftm[t, m_offset : 2 * L - 1 + m_offset] += elfactor * dl * flm[el, :]
+            phase_shift = samples.phase_shift(L, t, nside, False) if sampling.lower() == "healpix" else 1.0
+            ftm[t, m_offset : 2 * L - 1 + m_offset] += elfactor * dl * flm[el, :] * phase_shift
     ftm *= (-1) ** (spin)
     if sampling.lower() == "healpix":
         return resampling.healpix_ifft(ftm, L, nside)
