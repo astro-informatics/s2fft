@@ -3,9 +3,7 @@ import numpy.fft as fft
 import s2fft.transform as s2f
 import s2fft.wigner.samples as samples
 
-# TODO: Extend to other sampling schemes, only "mw" supported.
-# TODO: Extend to support efficient storage methods, only "padded" supported.
-# TODO: Extend to support symmetry accelerations, no symmetries exploited currently.
+# TODO: Extend to exploit conjugate symmetry for real transforms.
 def inverse_wigner_transform(
     flmn: np.ndarray, L: int, N: int = 1, sampling: str = "mw"
 ) -> np.ndarray:
@@ -35,8 +33,8 @@ def inverse_wigner_transform(
 
     fabn = np.zeros(samples.f_shape(L, N, sampling), dtype=np.complex128)
 
-    for el in range(L):
-        flmn[el, ...] *= np.sqrt((2 * el + 1) / (16 * np.pi**3))
+    flmn = np.einsum('ijk,i->ijk', flmn, np.sqrt((2 * np.arange(L) + 1)))
+    flmn /= np.sqrt(16*np.pi**3)
 
     for n in range(-N + 1, N):
         fabn[..., N - 1 + n] = (-1) ** n * s2f.inverse_sov_fft(
@@ -75,15 +73,14 @@ def forward_wigner_transform(
 
     flmn = np.zeros(samples.flmn_shape(L, N), dtype=np.complex128)
 
-    fabn = fft.fftshift(fft.fft(f, axis=2, norm="backward"), axes=2)
-    fabn *= 2 * np.pi / (2 * N - 1)
+    fabn = fft.fftshift(fft.fft(f, axis=2, norm="forward"), axes=2)
 
     for n in range(-N + 1, N):
         flmn[..., N - 1 + n] = (-1) ** n * s2f.forward_sov_fft(
             fabn[..., N - 1 + n], L, spin=-n, sampling=sampling
         )
 
-    for el in range(L):
-        flmn[el, ...] *= np.sqrt(4 * np.pi / (2 * el + 1))
+    flmn = np.einsum('ijk,i->ijk', flmn, 1/np.sqrt((2 * np.arange(L) + 1)))
+    flmn *= np.sqrt(16*np.pi**3)
 
     return flmn
