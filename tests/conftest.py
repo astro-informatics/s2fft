@@ -30,6 +30,7 @@ def rng(seed):
     # Import numpy locally to avoid `RuntimeWarning: numpy.ndarray size changed`
     # when importing at module level
     import numpy as np
+
     return np.random.default_rng(seed)
 
 
@@ -38,4 +39,31 @@ def flm_generator(rng):
     # Import s2fft (and indirectly numpy) locally to avoid
     # `RuntimeWarning: numpy.ndarray size changed` when importing at module level
     import s2fft as s2f
+
     return partial(s2f.utils.generate_flm, rng)
+
+
+@pytest.fixture
+def flmn_generator(rng):
+    # Import s2fft (and indirectly numpy) locally to avoid
+    # `RuntimeWarning: numpy.ndarray size changed` when importing at module level
+    import s2fft as s2f
+
+    return partial(s2f.utils.generate_flmn, rng)
+
+
+@pytest.fixture
+def s2fft_to_so3_sampling():
+    def so3_sampling(s2fft_sampling):
+        if s2fft_sampling.lower() == "mw":
+            so3_sampling = "SO3_SAMPLING_MW"
+        elif s2fft_sampling.lower() == "mwss":
+            so3_sampling = "SO3_SAMPLING_MWSS"
+        else:
+            raise ValueError(
+                f"Sampling scheme sampling={s2fft_sampling} not supported by so3."
+            )
+
+        return so3_sampling
+
+    return so3_sampling

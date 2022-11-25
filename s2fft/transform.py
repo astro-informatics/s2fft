@@ -63,7 +63,7 @@ def _inverse(
         np.ndarray: Signal on the sphere.
     """
     assert flm.shape == samples.flm_shape(L)
-    assert 0 <= spin < L
+    assert 0 <= np.abs(spin) < L
     thetas = samples.thetas(L, sampling, nside)
     transform_methods = {
         "direct": _compute_inverse_direct,
@@ -130,7 +130,7 @@ def _forward(
         np.ndarray: Signal on the sphere.
     """
     assert f.shape == samples.f_shape(L, sampling, nside)
-    assert 0 <= spin < L
+    assert 0 <= np.abs(spin) < L
 
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -379,7 +379,7 @@ def _compute_inverse_sov_fft_vectorized(
             else 1.0
         )
 
-        for el in range(spin, L):
+        for el in range(abs(spin), L):
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
@@ -637,7 +637,7 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
             else 1.0
         )
 
-        for el in range(spin, L):
+        for el in range(abs(spin), L):
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
