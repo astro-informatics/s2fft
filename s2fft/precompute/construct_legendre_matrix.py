@@ -2,7 +2,7 @@ import numpy as np
 import os
 import pyssht as ssht
 
-from s2fft import samples as samples
+from s2fft.spherical import samples
 import s2fft.logs as lg
 
 lg.setup_logging()

@@ -1,7 +1,7 @@
 import pytest
 import so3
 import numpy as np
-import s2fft.wigner.samples as samples
+from s2fft.wigner import samples
 
 L_to_test = [8, 16]
 N_to_test = [2, 4, 6]

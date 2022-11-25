@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-import s2fft as s2f
+from s2fft.spherical import transform, samples
 import pyssht as ssht
 import healpy as hp
 
@@ -23,13 +23,13 @@ def test_transform_inverse(
 
     flm = flm_generator(L=L, spin=spin, reality=False)
     f_check = ssht.inverse(
-        s2f.samples.flm_2d_to_1d(flm, L),
+        samples.flm_2d_to_1d(flm, L),
         L,
         Method=sampling.upper(),
         Spin=spin,
         Reality=False,
     )
-    f = s2f.transform._inverse(flm, L, spin, sampling, method)
+    f = transform._inverse(flm, L, spin, sampling, method)
 
     np.testing.assert_allclose(f, f_check, atol=1e-14)
 
@@ -41,10 +41,10 @@ def test_transform_inverse_healpix(flm_generator, nside: int, ratio: int, method
     sampling = "healpix"
     L = ratio * nside
     flm = flm_generator(L=L, reality=True)
-    flm_hp = s2f.samples.flm_2d_to_hp(flm, L)
+    flm_hp = samples.flm_2d_to_hp(flm, L)
     f_check = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
 
-    f = s2f.transform._inverse(flm, L, 0, sampling, method=method, nside=nside)
+    f = transform._inverse(flm, L, 0, sampling, method=method, nside=nside)
 
     np.testing.assert_allclose(np.real(f), np.real(f_check), atol=1e-14)
 
@@ -60,14 +60,14 @@ def test_transform_forward(
     flm = flm_generator(L=L, spin=spin, reality=False)
 
     f = ssht.inverse(
-        s2f.samples.flm_2d_to_1d(flm, L),
+        samples.flm_2d_to_1d(flm, L),
         L,
         Method=sampling.upper(),
         Spin=spin,
         Reality=False,
     )
 
-    flm_recov = s2f.transform._forward(f, L, spin, sampling, method)
+    flm_recov = transform._forward(f, L, spin, sampling, method)
 
     np.testing.assert_allclose(flm, flm_recov, atol=1e-14)
 
@@ -79,12 +79,10 @@ def test_transform_forward_healpix(flm_generator, nside: int, ratio: int, method
     sampling = "healpix"
     L = ratio * nside
     flm = flm_generator(L=L, reality=True)
-    f = s2f.transform._inverse(flm, L, sampling=sampling, method=method, nside=nside)
+    f = transform._inverse(flm, L, sampling=sampling, method=method, nside=nside)
 
-    flm_direct = s2f.transform._forward(
-        f, L, sampling=sampling, method=method, nside=nside
-    )
-    flm_direct_hp = s2f.samples.flm_2d_to_hp(flm_direct, L)
+    flm_direct = transform._forward(f, L, sampling=sampling, method=method, nside=nside)
+    flm_direct_hp = samples.flm_2d_to_hp(flm_direct, L)
 
     flm_check = hp.sphtfunc.map2alm(np.real(f), lmax=L - 1, iter=0)
 
@@ -97,10 +95,10 @@ def test_healpix_nside_to_L_exceptions(flm_generator, nside: int):
     L = 2 * nside - 1
 
     flm = flm_generator(L=L, reality=True)
-    f = s2f.transform._inverse(flm, L, 0, sampling, "direct", nside)
+    f = transform._inverse(flm, L, 0, sampling, "direct", nside)
 
     with pytest.raises(AssertionError) as e:
-        s2f.transform.forward(f, L, 0, sampling, nside)
+        transform.forward(f, L, 0, sampling, nside)
 
     with pytest.raises(AssertionError) as e:
-        s2f.transform.inverse(flm, L, 0, sampling, nside)
+        transform.inverse(flm, L, 0, sampling, nside)

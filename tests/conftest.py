@@ -40,7 +40,7 @@ def flm_generator(rng):
     # `RuntimeWarning: numpy.ndarray size changed` when importing at module level
     import s2fft as s2f
 
-    return partial(s2f.utils.generate_flm, rng)
+    return partial(s2f.utils.signal.generate_flm, rng)
 
 
 @pytest.fixture
@@ -49,7 +49,7 @@ def flmn_generator(rng):
     # `RuntimeWarning: numpy.ndarray size changed` when importing at module level
     import s2fft as s2f
 
-    return partial(s2f.utils.generate_flmn, rng)
+    return partial(s2f.utils.signal.generate_flmn, rng)
 
 
 @pytest.fixture

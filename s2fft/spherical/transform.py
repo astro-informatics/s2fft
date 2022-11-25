@@ -1,10 +1,8 @@
 import numpy as np
 import numpy.fft as fft
-import s2fft.samples as samples
-import s2fft.quadrature as quadrature
-import s2fft.resampling as resampling
-import s2fft.wigner as wigner
-import s2fft.healpix_ffts as hp
+from s2fft.spherical import samples
+from s2fft.utils import quadrature, resampling, healpix_ffts
+from s2fft import recursions
 
 
 def inverse(
@@ -190,7 +188,7 @@ def _compute_inverse_direct(
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(theta, el, L, -spin)
+                dl = recursions.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -246,7 +244,7 @@ def _compute_inverse_sov(
     for t, theta in enumerate(thetas):
         for el in range(0, L):
             if el >= np.abs(spin):
-                dl = wigner.turok.compute_slice(theta, el, L, -spin)
+                dl = recursions.turok.compute_slice(theta, el, L, -spin)
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
                 for m in range(-el, el + 1):
                     ftm[t, m + L - 1] += (
@@ -311,7 +309,7 @@ def _compute_inverse_sov_fft(
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(theta, el, L, -spin)
+                dl = recursions.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -332,7 +330,7 @@ def _compute_inverse_sov_fft(
                     )
 
     if sampling.lower() == "healpix":
-        f = hp.healpix_ifft(ftm, L, nside)
+        f = healpix_ffts.healpix_ifft(ftm, L, nside)
     else:
         f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
@@ -381,7 +379,7 @@ def _compute_inverse_sov_fft_vectorized(
 
         for el in range(abs(spin), L):
 
-            dl = wigner.turok.compute_slice(theta, el, L, -spin)
+            dl = recursions.turok.compute_slice(theta, el, L, -spin)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
             ftm[t, m_offset : 2 * L - 1 + m_offset] += (
                 elfactor * dl * flm[el, :] * phase_shift
@@ -390,7 +388,7 @@ def _compute_inverse_sov_fft_vectorized(
     ftm *= (-1) ** (spin)
 
     if sampling.lower() == "healpix":
-        f = hp.healpix_ifft(ftm, L, nside)
+        f = healpix_ffts.healpix_ifft(ftm, L, nside)
     else:
         f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
@@ -431,7 +429,7 @@ def _compute_forward_direct(f, L, spin, sampling, thetas, weights, nside):
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(theta, el, L, -spin)
+                dl = recursions.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -512,7 +510,7 @@ def _compute_forward_sov(f, L, spin, sampling, thetas, weights, nside):
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(theta, el, L, -spin)
+                dl = recursions.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -554,7 +552,7 @@ def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
         np.ndarray: Spherical harmonic coefficients.
     """
     if sampling.lower() == "healpix":
-        ftm = hp.healpix_fft(f, L, nside)
+        ftm = healpix_ffts.healpix_fft(f, L, nside)
     else:
         ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
 
@@ -572,7 +570,7 @@ def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
 
             if el >= np.abs(spin):
 
-                dl = wigner.turok.compute_slice(theta, el, L, -spin)
+                dl = recursions.turok.compute_slice(theta, el, L, -spin)
 
                 elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -621,7 +619,7 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
         np.ndarray: Spherical harmonic coefficients.
     """
     if sampling.lower() == "healpix":
-        ftm = hp.healpix_fft(f, L, nside)
+        ftm = healpix_ffts.healpix_fft(f, L, nside)
     else:
         ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
 
@@ -639,7 +637,7 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
 
         for el in range(abs(spin), L):
 
-            dl = wigner.turok.compute_slice(theta, el, L, -spin)
+            dl = recursions.turok.compute_slice(theta, el, L, -spin)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 

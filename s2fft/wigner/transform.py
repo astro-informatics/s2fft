@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.fft as fft
-import s2fft as s2f
+from s2fft.spherical import transform as s2transform
+from s2fft.wigner import samples
 
 
 def inverse(flmn: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
@@ -33,19 +34,19 @@ def inverse(flmn: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarra
         n_{\alpha}, n_{\gamma}]`, where :math:`n_\xi` denotes the number of samples for
         angle :math:`\xi`.
     """
-    assert flmn.shape == s2f.wigner.samples.flmn_shape(L, N)
+    assert flmn.shape == samples.flmn_shape(L, N)
 
     if sampling not in ["mw", "mwss", "dh"]:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
-    fban = np.zeros(s2f.wigner.samples.f_shape(L, N, sampling), dtype=np.complex128)
+    fban = np.zeros(samples.f_shape(L, N, sampling), dtype=np.complex128)
 
     flmn_scaled = np.einsum(
         "ijk,i->ijk", flmn, np.sqrt((2 * np.arange(L) + 1) / (16 * np.pi**3))
     )
 
     for n in range(-N + 1, N):
-        fban[..., N - 1 + n] = (-1) ** n * s2f.transform.inverse(
+        fban[..., N - 1 + n] = (-1) ** n * s2transform.inverse(
             flmn_scaled[..., N - 1 + n], L, spin=-n, sampling=sampling
         )
 
@@ -84,12 +85,12 @@ def forward(f: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
     Returns:
         np.ndarray: Wigner coefficients `flmn` with shape :math:`[L, 2L-1, 2N-1]`.
     """
-    assert f.shape == s2f.wigner.samples.f_shape(L, N, sampling)
+    assert f.shape == samples.f_shape(L, N, sampling)
 
     if sampling not in ["mw", "mwss", "dh"]:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
-    flmn = np.zeros(s2f.wigner.samples.flmn_shape(L, N), dtype=np.complex128)
+    flmn = np.zeros(samples.flmn_shape(L, N), dtype=np.complex128)
 
     fabn = (
         2
@@ -99,7 +100,7 @@ def forward(f: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
     )
 
     for n in range(-N + 1, N):
-        flmn[..., N - 1 + n] = (-1) ** n * s2f.transform.forward(
+        flmn[..., N - 1 + n] = (-1) ** n * s2transform.forward(
             fabn[..., N - 1 + n], L, spin=-n, sampling=sampling
         )
 

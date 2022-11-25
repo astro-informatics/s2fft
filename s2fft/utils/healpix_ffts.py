@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.fft as fft
-import s2fft.samples as samples
+from s2fft.spherical import samples
 
 
 def spectral_folding(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
