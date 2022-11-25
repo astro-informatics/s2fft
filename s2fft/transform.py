@@ -302,8 +302,10 @@ def _compute_inverse_sov_fft(
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     for t, theta in enumerate(thetas):
-        if sampling.lower() == "healpix":
-            phi_ring_offset = samples.p2phi_ring(t, 0, nside)
+
+        phi_ring_offset = (
+            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
+        )
 
         for el in range(0, L):
 
@@ -322,13 +324,19 @@ def _compute_inverse_sov_fft(
                     )
 
                     ftm[t, m + L - 1 + m_offset] += (
-                        (-1) ** spin * elfactor * dl[m + L - 1] * flm[el, m + L - 1]
-                    ) * phase_shift
+                        (-1) ** spin
+                        * elfactor
+                        * dl[m + L - 1]
+                        * flm[el, m + L - 1]
+                        * phase_shift
+                    )
 
     if sampling.lower() == "healpix":
-        return hp.healpix_ifft(ftm, L, nside)
+        f = hp.healpix_ifft(ftm, L, nside)
     else:
-        return fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+        f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+
+    return f
 
 
 def _compute_inverse_sov_fft_vectorized(
@@ -362,23 +370,31 @@ def _compute_inverse_sov_fft_vectorized(
     """
     ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
-    for el in range(spin, L):
-        for t, theta in enumerate(thetas):
+
+    for t, theta in enumerate(thetas):
+
+        phase_shift = (
+            samples.ring_phase_shift_hp(L, t, nside, False)
+            if sampling.lower() == "healpix"
+            else 1.0
+        )
+
+        for el in range(spin, L):
+
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
-            phase_shift = (
-                samples.ring_phase_shift_hp(L, t, nside, False)
-                if sampling.lower() == "healpix"
-                else 1.0
-            )
             ftm[t, m_offset : 2 * L - 1 + m_offset] += (
                 elfactor * dl * flm[el, :] * phase_shift
             )
+
     ftm *= (-1) ** (spin)
+
     if sampling.lower() == "healpix":
-        return hp.healpix_ifft(ftm, L, nside)
+        f = hp.healpix_ifft(ftm, L, nside)
     else:
-        return fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+        f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+
+    return f
 
 
 def _compute_forward_direct(f, L, spin, sampling, thetas, weights, nside):
@@ -547,8 +563,10 @@ def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     for t, theta in enumerate(thetas):
-        if sampling.lower() == "healpix":
-            phi_ring_offset = samples.p2phi_ring(t, 0, nside)
+
+        phi_ring_offset = (
+            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
+        )
 
         for el in range(0, L):
 
@@ -572,7 +590,8 @@ def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
                         * elfactor
                         * dl[m + L - 1]
                         * ftm[t, m + L - 1 + m_offset]
-                    ) * phase_shift
+                        * phase_shift
+                    )
 
     return flm
 
@@ -612,22 +631,24 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
 
     for t, theta in enumerate(thetas):
 
+        phase_shift = (
+            samples.ring_phase_shift_hp(L, t, nside, forward=True)
+            if sampling.lower() == "healpix"
+            else 1.0
+        )
+
         for el in range(spin, L):
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
-            phase_shift = (
-                samples.ring_phase_shift_hp(L, t, nside, True)
-                if sampling.lower() == "healpix"
-                else 1.0
-            )
             flm[el, :] += (
                 weights[t]
                 * elfactor
                 * np.multiply(dl, ftm[t, m_offset : 2 * L - 1 + m_offset])
-            ) * phase_shift
+                * phase_shift
+            )
 
     flm *= (-1) ** spin
 
