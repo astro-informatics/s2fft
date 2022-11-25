@@ -4,6 +4,7 @@ import s2fft.samples as samples
 import s2fft.quadrature as quadrature
 import s2fft.resampling as resampling
 import s2fft.wigner as wigner
+import s2fft.healpix_ffts as hp
 
 
 def inverse(
@@ -11,7 +12,7 @@ def inverse(
 ) -> np.ndarray:
     """Compute inverse spherical harmonic transform.
 
-    Uses separation of variables method with FFT.
+    Uses a vectorised separation of variables method with FFT.
 
     Args:
         flm (np.ndarray): Spherical harmonic coefficients.
@@ -29,7 +30,7 @@ def inverse(
     Returns:
         np.ndarray: Signal on the sphere.
     """
-    return _inverse(flm, L, spin, sampling, nside=nside, method="sov_fft")
+    return _inverse(flm, L, spin, sampling, nside=nside, method="sov_fft_vectorized")
 
 
 def _inverse(
@@ -51,8 +52,8 @@ def _inverse(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
-        
-        method (str, optional): Harmonic transform algorithm. Supported algorithms include 
+
+        method (str, optional): Harmonic transform algorithm. Supported algorithms include
             {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to "sov_fft".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
@@ -78,7 +79,7 @@ def forward(
 ) -> np.ndarray:
     """Compute forward spherical harmonic transform.
 
-    Uses separation of variables method with FFT.
+    Uses a vectorised separation of variables method with FFT.
 
     Args:
         f (np.ndarray): Signal on the sphere.
@@ -96,7 +97,7 @@ def forward(
     Returns:
         np.ndarray: Spheircal harmonic coefficients.
     """
-    return _forward(f, L, spin, sampling, nside=nside, method="sov_fft")
+    return _forward(f, L, spin, sampling, nside=nside, method="sov_fft_vectorized")
 
 
 def _forward(
@@ -118,8 +119,8 @@ def _forward(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
-        
-        method (str, optional): Harmonic transform algorithm. Supported algorithms include 
+
+        method (str, optional): Harmonic transform algorithm. Supported algorithms include
             {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to "sov_fft".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
@@ -169,7 +170,7 @@ def _compute_inverse_direct(
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
@@ -220,7 +221,7 @@ def _compute_inverse_direct(
 def _compute_inverse_sov(
     flm: np.ndarray, L: int, spin: int, sampling: str, thetas: np.ndarray, nside: int
 ):
-    r"""Compute inverse spherical harmonic transform by separation of variables with a 
+    r"""Compute inverse spherical harmonic transform by separation of variables with a
         manual Fourier transform.
 
     Args:
@@ -232,7 +233,7 @@ def _compute_inverse_sov(
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
@@ -272,7 +273,7 @@ def _compute_inverse_sov(
 def _compute_inverse_sov_fft(
     flm: np.ndarray, L: int, spin: int, sampling: str, thetas: np.ndarray, nside: int
 ):
-    r"""Compute inverse spherical harmonic transform by separation of variables with a 
+    r"""Compute inverse spherical harmonic transform by separation of variables with a
         Fast Fourier transform.
 
     Args:
@@ -284,7 +285,7 @@ def _compute_inverse_sov_fft(
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
@@ -301,8 +302,10 @@ def _compute_inverse_sov_fft(
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     for t, theta in enumerate(thetas):
-        if sampling.lower() == "healpix":
-            phi_ring_offset = samples.p2phi_ring(t, 0, nside)
+
+        phi_ring_offset = (
+            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
+        )
 
         for el in range(0, L):
 
@@ -321,13 +324,19 @@ def _compute_inverse_sov_fft(
                     )
 
                     ftm[t, m + L - 1 + m_offset] += (
-                        (-1) ** spin * elfactor * dl[m + L - 1] * flm[el, m + L - 1]
-                    ) * phase_shift
+                        (-1) ** spin
+                        * elfactor
+                        * dl[m + L - 1]
+                        * flm[el, m + L - 1]
+                        * phase_shift
+                    )
 
     if sampling.lower() == "healpix":
-        return resampling.healpix_ifft(ftm, L, nside)
+        f = hp.healpix_ifft(ftm, L, nside)
     else:
-        return fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+        f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+
+    return f
 
 
 def _compute_inverse_sov_fft_vectorized(
@@ -338,7 +347,7 @@ def _compute_inverse_sov_fft_vectorized(
     thetas: np.ndarray,
     nside: int = None,
 ):
-    r"""A vectorized function to compute inverse spherical harmonic transform by 
+    r"""A vectorized function to compute inverse spherical harmonic transform by
         separation of variables with a manual Fourier transform.
 
     Args:
@@ -350,7 +359,7 @@ def _compute_inverse_sov_fft_vectorized(
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
@@ -359,15 +368,32 @@ def _compute_inverse_sov_fft_vectorized(
     Returns:
         np.ndarray: Signal on the sphere.
     """
-    ftm = np.zeros(samples.f_shape(L, sampling), dtype=np.complex128)
-    m_offset = 1 if sampling == "mwss" else 0
-    for el in range(spin, L):
-        for t, theta in enumerate(thetas):
+    ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
+    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+
+    for t, theta in enumerate(thetas):
+
+        phase_shift = (
+            samples.ring_phase_shift_hp(L, t, nside, False)
+            if sampling.lower() == "healpix"
+            else 1.0
+        )
+
+        for el in range(spin, L):
+
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
-            ftm[t, m_offset : 2 * L - 1 + m_offset] += elfactor * dl * flm[el, :]
+            ftm[t, m_offset : 2 * L - 1 + m_offset] += (
+                elfactor * dl * flm[el, :] * phase_shift
+            )
+
     ftm *= (-1) ** (spin)
-    f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+
+    if sampling.lower() == "healpix":
+        f = hp.healpix_ifft(ftm, L, nside)
+    else:
+        f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+
     return f
 
 
@@ -383,7 +409,7 @@ def _compute_forward_direct(f, L, spin, sampling, thetas, weights, nside):
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         weights (np.ndarray): Vector of quadrature weights on the sphere.
@@ -434,7 +460,7 @@ def _compute_forward_direct(f, L, spin, sampling, thetas, weights, nside):
 
 
 def _compute_forward_sov(f, L, spin, sampling, thetas, weights, nside):
-    r"""Compute forward spherical harmonic transform by separation of variables with a 
+    r"""Compute forward spherical harmonic transform by separation of variables with a
         manual Fourier transform.
 
     Args:
@@ -446,7 +472,7 @@ def _compute_forward_sov(f, L, spin, sampling, thetas, weights, nside):
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         weights (np.ndarray): Vector of quadrature weights on the sphere.
@@ -504,7 +530,7 @@ def _compute_forward_sov(f, L, spin, sampling, thetas, weights, nside):
 
 
 def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
-    r"""Compute forward spherical harmonic transform by separation of variables with a 
+    r"""Compute forward spherical harmonic transform by separation of variables with a
         Fast Fourier transform.
 
     Args:
@@ -516,7 +542,7 @@ def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         weights (np.ndarray): Vector of quadrature weights on the sphere.
@@ -528,7 +554,7 @@ def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
         np.ndarray: Spherical harmonic coefficients.
     """
     if sampling.lower() == "healpix":
-        ftm = resampling.healpix_fft(f, L, nside)
+        ftm = hp.healpix_fft(f, L, nside)
     else:
         ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
 
@@ -537,8 +563,10 @@ def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     for t, theta in enumerate(thetas):
-        if sampling.lower() == "healpix":
-            phi_ring_offset = samples.p2phi_ring(t, 0, nside)
+
+        phi_ring_offset = (
+            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
+        )
 
         for el in range(0, L):
 
@@ -562,13 +590,14 @@ def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
                         * elfactor
                         * dl[m + L - 1]
                         * ftm[t, m + L - 1 + m_offset]
-                    ) * phase_shift
+                        * phase_shift
+                    )
 
     return flm
 
 
 def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, nside):
-    r"""A vectorized function to compute forward spherical harmonic transform by 
+    r"""A vectorized function to compute forward spherical harmonic transform by
         separation of variables with a manual Fourier transform.
 
     Args:
@@ -580,7 +609,7 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         weights (np.ndarray): Vector of quadrature weights on the sphere.
@@ -591,13 +620,22 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
     Returns:
         np.ndarray: Spherical harmonic coefficients.
     """
-    ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
+    if sampling.lower() == "healpix":
+        ftm = hp.healpix_fft(f, L, nside)
+    else:
+        ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
 
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
-    m_offset = 1 if sampling == "mwss" else 0
+    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     for t, theta in enumerate(thetas):
+
+        phase_shift = (
+            samples.ring_phase_shift_hp(L, t, nside, forward=True)
+            if sampling.lower() == "healpix"
+            else 1.0
+        )
 
         for el in range(spin, L):
 
@@ -609,6 +647,7 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
                 weights[t]
                 * elfactor
                 * np.multiply(dl, ftm[t, m_offset : 2 * L - 1 + m_offset])
+                * phase_shift
             )
 
     flm *= (-1) ** spin
