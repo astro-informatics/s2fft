@@ -69,22 +69,22 @@ def generate_flmn(
     """
     flmn = np.zeros(wigner_samples.flmn_shape(L, N), dtype=np.complex128)
 
-    for n in range(N):
+    for n in range(-N + 1, N):
 
         for el in range(np.abs(n), L):
 
             if reality:
-                flmn[el, 0 + L - 1, n] = rng.uniform()
+                flmn[el, 0 + L - 1, N - 1 + n] = rng.uniform()
             else:
-                flmn[el, 0 + L - 1, n] = rng.uniform() + 1j * rng.uniform()
+                flmn[el, 0 + L - 1, N - 1 + n] = rng.uniform() + 1j * rng.uniform()
 
             for m in range(1, el + 1):
-                flmn[el, m + L - 1, n] = rng.uniform() + 1j * rng.uniform()
+                flmn[el, m + L - 1, N - 1 + n] = rng.uniform() + 1j * rng.uniform()
                 if reality:
-                    flmn[el, -m + L - 1, n] = (-1) ** m * np.conj(
-                        flmn[el, m + L - 1, n]
+                    flmn[el, -m + L - 1, N - 1 + n] = (-1) ** m * np.conj(
+                        flmn[el, m + L - 1, N - 1 + n]
                     )
                 else:
-                    flmn[el, -m + L - 1, n] = rng.uniform() + 1j * rng.uniform()
+                    flmn[el, -m + L - 1, N - 1 + n] = rng.uniform() + 1j * rng.uniform()
 
     return flmn
