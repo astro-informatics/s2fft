@@ -4,11 +4,19 @@ import s2fft as s2f
 
 
 def inverse(flmn: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
-    r"""Function to compute the inverse Wigner transform, i.e. inverse Fourier transform
-    on :math:`SO(3)`.
+    r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
+    :math:`SO(3)`.
+
+    Note:
+        Importantly, the convention adopted for storage of f is :math:`[\beta, \alpha,
+        \gamma]`, for Euler angles :math:`(\alpha, \beta, \gamma)` following the
+        :math:`zyz` Euler convention, in order to simplify indexing for internal use.
+        For a given :math:`\gamma` we thus recover a signal on the sphere indexed by
+        :math:`[\theta, \phi]`, i.e. we associate :math:`\beta` with :math:`\theta` and
+        :math:`\alpha` with :math:`\phi`.
 
     Args:
-        flmn (np.ndarray): Array of Wigner coefficients with shape :math:`[L, 2L-1, N]`.
+        flmn (np.ndarray): Wigner coefficients with shape :math:`[L, 2L-1, N]`.
 
         L (int): Harmonic bandlimit.
 
@@ -21,8 +29,9 @@ def inverse(flmn: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarra
         ValueError: Sampling scheme not currently supported.
 
     Returns:
-        (np.ndarray): Pixel-space samples of the rotation group with shape
-            :math:`[n_{\beta}, n_{\alpha}, n_{\gamma}]`.
+        np.ndarray:  Signal on the on :math:`SO(3)` with shape :math:`[n_{\beta},
+        n_{\alpha}, n_{\gamma}]`, where :math:`n_\xi` denotes the number of samples for
+        angle :math:`\xi`.
     """
     assert flmn.shape == s2f.wigner.samples.flmn_shape(L, N)
 
@@ -43,12 +52,21 @@ def inverse(flmn: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarra
 
 
 def forward(f: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
-    r"""Function to compute the forward Wigner transform, i.e. Fourier transform on
+    r"""Compute the forward Wigner transform, i.e. Fourier transform on
     :math:`SO(3)`.
 
+    Note:
+        Importantly, the convention adopted for storage of f is :math:`[\beta, \alpha,
+        \gamma]`, for Euler angles :math:`(\alpha, \beta, \gamma)` following the
+        :math:`zyz` Euler convention, in order to simplify indexing for internal use.
+        For a given :math:`\gamma` we thus recover a signal on the sphere indexed by
+        :math:`[\theta, \phi]`, i.e. we associate :math:`\beta` with :math:`\theta` and
+        :math:`\alpha` with :math:`\phi`.
+
     Args:
-        f (np.ndarray): Array of samples on :math:`SO(3)` with shape
-            :math:`[n_{\alpha}, n_{\beta}, n_{\gamma}]`.
+        f (np.ndarray): Signal on the on :math:`SO(3)` with shape
+            :math:`[n_{\beta}, n_{\alpha}, n_{\gamma}]`, where :math:`n_\xi` denotes the
+            number of samples for angle :math:`\xi`.
 
         L (int): Harmonic bandlimit.
 
@@ -61,7 +79,7 @@ def forward(f: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
         ValueError: Sampling scheme not currently supported.
 
     Returns:
-        (np.ndarray): Wigner coefficients with shape :math:`[L, 2L-1, 2N-1]`.
+        np.ndarray: Wigner coefficients `flmn` with shape :math:`[L, 2L-1, 2N-1]`.
     """
     assert f.shape == s2f.wigner.samples.f_shape(L, N, sampling)
 

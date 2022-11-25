@@ -6,10 +6,13 @@ def f_shape(L: int, N: int, sampling: str = "mw") -> Tuple[int, int, int]:
     r"""Computes the pixel-space sampling shape for signal on the rotation group
     :math:`SO(3)`.
 
-    Importantly, the convention we are using for storage is :math:`[\beta, \alpha,
-    \gamma]` in order to simplify indexing for internal use. For a given :math:`\gamma`
-    we thus recover a signal on the sphere indexed by :math:`[\theta, \phi]`, i.e. we
-    associate :math:`\beta` with :math:`\theta` and :math:`\alpha` with :math:`\phi`.
+    Note:
+        Importantly, the convention adopted for storage of f is :math:`[\beta, \alpha,
+        \gamma]`, for Euler angles :math:`(\alpha, \beta, \gamma)` following the
+        :math:`zyz` Euler convention, in order to simplify indexing for internal use.
+        For a given :math:`\gamma` we thus recover a signal on the sphere indexed by
+        :math:`[\theta, \phi]`, i.e. we associate :math:`\beta` with :math:`\theta` and
+        :math:`\alpha` with :math:`\phi`.
 
     Args:
         L (int): Harmonic band-limit.
