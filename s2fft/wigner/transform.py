@@ -38,17 +38,20 @@ def inverse(flmn: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarra
     if sampling not in ["mw", "mwss", "dh"]:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
-    fabn = np.zeros(s2f.wigner.samples.f_shape(L, N, sampling), dtype=np.complex128)
+    fban = np.zeros(s2f.wigner.samples.f_shape(L, N, sampling), dtype=np.complex128)
 
-    flmn = np.einsum("ijk,i->ijk", flmn, np.sqrt((2 * np.arange(L) + 1)))
-    flmn /= np.sqrt(16 * np.pi**3)
+    flmn_scaled = np.einsum(
+        "ijk,i->ijk", flmn, np.sqrt((2 * np.arange(L) + 1) / (16 * np.pi**3))
+    )
 
     for n in range(-N + 1, N):
-        fabn[..., N - 1 + n] = (-1) ** n * s2f.transform.inverse(
-            flmn[..., N - 1 + n], L, spin=-n, sampling=sampling
+        fban[..., N - 1 + n] = (-1) ** n * s2f.transform.inverse(
+            flmn_scaled[..., N - 1 + n], L, spin=-n, sampling=sampling
         )
 
-    return fft.ifft(fft.ifftshift(fabn, axes=2), axis=2, norm="forward")
+    f = fft.ifft(fft.ifftshift(fban, axes=2), axis=2, norm="forward")
+
+    return f
 
 
 def forward(f: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
@@ -88,14 +91,18 @@ def forward(f: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
 
     flmn = np.zeros(s2f.wigner.samples.flmn_shape(L, N), dtype=np.complex128)
 
-    fabn = fft.fftshift(fft.fft(f, axis=2, norm="forward"), axes=2)
+    fabn = (
+        2
+        * np.pi
+        / (2 * N - 1)
+        * fft.fftshift(fft.fft(f, axis=2, norm="backward"), axes=2)
+    )
 
     for n in range(-N + 1, N):
         flmn[..., N - 1 + n] = (-1) ** n * s2f.transform.forward(
             fabn[..., N - 1 + n], L, spin=-n, sampling=sampling
         )
 
-    flmn = np.einsum("ijk,i->ijk", flmn, 1 / np.sqrt((2 * np.arange(L) + 1)))
-    flmn *= np.sqrt(16 * np.pi**3)
+    flmn = np.einsum("ijk,i->ijk", flmn, np.sqrt(4 * np.pi / (2 * np.arange(L) + 1)))
 
     return flmn
