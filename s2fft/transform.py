@@ -99,6 +99,7 @@ def forward(
     """
     return _forward(f, L, spin, sampling, nside=nside, method="sov_fft_vectorized")
 
+
 def _forward(
     f: np.ndarray,
     L: int,
@@ -337,6 +338,7 @@ def _compute_inverse_sov_fft(
 
     return f
 
+
 def _compute_inverse_sov_fft_vectorized(
     flm: np.ndarray,
     L: int,
@@ -377,7 +379,7 @@ def _compute_inverse_sov_fft_vectorized(
             else 1.0
         )
 
-        for el in range(spin, L):
+        for el in range(abs(spin), L):
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
@@ -393,6 +395,7 @@ def _compute_inverse_sov_fft_vectorized(
         f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
     return f
+
 
 def _compute_forward_direct(f, L, spin, sampling, thetas, weights, nside):
     r"""Compute forward spherical harmonic transform directly.
@@ -454,6 +457,7 @@ def _compute_forward_direct(f, L, spin, sampling, thetas, weights, nside):
                         )
 
     return flm
+
 
 def _compute_forward_sov(f, L, spin, sampling, thetas, weights, nside):
     r"""Compute forward spherical harmonic transform by separation of variables with a
@@ -633,7 +637,7 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
             else 1.0
         )
 
-        for el in range(spin, L):
+        for el in range(abs(spin), L):
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
