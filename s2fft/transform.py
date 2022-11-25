@@ -4,7 +4,7 @@ import s2fft.samples as samples
 import s2fft.quadrature as quadrature
 import s2fft.resampling as resampling
 import s2fft.wigner as wigner
-import s2fft.healpix_funcs as hp
+import s2fft.healpix_ffts as hp
 
 
 def inverse(
@@ -52,8 +52,8 @@ def _inverse(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
-        
-        method (str, optional): Harmonic transform algorithm. Supported algorithms include 
+
+        method (str, optional): Harmonic transform algorithm. Supported algorithms include
             {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to "sov_fft".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
@@ -119,8 +119,8 @@ def _forward(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
-        
-        method (str, optional): Harmonic transform algorithm. Supported algorithms include 
+
+        method (str, optional): Harmonic transform algorithm. Supported algorithms include
             {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to "sov_fft".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
@@ -170,7 +170,7 @@ def _compute_inverse_direct(
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
@@ -221,7 +221,7 @@ def _compute_inverse_direct(
 def _compute_inverse_sov(
     flm: np.ndarray, L: int, spin: int, sampling: str, thetas: np.ndarray, nside: int
 ):
-    r"""Compute inverse spherical harmonic transform by separation of variables with a 
+    r"""Compute inverse spherical harmonic transform by separation of variables with a
         manual Fourier transform.
 
     Args:
@@ -233,7 +233,7 @@ def _compute_inverse_sov(
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
@@ -273,7 +273,7 @@ def _compute_inverse_sov(
 def _compute_inverse_sov_fft(
     flm: np.ndarray, L: int, spin: int, sampling: str, thetas: np.ndarray, nside: int
 ):
-    r"""Compute inverse spherical harmonic transform by separation of variables with a 
+    r"""Compute inverse spherical harmonic transform by separation of variables with a
         Fast Fourier transform.
 
     Args:
@@ -285,7 +285,7 @@ def _compute_inverse_sov_fft(
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
@@ -339,7 +339,7 @@ def _compute_inverse_sov_fft_vectorized(
     thetas: np.ndarray,
     nside: int = None,
 ):
-    r"""A vectorized function to compute inverse spherical harmonic transform by 
+    r"""A vectorized function to compute inverse spherical harmonic transform by
         separation of variables with a manual Fourier transform.
 
     Args:
@@ -351,7 +351,7 @@ def _compute_inverse_sov_fft_vectorized(
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
@@ -393,7 +393,7 @@ def _compute_forward_direct(f, L, spin, sampling, thetas, weights, nside):
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         weights (np.ndarray): Vector of quadrature weights on the sphere.
@@ -444,7 +444,7 @@ def _compute_forward_direct(f, L, spin, sampling, thetas, weights, nside):
 
 
 def _compute_forward_sov(f, L, spin, sampling, thetas, weights, nside):
-    r"""Compute forward spherical harmonic transform by separation of variables with a 
+    r"""Compute forward spherical harmonic transform by separation of variables with a
         manual Fourier transform.
 
     Args:
@@ -456,7 +456,7 @@ def _compute_forward_sov(f, L, spin, sampling, thetas, weights, nside):
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         weights (np.ndarray): Vector of quadrature weights on the sphere.
@@ -514,7 +514,7 @@ def _compute_forward_sov(f, L, spin, sampling, thetas, weights, nside):
 
 
 def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
-    r"""Compute forward spherical harmonic transform by separation of variables with a 
+    r"""Compute forward spherical harmonic transform by separation of variables with a
         Fast Fourier transform.
 
     Args:
@@ -526,7 +526,7 @@ def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         weights (np.ndarray): Vector of quadrature weights on the sphere.
@@ -578,7 +578,7 @@ def _compute_forward_sov_fft(f, L, spin, sampling, thetas, weights, nside):
 
 
 def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, nside):
-    r"""A vectorized function to compute forward spherical harmonic transform by 
+    r"""A vectorized function to compute forward spherical harmonic transform by
         separation of variables with a manual Fourier transform.
 
     Args:
@@ -590,7 +590,7 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
-        
+
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         weights (np.ndarray): Vector of quadrature weights on the sphere.
