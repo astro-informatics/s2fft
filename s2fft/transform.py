@@ -6,6 +6,10 @@ import s2fft.resampling as resampling
 import s2fft.wigner as wigner
 import s2fft.healpix_ffts as hp
 
+import jax
+import jax.lax as lax
+import jax.numpy as jnp
+import jax.numpy.fft as jfft
 
 def inverse(
     flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw", nside: int = None
@@ -152,6 +156,7 @@ def _forward(
         "sov": _compute_forward_sov,
         "sov_fft": _compute_forward_sov_fft,
         "sov_fft_vectorized": _compute_forward_sov_fft_vectorized,
+        "sov_fft_vectorized_jax": _compute_forward_sov_fft_vectorized_jax,
     }
     return transform_methods[method](f, L, spin, sampling, thetas, weights, nside=nside)
 
@@ -651,5 +656,81 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
             )
 
     flm *= (-1) ** spin
+
+    return flm
+
+
+
+def _compute_forward_sov_fft_vectorized_jax(f, L, spin, sampling, thetas, weights, nside):
+    r"""A JAX version of the vectorized function to compute forward spherical harmonic transform by
+        separation of variables with a manual Fourier transform.
+
+    Args:
+        f (np.ndarray): Signal on the sphere.
+
+        L (int): Harmonic band-limit.
+
+        spin (int): Harmonic spin.
+
+        sampling (str): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.
+
+        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+
+        weights (np.ndarray): Vector of quadrature weights on the sphere.
+
+        nside (int): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix". ----TODO: add healpix option!
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients.
+    """
+
+    # transform f, thetas and weights to DeviceArrays
+    f = jnp.array(f)
+    thetas = jnp.array(thetas)
+    weights = jnp.array(weights)
+
+    # ftm array
+    if sampling.lower() == "healpix":
+        ftm = jnp.array(hp.healpix_fft(f, L, nside))
+    else:
+        ftm = jnp.fft.fftshift(jnp.fft.fft(f, axis=1, norm="backward"), axes=1)  
+
+    # m offset
+    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+
+    # Compute dl_vmapped fn
+    dl_vmapped = jax.vmap(
+        jax.vmap(
+            wigner.turok_jax.compute_slice,
+            in_axes=(0, None, None, None),
+            out_axes=-1,
+        ),
+        in_axes=(None, 0, None, None),
+        out_axes=0,
+    )
+
+    # Compute flm
+    flm = (
+        (
+            jnp.expand_dims(weights, axis=(0, 1))  # weights[None, None, :] --agnostic but seems slower?
+            * jnp.expand_dims(
+                jnp.sqrt((2 * jnp.array(range(abs(spin), L), dtype=np.float64) + 1) / (4 * jnp.pi)),
+                axis=(-1, -2),
+            )
+            * dl_vmapped(thetas, jnp.array(range(abs(spin), L), dtype=np.int64), L, -spin)
+            * jnp.expand_dims(
+                jax.lax.slice_in_dim(ftm, m_offset, 2 * L - 1 + m_offset, axis=-1),
+                axis=-1,
+            ).T  # ftm[:, m_offset : 2 * L - 1 + m_offset, None].T
+        )
+        .sum(axis=-1)
+    )
+
+    flm *= (-1) ** spin
+
+    # Pad with zeros
+    flm = jnp.pad(flm, ((spin, 0), (0, 0))) #TODO: abs(spin)? check
 
     return flm
