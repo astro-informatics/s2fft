@@ -7,10 +7,12 @@ import s2fft.wigner as wigner
 import s2fft.healpix_ffts as hp
 
 import jax
+from jax import jit
 import jax.lax as lax
 import jax.numpy as jnp
 import jax.numpy.fft as jfft
 
+from functools import partial
 
 def inverse(
     flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw", nside: int = None
@@ -661,7 +663,7 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
     return flm
 
 
-
+# @partial(jit, static_argnums=(1, 2, 3, 6))
 def _compute_forward_sov_fft_vectorized_jax(f, L, spin, sampling, thetas, weights, nside):
     r"""A JAX version of the vectorized function to compute forward spherical harmonic transform by
         separation of variables with a manual Fourier transform.
