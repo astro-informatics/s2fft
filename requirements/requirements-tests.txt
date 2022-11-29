@@ -4,3 +4,4 @@ pytest-cov
 
 # Healpix Sampling
 healpy
+so3

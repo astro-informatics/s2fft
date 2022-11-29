@@ -177,10 +177,10 @@ def test_turok_slice_with_ssht(L: int, spin: int, sampling: str):
         for el in range(L):
             if el >= np.abs(spin):
 
-                dl_turok = np.flip(wigner.turok.compute_slice(beta, el, L, -spin))
+                dl_turok = wigner.turok.compute_slice(beta, el, L, -spin)
 
                 np.testing.assert_allclose(
-                    dl_turok, dl_array[el][L - 1 + spin], atol=1e-10, rtol=1e-12
+                    dl_turok, dl_array[el, :, L - 1 - spin], atol=1e-10, rtol=1e-12
                 )
 
 
@@ -199,12 +199,12 @@ def test_turok_slice_jax_with_ssht(L: int, spin: int, sampling: str):
 
         for el in range(L):
             if el >= np.abs(spin):
-
+                print("beta {}, el {}, spin {}".format(beta, el, spin))
                 dl_turok = wigner.turok_jax.compute_slice(beta, el, L, -spin)
 
                 np.testing.assert_allclose(
                     dl_turok[L - 1 - el : L - 1 + el + 1],
-                    dl_array[el][L - 1 - spin][L - 1 - el : L - 1 + el + 1],
+                    dl_array[el, L - 1 - el : L - 1 + el + 1, L - 1 - spin],
                     atol=1e-10,
                     rtol=1e-12,
                 )

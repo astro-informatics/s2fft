@@ -16,7 +16,7 @@ def test_quadrature_mw_weights(flm_generator, L: int, sampling: str):
 
     flm = flm_generator(L, spin, reality=False)
 
-    f = s2f.transform.inverse_sov_fft(flm, L, spin, sampling)
+    f = s2f.transform.inverse(flm, L, spin, sampling)
 
     integral = flm[0, 0 + L - 1] * np.sqrt(4 * np.pi)
     q = np.reshape(q, (-1, 1))

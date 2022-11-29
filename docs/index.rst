@@ -1,4 +1,4 @@
-|GitHub| |Build Status| |Docs| |CodeCov| |GPL license| |ArXiv|
+|GitHub| |Build Status| |Docs| |CodeCov| |MIT Licence| |ArXiv|
 
 .. |GitHub| image:: https://img.shields.io/badge/GitHub-PyTemplate-brightgreen.svg?style=flat
     :target: https://github.com/astro-informatics/s2fft
@@ -8,15 +8,15 @@
     :target: https://astro-informatics.github.io/s2fft
 .. |CodeCov| image:: https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE
     :target: https://codecov.io/gh/astro-informatics/s2fft
-.. |GPL License| image:: https://img.shields.io/badge/License-GPL-blue.svg
-    :target: http://perso.crans.org/besson/LICENSE.html
+.. |MIT Licence| image:: https://img.shields.io/badge/License-MIT-yellow.svg
+    :target: https://opensource.org/licenses/MIT
 .. |ArXiv| image:: http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat
     :target: https://arxiv.org/abs/xxxx.xxxxx
 
 S2FFT: JAX accelerated spin-spherical harmonic transforms
 =================================================================================================================
 
-Add some basic discussion about ``<project-name>`` here.
+Add some basic discussion about ``S2FFT`` here.
 
 Installation
 ============
@@ -34,11 +34,11 @@ Author names & Contributors
 
 Attribution
 ===========
-A BibTeX entry for <project-name> is:
+A BibTeX entry for ``S2FFT`` is:
 
 .. code-block:: 
 
-     @article{<project-name>, 
+     @article{S2FFT, 
         author = {Author~List},
          title = {"A totally amazing name"},
        journal = {ArXiv},
@@ -49,20 +49,14 @@ A BibTeX entry for <project-name> is:
 License
 =======
 
-``<project-name>`` is released under the GPL-3 license (see `LICENSE.txt <https://github.com/astro-informatics/code_template/blob/main/LICENSE.txt>`_), subject to 
-the non-commercial use condition (see `LICENSE_EXT.txt <https://github.com/astro-informatics/code_template/blob/main/LICENSE_EXT.txt>`_)
+``S2FFT`` is released under the MIT license (see `LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
 
 .. code-block::
 
-     LatentWaves
+     S2fft
      Copyright (C) 2022 Author names & contributors
 
-     This program is released under the GPL-3 license (see LICENSE.txt), 
-     subject to a non-commercial use condition (see LICENSE_EXT.txt).
-
-     This program is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+     This program is released under the MIT license (see `LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
 
 .. bibliography:: 
     :notcited:
@@ -108,4 +102,6 @@ the non-commercial use condition (see `LICENSE_EXT.txt <https://github.com/astro
    api/resampling 
    api/sampling 
    api/transforms 
+   api/wigner_samples
+   api/wigner_transform
    api/utils

@@ -22,7 +22,7 @@ def test_periodic_extension_mwss(flm_generator, L: int, spin_reality):
 
     (spin, reality) = spin_reality
     flm = flm_generator(L=L, spin=spin, reality=reality)
-    f = s2f.transform.inverse_sov_fft(flm, L, spin, sampling="mwss")
+    f = s2f.transform.inverse(flm, L, spin, sampling="mwss")
 
     f_ext = s2f.resampling.periodic_extension(f, L, spin, sampling="mwss")
 
@@ -39,7 +39,7 @@ def test_mwss_upsample_downsample(flm_generator, L: int, spin_reality):
 
     (spin, reality) = spin_reality
     flm = flm_generator(L=L, spin=spin, reality=reality)
-    f = s2f.transform.inverse_sov_fft(flm, L, spin, sampling="mwss")
+    f = s2f.transform.inverse(flm, L, spin, sampling="mwss")
 
     f_ext = s2f.resampling.periodic_extension_spatial_mwss(f, L, spin)
 
@@ -59,7 +59,7 @@ def test_unextend(flm_generator, L: int, sampling: str, spin_reality):
 
     (spin, reality) = spin_reality
     flm = flm_generator(L=L, spin=spin, reality=reality)
-    f = s2f.transform.inverse_sov_fft(flm, L, spin, sampling=sampling)
+    f = s2f.transform.inverse(flm, L, spin, sampling=sampling)
 
     f_ext = s2f.resampling.periodic_extension(f, L, spin, sampling=sampling)
 
@@ -109,8 +109,8 @@ def test_mw_to_mwss_theta(flm_generator, L: int, spin_reality):
 
     (spin, reality) = spin_reality
     flm = flm_generator(L=L, spin=spin, reality=reality)
-    f_mw = s2f.transform.inverse_sov_fft(flm, L, spin, sampling="mw")
-    f_mwss = s2f.transform.inverse_sov_fft(flm, L, spin, sampling="mwss")
+    f_mw = s2f.transform.inverse(flm, L, spin, sampling="mw")
+    f_mwss = s2f.transform.inverse(flm, L, spin, sampling="mwss")
 
     f_mwss_converted = s2f.resampling.mw_to_mwss(f_mw, L, spin)
 
