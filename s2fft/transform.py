@@ -705,6 +705,14 @@ def _compute_forward_sov_fft_vectorized_jax(f, L, spin, sampling, thetas, weight
 
     # Compute phase shift
     phase_shift = 1.0  
+    # if sampling.lower() == "healpix":
+    #     phase_shift_vmapped = jax.vmap(samples.ring_phase_shift_hp,
+    #                                     in_axes=(None,0,None,None),
+    #                                     out_axes=-1)
+    #     phase_shift = jnp.expand_dims(phase_shift_vmapped(L, thetas, nside, forward=True), axis=(0,-1))  
+    # else:
+    #     phase_shift = 1.0                          
+
     # Compute dl_vmapped fn
     dl_vmapped = jax.vmap(
         jax.vmap(
