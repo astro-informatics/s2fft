@@ -11,6 +11,7 @@ import jax.lax as lax
 import jax.numpy as jnp
 import jax.numpy.fft as jfft
 
+
 def inverse(
     flm: np.ndarray, L: int, spin: int = 0, sampling: str = "mw", nside: int = None
 ) -> np.ndarray:
@@ -695,11 +696,13 @@ def _compute_forward_sov_fft_vectorized_jax(f, L, spin, sampling, thetas, weight
     if sampling.lower() == "healpix":
         ftm = jnp.array(hp.healpix_fft(f, L, nside))
     else:
-        ftm = jnp.fft.fftshift(jnp.fft.fft(f, axis=1, norm="backward"), axes=1)  
+        ftm = jfft.fftshift(jfft.fft(f, axis=1, norm="backward"), axes=1)  
 
     # m offset
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
+    # Compute phase shift
+    phase_shift = 1.0  
     # Compute dl_vmapped fn
     dl_vmapped = jax.vmap(
         jax.vmap(
@@ -714,7 +717,7 @@ def _compute_forward_sov_fft_vectorized_jax(f, L, spin, sampling, thetas, weight
     # Compute flm
     flm = (
         (
-            jnp.expand_dims(weights, axis=(0, 1))  # weights[None, None, :] --agnostic but seems slower?
+            jnp.expand_dims(weights, axis=(0, 1))  # Alternative to jnp.expand_dims: weights[None, None, :] --agnostic to np/jnp but seems slower?
             * jnp.expand_dims(
                 jnp.sqrt((2 * jnp.array(range(abs(spin), L), dtype=np.float64) + 1) / (4 * jnp.pi)),
                 axis=(-1, -2),
@@ -724,13 +727,19 @@ def _compute_forward_sov_fft_vectorized_jax(f, L, spin, sampling, thetas, weight
                 jax.lax.slice_in_dim(ftm, m_offset, 2 * L - 1 + m_offset, axis=-1),
                 axis=-1,
             ).T  # ftm[:, m_offset : 2 * L - 1 + m_offset, None].T
+            * phase_shift  # phase_shift[None,:,None]
         )
         .sum(axis=-1)
     )
 
     flm *= (-1) ** spin
 
-    # Pad with zeros
-    flm = jnp.pad(flm, ((spin, 0), (0, 0))) #TODO: abs(spin)? check
+    # Pad the first n=spin rows with zeros
+    flm = jnp.pad(flm, ((abs(spin), 0), (0, 0))) #TODO: Do I need abs(spin)? check
+
+    # Mask after pad (to set spurious results from wigner.turok_jax.compute_slice to zero)
+    upper_diag = jnp.triu(jnp.ones_like(flm,dtype=bool).T,k=-(L-1)).T
+    mask = upper_diag*jnp.fliplr(upper_diag)
+    flm *= mask
 
     return flm
