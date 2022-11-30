@@ -5,21 +5,19 @@
 # os.environ["MKL_NUM_THREADS"] = "6" # export MKL_NUM_THREADS=6
 # os.environ["VECLIB_MAXIMUM_THREADS"] = "4" # export VECLIB_MAXIMUM_THREADS=4
 # os.environ["NUMEXPR_NUM_THREADS"] = "6" # export NUMEXPR_NUM_THREADS=6
-import numpy as np
 
 from functools import partial
-import timeit as timeit
-import importlib
-
+from itertools import product
+import argparse
+import numpy as np
+import timeit
+import pyssht as ssht
+import s2fft
+import jax
 import jax.numpy as jnp
-import jax as jax
 from jax.config import config
 
 config.update("jax_enable_x64", True)  # this only works on startup!
-
-import s2fft.wigner as wigner
-import s2fft.samples as samples
-import pyssht as ssht
 
 # summary of available compute resources
 # var = {}
