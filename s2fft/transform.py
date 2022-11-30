@@ -664,7 +664,9 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
 
 
 # @partial(jit, static_argnums=(1, 2, 3, 6))
-def _compute_forward_sov_fft_vectorized_jax(f, L, spin, sampling, thetas, weights, nside):
+def _compute_forward_sov_fft_vectorized_jax(
+    f, L, spin, sampling, thetas, weights, nside
+):
     r"""A JAX version of the vectorized function to compute forward spherical harmonic transform by
         separation of variables with a manual Fourier transform.
 
@@ -698,20 +700,30 @@ def _compute_forward_sov_fft_vectorized_jax(f, L, spin, sampling, thetas, weight
     if sampling.lower() == "healpix":
         ftm = jnp.array(hp.healpix_fft(f, L, nside))
     else:
-        ftm = jfft.fftshift(jfft.fft(f, axis=1, norm="backward"), axes=1)  
+        ftm = jfft.fftshift(jfft.fft(f, axis=1, norm="backward"), axes=1)
 
     # m offset
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     # Compute phase shift
-    phase_shift = 1.0  
-    # if sampling.lower() == "healpix":
-    #     phase_shift_vmapped = jax.vmap(samples.ring_phase_shift_hp,
-    #                                     in_axes=(None,0,None,None),
-    #                                     out_axes=-1)
-    #     phase_shift = jnp.expand_dims(phase_shift_vmapped(L, thetas, nside, forward=True), axis=(0,-1))  
-    # else:
-    #     phase_shift = 1.0                          
+    if sampling.lower() == "healpix":
+        ring_phase_shift_hp_aux = (
+            lambda L, t, nside, forward_bool: samples.ring_phase_shift_hp_vmappable(
+                L, t, nside, forward=forward_bool
+            )
+        )  # Q for review: is this the best place where to put this?
+
+        phase_shift_vmapped = jax.vmap(
+            ring_phase_shift_hp_aux, 
+            in_axes=(None, 0, None, None), 
+            out_axes=-1 # ATT! theta along last dim
+        )  
+
+        # expand to 3D (theta dim is last)
+        phase_shift = phase_shift_vmapped(L, jnp.array(range(len(thetas))), nside, True)[None,:,:]
+        
+    else:
+        phase_shift = 1.0 #jnp.array(1.0)
 
     # Compute dl_vmapped fn
     dl_vmapped = jax.vmap(
@@ -726,30 +738,32 @@ def _compute_forward_sov_fft_vectorized_jax(f, L, spin, sampling, thetas, weight
 
     # Compute flm
     flm = (
-        (
-            jnp.expand_dims(weights, axis=(0, 1))  # Alternative to jnp.expand_dims: weights[None, None, :] --agnostic to np/jnp but seems slower?
-            * jnp.expand_dims(
-                jnp.sqrt((2 * jnp.array(range(abs(spin), L), dtype=np.float64) + 1) / (4 * jnp.pi)),
-                axis=(-1, -2),
-            )
-            * dl_vmapped(thetas, jnp.array(range(abs(spin), L), dtype=np.int64), L, -spin)
-            * jnp.expand_dims(
-                jax.lax.slice_in_dim(ftm, m_offset, 2 * L - 1 + m_offset, axis=-1),
-                axis=-1,
-            ).T  # ftm[:, m_offset : 2 * L - 1 + m_offset, None].T
-            * phase_shift  # phase_shift[None,:,None]
+        jnp.expand_dims(
+            weights, axis=(0, 1)
+        )  # Alternative to jnp.expand_dims: weights[None, None, :] --agnostic to np/jnp but seems slower?
+        * jnp.expand_dims(
+            jnp.sqrt(
+                (2 * jnp.array(range(abs(spin), L), dtype=np.float64) + 1)
+                / (4 * jnp.pi)
+            ),
+            axis=(-1, -2),
         )
-        .sum(axis=-1)
-    )
+        * dl_vmapped(thetas, jnp.array(range(abs(spin), L), dtype=np.int64), L, -spin)
+        * jnp.expand_dims(
+            jax.lax.slice_in_dim(ftm, m_offset, 2 * L - 1 + m_offset, axis=-1),
+            axis=-1,
+        ).T  # ftm[:, m_offset : 2 * L - 1 + m_offset, None].T
+        * phase_shift  
+    ).sum(axis=-1)
 
     flm *= (-1) ** spin
 
     # Pad the first n=spin rows with zeros
-    flm = jnp.pad(flm, ((abs(spin), 0), (0, 0))) #TODO: Do I need abs(spin)? check
+    flm = jnp.pad(flm, ((abs(spin), 0), (0, 0)))  # TODO: Do I need abs(spin)? check
 
     # Mask after pad (to set spurious results from wigner.turok_jax.compute_slice to zero)
-    upper_diag = jnp.triu(jnp.ones_like(flm,dtype=bool).T,k=-(L-1)).T
-    mask = upper_diag*jnp.fliplr(upper_diag)
+    upper_diag = jnp.triu(jnp.ones_like(flm, dtype=bool).T, k=-(L - 1)).T
+    mask = upper_diag * jnp.fliplr(upper_diag)
     flm *= mask
 
     return flm

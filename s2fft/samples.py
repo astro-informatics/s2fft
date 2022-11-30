@@ -1,4 +1,5 @@
 import numpy as np
+import jax.numpy as jnp
 
 
 def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
@@ -350,11 +351,45 @@ def p2phi_ring(t: int, p: int, nside: int) -> np.ndarray:
     if (t + 1 >= nside) & (t + 1 <= 3 * nside):
         shift *= (t - nside + 2) % 2
         factor = np.pi / (2 * nside)
-        return factor * (p + shift)
+        return factor * (p + shift)  # is this line needed?
     elif t + 1 > 3 * nside:
         factor = np.pi / (2 * (4 * nside - t - 1))
     else:
         factor = np.pi / (2 * (t + 1))
+    return factor * (p + shift)
+
+
+def p2phi_ring_vmappable(t: int, p: int, nside: int) -> np.ndarray:
+    r"""Convert index to :math:`\phi` angle for HEALPix for given :math:`\theta` ring.
+
+    Args:
+        t (int): :math:`\theta` index of ring.
+
+        p (int): :math:`\phi` index within ring.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+    Returns:
+        np.ndarray: :math:`\phi` angle.
+    """
+
+    # shift per region (only 2 regions)
+    shift = jnp.where(
+        (t + 1 >= nside) & (t + 1 <= 3 * nside), (1 / 2) * ((t - nside + 2) % 2), 1 / 2
+    )
+
+    # factor per region
+    factor_reg_1 = jnp.where(
+        (t + 1 >= nside) & (t + 1 <= 3 * nside), np.pi / (2 * nside), 1
+    )
+    factor_reg_2 = jnp.where(t + 1 > 3 * nside, np.pi / (2 * (4 * nside - t - 1)), 1)
+    factor_reg_3 = jnp.where(
+        (factor_reg_1 == 1) & (factor_reg_2 == 1), np.pi / (2 * (t + 1)), 1
+    )
+    factor = (
+        factor_reg_1 * factor_reg_2 * factor_reg_3
+    )  # Q: should I check there are no 1s?
+
     return factor * (p + shift)
 
 
@@ -437,6 +472,29 @@ def ring_phase_shift_hp(
     phi_offset = p2phi_ring(t, 0, nside)
     sign = -1 if forward else 1
     return np.exp(sign * 1j * np.arange(-L + 1, L) * phi_offset)
+
+
+def ring_phase_shift_hp_vmappable(
+    L: int, t: int, nside: int, forward: bool = False
+) -> np.ndarray:
+    r"""Generates a phase shift vector for HEALPix for a given :math:`\theta` ring.
+
+    Args:
+        L (int, optional): Harmonic band-limit.
+
+        t (int): :math:`\theta` index of ring.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+        forward (bool, optional): Whether to provide forward or inverse shift.
+            Defaults to False.
+
+    Returns:
+        np.ndarray: Vector of phase shifts with shape :math:`[2L-1]`.
+    """
+    phi_offset = p2phi_ring_vmappable(t, 0, nside)
+    sign = -1 if forward else 1
+    return jnp.exp(sign * 1j * jnp.arange(-L + 1, L) * phi_offset)
 
 
 def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> tuple:
