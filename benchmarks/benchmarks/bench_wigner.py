@@ -1,3 +1,5 @@
+"""Benchmarks for Wigner-d recursions"""
+
 # set threads used by numpy (before numpy is imported!)
 # import os
 # os.environ["OMP_NUM_THREADS"] = "4" # export OMP_NUM_THREADS=4
@@ -45,6 +47,20 @@ par["BANDLIMIT"] = [32, 64]
 # par["SAMPLING"] = ["mw", "mwss", "dh", "healpix"]
 # colatitude
 par["COLATITUDE"] = [np.pi / 2.0]
+
+
+def parametrize(parameter_dict):
+    """
+    Returns a function that unpacks a dictionary's keys and values
+    """
+
+    def decorator(function):
+        function.param_names = list(parameter_dict.keys())
+        function.params = list(parameter_dict.values())
+        return function
+
+    return decorator
+
 
 # create/store partial function objects for the different implementations
 def func_benchmark_runtime(recursion, implementation, bandlimit, colatitude, datatype):
