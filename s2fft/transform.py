@@ -663,7 +663,7 @@ def _compute_forward_sov_fft_vectorized(f, L, spin, sampling, thetas, weights, n
     return flm
 
 
-# @partial(jit, static_argnums=(1, 2, 3, 6))
+@partial(jit, static_argnums=(1, 2, 3, 6))
 def _compute_forward_sov_fft_vectorized_jax(
     f, L, spin, sampling, thetas, weights, nside
 ):
