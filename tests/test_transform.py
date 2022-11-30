@@ -6,7 +6,7 @@ import healpy as hp
 
 
 L_to_test = [6, 7, 8]
-L0_to_test = [0, 1, 2]
+L_lower_to_test = [0, 1, 2]
 spin_to_test = [0, 1, 2]
 nside_to_test = [2, 4, 8]
 L_to_nside_ratio = [2, 3]
@@ -15,15 +15,15 @@ method_to_test = ["direct", "sov", "sov_fft", "sov_fft_vectorized"]
 
 
 @pytest.mark.parametrize("L", L_to_test)
-@pytest.mark.parametrize("L0", L0_to_test)
+@pytest.mark.parametrize("L_lower", L_lower_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
 @pytest.mark.parametrize("sampling", sampling_to_test)
 @pytest.mark.parametrize("method", method_to_test)
 def test_transform_inverse(
-    flm_generator, L: int, L0: int, spin: int, sampling: str, method: str
+    flm_generator, L: int, L_lower: int, spin: int, sampling: str, method: str
 ):
 
-    flm = flm_generator(L=L, L0=L0, spin=spin, reality=False)
+    flm = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=False)
     f_check = ssht.inverse(
         s2f.samples.flm_2d_to_1d(flm, L),
         L,
@@ -31,7 +31,7 @@ def test_transform_inverse(
         Spin=spin,
         Reality=False,
     )
-    f = s2f.transform._inverse(flm, L, spin, sampling, method, L0=L0)
+    f = s2f.transform._inverse(flm, L, spin, sampling, method, L_lower=L_lower)
 
     np.testing.assert_allclose(f, f_check, atol=1e-14)
 
@@ -54,15 +54,15 @@ def test_transform_inverse_healpix(
 
 
 @pytest.mark.parametrize("L", L_to_test)
-@pytest.mark.parametrize("L0", L0_to_test)
+@pytest.mark.parametrize("L_lower", L_lower_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
 @pytest.mark.parametrize("sampling", sampling_to_test)
 @pytest.mark.parametrize("method", method_to_test)
 def test_transform_forward(
-    flm_generator, L: int, L0: int, spin: int, sampling: str, method: str
+    flm_generator, L: int, L_lower: int, spin: int, sampling: str, method: str
 ):
 
-    flm = flm_generator(L=L, spin=spin, reality=False, L0=L0)
+    flm = flm_generator(L=L, spin=spin, reality=False, L_lower=L_lower)
 
     f = ssht.inverse(
         s2f.samples.flm_2d_to_1d(flm, L),
@@ -72,7 +72,9 @@ def test_transform_forward(
         Reality=False,
     )
 
-    flm_recov = s2f.transform._forward(f, L, spin, sampling, method, L0=L0)
+    flm_recov = s2f.transform._forward(
+        f, L, spin, sampling, method, L_lower=L_lower
+    )
 
     np.testing.assert_allclose(flm, flm_recov, atol=1e-14)
 

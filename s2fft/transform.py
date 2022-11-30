@@ -13,9 +13,9 @@ def inverse(
     spin: int = 0,
     sampling: str = "mw",
     nside: int = None,
-    L0: int = 0,
+    L_lower: int = 0,
 ) -> np.ndarray:
-    """Compute inverse spherical harmonic transform.
+    r"""Compute inverse spherical harmonic transform.
 
     Uses a vectorised separation of variables method with FFT.
 
@@ -32,13 +32,20 @@ def inverse(
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        L0 (int, optional): Harmonic lower-bound. Defaults to 0.
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\text{L_lower} \leq \ell < \text{L}`.Defaults to 0.
 
     Returns:
         np.ndarray: Signal on the sphere.
     """
     return _inverse(
-        flm, L, spin, sampling, nside=nside, method="sov_fft_vectorized", L0=L0
+        flm,
+        L,
+        spin,
+        sampling,
+        nside=nside,
+        method="sov_fft_vectorized",
+        L_lower=L_lower,
     )
 
 
@@ -49,9 +56,9 @@ def _inverse(
     sampling: str = "mw",
     method: str = "sov_fft",
     nside: int = None,
-    L0: int = 0,
+    L_lower: int = 0,
 ) -> np.ndarray:
-    """Compute inverse spherical harmonic transform using a specified method.
+    r"""Compute inverse spherical harmonic transform using a specified method.
 
     Args:
         flm (np.ndarray): Spherical harmonic coefficients.
@@ -69,14 +76,15 @@ def _inverse(
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        L0 (int, optional): Harmonic lower-bound. Defaults to 0.
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\text{L_lower} \leq \ell < \text{L}`.Defaults to 0.
 
     Returns:
         np.ndarray: Signal on the sphere.
     """
     assert flm.shape == samples.flm_shape(L)
     assert 0 <= np.abs(spin) < L
-    assert L0 < L
+    assert L_lower < L
     thetas = samples.thetas(L, sampling, nside)
     transform_methods = {
         "direct": _compute_inverse_direct,
@@ -85,7 +93,7 @@ def _inverse(
         "sov_fft_vectorized": _compute_inverse_sov_fft_vectorized,
     }
     return transform_methods[method](
-        flm, L, spin, sampling, thetas, nside=nside, L0=L0
+        flm, L, spin, sampling, thetas, nside=nside, L_lower=L_lower
     )
 
 
@@ -95,9 +103,9 @@ def forward(
     spin: int = 0,
     sampling: str = "mw",
     nside: int = None,
-    L0: int = 0,
+    L_lower: int = 0,
 ) -> np.ndarray:
-    """Compute forward spherical harmonic transform.
+    r"""Compute forward spherical harmonic transform.
 
     Uses a vectorised separation of variables method with FFT.
 
@@ -114,13 +122,20 @@ def forward(
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        L0 (int, optional): Harmonic lower-bound. Defaults to 0.
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\text{L_lower} \leq \ell < \text{L}`.Defaults to 0.
 
     Returns:
         np.ndarray: Spheircal harmonic coefficients.
     """
     return _forward(
-        f, L, spin, sampling, nside=nside, method="sov_fft_vectorized", L0=L0
+        f,
+        L,
+        spin,
+        sampling,
+        nside=nside,
+        method="sov_fft_vectorized",
+        L_lower=L_lower,
     )
 
 
@@ -131,9 +146,9 @@ def _forward(
     sampling: str = "mw",
     method: str = "sov_fft",
     nside: int = None,
-    L0: int = 0,
+    L_lower: int = 0,
 ):
-    """Compute forward spherical harmonic transform using a specified method.
+    r"""Compute forward spherical harmonic transform using a specified method.
 
     Args:
         f (np.ndarray): Signal on the sphere.
@@ -151,14 +166,15 @@ def _forward(
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        L0 (int, optional): Harmonic lower-bound. Defaults to 0.
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\text{L_lower} \leq \ell < \text{L}`.Defaults to 0.
 
     Returns:
         np.ndarray: Signal on the sphere.
     """
     assert f.shape == samples.f_shape(L, sampling, nside)
     assert 0 <= np.abs(spin) < L
-    assert L0 < L
+    assert L_lower < L
 
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -182,7 +198,7 @@ def _forward(
         "sov_fft_vectorized": _compute_forward_sov_fft_vectorized,
     }
     return transform_methods[method](
-        f, L, spin, sampling, thetas, weights, nside=nside, L0=L0
+        f, L, spin, sampling, thetas, weights, nside=nside, L_lower=L_lower
     )
 
 
@@ -193,7 +209,7 @@ def _compute_inverse_direct(
     sampling: str,
     thetas: np.ndarray,
     nside: int,
-    L0: int,
+    L_lower: int,
 ):
     r"""Compute inverse spherical harmonic transform directly.
 
@@ -212,7 +228,8 @@ def _compute_inverse_direct(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L0 (int): Harmonic lower-bound.
+        L_lower (int): Harmonic lower-bound. Transform will only be computed for
+            :math:`\text{L_lower} \leq \ell < \text{L}`.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -224,7 +241,7 @@ def _compute_inverse_direct(
 
     for t, theta in enumerate(thetas):
 
-        for el in range(max(L0, abs(spin)), L):
+        for el in range(max(L_lower, abs(spin)), L):
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
@@ -261,7 +278,7 @@ def _compute_inverse_sov(
     sampling: str,
     thetas: np.ndarray,
     nside: int,
-    L0: int,
+    L_lower: int,
 ):
     r"""Compute inverse spherical harmonic transform by separation of variables with a
         manual Fourier transform.
@@ -281,14 +298,15 @@ def _compute_inverse_sov(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L0 (int): Harmonic lower-bound.
+        L_lower (int): Harmonic lower-bound. Transform will only be computed for
+            :math:`\text{L_lower} \leq \ell < \text{L}`.
 
     Returns:
         np.ndarray: Signal on the sphere.
     """
     ftm = np.zeros((len(thetas), 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
-        for el in range(max(L0, abs(spin)), L):
+        for el in range(max(L_lower, abs(spin)), L):
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
             for m in range(-el, el + 1):
@@ -320,7 +338,7 @@ def _compute_inverse_sov_fft(
     sampling: str,
     thetas: np.ndarray,
     nside: int,
-    L0: int,
+    L_lower: int,
 ):
     r"""Compute inverse spherical harmonic transform by separation of variables with a
         Fast Fourier transform.
@@ -340,7 +358,8 @@ def _compute_inverse_sov_fft(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L0 (int): Harmonic lower-bound.
+        L_lower (int): Harmonic lower-bound. Transform will only be computed for
+            :math:`\text{L_lower} \leq \ell < \text{L}`.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -360,7 +379,7 @@ def _compute_inverse_sov_fft(
             else 0
         )
 
-        for el in range(max(L0, abs(spin)), L):
+        for el in range(max(L_lower, abs(spin)), L):
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
@@ -397,7 +416,7 @@ def _compute_inverse_sov_fft_vectorized(
     sampling: str,
     thetas: np.ndarray,
     nside: int,
-    L0: int,
+    L_lower: int,
 ):
     r"""A vectorized function to compute inverse spherical harmonic transform by
         separation of variables with a manual Fourier transform.
@@ -417,7 +436,8 @@ def _compute_inverse_sov_fft_vectorized(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L0 (int): Harmonic lower-bound.
+        L_lower (int): Harmonic lower-bound. Transform will only be computed for
+            :math:`\text{L_lower} \leq \ell < \text{L}`.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -433,7 +453,7 @@ def _compute_inverse_sov_fft_vectorized(
             else 1.0
         )
 
-        for el in range(max(L0, abs(spin)), L):
+        for el in range(max(L_lower, abs(spin)), L):
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
@@ -459,7 +479,7 @@ def _compute_forward_direct(
     thetas: np.ndarray,
     weights: np.ndarray,
     nside: int,
-    L0: int,
+    L_lower: int,
 ):
     r"""Compute forward spherical harmonic transform directly.
 
@@ -480,7 +500,8 @@ def _compute_forward_direct(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L0 (int): Harmonic lower-bound.
+        L_lower (int): Harmonic lower-bound. Transform will only be computed for
+            :math:`\text{L_lower} \leq \ell < \text{L}`.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
@@ -492,7 +513,7 @@ def _compute_forward_direct(
 
     for t, theta in enumerate(thetas):
 
-        for el in range(max(L0, abs(spin)), L):
+        for el in range(max(L_lower, abs(spin)), L):
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
@@ -530,7 +551,7 @@ def _compute_forward_sov(
     thetas: np.ndarray,
     weights: np.ndarray,
     nside: int,
-    L0: int,
+    L_lower: int,
 ):
     r"""Compute forward spherical harmonic transform by separation of variables with a
         manual Fourier transform.
@@ -552,7 +573,8 @@ def _compute_forward_sov(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L0 (int): Harmonic lower-bound.
+        L_lower (int): Harmonic lower-bound. Transform will only be computed for
+            :math:`\text{L_lower} \leq \ell < \text{L}`.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
@@ -582,7 +604,7 @@ def _compute_forward_sov(
 
     for t, theta in enumerate(thetas):
 
-        for el in range(max(L0, abs(spin)), L):
+        for el in range(max(L_lower, abs(spin)), L):
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
@@ -609,7 +631,7 @@ def _compute_forward_sov_fft(
     thetas: np.ndarray,
     weights: np.ndarray,
     nside: int,
-    L0: int,
+    L_lower: int,
 ):
     r"""Compute forward spherical harmonic transform by separation of variables with a
         Fast Fourier transform.
@@ -631,7 +653,8 @@ def _compute_forward_sov_fft(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L0 (int): Harmonic lower-bound.
+        L_lower (int): Harmonic lower-bound. Transform will only be computed for
+            :math:`\text{L_lower} \leq \ell < \text{L}`.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
@@ -653,7 +676,7 @@ def _compute_forward_sov_fft(
             else 0
         )
 
-        for el in range(max(L0, abs(spin)), L):
+        for el in range(max(L_lower, abs(spin)), L):
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
@@ -687,7 +710,7 @@ def _compute_forward_sov_fft_vectorized(
     thetas: np.ndarray,
     weights: np.ndarray,
     nside: int,
-    L0: int,
+    L_lower: int,
 ):
     r"""A vectorized function to compute forward spherical harmonic transform by
         separation of variables with a manual Fourier transform.
@@ -709,7 +732,8 @@ def _compute_forward_sov_fft_vectorized(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L0 (int): Harmonic lower-bound.
+        L_lower (int): Harmonic lower-bound. Transform will only be computed for
+            :math:`\text{L_lower} \leq \ell < \text{L}`.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
@@ -731,7 +755,7 @@ def _compute_forward_sov_fft_vectorized(
             else 1.0
         )
 
-        for el in range(max(L0, abs(spin)), L):
+        for el in range(max(L_lower, abs(spin)), L):
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin)
 

@@ -6,7 +6,7 @@ import s2fft.wigner.samples as wigner_samples
 def generate_flm(
     rng: np.random.Generator,
     L: int,
-    L0: int = 0,
+    L_lower: int = 0,
     spin: int = 0,
     reality: bool = False,
 ) -> np.ndarray:
@@ -20,7 +20,7 @@ def generate_flm(
 
         L (int): Harmonic band-limit.
 
-        L0 (int, optional): Harmonic lower bound. Defaults to 0.
+        L_lower (int, optional): Harmonic lower bound. Defaults to 0.
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
@@ -32,7 +32,7 @@ def generate_flm(
     """
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
-    for el in range(max(L0, abs(spin)), L):
+    for el in range(max(L_lower, abs(spin)), L):
 
         if reality:
             flm[el, 0 + L - 1] = rng.uniform()
@@ -53,7 +53,7 @@ def generate_flmn(
     rng: np.random.Generator,
     L: int,
     N: int = 1,
-    L0: int = 0,
+    L_lower: int = 0,
     spin: int = 0,
     reality: bool = False,
 ) -> np.ndarray:
@@ -70,7 +70,7 @@ def generate_flmn(
         N (int, optional): Number of Fourier coefficients for tangent plane rotations
             (i.e. directionality). Defaults to 1.
 
-        L0 (int, optional): Harmonic lower bound. Defaults to 0.
+        L_lower (int, optional): Harmonic lower bound. Defaults to 0.
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
@@ -84,7 +84,7 @@ def generate_flmn(
 
     for n in range(-N + 1, N):
 
-        for el in range(max(L0, abs(n)), L):
+        for el in range(max(L_lower, abs(n)), L):
 
             if reality:
                 flmn[el, 0 + L - 1, N - 1 + n] = rng.uniform()
