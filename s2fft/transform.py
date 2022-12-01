@@ -8,7 +8,7 @@ import s2fft.healpix_ffts as hp
 
 import jax
 from jax import jit
-import jax.lax as lax
+# import jax.lax as lax
 import jax.numpy as jnp
 import jax.numpy.fft as jfft
 
@@ -691,14 +691,14 @@ def _compute_forward_sov_fft_vectorized_jax(
         np.ndarray: Spherical harmonic coefficients.
     """
 
-    # transform f, thetas and weights to DeviceArrays
-    f = jnp.array(f)
-    thetas = jnp.array(thetas)
-    weights = jnp.array(weights)
+    # transform f, thetas and weights to DeviceArrays (it will place them in default device)
+    f = jnp.array(f) #abstract traced
+    thetas = jnp.array(thetas) #abstract traced
+    weights = jnp.array(weights) #abstract traced
 
     # ftm array
     if sampling.lower() == "healpix":
-        ftm = jnp.array(hp.healpix_fft(f, L, nside))
+        ftm = jnp.array(hp.healpix_fft_jax(f, L, nside))
     else:
         ftm = jfft.fftshift(jfft.fft(f, axis=1, norm="backward"), axes=1)
 
@@ -707,14 +707,9 @@ def _compute_forward_sov_fft_vectorized_jax(
 
     # Compute phase shift
     if sampling.lower() == "healpix":
-        ring_phase_shift_hp_aux = (
-            lambda L, t, nside, forward_bool: samples.ring_phase_shift_hp_vmappable(
-                L, t, nside, forward=forward_bool
-            )
-        )  # Q for review: is this the best place where to put this?
-
+        
         phase_shift_vmapped = jax.vmap(
-            ring_phase_shift_hp_aux, 
+            samples.ring_phase_shift_hp_vmappable, 
             in_axes=(None, 0, None, None), 
             out_axes=-1 # ATT! theta along last dim
         )  

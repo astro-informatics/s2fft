@@ -73,11 +73,12 @@ else:
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Using SOV + FFT Vectorised JAXed (compare to numpy implementation)
+method_str = "sov_fft_vectorized"
+flm_sov_fft_vec_np = s2f.transform._forward(f, L, spin, sampling, method=method_str, nside=nside)
+
 method_str = "sov_fft_vectorized_jax"
 flm_sov_fft_vec_jax = s2f.transform._forward(f, L, spin, sampling, method=method_str, nside=nside) # shape L, 2L-1
 
-method_str = "sov_fft_vectorized"
-flm_sov_fft_vec_np = s2f.transform._forward(f, L, spin, sampling, method=method_str, nside=nside)
 
 print(np.allclose(flm_sov_fft_vec_np, flm_sov_fft_vec_jax, atol=1e-14))
 
@@ -123,17 +124,17 @@ phase_shift_per_theta.shape
 # Phase shift array per theta --manually using aux fn
 # define aux fn (vmap has issues with keyword args: # https://github.com/google/jax/issues/7465)
 # Q for review: is there a more elegant way?
-def ring_phase_shift_hp_aux(L, t, nside, forward_bool):
-    return samples.ring_phase_shift_hp_vmappable(L, t, nside, forward=forward_bool)
-# fn_aux = lambda L, t, nside, forward: samples.ring_phase_shift_hp(L, t, nside, forward=forward)
+# def ring_phase_shift_hp_aux(L, t, nside, forward_bool):
+#     return samples.ring_phase_shift_hp_vmappable(L, t, nside, forward=forward_bool)
+# # fn_aux = lambda L, t, nside, forward: samples.ring_phase_shift_hp(L, t, nside, forward=forward)
 
-phase_shift_per_theta2 = np.zeros((len(thetas), 2*L-1),dtype=complex)
-if sampling.lower() == "healpix":
-    for t, theta in enumerate(thetas):
-        phase_shift_per_theta2[t,:] = ring_phase_shift_hp_aux(L, t, nside, True)
+# phase_shift_per_theta2 = np.zeros((len(thetas), 2*L-1),dtype=complex)
+# if sampling.lower() == "healpix":
+#     for t, theta in enumerate(thetas):
+#         phase_shift_per_theta2[t,:] = ring_phase_shift_hp_aux(L, t, nside, True)
                 
-phase_shift_per_theta2.shape
-np.allclose(phase_shift_per_theta,phase_shift_per_theta2)
+# phase_shift_per_theta2.shape
+# np.allclose(phase_shift_per_theta,phase_shift_per_theta2)
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Compute phase shift vmapped
@@ -141,7 +142,7 @@ np.allclose(phase_shift_per_theta,phase_shift_per_theta2)
 # See: https://jax.readthedocs.io/en/latest/faq.html#different-kinds-of-jax-values
 # and https://jax.readthedocs.io/en/latest/errors.html#jax.errors.ConcretizationTypeError 
 if sampling.lower() == "healpix":
-    phase_shift_vmapped = jax.vmap(ring_phase_shift_hp_aux,
+    phase_shift_vmapped = jax.vmap(samples.ring_phase_shift_hp_vmappable, #ring_phase_shift_hp_aux,
                                    in_axes=(None,0,None,None), 
                                    out_axes=-1) # OJO! theta along rows if out_axes=0
 else:
@@ -158,3 +159,5 @@ np.allclose(phase_shift_2D.T,
 
 
 
+
+# %%
