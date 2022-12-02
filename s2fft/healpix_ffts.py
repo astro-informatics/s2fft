@@ -94,11 +94,11 @@ def spectral_periodic_extension_jax(fm: np.ndarray, nphi: int, L: int) -> np.nda
 
     idx = 1
     while slice_start - idx >= 0:
-        fm_full = fm_full.at[slice_start - idx].set(fm.at[-idx % nphi].get())
+        fm_full = fm_full.at[slice_start - idx].set(fm[-idx % nphi])
         idx += 1
     idx = 0
     while slice_stop + idx < len(fm_full):
-        fm_full = fm_full.at[slice_stop + idx].set(fm.at[idx % nphi].get())
+        fm_full = fm_full.at[slice_stop + idx].set(fm[idx % nphi])
         idx += 1
 
     return fm_full
