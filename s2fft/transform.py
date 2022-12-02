@@ -33,7 +33,7 @@ def inverse(
             if sampling="healpix".  Defaults to None.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\text{L_lower} \leq \ell < \text{L}`.Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -77,14 +77,15 @@ def _inverse(
             if sampling="healpix".  Defaults to None.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\text{L_lower} \leq \ell < \text{L}`.Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         np.ndarray: Signal on the sphere.
     """
     assert flm.shape == samples.flm_shape(L)
+    assert L > 0
     assert 0 <= np.abs(spin) < L
-    assert L_lower < L
+    assert 0 <= L_lower < L
     thetas = samples.thetas(L, sampling, nside)
     transform_methods = {
         "direct": _compute_inverse_direct,
@@ -123,10 +124,10 @@ def forward(
             if sampling="healpix".  Defaults to None.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\text{L_lower} \leq \ell < \text{L}`.Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
-        np.ndarray: Spheircal harmonic coefficients.
+        np.ndarray: Spherical harmonic coefficients.
     """
     return _forward(
         f,
@@ -167,14 +168,15 @@ def _forward(
             if sampling="healpix".  Defaults to None.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\text{L_lower} \leq \ell < \text{L}`.Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
-        np.ndarray: Signal on the sphere.
+        np.ndarray: Spherical harmonic coefficients.
     """
     assert f.shape == samples.f_shape(L, sampling, nside)
+    assert L > 0
     assert 0 <= np.abs(spin) < L
-    assert L_lower < L
+    assert 0 <= L_lower < L
 
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -228,8 +230,8 @@ def _compute_inverse_direct(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed for
-            :math:`\text{L_lower} \leq \ell < \text{L}`.
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -298,8 +300,8 @@ def _compute_inverse_sov(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed for
-            :math:`\text{L_lower} \leq \ell < \text{L}`.
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -358,8 +360,8 @@ def _compute_inverse_sov_fft(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed for
-            :math:`\text{L_lower} \leq \ell < \text{L}`.
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -374,9 +376,7 @@ def _compute_inverse_sov_fft(
     for t, theta in enumerate(thetas):
 
         phi_ring_offset = (
-            samples.p2phi_ring(t, 0, nside)
-            if sampling.lower() == "healpix"
-            else 0
+            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
         )
 
         for el in range(max(L_lower, abs(spin)), L):
@@ -436,8 +436,8 @@ def _compute_inverse_sov_fft_vectorized(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed for
-            :math:`\text{L_lower} \leq \ell < \text{L}`.
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -500,8 +500,8 @@ def _compute_forward_direct(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed for
-            :math:`\text{L_lower} \leq \ell < \text{L}`.
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
@@ -573,8 +573,8 @@ def _compute_forward_sov(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed for
-            :math:`\text{L_lower} \leq \ell < \text{L}`.
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
@@ -653,8 +653,8 @@ def _compute_forward_sov_fft(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed for
-            :math:`\text{L_lower} \leq \ell < \text{L}`.
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
@@ -671,9 +671,7 @@ def _compute_forward_sov_fft(
     for t, theta in enumerate(thetas):
 
         phi_ring_offset = (
-            samples.p2phi_ring(t, 0, nside)
-            if sampling.lower() == "healpix"
-            else 0
+            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
         )
 
         for el in range(max(L_lower, abs(spin)), L):
@@ -732,8 +730,8 @@ def _compute_forward_sov_fft_vectorized(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed for
-            :math:`\text{L_lower} \leq \ell < \text{L}`.
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
