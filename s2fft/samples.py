@@ -351,7 +351,6 @@ def p2phi_ring(t: int, p: int, nside: int) -> np.ndarray:
     if (t + 1 >= nside) & (t + 1 <= 3 * nside):
         shift *= (t - nside + 2) % 2
         factor = np.pi / (2 * nside)
-        return factor * (p + shift)  # is this line needed?
     elif t + 1 > 3 * nside:
         factor = np.pi / (2 * (4 * nside - t - 1))
     else:

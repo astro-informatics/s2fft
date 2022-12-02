@@ -715,7 +715,7 @@ def _compute_forward_sov_fft_vectorized_jax(
         )  
 
         # expand to 3D (theta dim is last)
-        phase_shift = phase_shift_vmapped(L, jnp.array(range(len(thetas))), nside, True)[None,:,:]
+        phase_shift = phase_shift_vmapped(L, jnp.arange(len(thetas)), nside, True)[None,:,:]
         
     else:
         phase_shift = 1.0 #jnp.array(1.0)
@@ -738,12 +738,12 @@ def _compute_forward_sov_fft_vectorized_jax(
         )  # Alternative to jnp.expand_dims: weights[None, None, :] --agnostic to np/jnp but seems slower?
         * jnp.expand_dims(
             jnp.sqrt(
-                (2 * jnp.array(range(abs(spin), L), dtype=np.float64) + 1)
+                (2 * jnp.arange(abs(spin), L) + 1)
                 / (4 * jnp.pi)
             ),
             axis=(-1, -2),
         )
-        * dl_vmapped(thetas, jnp.array(range(abs(spin), L), dtype=np.int64), L, -spin)
+        * dl_vmapped(thetas, jnp.arange(abs(spin), L), L, -spin)
         * jnp.expand_dims(
             jax.lax.slice_in_dim(ftm, m_offset, 2 * L - 1 + m_offset, axis=-1),
             axis=-1,
