@@ -4,7 +4,11 @@ import s2fft.wigner.samples as wigner_samples
 
 
 def generate_flm(
-    rng: np.random.Generator, L: int, spin: int = 0, reality: bool = False
+    rng: np.random.Generator,
+    L: int,
+    L_lower: int = 0,
+    spin: int = 0,
+    reality: bool = False,
 ) -> np.ndarray:
     r"""Generate a 2D set of random harmonic coefficients.
 
@@ -16,6 +20,8 @@ def generate_flm(
 
         L (int): Harmonic band-limit.
 
+        L_lower (int, optional): Harmonic lower bound. Defaults to 0.
+
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         reality (bool, optional): Reality of signal. Defaults to False.
@@ -26,7 +32,7 @@ def generate_flm(
     """
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
-    for el in range(spin, L):
+    for el in range(max(L_lower, abs(spin)), L):
 
         if reality:
             flm[el, 0 + L - 1] = rng.uniform()
@@ -44,7 +50,12 @@ def generate_flm(
 
 
 def generate_flmn(
-    rng: np.random.Generator, L: int, N: int = 1, spin: int = 0, reality: bool = False
+    rng: np.random.Generator,
+    L: int,
+    N: int = 1,
+    L_lower: int = 0,
+    spin: int = 0,
+    reality: bool = False,
 ) -> np.ndarray:
     r"""Generate a 3D set of random Wigner coefficients.
 
@@ -59,6 +70,8 @@ def generate_flmn(
         N (int, optional): Number of Fourier coefficients for tangent plane rotations
             (i.e. directionality). Defaults to 1.
 
+        L_lower (int, optional): Harmonic lower bound. Defaults to 0.
+
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         reality (bool, optional): Reality of signal. Defaults to False.
@@ -71,20 +84,26 @@ def generate_flmn(
 
     for n in range(-N + 1, N):
 
-        for el in range(np.abs(n), L):
+        for el in range(max(L_lower, abs(n)), L):
 
             if reality:
                 flmn[el, 0 + L - 1, N - 1 + n] = rng.uniform()
             else:
-                flmn[el, 0 + L - 1, N - 1 + n] = rng.uniform() + 1j * rng.uniform()
+                flmn[el, 0 + L - 1, N - 1 + n] = (
+                    rng.uniform() + 1j * rng.uniform()
+                )
 
             for m in range(1, el + 1):
-                flmn[el, m + L - 1, N - 1 + n] = rng.uniform() + 1j * rng.uniform()
+                flmn[el, m + L - 1, N - 1 + n] = (
+                    rng.uniform() + 1j * rng.uniform()
+                )
                 if reality:
                     flmn[el, -m + L - 1, N - 1 + n] = (-1) ** m * np.conj(
                         flmn[el, m + L - 1, N - 1 + n]
                     )
                 else:
-                    flmn[el, -m + L - 1, N - 1 + n] = rng.uniform() + 1j * rng.uniform()
+                    flmn[el, -m + L - 1, N - 1 + n] = (
+                        rng.uniform() + 1j * rng.uniform()
+                    )
 
     return flmn
