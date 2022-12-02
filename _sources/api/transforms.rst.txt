@@ -1,5 +1,5 @@
 **************************
-s2fft.transforms
+s2fft.transform
 **************************
-.. automodule:: s2fft.transforms
+.. automodule:: s2fft.transform
    :members: 
