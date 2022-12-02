@@ -210,8 +210,8 @@ def _compute_inverse_direct(
     spin: int,
     sampling: str,
     thetas: np.ndarray,
-    nside: int,
-    L_lower: int,
+    nside: int = None,
+    L_lower: int = 0,
 ):
     r"""Compute inverse spherical harmonic transform directly.
 
@@ -228,10 +228,10 @@ def _compute_inverse_direct(
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".
+            if sampling="healpix".  Defaults to None.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -279,8 +279,8 @@ def _compute_inverse_sov(
     spin: int,
     sampling: str,
     thetas: np.ndarray,
-    nside: int,
-    L_lower: int,
+    nside: int = None,
+    L_lower: int = 0,
 ):
     r"""Compute inverse spherical harmonic transform by separation of variables with a
         manual Fourier transform.
@@ -298,10 +298,10 @@ def _compute_inverse_sov(
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".
+            if sampling="healpix".  Defaults to None.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -339,8 +339,8 @@ def _compute_inverse_sov_fft(
     spin: int,
     sampling: str,
     thetas: np.ndarray,
-    nside: int,
-    L_lower: int,
+    nside: int = None,
+    L_lower: int = 0,
 ):
     r"""Compute inverse spherical harmonic transform by separation of variables with a
         Fast Fourier transform.
@@ -358,10 +358,10 @@ def _compute_inverse_sov_fft(
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".
+            if sampling="healpix".  Defaults to None.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -415,8 +415,8 @@ def _compute_inverse_sov_fft_vectorized(
     spin: int,
     sampling: str,
     thetas: np.ndarray,
-    nside: int,
-    L_lower: int,
+    nside: int = None,
+    L_lower: int = 0,
 ):
     r"""A vectorized function to compute inverse spherical harmonic transform by
         separation of variables with a manual Fourier transform.
@@ -434,10 +434,10 @@ def _compute_inverse_sov_fft_vectorized(
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".
+            if sampling="healpix".  Defaults to None.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
         np.ndarray: Signal on the sphere.
@@ -478,8 +478,8 @@ def _compute_forward_direct(
     sampling: str,
     thetas: np.ndarray,
     weights: np.ndarray,
-    nside: int,
-    L_lower: int,
+    nside: int = None,
+    L_lower: int = 0,
 ):
     r"""Compute forward spherical harmonic transform directly.
 
@@ -498,10 +498,10 @@ def _compute_forward_direct(
         weights (np.ndarray): Vector of quadrature weights on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".
+            if sampling="healpix".  Defaults to None.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
@@ -550,8 +550,8 @@ def _compute_forward_sov(
     sampling: str,
     thetas: np.ndarray,
     weights: np.ndarray,
-    nside: int,
-    L_lower: int,
+    nside: int = None,
+    L_lower: int = 0,
 ):
     r"""Compute forward spherical harmonic transform by separation of variables with a
         manual Fourier transform.
@@ -571,10 +571,10 @@ def _compute_forward_sov(
         weights (np.ndarray): Vector of quadrature weights on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".
+            if sampling="healpix".  Defaults to None.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
@@ -630,8 +630,8 @@ def _compute_forward_sov_fft(
     sampling: str,
     thetas: np.ndarray,
     weights: np.ndarray,
-    nside: int,
-    L_lower: int,
+    nside: int = None,
+    L_lower: int = 0,
 ):
     r"""Compute forward spherical harmonic transform by separation of variables with a
         Fast Fourier transform.
@@ -651,10 +651,10 @@ def _compute_forward_sov_fft(
         weights (np.ndarray): Vector of quadrature weights on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".
+            if sampling="healpix".  Defaults to None.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
@@ -707,8 +707,8 @@ def _compute_forward_sov_fft_vectorized(
     sampling: str,
     thetas: np.ndarray,
     weights: np.ndarray,
-    nside: int,
-    L_lower: int,
+    nside: int = None,
+    L_lower: int = 0,
 ):
     r"""A vectorized function to compute forward spherical harmonic transform by
         separation of variables with a manual Fourier transform.
@@ -728,10 +728,10 @@ def _compute_forward_sov_fft_vectorized(
         weights (np.ndarray): Vector of quadrature weights on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".
+            if sampling="healpix".  Defaults to None.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
