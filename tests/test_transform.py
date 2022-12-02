@@ -39,9 +39,7 @@ def test_transform_inverse(
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.parametrize("ratio", L_to_nside_ratio)
 @pytest.mark.parametrize("method", method_to_test)
-def test_transform_inverse_healpix(
-    flm_generator, nside: int, ratio: int, method: str
-):
+def test_transform_inverse_healpix(flm_generator, nside: int, ratio: int, method: str):
     sampling = "healpix"
     L = ratio * nside
     flm = flm_generator(L=L, reality=True)
@@ -72,9 +70,7 @@ def test_transform_forward(
         Reality=False,
     )
 
-    flm_recov = s2f.transform._forward(
-        f, L, spin, sampling, method, L_lower=L_lower
-    )
+    flm_recov = s2f.transform._forward(f, L, spin, sampling, method, L_lower=L_lower)
 
     np.testing.assert_allclose(flm, flm_recov, atol=1e-14)
 
@@ -82,15 +78,11 @@ def test_transform_forward(
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.parametrize("ratio", L_to_nside_ratio)
 @pytest.mark.parametrize("method", method_to_test)
-def test_transform_forward_healpix(
-    flm_generator, nside: int, ratio: int, method: str
-):
+def test_transform_forward_healpix(flm_generator, nside: int, ratio: int, method: str):
     sampling = "healpix"
     L = ratio * nside
     flm = flm_generator(L=L, reality=True)
-    f = s2f.transform._inverse(
-        flm, L, sampling=sampling, method=method, nside=nside
-    )
+    f = s2f.transform._inverse(flm, L, sampling=sampling, method=method, nside=nside)
 
     flm_direct = s2f.transform._forward(
         f, L, sampling=sampling, method=method, nside=nside
@@ -105,13 +97,35 @@ def test_transform_forward_healpix(
 @pytest.mark.parametrize("nside", nside_to_test)
 def test_healpix_nside_to_L_exceptions(flm_generator, nside: int):
     sampling = "healpix"
+    spin = 0
     L = 2 * nside - 1
 
     flm = flm_generator(L=L, reality=True)
-    f = s2f.transform._inverse(flm, L, 0, sampling, "direct", nside)
+    f = s2f.transform._inverse(flm, L, spin, sampling, "direct", nside)
 
     with pytest.raises(AssertionError) as e:
-        s2f.transform.forward(f, L, 0, sampling, nside)
+        s2f.transform.forward(f, L, spin, sampling, nside)
 
     with pytest.raises(AssertionError) as e:
-        s2f.transform.inverse(flm, L, 0, sampling, nside)
+        s2f.transform.inverse(flm, L, spin, sampling, nside)
+
+
+@pytest.mark.parametrize("L", L_to_test)
+def test_L_lower_exception(flm_generator, L: int):
+    spin = 0
+    sampling = "mw"
+
+    flm = flm_generator(L=L, reality=False)
+    f = s2f.transform.inverse(flm, L, spin, sampling)
+
+    with pytest.raises(AssertionError) as e:
+        s2f.transform.forward(f, L, spin, sampling, L_lower=-1)
+
+    with pytest.raises(AssertionError) as e:
+        s2f.transform.forward(f, L, spin, sampling, L_lower=L)
+
+    with pytest.raises(AssertionError) as e:
+        s2f.transform.inverse(flm, L, spin, sampling, L_lower=-1)
+
+    with pytest.raises(AssertionError) as e:
+        s2f.transform.inverse(flm, L, spin, sampling, L_lower=L)
