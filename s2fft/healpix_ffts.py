@@ -151,11 +151,12 @@ def healpix_fft_jax(f: np.ndarray, L: int, nside: int) -> np.ndarray:
     assert L >= 2 * nside
 
     index = 0
-    ftm = jnp.zeros(samples.ftm_shape(L, "healpix", nside), dtype=np.complex128)
-    ntheta = ftm.shape[0]
-    for t in range(ntheta):
+    ftm = jnp.zeros(samples.ftm_shape(L, "healpix", nside), 
+                    dtype=jnp.complex128)
+    # ntheta = ftm.shape[0]
+    for t in range(ftm.shape[0]):
         nphi = samples.nphi_ring(t, nside)
-        fm_chunk = jfft.fftshift(jfft.fft(jax.lax.slice_in_dim(f, index, index + nphi, axis=-1), norm="backward")) 
+        fm_chunk = jfft.fftshift(jfft.fft(jax.lax.slice_in_dim(f, index, index + nphi, axis=-1), norm="backward")) # for slicing in f: axis=-1 correct? or more general if axis=0?
         ftm = ftm.at[t].set(
             fm_chunk
             if nphi == 2 * L
