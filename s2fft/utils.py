@@ -26,7 +26,7 @@ def generate_flm(
     """
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
-    for el in range(spin, L):
+    for el in range(abs(spin), L):
 
         if reality:
             flm[el, 0 + L - 1] = rng.uniform()
@@ -44,7 +44,11 @@ def generate_flm(
 
 
 def generate_flmn(
-    rng: np.random.Generator, L: int, N: int = 1, spin: int = 0, reality: bool = False
+    rng: np.random.Generator,
+    L: int,
+    N: int = 1,
+    spin: int = 0,
+    reality: bool = False,
 ) -> np.ndarray:
     r"""Generate a 3D set of random Wigner coefficients.
 
@@ -76,15 +80,21 @@ def generate_flmn(
             if reality:
                 flmn[el, 0 + L - 1, N - 1 + n] = rng.uniform()
             else:
-                flmn[el, 0 + L - 1, N - 1 + n] = rng.uniform() + 1j * rng.uniform()
+                flmn[el, 0 + L - 1, N - 1 + n] = (
+                    rng.uniform() + 1j * rng.uniform()
+                )
 
             for m in range(1, el + 1):
-                flmn[el, m + L - 1, N - 1 + n] = rng.uniform() + 1j * rng.uniform()
+                flmn[el, m + L - 1, N - 1 + n] = (
+                    rng.uniform() + 1j * rng.uniform()
+                )
                 if reality:
                     flmn[el, -m + L - 1, N - 1 + n] = (-1) ** m * np.conj(
                         flmn[el, m + L - 1, N - 1 + n]
                     )
                 else:
-                    flmn[el, -m + L - 1, N - 1 + n] = rng.uniform() + 1j * rng.uniform()
+                    flmn[el, -m + L - 1, N - 1 + n] = (
+                        rng.uniform() + 1j * rng.uniform()
+                    )
 
     return flmn

@@ -1,4 +1,5 @@
 import numpy as np
+from warnings import warn
 
 
 def compute_full(beta: float, el: int, L: int) -> np.ndarray:
@@ -33,13 +34,13 @@ def compute_full(beta: float, el: int, L: int) -> np.ndarray:
             f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
         )
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-    dl[:, :] = 0
     dl = compute_quarter(dl, beta, el, L)
-    dl = fill(dl, el, L)
-    return dl
+    return fill(dl, el, L)
 
 
-def compute_slice(beta: float, el: int, L: int, mm: int) -> np.ndarray:
+def compute_slice(
+    beta: float, el: int, L: int, mm: int, reality: bool = False
+) -> np.ndarray:
     r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
     of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok & Bucher recursion.
 
@@ -64,10 +65,15 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> np.ndarray:
 
         mm (int): Harmonic order at which to slice the matrix.
 
+        reality (bool, optional): Whether to exploit conjugate symmetry. By construction
+            this only leads to significant improvement for mm = 0. Defaults to False.
+
     Raises:
         ValueError: If el is greater than L.
 
         ValueError: If el is less than mm.
+
+        Warning: If reality is true but mm not 0.
 
     Returns:
         np.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
@@ -79,15 +85,22 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> np.ndarray:
         raise ValueError(
             f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
         )
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
-    dl[:] = 0
-    dl = compute_quarter_slice(dl, beta, el, L, mm)
 
-    return dl
+    if reality and mm != 0:
+        reality_check = False
+        warn(
+            "Reality acceleration only currently supported for spin 0 fields.\
+                Defering to complex transform."
+        )
+
+    else:
+        reality_check = reality
+    dl = np.zeros(2 * L - 1, dtype=np.float64)
+    return compute_quarter_slice(dl, beta, el, L, mm, reality_check)
 
 
 def compute_quarter_slice(
-    dl: np.ndarray, beta: float, el: int, L: int, mm: int
+    dl: np.ndarray, beta: float, el: int, L: int, mm: int, reality: bool = False
 ) -> np.ndarray:
     r"""Compute a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated
     at :math:`\beta`.
@@ -102,6 +115,9 @@ def compute_quarter_slice(
         L (int): Harmonic band-limit.
 
         mm (int): Harmonic order at which to slice the matrix.
+
+        reality (bool, optional): Whether to exploit conjugate symmetry. By construction
+            this only leads to significant improvement for mm = 0. Defaults to False.
 
     Returns:
         np.ndarray: Wigner-d matrix slice of dimension [2L-1] populated only on the mm slice.
@@ -164,38 +180,42 @@ def compute_quarter_slice(
     # Wigner-d symmetry relation.
 
     for i, slice in enumerate(half_slices):
-        sgn = (-1) ** (i)
+        if not (reality and i == 0):
+            sgn = (-1) ** (i)
 
-        # Initialise the vector
-        dl[lims[i]] = 1.0
-        lamb = ((el + 1) * omc - slice + c) / s
-        dl[lims[i] + sgn * 1] = lamb * dl[lims[i]] * cpi[0]
+            # Initialise the vector
+            dl[lims[i]] = 1.0
+            lamb = ((el + 1) * omc - slice + c) / s
+            dl[lims[i] + sgn * 1] = lamb * dl[lims[i]] * cpi[0]
 
-        for m in range(2, el + 1):
-            lamb = ((el + 1) * omc - slice + m * c) / s
-            dl[lims[i] + sgn * m] = (
-                lamb * cpi[m - 1] * dl[lims[i] + sgn * (m - 1)]
-                - cp2[m - 1] * dl[lims[i] + sgn * (m - 2)]
-            )
-            if dl[lims[i] + sgn * m] > big_const:
-                lrenorm[i] = lrenorm[i] - lbig
-                for im in range(m + 1):
-                    dl[lims[i] + sgn * im] = dl[lims[i] + sgn * im] * bigi
-
-        # Apply renormalisation
-        renorm = sign[i] * np.exp(log_first_row[slice - 1] - lrenorm[i])
-
-        if i == 0:
-            for m in range(el):
-                dl[lims[i] + sgn * m] = dl[lims[i] + sgn * m] * renorm
-
-        if i == 1:
-            for m in range(el + 1):
+            for m in range(2, el + 1):
+                lamb = ((el + 1) * omc - slice + m * c) / s
                 dl[lims[i] + sgn * m] = (
-                    (-1) ** ((mm - m + el) % 2) * dl[lims[i] + sgn * m] * renorm
+                    lamb * cpi[m - 1] * dl[lims[i] + sgn * (m - 1)]
+                    - cp2[m - 1] * dl[lims[i] + sgn * (m - 2)]
                 )
+                if dl[lims[i] + sgn * m] > big_const:
+                    lrenorm[i] = lrenorm[i] - lbig
+                    for im in range(m + 1):
+                        dl[lims[i] + sgn * im] = dl[lims[i] + sgn * im] * bigi
 
-    for m in range(-el, el + 1):
+            # Apply renormalisation
+            renorm = sign[i] * np.exp(log_first_row[slice - 1] - lrenorm[i])
+
+            if i == 0:
+                for m in range(el):
+                    dl[lims[i] + sgn * m] = dl[lims[i] + sgn * m] * renorm
+
+            if i == 1:
+                for m in range(el + 1):
+                    dl[lims[i] + sgn * m] = (
+                        (-1) ** ((mm - m + el) % 2)
+                        * dl[lims[i] + sgn * m]
+                        * renorm
+                    )
+
+    s_ind = 0 if reality else -el
+    for m in range(s_ind, el + 1):
         dl[m + L - 1] *= (-1) ** (abs(mm - m))
 
     return dl
@@ -265,7 +285,9 @@ def compute_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
     for i in range(2, 2 * l + 2):
         m = l + 1 - i
         ratio = np.sqrt((m + l + 1) / (l - m))
-        log_first_row[i - 1] = log_first_row[i - 2] + np.log(ratio) + np.log(np.abs(t))
+        log_first_row[i - 1] = (
+            log_first_row[i - 2] + np.log(ratio) + np.log(np.abs(t))
+        )
         sign[i - 1] = sign[i - 2] * t / np.abs(t)
 
     # Initialising coefficients cp(m)= cplus(l-m).
@@ -296,7 +318,9 @@ def compute_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
                 if dl[index - lp1, m + 1 - lp1] > big:
                     lrenorm[index - 1] = lrenorm[index - 1] - lbig
                     for im in range(1, m + 2):
-                        dl[index - lp1, im - lp1] = dl[index - lp1, im - lp1] * bigi
+                        dl[index - lp1, im - lp1] = (
+                            dl[index - lp1, im - lp1] * bigi
+                        )
 
     # Use Turok & Bucher recursion to fill horizontal to anti-diagonal (upper left eight)
     for index in range(l + 2, 2 * l + 1):
@@ -313,7 +337,9 @@ def compute_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
                 if dl[index - lp1, m + 1 - lp1] > big:
                     lrenorm[index - 1] = lrenorm[index - 1] - lbig
                     for im in range(1, m + 2):
-                        dl[index - lp1, im - lp1] = dl[index - lp1, im - lp1] * bigi
+                        dl[index - lp1, im - lp1] = (
+                            dl[index - lp1, im - lp1] * bigi
+                        )
 
     # Apply renormalisation
     for i in range(1, l + 2):
