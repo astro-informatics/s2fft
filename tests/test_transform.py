@@ -7,7 +7,7 @@ import healpy as hp
 
 L_to_test = [6, 7, 8]
 L_lower_to_test = [0, 1, 2]
-spin_to_test = [-2, -1 0, 1, 2]
+spin_to_test = [-2, -1, 0, 1, 2]
 nside_to_test = [2, 4, 8]
 L_to_nside_ratio = [2, 3]
 sampling_to_test = ["mw", "mwss", "dh"]
@@ -38,8 +38,10 @@ def test_transform_inverse(
         Spin=spin,
         Reality=False,
     )
-    
-    f = s2f.transform._inverse(flm, L, spin, sampling, method, L_lower=L_lower, reality=reality)
+
+    f = s2f.transform._inverse(
+        flm, L, spin, sampling, method, L_lower=L_lower, reality=reality
+    )
 
     np.testing.assert_allclose(f, f_check, atol=1e-14)
 
@@ -75,9 +77,15 @@ def test_transform_inverse_healpix(
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_forward(
-    flm_generator, L: int, L_lower: int, spin: int, sampling: str, method: str, reality: bool
+    flm_generator,
+    L: int,
+    L_lower: int,
+    spin: int,
+    sampling: str,
+    method: str,
+    reality: bool,
 ):
-    flm = flm_generator(L=L, spin=spin, reality=False, L_lower=L_lower, reality=reality)
+    flm = flm_generator(L=L, spin=spin, reality=reality, L_lower=L_lower)
 
     f = ssht.inverse(
         s2f.samples.flm_2d_to_1d(flm, L),

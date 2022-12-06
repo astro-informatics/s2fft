@@ -85,7 +85,7 @@ def _inverse(
 
         reality (bool, optional): Whether to exploit conjugate symmetry. By construction
             this only leads to significant improvement for spin 0. Defaults to False.
-            
+
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
@@ -96,7 +96,7 @@ def _inverse(
     assert L > 0
     assert 0 <= np.abs(spin) < L
     assert 0 <= L_lower < L
-    
+
     if reality and spin != 0:
         reality_check = False
         warn(
@@ -286,7 +286,7 @@ def _compute_inverse_direct(
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
-        
+
         reality (bool): Whether to exploit conjugate symmetry. By construction
             this only leads to significant improvement for spin 0.
 
@@ -374,10 +374,10 @@ def _compute_inverse_sov(
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
-        
+
         reality (bool): Whether to exploit conjugate symmetry. By construction
             this only leads to significant improvement for spin 0.
-            
+
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
@@ -446,10 +446,10 @@ def _compute_inverse_sov_fft(
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
-        
+
         reality (bool): Whether to exploit conjugate symmetry. By construction
             this only leads to significant improvement for spin 0.
-            
+
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
@@ -485,7 +485,7 @@ def _compute_inverse_sov_fft(
                     if sampling.lower() == "healpix"
                     else 1
                 )
-                
+
                 ftm[t, m + L - 1 + m_offset] += (
                     (-1) ** spin
                     * elfactor
@@ -537,10 +537,10 @@ def _compute_inverse_sov_fft_vectorized(
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
-        
+
         reality (bool): Whether to exploit conjugate symmetry. By construction
             this only leads to significant improvement for spin 0.
-            
+
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
@@ -613,10 +613,10 @@ def _compute_forward_direct(
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
-        
+
         reality (bool): Whether to exploit conjugate symmetry. By construction
             this only leads to significant improvement for spin 0.
-            
+
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
@@ -668,15 +668,14 @@ def _compute_forward_direct(
 
                 else:
                     for m in range(-el, el + 1):
-
-                    flm[el, m + L - 1] += (
-                        weights[t]
-                        * (-1) ** spin
-                        * elfactor
-                        * np.exp(-1j * m * phi)
-                        * dl[m + L - 1]
-                        * f[entry]
-                    )
+                        flm[el, m + L - 1] += (
+                            weights[t]
+                            * (-1) ** spin
+                            * elfactor
+                            * np.exp(-1j * m * phi)
+                            * dl[m + L - 1]
+                            * f[entry]
+                        )
 
     return flm
 
@@ -711,10 +710,10 @@ def _compute_forward_sov(
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
-        
+
         reality (bool): Whether to exploit conjugate symmetry. By construction
             this only leads to significant improvement for spin 0.
-            
+
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
@@ -813,10 +812,10 @@ def _compute_forward_sov_fft(
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
-        
+
         reality (bool): Whether to exploit conjugate symmetry. By construction
             this only leads to significant improvement for spin 0.
-            
+
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
@@ -884,15 +883,19 @@ def _compute_forward_sov_fft(
                     flm[el, -m + L - 1] += (-1) ** m * np.conj(val)
             else:
                 for m in range(-el, el + 1):
-
-                flm[el, m + L - 1] += (
-                    weights[t]
-                    * (-1) ** spin
-                    * elfactor
-                    * dl[m + L - 1]
-                    * ftm[t, m + L - 1 + m_offset]
-                    * phase_shift
-                )
+                    phase_shift = (
+                        np.exp(-1j * m * phi_ring_offset)
+                        if sampling.lower() == "healpix"
+                        else 1
+                    )
+                    flm[el, m + L - 1] += (
+                        weights[t]
+                        * (-1) ** spin
+                        * elfactor
+                        * dl[m + L - 1]
+                        * ftm[t, m + L - 1 + m_offset]
+                        * phase_shift
+                    )
 
     return flm
 
@@ -927,10 +930,10 @@ def _compute_forward_sov_fft_vectorized(
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
-        
+
         reality (bool): Whether to exploit conjugate symmetry. By construction
             this only leads to significant improvement for spin 0.
-            
+
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
