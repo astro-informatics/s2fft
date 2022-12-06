@@ -68,11 +68,12 @@ def test_transform_inverse_healpix(
 @pytest.mark.parametrize("spin", spin_to_test)
 @pytest.mark.parametrize("sampling", sampling_to_test)
 @pytest.mark.parametrize("method", method_to_test)
+@pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_forward(
-    flm_generator, L: int, spin: int, sampling: str, method: str
+    flm_generator, L: int, spin: int, sampling: str, method: str, reality: bool
 ):
 
-    flm = flm_generator(L=L, spin=spin, reality=False)
+    flm = flm_generator(L=L, spin=spin, reality=reality)
 
     f = ssht.inverse(
         s2f.samples.flm_2d_to_1d(flm, L),
@@ -82,7 +83,9 @@ def test_transform_forward(
         Reality=False,
     )
 
-    flm_recov = s2f.transform._forward(f, L, spin, sampling, method)
+    flm_recov = s2f.transform._forward(
+        f, L, spin, sampling, method, reality=reality
+    )
 
     np.testing.assert_allclose(flm, flm_recov, atol=1e-14)
 
