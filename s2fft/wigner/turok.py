@@ -1,4 +1,5 @@
 import numpy as np
+from warnings import warn
 
 
 def compute_full(beta: float, el: int, L: int) -> np.ndarray:
@@ -33,27 +34,29 @@ def compute_full(beta: float, el: int, L: int) -> np.ndarray:
             f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
         )
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-    dl[:, :] = 0
     dl = compute_quarter(dl, beta, el, L)
-    dl = fill(dl, el, L)
-    return dl
+    return fill(dl, el, L)
 
 
-def compute_slice(beta: float, el: int, L: int, mm: int) -> np.ndarray:
+def compute_slice(
+    beta: float, el: int, L: int, mm: int, positive_m_only: bool = False
+) -> np.ndarray:
     r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
-    of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok & Bucher recursion.
+    of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok & Bucher
+    recursion.
 
-    The Wigner-d slice for a given :math:`\ell` (`el`) and :math:`\beta`
-    is computed recursively over :math:`m` labelled 'm' at a specific :math:`m^{\prime}`.
-    The Turok & Bucher recursion is analytically correct from :math:`-\ell < m < \ell`
-    however numerically it can become unstable for :math:`m > 0`. To avoid this we
-    compute :math:`d_{m, m^{\prime}}^{\ell}(\beta)` for negative :math:`m` and then evaluate
-    :math:`d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m, m^{\prime}}^{\ell}(\beta)`
-    which we can again evaluate using a Turok & Bucher recursion.
+    The Wigner-d slice for a given :math:`\ell` (`el`) and :math:`\beta` is computed
+    recursively over :math:`m` labelled 'm' at a specific :math:`m^{\prime}`. The Turok
+    & Bucher recursion is analytically correct from :math:`-\ell < m < \ell` however
+    numerically it can become unstable for :math:`m > 0`. To avoid this we compute
+    :math:`d_{m, m^{\prime}}^{\ell}(\beta)` for negative :math:`m` and then evaluate
+    :math:`d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m,
+    m^{\prime}}^{\ell}(\beta)` which we can again evaluate using a Turok & Bucher
+    recursion.
 
-    The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
-    :math:`-L < m < L` by `dl[L - 1 - m]`. This implementation has computational
-    scaling :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L` operations.
+    The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for :math:`-L <
+    m < L` by `dl[L - 1 - m]`. This implementation has computational scaling
+    :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L` operations.
 
     Args:
         beta (float): Polar angle in radians.
@@ -64,10 +67,18 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> np.ndarray:
 
         mm (int): Harmonic order at which to slice the matrix.
 
+        positive_m_only (bool, optional): Compute Wigner-d matrix for slice at m greater
+            than zero only.  Defaults to False.
+
+        Whether to exploit conjugate symmetry. By construction
+            this only leads to significant improvement for mm = 0. Defaults to False.
+
     Raises:
         ValueError: If el is greater than L.
 
         ValueError: If el is less than mm.
+
+        Warning: If positive_m_only is true but mm not 0.
 
     Returns:
         np.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
@@ -79,15 +90,20 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> np.ndarray:
         raise ValueError(
             f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
         )
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
-    dl[:] = 0
-    dl = compute_quarter_slice(dl, beta, el, L, mm)
 
-    return dl
+    if positive_m_only and mm != 0:
+        positive_m_only = False
+        warn(
+            "Reality acceleration only supports spin 0 fields. "
+            + "Defering to complex transform."
+        )
+
+    dl = np.zeros(2 * L - 1, dtype=np.float64)
+    return compute_quarter_slice(dl, beta, el, L, mm, positive_m_only)
 
 
 def compute_quarter_slice(
-    dl: np.ndarray, beta: float, el: int, L: int, mm: int
+    dl: np.ndarray, beta: float, el: int, L: int, mm: int, positive_m_only: bool = False
 ) -> np.ndarray:
     r"""Compute a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated
     at :math:`\beta`.
@@ -102,6 +118,9 @@ def compute_quarter_slice(
         L (int): Harmonic band-limit.
 
         mm (int): Harmonic order at which to slice the matrix.
+
+        positive_m_only (bool, optional): Compute Wigner-d matrix for slice at m greater
+            than zero only.  Defaults to False.
 
     Returns:
         np.ndarray: Wigner-d matrix slice of dimension [2L-1] populated only on the mm slice.
@@ -164,38 +183,40 @@ def compute_quarter_slice(
     # Wigner-d symmetry relation.
 
     for i, slice in enumerate(half_slices):
-        sgn = (-1) ** (i)
+        if not (positive_m_only and i == 0):
+            sgn = (-1) ** (i)
 
-        # Initialise the vector
-        dl[lims[i]] = 1.0
-        lamb = ((el + 1) * omc - slice + c) / s
-        dl[lims[i] + sgn * 1] = lamb * dl[lims[i]] * cpi[0]
+            # Initialise the vector
+            dl[lims[i]] = 1.0
+            lamb = ((el + 1) * omc - slice + c) / s
+            dl[lims[i] + sgn * 1] = lamb * dl[lims[i]] * cpi[0]
 
-        for m in range(2, el + 1):
-            lamb = ((el + 1) * omc - slice + m * c) / s
-            dl[lims[i] + sgn * m] = (
-                lamb * cpi[m - 1] * dl[lims[i] + sgn * (m - 1)]
-                - cp2[m - 1] * dl[lims[i] + sgn * (m - 2)]
-            )
-            if dl[lims[i] + sgn * m] > big_const:
-                lrenorm[i] = lrenorm[i] - lbig
-                for im in range(m + 1):
-                    dl[lims[i] + sgn * im] = dl[lims[i] + sgn * im] * bigi
-
-        # Apply renormalisation
-        renorm = sign[i] * np.exp(log_first_row[slice - 1] - lrenorm[i])
-
-        if i == 0:
-            for m in range(el):
-                dl[lims[i] + sgn * m] = dl[lims[i] + sgn * m] * renorm
-
-        if i == 1:
-            for m in range(el + 1):
+            for m in range(2, el + 1):
+                lamb = ((el + 1) * omc - slice + m * c) / s
                 dl[lims[i] + sgn * m] = (
-                    (-1) ** ((mm - m + el) % 2) * dl[lims[i] + sgn * m] * renorm
+                    lamb * cpi[m - 1] * dl[lims[i] + sgn * (m - 1)]
+                    - cp2[m - 1] * dl[lims[i] + sgn * (m - 2)]
                 )
+                if dl[lims[i] + sgn * m] > big_const:
+                    lrenorm[i] = lrenorm[i] - lbig
+                    for im in range(m + 1):
+                        dl[lims[i] + sgn * im] = dl[lims[i] + sgn * im] * bigi
 
-    for m in range(-el, el + 1):
+            # Apply renormalisation
+            renorm = sign[i] * np.exp(log_first_row[slice - 1] - lrenorm[i])
+
+            if i == 0:
+                for m in range(el):
+                    dl[lims[i] + sgn * m] = dl[lims[i] + sgn * m] * renorm
+
+            if i == 1:
+                for m in range(el + 1):
+                    dl[lims[i] + sgn * m] = (
+                        (-1) ** ((mm - m + el) % 2) * dl[lims[i] + sgn * m] * renorm
+                    )
+
+    s_ind = 0 if positive_m_only else -el
+    for m in range(s_ind, el + 1):
         dl[m + L - 1] *= (-1) ** (abs(mm - m))
 
     return dl
