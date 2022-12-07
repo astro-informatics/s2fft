@@ -373,21 +373,38 @@ def p2phi_ring_vmappable(t: int, p: int, nside: int) -> np.ndarray:
     """
 
     # shift per region (only 2 regions)
-    shift = jnp.where(
-        (t + 1 >= nside) & (t + 1 <= 3 * nside), (1 / 2) * ((t - nside + 2) % 2), 1 / 2
-    )
-
+    # shift = jnp.where(
+    #     (t + 1 >= nside) & (t + 1 <= 3 * nside), (1 / 2) * ((t - nside + 2) % 2), 1 / 2
+    # )
+    #
     # factor per region
-    factor_reg_1 = jnp.where(
-        (t + 1 >= nside) & (t + 1 <= 3 * nside), np.pi / (2 * nside), 1
-    )
-    factor_reg_2 = jnp.where(t + 1 > 3 * nside, np.pi / (2 * (4 * nside - t - 1)), 1)
-    factor_reg_3 = jnp.where(
-        (factor_reg_1 == 1) & (factor_reg_2 == 1), np.pi / (2 * (t + 1)), 1
-    )
-    factor = (
-        factor_reg_1 * factor_reg_2 * factor_reg_3
-    )  # Q: should I check there are no 1s?
+    # factor_reg_1 = jnp.where(
+    #     (t + 1 >= nside) & (t + 1 <= 3 * nside), np.pi / (2 * nside), 1
+    # )
+    # factor_reg_2 = jnp.where(t + 1 > 3 * nside, np.pi / (2 * (4 * nside - t - 1)), 1)
+    # factor_reg_3 = jnp.where(
+    #     (factor_reg_1 == 1) & (factor_reg_2 == 1), np.pi / (2 * (t + 1)), 1
+    # )
+    # factor = (
+    #     factor_reg_1 * factor_reg_2 * factor_reg_3
+    # )  
+
+    # using nested lax.cond
+    shift = lax.cond((t + 1 >= nside) & (t + 1 <= 3 * nside),
+                    lambda t: (1 / 2) * ((t - nside + 2) % 2),
+                    lambda t: 1/2,
+                    t)
+
+    factor = lax.cond(
+        (t + 1 >= nside) & (t + 1 <= 3 * nside),
+        lambda x: np.pi / (2 * nside),
+        lambda x: lax.cond(
+            x + 1 > 3 * nside,
+            lambda x: np.pi / (2 * (4 * nside - x - 1)),
+            lambda x: np.pi / (2 * (x + 1)),
+            x),
+        t)
+
 
     return factor * (p + shift)
 
