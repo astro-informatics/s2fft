@@ -691,11 +691,6 @@ def _compute_forward_sov_fft_vectorized_jax(
         np.ndarray: Spherical harmonic coefficients.
     """
 
-    # transform f, thetas and weights to DeviceArrays (it will place them in default device)
-    f = jnp.array(f) #abstract traced
-    thetas = jnp.array(thetas) #abstract traced
-    weights = jnp.array(weights) #abstract traced
-
     # ftm array
     if sampling.lower() == "healpix":
         ftm = jnp.array(hp.healpix_fft_jax(f, L, nside))
