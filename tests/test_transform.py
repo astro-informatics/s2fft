@@ -105,8 +105,13 @@ def test_transform_forward(
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.parametrize("ratio", L_to_nside_ratio)
 @pytest.mark.parametrize("method", method_to_test)
+@pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_forward_healpix(
-    flm_generator, nside: int, ratio: int, method: str
+    flm_generator,
+    nside: int,
+    ratio: int,
+    method: str,
+    reality: bool,
 ):
     sampling = "healpix"
     L = ratio * nside
@@ -116,7 +121,7 @@ def test_transform_forward_healpix(
     )
 
     flm_direct = s2f.transform._forward(
-        f, L, sampling=sampling, method=method, nside=nside
+        f, L, sampling=sampling, method=method, nside=nside, reality=reality
     )
     flm_direct_hp = s2f.samples.flm_2d_to_hp(flm_direct, L)
 
