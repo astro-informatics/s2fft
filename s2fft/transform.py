@@ -34,8 +34,9 @@ def inverse(
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool, optional): Whether to exploit conjugate symmetry. By construction
-            this only leads to significant improvement for spin 0. Defaults to False.
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -83,8 +84,9 @@ def _inverse(
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool, optional): Whether to exploit conjugate symmetry. By construction
-            this only leads to significant improvement for spin 0. Defaults to False.
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -100,8 +102,8 @@ def _inverse(
     if reality and spin != 0:
         reality_check = False
         warn(
-            "Reality acceleration only currently supported for spin 0 fields.\
-                Defering to complex transform."
+            "Reality acceleration only supports spin 0 fields. "
+            + "Defering to complex transform."
         )
     else:
         reality_check = reality
@@ -154,8 +156,9 @@ def forward(
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool, optional): Whether to exploit conjugate symmetry. By construction
-            this only leads to significant improvement for spin 0. Defaults to False.
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -203,8 +206,9 @@ def _forward(
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool, optional): Whether to exploit conjugate symmetry. By construction
-            this only leads to significant improvement for spin 0. Defaults to False.
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -220,8 +224,8 @@ def _forward(
     if reality and spin != 0:
         reality_check = False
         warn(
-            "Reality acceleration only currently supported for spin 0 fields.\
-                Defering to complex transform."
+            "Reality acceleration only supports spin 0 fields. "
+            + "Defering to complex transform."
         )
     else:
         reality_check = reality
@@ -321,9 +325,7 @@ def _compute_inverse_direct(
                     entry = samples.hp_ang2pix(nside, theta, phi)
 
                 if reality:
-                    f[entry] += (
-                        (-1) ** spin * elfactor * dl[L - 1] * flm[el, L - 1]
-                    )
+                    f[entry] += (-1) ** spin * elfactor * dl[L - 1] * flm[el, L - 1]
                     for m in range(1, el + 1):
                         val = (
                             (-1) ** spin
@@ -466,9 +468,7 @@ def _compute_inverse_sov_fft(
     for t, theta in enumerate(thetas):
 
         phi_ring_offset = (
-            samples.p2phi_ring(t, 0, nside)
-            if sampling.lower() == "healpix"
-            else 0
+            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
         )
 
         for el in range(max(L_lower, abs(spin)), L):
@@ -648,11 +648,7 @@ def _compute_forward_direct(
 
                 if reality:
                     flm[el, L - 1] += (
-                        weights[t]
-                        * (-1) ** spin
-                        * elfactor
-                        * dl[L - 1]
-                        * f[entry]
+                        weights[t] * (-1) ** spin * elfactor * dl[L - 1] * f[entry]
                     )
                     for m in range(1, el + 1):
                         val = (
@@ -752,11 +748,7 @@ def _compute_forward_sov(
 
             if reality:
                 flm[el, L - 1] += (
-                    weights[t]
-                    * (-1) ** spin
-                    * elfactor
-                    * dl[L - 1]
-                    * ftm[t, L - 1]
+                    weights[t] * (-1) ** spin * elfactor * dl[L - 1] * ftm[t, L - 1]
                 )
                 for m in range(1, el + 1):
                     val = (
@@ -845,9 +837,7 @@ def _compute_forward_sov_fft(
     for t, theta in enumerate(thetas):
 
         phi_ring_offset = (
-            samples.p2phi_ring(t, 0, nside)
-            if sampling.lower() == "healpix"
-            else 0
+            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
         )
 
         for el in range(max(L_lower, abs(spin)), L):
@@ -986,9 +976,7 @@ def _compute_forward_sov_fft_vectorized(
                 * phase_shift
             )
             if reality:
-                flm[el, :s_ind] = np.flip(
-                    m_conj * np.conj(flm[el, s_ind + 1 :])
-                )
+                flm[el, :s_ind] = np.flip(m_conj * np.conj(flm[el, s_ind + 1 :]))
 
     flm *= (-1) ** spin
 
