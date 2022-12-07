@@ -61,7 +61,7 @@ def _inverse(
     L: int,
     spin: int = 0,
     sampling: str = "mw",
-    method: str = "sov_fft",
+    method: str = "sov_fft_vectorized",
     nside: int = None,
     reality: bool = False,
     L_lower: int = 0,
@@ -79,7 +79,8 @@ def _inverse(
             {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
         method (str, optional): Harmonic transform algorithm. Supported algorithms include
-            {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to "sov_fft".
+            {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to
+            "sov_fft_vectorized".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -181,7 +182,7 @@ def _forward(
     L: int,
     spin: int = 0,
     sampling: str = "mw",
-    method: str = "sov_fft",
+    method: str = "sov_fft_vectorized",
     nside: int = None,
     reality: bool = False,
     L_lower: int = 0,
@@ -199,7 +200,8 @@ def _forward(
             {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
         method (str, optional): Harmonic transform algorithm. Supported algorithms include
-            {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to "sov_fft".
+            {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to
+            "sov_fft_vectorized".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -290,8 +292,8 @@ def _compute_inverse_direct(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether to exploit conjugate symmetry. By construction
-            this only leads to significant improvement for spin 0.
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
 
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
@@ -326,7 +328,7 @@ def _compute_inverse_direct(
                 if reality:
                     f[entry] += (
                         (-1) ** spin * elfactor * dl[L - 1] * flm[el, L - 1]
-                    )
+                    )  # m = 0
                     for m in range(1, el + 1):
                         val = (
                             (-1) ** spin
@@ -378,8 +380,8 @@ def _compute_inverse_sov(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether to exploit conjugate symmetry. By construction
-            this only leads to significant improvement for spin 0.
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
 
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
@@ -393,8 +395,8 @@ def _compute_inverse_sov(
             dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
-            s_ind = 0 if reality else -el
-            for m in range(s_ind, el + 1):
+            m_start_ind = 0 if reality else -el
+            for m in range(m_start_ind, el + 1):
                 ftm[t, m + L - 1] += (
                     (-1) ** spin * elfactor * dl[m + L - 1] * flm[el, m + L - 1]
                 )
@@ -411,7 +413,7 @@ def _compute_inverse_sov(
             else:
                 entry = samples.hp_ang2pix(nside, theta, phi)
             if reality:
-                f[entry] += ftm[t, L - 1]
+                f[entry] += ftm[t, L - 1]  # m = 0
                 for m in range(1, L):
                     val = ftm[t, m + L - 1] * np.exp(1j * m * phi)
                     f[entry] += val + np.conj(val)
@@ -450,8 +452,8 @@ def _compute_inverse_sov_fft(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether to exploit conjugate symmetry. By construction
-            this only leads to significant improvement for spin 0.
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
 
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
@@ -469,9 +471,7 @@ def _compute_inverse_sov_fft(
     for t, theta in enumerate(thetas):
 
         phi_ring_offset = (
-            samples.p2phi_ring(t, 0, nside)
-            if sampling.lower() == "healpix"
-            else 0
+            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
         )
 
         for el in range(max(L_lower, abs(spin)), L):
@@ -480,8 +480,8 @@ def _compute_inverse_sov_fft(
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
-            s_ind = 0 if reality else -el
-            for m in range(s_ind, el + 1):
+            m_start_ind = 0 if reality else -el
+            for m in range(m_start_ind, el + 1):
 
                 phase_shift = (
                     np.exp(1j * m * phi_ring_offset)
@@ -541,8 +541,8 @@ def _compute_inverse_sov_fft_vectorized(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether to exploit conjugate symmetry. By construction
-            this only leads to significant improvement for spin 0.
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
 
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
@@ -565,9 +565,9 @@ def _compute_inverse_sov_fft_vectorized(
 
             dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
-            s_ind = L - 1 if reality else 0
-            ftm[t, s_ind + m_offset : 2 * L - 1 + m_offset] += (
-                elfactor * dl[s_ind:] * flm[el, s_ind:] * phase_shift
+            m_start_ind = L - 1 if reality else 0
+            ftm[t, m_start_ind + m_offset : 2 * L - 1 + m_offset] += (
+                elfactor * dl[m_start_ind:] * flm[el, m_start_ind:] * phase_shift
             )
 
     ftm *= (-1) ** (spin)
@@ -617,8 +617,8 @@ def _compute_forward_direct(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether to exploit conjugate symmetry. By construction
-            this only leads to significant improvement for spin 0.
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
 
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
@@ -651,11 +651,7 @@ def _compute_forward_direct(
 
                 if reality:
                     flm[el, L - 1] += (
-                        weights[t]
-                        * (-1) ** spin
-                        * elfactor
-                        * dl[L - 1]
-                        * f[entry]
+                        weights[t] * (-1) ** spin * elfactor * dl[L - 1] * f[entry]
                     )
                     for m in range(1, el + 1):
                         val = (
@@ -714,8 +710,8 @@ def _compute_forward_sov(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether to exploit conjugate symmetry. By construction
-            this only leads to significant improvement for spin 0.
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
 
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
@@ -739,8 +735,8 @@ def _compute_forward_sov(
             else:
                 entry = samples.hp_ang2pix(nside, theta, phi)
 
-            s_ind = 0 if reality else -L + 1
-            for m in range(s_ind, L):
+            m_start_ind = 0 if reality else -L + 1
+            for m in range(m_start_ind, L):
                 ftm[t, m + L - 1] += np.exp(-1j * m * phi) * f[entry]
 
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
@@ -755,11 +751,7 @@ def _compute_forward_sov(
 
             if reality:
                 flm[el, L - 1] += (
-                    weights[t]
-                    * (-1) ** spin
-                    * elfactor
-                    * dl[L - 1]
-                    * ftm[t, L - 1]
+                    weights[t] * (-1) ** spin * elfactor * dl[L - 1] * ftm[t, L - 1]
                 )
                 for m in range(1, el + 1):
                     val = (
@@ -816,8 +808,8 @@ def _compute_forward_sov_fft(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether to exploit conjugate symmetry. By construction
-            this only leads to significant improvement for spin 0.
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
 
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
@@ -848,9 +840,7 @@ def _compute_forward_sov_fft(
     for t, theta in enumerate(thetas):
 
         phi_ring_offset = (
-            samples.p2phi_ring(t, 0, nside)
-            if sampling.lower() == "healpix"
-            else 0
+            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
         )
 
         for el in range(max(L_lower, abs(spin)), L):
@@ -934,8 +924,8 @@ def _compute_forward_sov_fft_vectorized(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether to exploit conjugate symmetry. By construction
-            this only leads to significant improvement for spin 0.
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
 
         L_lower (int): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
@@ -979,18 +969,19 @@ def _compute_forward_sov_fft_vectorized(
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
-            s_ind = L - 1 if reality else 0
-            flm[el, s_ind:] += (
+            m_start_ind = L - 1 if reality else 0
+            flm[el, m_start_ind:] += (
                 weights[t]
                 * elfactor
                 * np.multiply(
-                    dl[s_ind:], ftm[t, s_ind + m_offset : 2 * L - 1 + m_offset]
+                    dl[m_start_ind:],
+                    ftm[t, m_start_ind + m_offset : 2 * L - 1 + m_offset],
                 )
                 * phase_shift
             )
             if reality:
-                flm[el, :s_ind] = np.flip(
-                    m_conj * np.conj(flm[el, s_ind + 1 :])
+                flm[el, :m_start_ind] = np.flip(
+                    m_conj * np.conj(flm[el, m_start_ind + 1 :])
                 )
 
     flm *= (-1) ** spin
