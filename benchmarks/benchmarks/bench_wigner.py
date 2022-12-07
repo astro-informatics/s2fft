@@ -57,3 +57,13 @@ def risbo_compute_full_sequential(L):
     dl = np.zeros((2 * L - 1, 2 * L - 1))
     for el in range(L):
         s2fft.wigner.risbo.compute_full(dl, BETA, L, el)
+
+
+@parametrize({"L": L_VALUES, "implementation": ("loop", "vectorized", "jax")})
+def trapani_compute_full_sequential(L, implementation):
+    dl = np.zeros((2 * L - 1, 2 * L - 1))
+    dl = s2fft.wigner.trapani.init(dl, L, implementation)
+    for el in range(1, L):
+        dl = s2fft.wigner.trapani.compute_full(dl, L, el, implementation)
+    if implementation == "jax":
+        dl = dl.block_until_ready()
