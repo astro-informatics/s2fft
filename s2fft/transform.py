@@ -652,7 +652,7 @@ def _compute_forward_direct(
                 if reality:
                     flm[el, L - 1] += (
                         weights[t] * (-1) ** spin * elfactor * dl[L - 1] * f[entry]
-                    )
+                    )  # m = 0
                     for m in range(1, el + 1):
                         val = (
                             weights[t]
@@ -752,7 +752,7 @@ def _compute_forward_sov(
             if reality:
                 flm[el, L - 1] += (
                     weights[t] * (-1) ** spin * elfactor * dl[L - 1] * ftm[t, L - 1]
-                )
+                )  # m = 0
                 for m in range(1, el + 1):
                     val = (
                         weights[t]
@@ -826,14 +826,14 @@ def _compute_forward_sov_fft(
         ftm = hp.healpix_fft(f, L, nside)
     else:
         if reality:
-            t = fft.rfft(
+            ftm_temp = fft.rfft(
                 np.real(f),
                 axis=1,
                 norm="backward",
             )
             if m_offset != 0:
-                t = t[:, :-1]
-            ftm[:, L - 1 + m_offset :] = t
+                ftm_temp = ftm_temp[:, :-1]
+            ftm[:, L - 1 + m_offset :] = ftm_temp
         else:
             ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
 
