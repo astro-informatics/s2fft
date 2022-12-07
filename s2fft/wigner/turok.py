@@ -39,22 +39,24 @@ def compute_full(beta: float, el: int, L: int) -> np.ndarray:
 
 
 def compute_slice(
-    beta: float, el: int, L: int, mm: int, reality: bool = False
+    beta: float, el: int, L: int, mm: int, positive_m_only: bool = False
 ) -> np.ndarray:
     r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
-    of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok & Bucher recursion.
+    of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok & Bucher
+    recursion.
 
-    The Wigner-d slice for a given :math:`\ell` (`el`) and :math:`\beta`
-    is computed recursively over :math:`m` labelled 'm' at a specific :math:`m^{\prime}`.
-    The Turok & Bucher recursion is analytically correct from :math:`-\ell < m < \ell`
-    however numerically it can become unstable for :math:`m > 0`. To avoid this we
-    compute :math:`d_{m, m^{\prime}}^{\ell}(\beta)` for negative :math:`m` and then evaluate
-    :math:`d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m, m^{\prime}}^{\ell}(\beta)`
-    which we can again evaluate using a Turok & Bucher recursion.
+    The Wigner-d slice for a given :math:`\ell` (`el`) and :math:`\beta` is computed
+    recursively over :math:`m` labelled 'm' at a specific :math:`m^{\prime}`. The Turok
+    & Bucher recursion is analytically correct from :math:`-\ell < m < \ell` however
+    numerically it can become unstable for :math:`m > 0`. To avoid this we compute
+    :math:`d_{m, m^{\prime}}^{\ell}(\beta)` for negative :math:`m` and then evaluate
+    :math:`d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m,
+    m^{\prime}}^{\ell}(\beta)` which we can again evaluate using a Turok & Bucher
+    recursion.
 
-    The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
-    :math:`-L < m < L` by `dl[L - 1 - m]`. This implementation has computational
-    scaling :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L` operations.
+    The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for :math:`-L <
+    m < L` by `dl[L - 1 - m]`. This implementation has computational scaling
+    :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L` operations.
 
     Args:
         beta (float): Polar angle in radians.
@@ -65,7 +67,10 @@ def compute_slice(
 
         mm (int): Harmonic order at which to slice the matrix.
 
-        reality (bool, optional): Whether to exploit conjugate symmetry. By construction
+        positive_m_only (bool, optional): Compute Wigner-d matrix for slice at m greater
+            than zero only.  Defaults to False.
+
+        Whether to exploit conjugate symmetry. By construction
             this only leads to significant improvement for mm = 0. Defaults to False.
 
     Raises:
@@ -73,7 +78,7 @@ def compute_slice(
 
         ValueError: If el is less than mm.
 
-        Warning: If reality is true but mm not 0.
+        Warning: If positive_m_only is true but mm not 0.
 
     Returns:
         np.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
@@ -86,19 +91,19 @@ def compute_slice(
             f"Wigner-d bandlimit {el} cannot be equal to or greater than L={L}"
         )
 
-    if reality and mm != 0:
-        reality = False
+    if positive_m_only and mm != 0:
+        positive_m_only = False
         warn(
             "Reality acceleration only supports spin 0 fields. "
             + "Defering to complex transform."
         )
 
     dl = np.zeros(2 * L - 1, dtype=np.float64)
-    return compute_quarter_slice(dl, beta, el, L, mm, reality)
+    return compute_quarter_slice(dl, beta, el, L, mm, positive_m_only)
 
 
 def compute_quarter_slice(
-    dl: np.ndarray, beta: float, el: int, L: int, mm: int, reality: bool = False
+    dl: np.ndarray, beta: float, el: int, L: int, mm: int, positive_m_only: bool = False
 ) -> np.ndarray:
     r"""Compute a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated
     at :math:`\beta`.
@@ -114,8 +119,8 @@ def compute_quarter_slice(
 
         mm (int): Harmonic order at which to slice the matrix.
 
-        reality (bool, optional): Whether to exploit conjugate symmetry. By construction
-            this only leads to significant improvement for mm = 0. Defaults to False.
+        positive_m_only (bool, optional): Compute Wigner-d matrix for slice at m greater
+            than zero only.  Defaults to False.
 
     Returns:
         np.ndarray: Wigner-d matrix slice of dimension [2L-1] populated only on the mm slice.
@@ -178,7 +183,7 @@ def compute_quarter_slice(
     # Wigner-d symmetry relation.
 
     for i, slice in enumerate(half_slices):
-        if not (reality and i == 0):
+        if not (positive_m_only and i == 0):
             sgn = (-1) ** (i)
 
             # Initialise the vector
@@ -210,7 +215,7 @@ def compute_quarter_slice(
                         (-1) ** ((mm - m + el) % 2) * dl[lims[i] + sgn * m] * renorm
                     )
 
-    s_ind = 0 if reality else -el
+    s_ind = 0 if positive_m_only else -el
     for m in range(s_ind, el + 1):
         dl[m + L - 1] *= (-1) ** (abs(mm - m))
 
