@@ -100,16 +100,14 @@ def _inverse(
     assert 0 <= L_lower < L
 
     if reality and spin != 0:
-        reality_check = False
+        reality = False
         warn(
             "Reality acceleration only supports spin 0 fields. "
             + "Defering to complex transform."
         )
-    else:
-        reality_check = reality
 
     if sampling.lower() == "healpix" and method not in ["direct", "sov"]:
-        reality_check = False
+        reality = False
 
     thetas = samples.thetas(L, sampling, nside)
     transform_methods = {
@@ -125,7 +123,7 @@ def _inverse(
         sampling,
         thetas,
         nside=nside,
-        reality=reality_check,
+        reality=reality,
         L_lower=L_lower,
     )
 
@@ -222,13 +220,11 @@ def _forward(
     assert 0 <= L_lower < L
 
     if reality and spin != 0:
-        reality_check = False
+        reality = False
         warn(
             "Reality acceleration only supports spin 0 fields. "
             + "Defering to complex transform."
         )
-    else:
-        reality_check = reality
 
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -259,7 +255,7 @@ def _forward(
         thetas,
         weights,
         nside=nside,
-        reality=reality_check,
+        reality=reality,
         L_lower=L_lower,
     )
 
