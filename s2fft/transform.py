@@ -107,9 +107,6 @@ def _inverse(
             + "Defering to complex transform."
         )
 
-    # if sampling.lower() == "healpix" and method not in ["direct", "sov"]:
-    #     reality = False
-
     thetas = samples.thetas(L, sampling, nside)
     transform_methods = {
         "direct": _compute_inverse_direct,
@@ -227,9 +224,6 @@ def _forward(
             "Reality acceleration only supports spin 0 fields. "
             + "Defering to complex transform."
         )
-
-    if sampling.lower() == "healpix" and method not in ["direct", "sov"]:
-        reality = False
 
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -565,7 +559,7 @@ def _compute_inverse_sov_fft_vectorized(
     for t, theta in enumerate(thetas):
 
         phase_shift = (
-            samples.ring_phase_shift_hp(L, t, nside, False)
+            samples.ring_phase_shift_hp(L, t, nside, False, reality)
             if sampling.lower() == "healpix"
             else 1.0
         )
@@ -579,12 +573,11 @@ def _compute_inverse_sov_fft_vectorized(
                 elfactor
                 * dl[m_start_ind:]
                 * flm[el, m_start_ind:]
-                * phase_shift[m_start_ind:]
+                * phase_shift
             )
             if reality and sampling.lower() == "healpix":
                 ftm[t, m_offset : L - 1 + m_offset] += np.flip(
-                    np.conj(val[1:] / phase_shift[m_start_ind + 1 :])
-                    / phase_shift[m_start_ind + 1 :]
+                    np.conj(val[1:] / phase_shift[1:]) / phase_shift[1:]
                 )
             ftm[t, m_start_ind + m_offset : 2 * L - 1 + m_offset] += val
 
@@ -849,7 +842,7 @@ def _compute_forward_sov_fft(
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     if sampling.lower() == "healpix":
-        ftm = hp.healpix_fft(f, L, nside)
+        ftm = hp.healpix_fft(f, L, nside, reality)
     else:
         if reality:
             ftm_temp = fft.rfft(
@@ -969,7 +962,7 @@ def _compute_forward_sov_fft_vectorized(
         m_conj = (-1) ** (np.arange(1, L) % 2)
 
     if sampling.lower() == "healpix":
-        ftm = hp.healpix_fft(f, L, nside)
+        ftm = hp.healpix_fft(f, L, nside, reality)
     else:
         if reality:
             t = fft.rfft(
@@ -986,7 +979,7 @@ def _compute_forward_sov_fft_vectorized(
     for t, theta in enumerate(thetas):
 
         phase_shift = (
-            samples.ring_phase_shift_hp(L, t, nside, forward=True)
+            samples.ring_phase_shift_hp(L, t, nside, True, reality)
             if sampling.lower() == "healpix"
             else 1.0
         )
