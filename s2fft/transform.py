@@ -107,8 +107,8 @@ def _inverse(
             + "Defering to complex transform."
         )
 
-    if sampling.lower() == "healpix" and method not in ["direct", "sov"]:
-        reality = False
+    # if sampling.lower() == "healpix" and method not in ["direct", "sov"]:
+    #     reality = False
 
     thetas = samples.thetas(L, sampling, nside)
     transform_methods = {
@@ -471,12 +471,14 @@ def _compute_inverse_sov_fft(
     for t, theta in enumerate(thetas):
 
         phi_ring_offset = (
-            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
+            samples.p2phi_ring(t, 0, nside)
+            if sampling.lower() == "healpix"
+            else 0
         )
 
         for el in range(max(L_lower, abs(spin)), L):
 
-            dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
+            dl = wigner.turok.compute_slice(theta, el, L, -spin)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -489,7 +491,7 @@ def _compute_inverse_sov_fft(
                     else 1
                 )
 
-                ftm[t, m + L - 1 + m_offset] += (
+                val = (
                     (-1) ** spin
                     * elfactor
                     * dl[m + L - 1]
@@ -497,8 +499,15 @@ def _compute_inverse_sov_fft(
                     * phase_shift
                 )
 
+                if reality and sampling.lower() == "healpix":
+                    if m != 0:
+                        ftm[t, -m + L - 1 + m_offset] += (
+                            np.conj(val / phase_shift) / phase_shift
+                        )
+                ftm[t, m + L - 1 + m_offset] += val
+
     if sampling.lower() == "healpix":
-        f = hp.healpix_ifft(ftm, L, nside)
+        f = hp.healpix_ifft(ftm, L, nside, reality)
     else:
         if reality:
             f = fft.irfft(
@@ -566,13 +575,22 @@ def _compute_inverse_sov_fft_vectorized(
             dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
             m_start_ind = L - 1 if reality else 0
-            ftm[t, m_start_ind + m_offset : 2 * L - 1 + m_offset] += (
-                elfactor * dl[m_start_ind:] * flm[el, m_start_ind:] * phase_shift
+            val = (
+                elfactor
+                * dl[m_start_ind:]
+                * flm[el, m_start_ind:]
+                * phase_shift[m_start_ind:]
             )
+            if reality and sampling.lower() == "healpix":
+                ftm[t, m_offset : L - 1 + m_offset] += np.flip(
+                    np.conj(val[1:] / phase_shift[m_start_ind + 1 :])
+                    / phase_shift[m_start_ind + 1 :]
+                )
+            ftm[t, m_start_ind + m_offset : 2 * L - 1 + m_offset] += val
 
     ftm *= (-1) ** (spin)
     if sampling.lower() == "healpix":
-        f = hp.healpix_ifft(ftm, L, nside)
+        f = hp.healpix_ifft(ftm, L, nside, reality)
     else:
         if reality:
             f = fft.irfft(
@@ -651,7 +669,11 @@ def _compute_forward_direct(
 
                 if reality:
                     flm[el, L - 1] += (
-                        weights[t] * (-1) ** spin * elfactor * dl[L - 1] * f[entry]
+                        weights[t]
+                        * (-1) ** spin
+                        * elfactor
+                        * dl[L - 1]
+                        * f[entry]
                     )  # m = 0
                     for m in range(1, el + 1):
                         val = (
@@ -751,7 +773,11 @@ def _compute_forward_sov(
 
             if reality:
                 flm[el, L - 1] += (
-                    weights[t] * (-1) ** spin * elfactor * dl[L - 1] * ftm[t, L - 1]
+                    weights[t]
+                    * (-1) ** spin
+                    * elfactor
+                    * dl[L - 1]
+                    * ftm[t, L - 1]
                 )  # m = 0
                 for m in range(1, el + 1):
                     val = (
@@ -840,7 +866,9 @@ def _compute_forward_sov_fft(
     for t, theta in enumerate(thetas):
 
         phi_ring_offset = (
-            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
+            samples.p2phi_ring(t, 0, nside)
+            if sampling.lower() == "healpix"
+            else 0
         )
 
         for el in range(max(L_lower, abs(spin)), L):
