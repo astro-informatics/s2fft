@@ -197,7 +197,9 @@ def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int) -> np.ndarray:
     for n in range(-N + 1, N):
         for el in range(L):
             for m in range(-el, el + 1):
-                flmn_1d[elmn2ind(el, m, n, L, N)] = flmn_3d[el, L - 1 + m, N - 1 + n]
+                flmn_1d[elmn2ind(el, m, n, L, N)] = flmn_3d[
+                    el, L - 1 + m, N - 1 + n
+                ]
 
     return flmn_1d
 
@@ -233,6 +235,8 @@ def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int) -> np.ndarray:
     for n in range(-N + 1, N):
         for el in range(L):
             for m in range(-el, el + 1):
-                flmn_3d[el, L - 1 + m, N - 1 + n] = flmn_1d[elmn2ind(el, m, n, L, N)]
+                flmn_3d[el, L - 1 + m, N - 1 + n] = flmn_1d[
+                    elmn2ind(el, m, n, L, N)
+                ]
 
     return flmn_3d
