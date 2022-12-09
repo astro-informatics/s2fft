@@ -7,7 +7,7 @@ import s2fft as s2f
 
 L_to_test = [8, 16]
 N_to_test = [2, 4, 6]
-L_lower_to_test = [2, 4, 6]
+L_lower_to_test = [0, 2, 4]
 sampling_schemes_so3 = ["mw", "mwss"]
 sampling_schemes = ["mw", "mwss", "dh"]
 reality_to_test = [False, True]
@@ -99,7 +99,6 @@ def test_round_trip_wigner_transform(
     sampling: str,
     reality: bool,
 ):
-
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     f = s2f.wigner.transform.inverse(
         flmn, L, N, L_lower, sampling, reality=reality

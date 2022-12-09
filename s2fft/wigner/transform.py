@@ -10,6 +10,7 @@ def inverse(
     L_lower: int = 0,
     sampling: str = "mw",
     reality: bool = False,
+    nside: int = None,
 ) -> np.ndarray:
     r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
     :math:`SO(3)`.
@@ -38,6 +39,9 @@ def inverse(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
     Raises:
         ValueError: Sampling scheme not currently supported.
 
@@ -48,11 +52,11 @@ def inverse(
     """
     assert flmn.shape == s2fft.wigner.samples.flmn_shape(L, N)
 
-    if sampling not in ["mw", "mwss", "dh"]:
-        raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+    # if sampling not in ["mw", "mwss", "dh"]:
+    #     raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
     fban = np.zeros(
-        s2fft.wigner.samples.f_shape(L, N, sampling), dtype=np.complex128
+        s2fft.wigner.samples.f_shape(L, N, sampling, nside), dtype=np.complex128
     )
 
     flmn_scaled = np.einsum(
@@ -68,12 +72,13 @@ def inverse(
             sampling=sampling,
             reality=reality,
             L_lower=L_lower,
+            nside=nside,
         )
 
     if reality:
-        f = fft.irfft(fban[..., N - 1 :], 2 * N - 1, axis=2, norm="forward")
+        f = fft.irfft(fban[..., N - 1 :], 2 * N - 1, axis=-1, norm="forward")
     else:
-        f = fft.ifft(fft.ifftshift(fban, axes=2), axis=2, norm="forward")
+        f = fft.ifft(fft.ifftshift(fban, axes=-1), axis=-1, norm="forward")
 
     return f
 
@@ -85,6 +90,7 @@ def forward(
     L_lower: int = 0,
     sampling: str = "mw",
     reality: bool = False,
+    nside: int = None,
 ) -> np.ndarray:
     r"""Compute the forward Wigner transform, i.e. Fourier transform on
     :math:`SO(3)`.
@@ -115,23 +121,26 @@ def forward(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
     Raises:
         ValueError: Sampling scheme not currently supported.
 
     Returns:
         np.ndarray: Wigner coefficients `flmn` with shape :math:`[L, 2L-1, 2N-1]`.
     """
-    assert f.shape == s2fft.wigner.samples.f_shape(L, N, sampling)
+    assert f.shape == s2fft.wigner.samples.f_shape(L, N, sampling, nside)
 
-    if sampling not in ["mw", "mwss", "dh"]:
-        raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+    # if sampling not in ["mw", "mwss", "dh"]:
+    #     raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
     flmn = np.zeros(s2fft.wigner.samples.flmn_shape(L, N), dtype=np.complex128)
 
     if reality:
-        fban = fft.rfft(np.real(f), axis=2, norm="backward")
+        fban = fft.rfft(np.real(f), axis=-1, norm="backward")
     else:
-        fban = fft.fftshift(fft.fft(f, axis=2, norm="backward"), axes=2)
+        fban = fft.fftshift(fft.fft(f, axis=-1, norm="backward"), axes=-1)
 
     fban *= 2 * np.pi / (2 * N - 1)
 
@@ -147,6 +156,7 @@ def forward(
             sampling=sampling,
             reality=reality,
             L_lower=L_lower,
+            nside=nside,
         )
         if reality and n != 0:
             flmn[..., N - 1 - n] = np.conj(

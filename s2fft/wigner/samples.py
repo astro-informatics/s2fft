@@ -1,8 +1,11 @@
 import numpy as np
 from typing import Tuple
+import s2fft
 
 
-def f_shape(L: int, N: int, sampling: str = "mw") -> Tuple[int, int, int]:
+def f_shape(
+    L: int, N: int, sampling: str = "mw", nside: int = None
+) -> Tuple[int, int, int]:
     r"""Computes the pixel-space sampling shape for signal on the rotation group
     :math:`SO(3)`.
 
@@ -22,6 +25,9 @@ def f_shape(L: int, N: int, sampling: str = "mw") -> Tuple[int, int, int]:
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh"}.  Defaults to "mw".
 
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
     Raises:
         ValueError: Unknown sampling scheme.
 
@@ -32,6 +38,10 @@ def f_shape(L: int, N: int, sampling: str = "mw") -> Tuple[int, int, int]:
     if sampling in ["mw", "mwss", "dh"]:
 
         return _nbeta(L, sampling), _nalpha(L, sampling), _ngamma(N)
+
+    elif sampling.lower() == "healpix":
+
+        return 12 * nside**2, _ngamma(N)
 
     else:
 
