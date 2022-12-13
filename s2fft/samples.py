@@ -1,6 +1,6 @@
 import numpy as np
 import jax.numpy as jnp
-
+import jax.lax as lax
 
 def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
     r"""Number of :math:`\theta` samples for sampling scheme at specified resolution.
@@ -209,6 +209,33 @@ def nphi_ring(t: int, nside: int = None) -> int:
     else:
         raise ValueError(f"Ring t={t} not contained by nside={nside}")
 
+def nphi_ring_vmappable(t: int, nside: int = None) -> int:
+    r"""Number of :math:`\phi` samples for HEALPix sampling on given :math:`\theta`
+    ring.
+
+    Args:
+        t (int): Index of HEALPix :math:`\theta` ring.
+
+        nside (int, optional): HEALPix Nside resolution parameter.
+
+    Raises:
+        ValueError: Invalid ring index given nside.
+
+    Returns:
+        int: Number of :math:`\phi` samples on given :math:`\theta` ring.
+    """
+
+    if (t >= 0) and (t < nside - 1):
+        return 4 * (t + 1)
+
+    elif (t >= nside - 1) and (t <= 3 * nside - 1):
+        return 4 * nside
+
+    elif (t > 3 * nside - 1) and (t <= 4 * nside - 2):
+        return 4 * (4 * nside - t - 1)
+
+    else:
+        raise ValueError(f"Ring t={t} not contained by nside={nside}")
 
 def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray:
     r"""Compute :math:`\theta` samples for given sampling scheme.
@@ -404,7 +431,7 @@ def p2phi_ring_vmappable(t: int, p: int, nside: int) -> np.ndarray:
             lambda x: np.pi / (2 * (x + 1)),
             x),
         t)
-
+   
 
     return factor * (p + shift)
 

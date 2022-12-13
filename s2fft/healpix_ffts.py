@@ -148,12 +148,65 @@ def healpix_fft_jax(f: np.ndarray, L: int, nside: int) -> np.ndarray:
     Returns:
         np.ndarray: Array of Fourier coefficients for all latitudes.
     """
+    # Check Matt G's suggestion https://github.com/astro-informatics/s2fft/pull/128#discussion_r1038152725
+
+    # assert L >= 2 * nside
+
+    # # theta index array
+    # t_array = jnp.expand_dims(jnp.arange(samples.ftm_shape(L, "healpix", nside)[0]),axis=-1) #, dtype=int)
+    
+    # # index 2D array
+    # index_array = jnp.pad(jnp.cumsum(t_array, axis=0)[:-1,:],((1, 0), (0, 0)))  
+
+    # # nphi 2D array
+    # nphi_ring_vmapped = jax.vmap(
+    #     samples.nphi_ring_jax, # ----------needs to be jaxed too!
+    #     in_axes=(0,None),
+    #     out_axes=0
+    # )
+    # nphi_array = nphi_ring_vmapped(t_array, nside)
+    
+    # # fm_chunk 2D array (can I omit it?)
+    # get_fm_chunk = lambda f,ix,nph: jfft.fftshift(
+    #     jfft.fft(
+    #         f[ix : ix + nph], 
+    #         norm="backward"
+    #         )
+    #         ) 
+    # get_fm_chunk_vmapped = jax.vmap(
+    #     get_fm_chunk,
+    #     in_axes=(None,0,0),
+    #     out_axes=0
+    # )
+    # fm_chunk_array = get_fm_chunk_vmapped(f, index_array, nphi_array)
+
+
+    # # # spectral_periodic_extension_jax_array vmap?
+    # spectral_periodic_extension_jax_vmapped = jax.vmap(
+    #     spectral_periodic_extension_jax,
+    #     in_axes=(0,0,None),
+    #     out_axes=0
+    # )
+    # spectral_periodic_extension_jax_array = spectral_periodic_extension_jax_vmapped(
+    #     fm_chunk_array,
+    #     nphi_array,
+    #     L
+    # )
+
+
+    # # # ftm
+    # ftm = jnp.where(
+    #     nphi_array==2*L, #nphi_ring_vmapped(t_array, nside)==2*L, 
+    #     fm_chunk_array,
+    #     spectral_periodic_extension_jax_array)
+    
+    # -------
+    # loop thru thetas
     assert L >= 2 * nside
+    ftm = jnp.zeros(samples.ftm_shape(L, "healpix", nside), # shape = ntheta, 2L
+                    dtype=jnp.complex128)
 
     index = 0
-    ftm = jnp.zeros(samples.ftm_shape(L, "healpix", nside), 
-                    dtype=jnp.complex128)
-    # ntheta = ftm.shape[0]
     for t in range(ftm.shape[0]):
         nphi = samples.nphi_ring(t, nside)
         fm_chunk = jfft.fftshift(jfft.fft(f[index : index + nphi], norm="backward"))
