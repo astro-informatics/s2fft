@@ -685,71 +685,53 @@ def _compute_forward_sov_fft_vectorized_jax(
         weights (np.ndarray): Vector of quadrature weights on the sphere.
 
         nside (int): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix". ----TODO: add healpix option!
+            if sampling="healpix". 
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
     """
 
     # ftm array
-    if sampling.lower() == "healpix":
-        ftm = jnp.array(hp.healpix_fft_jax(f, L, nside))
-    else:
-        ftm = jfft.fftshift(jfft.fft(f, axis=1, norm="backward"), axes=1)
+    ftm = hp.healpix_fft_jax(f, L, nside) if sampling.lower() == "healpix" else (
+        jnp.fft.fftshift(
+            jnp.fft.fft(
+                f, axis=1, norm="backward"), axes=1)
+    )
 
     # m offset
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
-    # Compute phase shift
-    if sampling.lower() == "healpix":
-        
-        phase_shift_vmapped = jax.vmap(
-            samples.ring_phase_shift_hp_vmappable, 
-            in_axes=(None, 0, None, None), 
-            out_axes=-1 # ATT! theta along last dim
-        )  
-
-        # expand to 3D (theta dim is last)
-        phase_shift = phase_shift_vmapped(L, jnp.arange(len(thetas)), nside, True)[None,:,:]
-        
-    else:
-        phase_shift = 1.0 #jnp.array(1.0)
-
-    # Compute dl_vmapped fn
-    dl_vmapped = jax.vmap(
-        jax.vmap(
-            wigner.turok_jax.compute_slice,
-            in_axes=(0, None, None, None),
-            out_axes=-1,
-        ),
+    # phase shift
+    phase_shifts = jnp.array([[1.]]) if sampling.lower() != "healpix" else jax.vmap(
+        samples.ring_phase_shift_hp_vmappable, 
         in_axes=(None, 0, None, None),
-        out_axes=0,
-    )
+        out_axes=-1
+    )(L, jnp.arange(len(thetas)), nside, True)
+
+    # el
+    els = jnp.arange(abs(spin), L)
+    elfactors = jnp.sqrt((2 * els + 1) / (4 * jnp.pi))
 
     # Compute flm
-    flm = (
-        jnp.expand_dims(
-            weights, axis=(0, 1)
-        )  # Alternative to jnp.expand_dims: weights[None, None, :] --agnostic to np/jnp but seems slower?
-        * jnp.expand_dims(
-            jnp.sqrt(
-                (2 * jnp.arange(abs(spin), L) + 1)
-                / (4 * jnp.pi)
+    flm =(
+        weights[None, None, :] 
+        * elfactors[:, None, None] 
+        * jnp.moveaxis(
+            jax.lax.map(
+            lambda theta: jax.lax.map(
+                lambda el: wigner.turok_jax.compute_slice(theta, el, L, -spin),
+                els
             ),
-            axis=(-1, -2),
-        )
-        * dl_vmapped(thetas, jnp.arange(abs(spin), L), L, -spin)
-        * jnp.expand_dims(
-            jax.lax.slice_in_dim(ftm, m_offset, 2 * L - 1 + m_offset, axis=-1),
-            axis=-1,
-        ).T  # ftm[:, m_offset : 2 * L - 1 + m_offset, None].T
-        * phase_shift  
-    ).sum(axis=-1)
+            thetas
+        ),
+        0,-1)
+        * ftm[:, m_offset : 2 * L - 1 + m_offset, None].T 
+        * phase_shifts[None,:,:] 
+    ).sum(axis=-1) * (-1) ** spin
 
-    flm *= (-1) ** spin
 
     # Pad the first n=spin rows with zeros
-    flm = jnp.pad(flm, ((abs(spin), 0), (0, 0)))  # TODO: Do I need abs(spin)? check
+    flm = jnp.pad(flm, ((abs(spin), 0), (0, 0)))  
 
     # Mask after pad (to set spurious results from wigner.turok_jax.compute_slice to zero)
     upper_diag = jnp.triu(jnp.ones_like(flm, dtype=bool).T, k=-(L - 1)).T
