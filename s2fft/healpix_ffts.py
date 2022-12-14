@@ -70,40 +70,6 @@ def spectral_periodic_extension(fm: np.ndarray, nphi: int, L: int) -> np.ndarray
 
     return fm_full
 
-# def spectral_periodic_extension_jax(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
-#     """Extends lower frequency Fourier coefficients onto higher frequency
-#     coefficients, i.e. imposed periodicity in Fourier space. Based on `spectral_periodic_extension`,
-#     modified to be JIT-compilable.
-
-#     Args:
-#         fm (np.ndarray): Slice of Fourier coefficients corresponding to ring at latitute t.
-
-#         nphi (int): Total number of pixel space phi samples for latitude t.
-
-#         L (int): Harmonic band-limit.
-
-#     Returns:
-#         np.ndarray: Higher resolution set of periodic Fourier coefficients.
-#     """
-#     assert nphi <= 2 * L
-
-#     slice_start = L - nphi // 2
-#     slice_stop = slice_start + nphi
-#     fm_full = jnp.zeros(2 * L, dtype=np.complex128)
-#     fm_full = fm_full.at[slice_start:slice_stop].set(fm)
-
-#     # assign each of the indices before slice start (slice_start excluded)
-#     idx = 1
-#     while slice_start - idx >= 0:
-#         fm_full = fm_full.at[slice_start - idx].set(fm[-idx % nphi])
-#         idx += 1
-#     # assign each of the indices after slice stop (slice_stop included)
-#     idx = 0
-#     while slice_stop + idx < len(fm_full):
-#         fm_full = fm_full.at[slice_stop + idx].set(fm[idx % nphi])
-#         idx += 1
-
-#     return fm_full
 
 def spectral_periodic_extension_jax(fm, L, numpy_module=np): 
     """Extends lower frequency Fourier coefficients onto higher frequency
