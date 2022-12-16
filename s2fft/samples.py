@@ -209,33 +209,68 @@ def nphi_ring(t: int, nside: int = None) -> int:
     else:
         raise ValueError(f"Ring t={t} not contained by nside={nside}")
 
-def nphi_ring_vmappable(t: int, nside: int = None) -> int:
-    r"""Number of :math:`\phi` samples for HEALPix sampling on given :math:`\theta`
-    ring.
 
-    Args:
-        t (int): Index of HEALPix :math:`\theta` ring.
+#####################################
+# def nphi_ring_vmappable(t: int, nside: int = None) -> int:
+#     r"""Number of :math:`\phi` samples for HEALPix sampling on given :math:`\theta`
+#     ring.
 
-        nside (int, optional): HEALPix Nside resolution parameter.
+#     Args:
+#         t (int): Index of HEALPix :math:`\theta` ring.
 
-    Raises:
-        ValueError: Invalid ring index given nside.
+#         nside (int, optional): HEALPix Nside resolution parameter.
 
-    Returns:
-        int: Number of :math:`\phi` samples on given :math:`\theta` ring.
-    """
+#     Raises:
+#         ValueError: Invalid ring index given nside.
 
-    if (t >= 0) and (t < nside - 1):
-        return 4 * (t + 1)
+#     Returns:
+#         int: Number of :math:`\phi` samples on given :math:`\theta` ring.
+#     """
+#     # If both lax.cond and jnp.where evaluate both branches
+#     # we may just use jnp.where here instead (similar to this https://github.com/astro-informatics/s2fft/blob/c5873cc54deb4b0dc2bca71d31718b0b65061a07/s2fft/samples.py#L375)
+#     # and have only one function for numpy and jax
 
-    elif (t >= nside - 1) and (t <= 3 * nside - 1):
-        return 4 * nside
+#     #######################
+#     # lax.cond approach
+#     nphi = lax.cond(
+#         (t >= 0) & (t < nside - 1),
+#         lambda t: 4 * (t + 1),
+#         lambda t: lax.cond(
+#             (t >= nside - 1) & (t <= 3 * nside - 1),
+#             lambda t: 4 * nside,
+#             lambda t: lax.cond(
+#                 (t > 3 * nside - 1) & (t <= 4 * nside - 2),
+#                 lambda t: 4 * (4 * nside - t - 1),
+#                 lambda t: 0*t, # this originally raised ValueError; I think because all branches are traced I need to give a value? but we don't expect this to be hit in ok conditions?
+#                 t),
+#             t),
+#         t) 
+    
+#     ##########################
+#     # jnp.where approach
+#     # nan where it would throw value error?
 
-    elif (t > 3 * nside - 1) and (t <= 4 * nside - 2):
-        return 4 * (4 * nside - t - 1)
+#     # nphi_region_1 = jnp.where(
+#     #     (t >= 0) and (t < nside - 1),
+#     #     4 * (t + 1),
+#     #     jnp.nan)
 
-    else:
-        raise ValueError(f"Ring t={t} not contained by nside={nside}")
+#     # nphi_region_2 = jnp.where(
+#     #     (t >= nside - 1) and (t <= 3 * nside - 1),
+#     #     4 * nside,
+#     #     jnp.nan)
+
+#     # nphi_region_3 = jnp.where(
+#     #     (t > 3 * nside - 1) and (t <= 4 * nside - 2),
+#     #     4 * (4 * nside - t - 1),
+#     #     jnp.nan)
+
+#     # nphi = nphi_region_1 * nphi_region_2 * nphi_region_3
+
+#     ############
+#     return nphi
+#####################################   
+
 
 def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray:
     r"""Compute :math:`\theta` samples for given sampling scheme.
