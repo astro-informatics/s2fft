@@ -6,6 +6,9 @@ import jax
 import jax.numpy as jnp
 import jax.numpy.fft as jfft
 
+from functools import partial
+
+
 def spectral_folding(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
     """Folds higher frequency Fourier coefficients back onto lower frequency
     coefficients, i.e. aliasing high frequencies.
@@ -125,10 +128,13 @@ def healpix_fft(f: np.ndarray, L: int, nside: int) -> np.ndarray:
         index += nphi
     return ftm
 
-def healpix_fft_jax(f: np.ndarray, L: int, nside: int) -> np.ndarray:
-    """Computes the Forward Fast Fourier Transform with spectral back-projection
-    in the polar regions to manually enforce Fourier periodicity. Based on `healpix_fft`,
-    modified to be JIT-compilable.
+
+def healpix_fft_jax_1(f: np.ndarray, L: int, nside: int) -> np.ndarray:  
+    '''
+    Healpix FFT naive JAX implementation
+
+    Computes the Forward Fast Fourier Transform with spectral back-projection
+    in the polar regions to manually enforce Fourier periodicity.
 
     Args:
         f (np.ndarray): HEALPix pixel-space array.
@@ -139,77 +145,116 @@ def healpix_fft_jax(f: np.ndarray, L: int, nside: int) -> np.ndarray:
 
     Returns:
         np.ndarray: Array of Fourier coefficients for all latitudes.
-    """
-    # Check Matt G's suggestion https://github.com/astro-informatics/s2fft/pull/128#discussion_r1038152725
-
-    # assert L >= 2 * nside
-
-    # # theta index array
-    # t_array = jnp.expand_dims(jnp.arange(samples.ftm_shape(L, "healpix", nside)[0]),axis=-1) #, dtype=int)
-    
-    # # index 2D array
-    # index_array = jnp.pad(jnp.cumsum(t_array, axis=0)[:-1,:],((1, 0), (0, 0)))  
-
-    # # nphi 2D array
-    # nphi_ring_vmapped = jax.vmap(
-    #     samples.nphi_ring_jax, # ----------needs to be jaxed too!
-    #     in_axes=(0,None),
-    #     out_axes=0
-    # )
-    # nphi_array = nphi_ring_vmapped(t_array, nside)
-    
-    # # fm_chunk 2D array (can I omit it?)
-    # get_fm_chunk = lambda f,ix,nph: jfft.fftshift(
-    #     jfft.fft(
-    #         f[ix : ix + nph], 
-    #         norm="backward"
-    #         )
-    #         ) 
-    # get_fm_chunk_vmapped = jax.vmap(
-    #     get_fm_chunk,
-    #     in_axes=(None,0,0),
-    #     out_axes=0
-    # )
-    # fm_chunk_array = get_fm_chunk_vmapped(f, index_array, nphi_array)
-
-
-    # # # spectral_periodic_extension_jax_array vmap?
-    # spectral_periodic_extension_jax_vmapped = jax.vmap(
-    #     spectral_periodic_extension_jax,
-    #     in_axes=(0,0,None),
-    #     out_axes=0
-    # )
-    # spectral_periodic_extension_jax_array = spectral_periodic_extension_jax_vmapped(
-    #     fm_chunk_array,
-    #     nphi_array,
-    #     L
-    # )
-
-
-    # # # ftm
-    # ftm = jnp.where(
-    #     nphi_array==2*L, #nphi_ring_vmapped(t_array, nside)==2*L, 
-    #     fm_chunk_array,
-    #     spectral_periodic_extension_jax_array)
-    
-    # -------
+    '''
+    # f shape: (48,)---?
     # loop thru thetas
     assert L >= 2 * nside
-    ftm = jnp.zeros(samples.ftm_shape(L, "healpix", nside), # shape = ntheta, 2L
+    ftm = jnp.zeros(samples.ftm_shape(L, "healpix", nside), # (ntheta, 2L)
                     dtype=jnp.complex128)
 
     index = 0
     for t in range(ftm.shape[0]):
-        nphi = samples.nphi_ring(t, nside)
-        fm_chunk = jfft.fftshift(jfft.fft(f[index : index + nphi], norm="backward"))
-        ftm = ftm.at[t].set(
-            fm_chunk
-            if nphi == 2 * L
-            else spectral_periodic_extension_jax(fm_chunk, L, jnp) 
-        )
+        nphi = samples.nphi_ring(t, nside) # number of phis, scalar (int)
+        fm_chunk = jfft.fftshift(jfft.fft(f[index : index + nphi], norm="backward")) #nphi varies per t
+        ftm = ftm.at[t].set(spectral_periodic_extension_jax(fm_chunk, L, jnp)) # extends fm_chunks to their max 2L length
         index += nphi
     return ftm
 
+#########
+def healpix_fft_jax_2(f: np.ndarray, L: int, nside: int) -> np.ndarray:
+    '''
+    Healpix FFT JAX implementation using lax.scan---the Fourier coeffs for the first and last latitude are off as it is!
+
+    Computes the Forward Fast Fourier Transform with spectral back-projection
+    in the polar regions to manually enforce Fourier periodicity.
+
+    Args:
+        f (np.ndarray): HEALPix pixel-space array.
+
+        L (int): Harmonic band-limit.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+    Returns:
+        np.ndarray: Array of Fourier coefficients for all latitudes.
+    '''
+
+    assert L >= 2 * nside
+
+    ts = np.arange(samples.ftm_shape(L, "healpix", nside)[0]) # concrete- list(range(samples.ftm_shape(L, "healpix", nside)[0])) #
+    nphis = np.array([samples.nphi_ring(t, nside) for t in ts]) # concrete-[samples.nphi_ring(t, nside) for t in ts] #
+    
+    # need concrete for slicing
+    ### list of chunks
+    # f_chunks = [
+    #     f[idx:idx + nphi] 
+    #     for (idx,nphi) in zip(indices,nphis)
+    #     ] # why cant this be a pytree?
+
+    ### array of padded f_chunks
+    indices = np.concatenate([[0],np.cumsum(nphis, axis=0)[:-1]]) # concrete-
+    nphi_max = np.max(nphis)
+    f_chunks_padded = jnp.stack(
+        [
+        jnp.pad(
+            f[idx:idx + nphi], #nphi varies with t; pad with nans to make sizes consistent?
+            ((0,nphi_max - nphi)),
+            constant_values=0.0, # pad with zeros #np.nan,
+            ) 
+            for (idx,nphi) in zip(indices,nphis)] # why cant this be a pytree?
+    )
+
+    # @partial(jit, static_argnums=(2))
+    def accumulate(ftm, ts_fchunks_tuple): #, nphis): 
+        t, f_chunk = ts_fchunks_tuple
+        fm_chunk = jfft.fftshift(jfft.fft(
+            f_chunk, #[:nphis[t]], #[~np.isnan(f_chunk)], #f[index : index + nphi], ---get only not nan?
+            norm="backward")) 
+        ftm = ftm.at[t].add(spectral_periodic_extension_jax(fm_chunk, L, jnp))
+        return ftm, None
+
+    ftm,_ = jax.lax.scan(
+        accumulate, #, nphis=nphis), #nphis is passed as concrete!
+        jnp.zeros(
+            samples.ftm_shape(L, "healpix", nside), # shape = ntheta, 2L
+            dtype=jnp.complex128), #carry
+        (ts,f_chunks_padded)) # array/PyTree of arrays to scan over (ts, indices, nphis)
+
+    return ftm
+
+########################
+def healpix_fft_jax_3(f: np.ndarray, L: int, nside: int, numpy_module=np) -> np.ndarray:
+    '''
+    Healpix FFT JAX implementation using jax.numpy
+
+    Computes the Forward Fast Fourier Transform with spectral back-projection
+    in the polar regions to manually enforce Fourier periodicity.
+
+    Args:
+        f (np.ndarray): HEALPix pixel-space array.
+
+        L (int): Harmonic band-limit.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+    Returns:
+        np.ndarray: Array of Fourier coefficients for all latitudes.
+    '''
+
+    assert L >= 2 * nside
+    ntheta = samples.ntheta(L, "healpix", nside)
+    index = 0
+    ftm_rows = []
+    for t in range(ntheta):
+        nphi = samples.nphi_ring(t, nside)
+        fm_chunk = numpy_module.fft.fftshift(
+            numpy_module.fft.fft(f[index : index + nphi], norm="backward")
+        )
+        ftm_rows.append(spectral_periodic_extension_jax(fm_chunk, L, numpy_module))
+        index += nphi
+    return numpy_module.stack(ftm_rows)
+
+##########################
 def healpix_ifft(ftm: np.ndarray, L: int, nside: int) -> np.ndarray:
     """Computes the Inverse Fast Fourier Transform with spectral folding in the polar
     regions to mitigate aliasing.
