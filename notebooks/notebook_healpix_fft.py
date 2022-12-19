@@ -84,27 +84,29 @@ for t in range(ftm.shape[0]):
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Check healpix FFT JAX
 # first approach
-ftm_1 = hp.healpix_fft_jax_1(f, L, nside)
+# ftm_1 = hp.healpix_fft_jax_1(f, L, nside)
 
-# lax scan approach
-ftm_2 = hp.healpix_fft_jax_2(f, L, nside)
+# # lax scan approach
+# ftm_2 = hp.healpix_fft_jax_2(f, L, nside)
 
-# jax.numpy/numpy approach (Matt G)
-ftm_3 = hp.healpix_fft_jax_3(f, L, nside, jnp)
+# # jax.numpy/numpy approach (Matt G)
+# ftm_3 = hp.healpix_fft_jax_3(f, L, nside, jnp)
 
-# vmap approach
+# # %%
+# # vmap approach
+# ftm_4 = hp.healpix_fft_jax_4(f, L, nside, jnp)
 
-print(np.allclose(ftm_1, ftm_2, atol=1e-14)) # False because of padding with 0s! t=0 and t=end are different
-print(np.allclose(ftm_1, ftm_3, atol=1e-14))
+# print(np.allclose(ftm_1, ftm_2, atol=1e-14)) # False because of padding with 0s! t=0 and t=end are different
+# print(np.allclose(ftm_1, ftm_3, atol=1e-14))
 
 # %%
-plt.figure()
-plt.matshow(ftm_1.imag-ftm_2.imag)
-plt.title('imag')
-plt.colorbar()
+# plt.figure()
+# plt.matshow(ftm_1.imag-ftm_2.imag)
+# plt.title('imag')
+# plt.colorbar()
 
-plt.figure()
-plt.matshow(ftm_1.real-ftm_2.real)
-plt.title('R')
-plt.colorbar()
+# plt.figure()
+# plt.matshow(ftm_1.real-ftm_2.real)
+# plt.title('R')
+# plt.colorbar()
 # %%

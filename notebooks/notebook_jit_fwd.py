@@ -19,6 +19,7 @@ from jax import jit, device_put
 import jax.numpy as jnp
 from jax.config import config
 
+
 import matplotlib.pyplot as plt
 
 config.update("jax_enable_x64", True)
@@ -29,8 +30,10 @@ config.update("jax_enable_x64", True)
 # input params
 L = 5  # 128 # in tests: 5
 spin = 2  # 2 # in tests: [0, 1, 2]
-sampling = "mw"  #'dh' # in tests: ["mw", "mwss", "dh", "healpix"]
-nside = None #[2,4,8] in tests, None if sampling not healpix
+sampling = "healpix"  #'dh' # in tests: ["mw", "mwss", "dh", "healpix"]
+nside = 2 #2,4,8 None if sampling not healpix
+if nside:
+    L = 2*nside # 2 or 3 in tests
 
 # generate spherical harmonics (ground truth)
 # random---modify to use JAX random key approach?
@@ -63,66 +66,27 @@ flm_sov_fft_vec = s2f.transform._forward(f, L, spin, sampling, method=method_str
 
 print(np.allclose(flm_gt, flm_sov_fft_vec, atol=1e-14)) #returns False for healpix
 
-%timeit s2f.transform._forward(f, L, spin, sampling, method=method_str)
+# %timeit s2f.transform._forward(f, L, spin, sampling, method=method_str, nside=nside)
 # 3.19 ms ± 28.5 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
 
+
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Using SOV + FFT Vectorised JAXed w JIT
-method_str = "sov_fft_vectorized_jax"
+# Using SOV + FFT Vectorised JAXed w JIT + map
+method_str = "sov_fft_vectorized_jax_map"
 flm_sov_fft_vec_jax = s2f.transform._forward(f, L, spin, sampling, method=method_str, nside=nside)
 
 print(np.allclose(flm_gt, flm_sov_fft_vec_jax, atol=1e-14)) #returns False for healpix
+print(np.allclose(flm_sov_fft_vec, flm_sov_fft_vec_jax, atol=1e-14))
 
-%timeit s2f.transform._forward(f, L, spin, sampling, method=method_str)
+# %timeit s2f.transform._forward(f, L, spin, sampling, method=method_str, nside=nside)
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# # Using SOV + FFT Vectorised JAXed (no JIT)  ---only transform
+# Using SOV + FFT Vectorised JAXed w JIT + vmap
+method_str = "sov_fft_vectorized_jax_vmap"
+flm_sov_fft_vec_jax = s2f.transform._forward(f, L, spin, sampling, method=method_str, nside=nside)
 
-# if sampling.lower() == "mw":
-#     f = resampling.mw_to_mwss(f, L, spin)
+print(np.allclose(flm_gt, flm_sov_fft_vec_jax, atol=1e-14)) #returns False for healpix
+print(np.allclose(flm_sov_fft_vec, flm_sov_fft_vec_jax, atol=1e-14))
 
-# if sampling.lower() in ["mw", "mwss"]:
-#     sampling = "mwss"
-#     f = resampling.upsample_by_two_mwss(f, L, spin)
-#     thetas = samples.thetas(2 * L, sampling)
+%timeit s2f.transform._forward(f, L, spin, sampling, method=method_str, nside=nside)
 
-# else:
-#     thetas = samples.thetas(L, sampling, nside)
-
-# weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
-
-
-# flm_sov_fft_vec_jax = s2f.transform._compute_forward_sov_fft_vectorized_jax(f, L, spin, sampling, thetas, weights, nside) # shape L, 2L-1
-
-# print(np.allclose(flm_gt, flm_sov_fft_vec_jax, atol=1e-14))
-
-# %timeit s2f.transform._compute_forward_sov_fft_vectorized_jax(f, L, spin, sampling, thetas, weights, nside).block_until_ready()
-
-
-# # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# # Using SOV + FFT Vectorised JAXed w JIT ---only transform
-# if sampling.lower() == "mw":
-#     f = resampling.mw_to_mwss(f, L, spin)
-
-# if sampling.lower() in ["mw", "mwss"]:
-#     sampling = "mwss"
-#     f = resampling.upsample_by_two_mwss(f, L, spin)
-#     thetas = samples.thetas(2 * L, sampling)
-
-# else:
-#     thetas = samples.thetas(L, sampling, nside)
-
-# weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
-
-# ###
-# forward_transform_jax_jitted = jit(s2f.transform._compute_forward_sov_fft_vectorized_jax, 
-#                                    static_argnums=(1, 2, 3, 6))
-
-# flm_sov_fft_vec_jax_jit = forward_transform_jax_jitted(f, L, spin, sampling, thetas, weights, nside) # shape L, 2L-1
-
-# print(np.allclose(flm_gt, flm_sov_fft_vec_jax_jit, atol=1e-14))
-
-# %timeit forward_transform_jax_jitted(f, L, spin, sampling, thetas, weights, nside).block_until_ready()
-# # 29.6 µs ± 128 ns per loop (mean ± std. dev. of 7 runs, 10000 loops each)
-
-# %%
