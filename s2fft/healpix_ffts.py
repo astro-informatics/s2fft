@@ -129,100 +129,9 @@ def healpix_fft(f: np.ndarray, L: int, nside: int) -> np.ndarray:
     return ftm
 
 
-def healpix_fft_jax_1(f: np.ndarray, L: int, nside: int) -> np.ndarray:  
+def healpix_fft_jax(f: np.ndarray, L: int, nside: int, numpy_module=np) -> np.ndarray:
     '''
-    Healpix FFT naive JAX implementation
-
-    Computes the Forward Fast Fourier Transform with spectral back-projection
-    in the polar regions to manually enforce Fourier periodicity.
-
-    Args:
-        f (np.ndarray): HEALPix pixel-space array.
-
-        L (int): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-    Returns:
-        np.ndarray: Array of Fourier coefficients for all latitudes.
-    '''
-
-    assert L >= 2 * nside
-    ftm = jnp.zeros(samples.ftm_shape(L, "healpix", nside), # (ntheta, 2L)
-                    dtype=jnp.complex128)
-
-    index = 0
-    for t in range(ftm.shape[0]):
-        nphi = samples.nphi_ring(t, nside) # int
-        fm_chunk = jfft.fftshift(jfft.fft(f[index : index + nphi], norm="backward")) #nphi varies per t
-        ftm = ftm.at[t].set(spectral_periodic_extension_jax(fm_chunk, L, jnp)) # extends fm_chunks to their max 2L length
-        index += nphi
-    return ftm
-
-#########
-def healpix_fft_jax_2(f: np.ndarray, L: int, nside: int) -> np.ndarray:
-    '''
-    Healpix FFT JAX implementation using lax.scan---the Fourier coeffs for the first and last latitude are off as it is!
-
-    Computes the Forward Fast Fourier Transform with spectral back-projection
-    in the polar regions to manually enforce Fourier periodicity.
-
-    Args:
-        f (np.ndarray): HEALPix pixel-space array.
-
-        L (int): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-    Returns:
-        np.ndarray: Array of Fourier coefficients for all latitudes.
-    '''
-
-    assert L >= 2 * nside
-
-    ts = np.arange(samples.ftm_shape(L, "healpix", nside)[0]) # concrete- list(range(samples.ftm_shape(L, "healpix", nside)[0])) #
-    nphis = np.array([samples.nphi_ring(t, nside) for t in ts]) # concrete-[samples.nphi_ring(t, nside) for t in ts] #
-    
-    # need concrete for slicing
-    ### list of chunks
-    # f_chunks = [
-    #     f[idx:idx + nphi] 
-    #     for (idx,nphi) in zip(indices,nphis)
-    #     ] 
-
-    ### array of padded f_chunks
-    indices = np.concatenate([[0],np.cumsum(nphis, axis=0)[:-1]]) # concrete-
-    nphi_max = np.max(nphis)
-    f_chunks_padded = jnp.stack(
-        [
-        jnp.pad(
-            f[idx:idx + nphi], #nphi varies with t; pad with nans to make sizes consistent?
-            ((0,nphi_max - nphi)),
-            constant_values=0.0,
-            ) 
-            for (idx,nphi) in zip(indices,nphis)] 
-    )
-
-    def accumulate(ftm, ts_fchunks_tuple): 
-        t, f_chunk = ts_fchunks_tuple
-        fm_chunk = jfft.fftshift(jfft.fft(
-            f_chunk, #[:nphis[t]], #[~np.isnan(f_chunk)], #f[index : index + nphi], ---how to get only not nan?
-            norm="backward")) 
-        ftm = ftm.at[t].add(spectral_periodic_extension_jax(fm_chunk, L, jnp))
-        return ftm, None
-
-    ftm,_ = jax.lax.scan(
-        accumulate,
-        jnp.zeros(
-            samples.ftm_shape(L, "healpix", nside),
-            dtype=jnp.complex128), #carry
-        (ts,f_chunks_padded)) # array/PyTree of arrays to scan over 
-    return ftm
-
-########################
-def healpix_fft_jax_3(f: np.ndarray, L: int, nside: int, numpy_module=np) -> np.ndarray:
-    '''
-    Healpix FFT JAX implementation using jax.numpy
+    Healpix FFT JAX implementation using jax.numpy/numpy stack
 
     Computes the Forward Fast Fourier Transform with spectral back-projection
     in the polar regions to manually enforce Fourier periodicity.
@@ -251,7 +160,7 @@ def healpix_fft_jax_3(f: np.ndarray, L: int, nside: int, numpy_module=np) -> np.
         index += nphi
     return numpy_module.stack(ftm_rows)
 
-##########################
+
 def healpix_ifft(ftm: np.ndarray, L: int, nside: int) -> np.ndarray:
     """Computes the Inverse Fast Fourier Transform with spectral folding in the polar
     regions to mitigate aliasing.

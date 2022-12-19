@@ -685,7 +685,7 @@ def _compute_forward_sov_fft_vectorized_jax_vmap(
 
     # ftm array
     if sampling.lower() == "healpix":
-        ftm = jnp.array(hp.healpix_fft_jax(f, L, nside))
+        ftm = jnp.array(hp.healpix_fft_jax(f, L, nside, jnp))
     else:
         ftm = jfft.fftshift(jfft.fft(f, axis=1, norm="backward"), axes=1)
 
@@ -772,7 +772,7 @@ def _compute_forward_sov_fft_vectorized_jax_map(
     """
 
     # ftm array
-    ftm = hp.healpix_fft_jax(f, L, nside) if sampling.lower() == "healpix" else (
+    ftm = hp.healpix_fft_jax(f, L, nside, jnp) if sampling.lower() == "healpix" else (
         jnp.fft.fftshift(
             jnp.fft.fft(
                 f, axis=1, norm="backward"), axes=1)
