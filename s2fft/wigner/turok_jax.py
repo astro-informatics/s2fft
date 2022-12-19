@@ -35,8 +35,21 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
 
         mm (int): Harmonic order at which to slice the matrix.
 
+        positive_m_only (bool, optional): Compute Wigner-d matrix for slice at m greater
+            than zero only.  Defaults to False.
+
+        Whether to exploit conjugate symmetry. By construction
+            this only leads to significant improvement for mm = 0. Defaults to False.
+
+    Raises:
+        ValueError: If el is greater than L.
+
+        ValueError: If el is less than mm.
+
+        Warning: If positive_m_only is true but mm not 0.
+
     Returns:
-        jnp.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
+        np.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
     """
     dl = jnp.zeros(2 * L - 1, dtype=jnp.float64)
     dl = lax.cond(
