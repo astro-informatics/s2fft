@@ -143,6 +143,8 @@ def healpix_fft_jax(f: np.ndarray, L: int, nside: int, numpy_module=np) -> np.nd
 
         nside (int): HEALPix Nside resolution parameter.
 
+        numpy_module: JAX's Numpy-like API or Numpy. Default Numpy.
+
     Returns:
         np.ndarray: Array of Fourier coefficients for all latitudes.
     '''
