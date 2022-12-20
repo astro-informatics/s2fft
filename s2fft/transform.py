@@ -1046,11 +1046,7 @@ def _compute_forward_sov_fft_vectorized_jax_vmap(
     # m offset --concrete/static
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
-    # # m conj --concrete/static
-    # if reality:
-    #     m_conj = (-1) ** (np.arange(1, L) % 2)
 
-    ######################
     # ftm array
     if sampling.lower() == "healpix":
         ftm = hp.healpix_fft_jax(
@@ -1062,12 +1058,12 @@ def _compute_forward_sov_fft_vectorized_jax_vmap(
                 jnp.real(f),
                 axis=1,
                 norm="backward",
-            ) # 2d
+            )
 
             if m_offset != 0:
                 t = t[:, :-1]  
 
-            # concatenate t with zeros?
+            # build ftm by concatenating t with a zero array
             ftm = jnp.hstack(
                 (
                     jnp.zeros((f.shape[0], L - 1 + m_offset)).astype(jnp.complex128), 
@@ -1077,9 +1073,8 @@ def _compute_forward_sov_fft_vectorized_jax_vmap(
         else:
             ftm = jfft.fftshift(jfft.fft(f, axis=1, norm="backward"), axes=1)
 
-    ######################
 
-    # Compute phase shift
+    # phase shift
     if sampling.lower() == "healpix":
 
         phase_shift_vmapped = jax.vmap(
@@ -1094,35 +1089,63 @@ def _compute_forward_sov_fft_vectorized_jax_vmap(
         ]
 
     else:
-        phase_shift = 1.0  # jnp.array(1.0)
+        phase_shift = 1.0  
 
     # ------------------------------------------
     # Compute dl_vmapped fn
     dl_vmapped = jax.vmap(
         jax.vmap(
             wigner.turok_jax.compute_slice,  # --------> need to change for reality case
-            in_axes=(0, None, None, None),
+            in_axes=(0, None, None, None, None),
             out_axes=-1,
         ),
-        in_axes=(None, 0, None, None),
+        in_axes=(None, 0, None, None, None),
         out_axes=0,
     )
     # ------------------------------------------
 
-    # m start index (changes if reality True)
+    # m start index 
     m_start_ind = L - 1 if reality else 0
 
-    ##################
-    # Compute flm
+
+    ###############
+    # flm
+    ## w/ lax.scan (to avoid OOM issue)
+    # def accumulate(flm, t_theta_weight_ftm): # carry, element of array
+    #     t, theta, weight, ftm_slice = t_theta_weight_ftm
+
+    #     flm = flm.at[:, m_start_ind:, t].add(
+    #         weights[None, None, t]  # changes with theta--------------------------
+    #         * jnp.sqrt((2 * jnp.arange(abs(spin), L) + 1) / (4 * jnp.pi))[:,None,None]
+    #         * dl_vmapped(thetas, jnp.arange(abs(spin), L), L, -spin)[:, m_start_ind:, :] # changes with theta-------------------------- (vmap once?)
+    #         * jax.lax.slice_in_dim(
+    #                 ftm, m_start_ind + m_offset, 2 * L - 1 + m_offset, axis=-1
+    #             )[:,:,None].T
+    #         * phase_shift # changes with theta-------------------------- 
+    #     ) 
+
+    #     return flm, None
+
+
+    # flm, _ = jax.lax.scan(
+    #     accumulate,
+    #     jnp.zeros(
+    #         (len(jnp.arange(abs(spin), L)), samples.flm_shape(L)[-1] , len(thetas)), 
+    #         dtype=jnp.complex128 
+    #     ), 
+    #     (ts, thetas, weights,ftm)
+    # )
+    ###########
+
+    ## flm w/o scan
     flm = jnp.zeros(
-        (len(jnp.arange(abs(spin), L)), samples.flm_shape(L)[-1] , len(thetas)), #samples.flm_shape(L) + (len(thetas),), 
+        (len(jnp.arange(abs(spin), L)), samples.flm_shape(L)[-1] , len(thetas)), 
         dtype=jnp.complex128       
-        )
-    #len(jnp.arange(abs(spin), L))+(len(thetas),), dtype=jnp.complex128) #[:,:,None]  # (L, 2L-1)
+        ) 
     flm = flm.at[:, m_start_ind:, :].set(
-        weights[None, None, :]  # Alternative to jnp.expand_dims: weights[None, None, :] --agnostic to np/jnp but seems slower?
+        weights[None, None, :]  
         * jnp.sqrt((2 * jnp.arange(abs(spin), L) + 1) / (4 * jnp.pi))[:,None,None]
-        * dl_vmapped(thetas, jnp.arange(abs(spin), L), L, -spin)[:, m_start_ind:, :]
+        * dl_vmapped(thetas, jnp.arange(abs(spin), L), L, -spin, reality)[:, m_start_ind:, :]
         * jax.lax.slice_in_dim(
                 ftm, m_start_ind + m_offset, 2 * L - 1 + m_offset, axis=-1
             )[:,:,None].T
@@ -1132,6 +1155,7 @@ def _compute_forward_sov_fft_vectorized_jax_vmap(
     ##################
 
     # ------------------------------------------
+    # assign the other half of the columns?
     if reality:
         # m conj 
         m_conj = (-1) ** (jnp.arange(1, L) % 2)

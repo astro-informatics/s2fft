@@ -30,12 +30,12 @@ config.update("jax_enable_x64", True)
 
 # input params
 L = 5  # 128 # in tests: 5
-spin = 1  # 2 # in tests: [0, 1, 2] # should be 0 if reality=True
+spin = 0  # 2 # in tests: [0, 1, 2] # should be 0 if reality=True
 sampling = "mw"  #'dh' # in tests: ["mw", "mwss", "dh", "healpix"]
 nside = None  # 2,4,8 None if sampling not healpix
 if nside:
     L = 2 * nside  # 2 or 3 in tests
-reality = False
+reality = True
 L_lower = 0  # in tests: L_lower_to_test = [0, 1, 2]
 
 
@@ -166,7 +166,7 @@ for t, theta in enumerate(thetas):
 
             # OJO Turok_JAX implementation returns some garbage elements....only the slice [L-1-el:L-1+el+1] matches
             dl_full_jax = dl_full_jax.at[t, el_i, L-1-el:L-1+el+1].set(
-                wigner.turok_jax.compute_slice(theta, el, L, -spin)[L-1-el:L-1+el+1]
+                wigner.turok_jax.compute_slice(theta, el, L, -spin, reality)[L-1-el:L-1+el+1]
                 )
 
 

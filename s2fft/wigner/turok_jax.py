@@ -3,10 +3,12 @@ import jax.lax as lax
 from jax import jit
 import jax.numpy as jnp
 from functools import partial
+from warnings import warn
 
 
-@partial(jit, static_argnums=(2, 3))
-def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
+@partial(jit, static_argnums=(2, 3, 4))
+def compute_slice(beta: float, el: int, L: int, mm: int, 
+positive_m_only: bool = False) -> jnp.ndarray:
     r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
     of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok &
     Bucher recursion.
@@ -42,18 +44,28 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
             this only leads to significant improvement for mm = 0. Defaults to False.
 
     Raises:
-        ValueError: If el is greater than L.
-
-        ValueError: If el is less than mm.
 
         Warning: If positive_m_only is true but mm not 0.
 
     Returns:
         np.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
     """
-    dl = jnp.zeros(2 * L - 1, dtype=jnp.float64)
+    if positive_m_only and mm != 0:
+        positive_m_only = False
+        warn(
+            "Reality acceleration only supports spin 0 fields. "
+            + "Defering to complex transform."
+        )
+
+    dl = jnp.zeros(
+        2 * L - 1, 
+        dtype=jnp.float64)
+
     dl = lax.cond(
-        jnp.abs(beta) < 1e-10, lambda x: _north_pole(x, el, L, mm), lambda x: x, dl
+        jnp.abs(beta) < 1e-10, 
+        lambda x: _north_pole(x, el, L, mm), 
+        lambda x: x, 
+        dl
     )
     dl = lax.cond(
         jnp.abs(beta - jnp.pi) < 1e-10,
@@ -61,20 +73,24 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
         lambda x: x,
         dl,
     )
-    dl = lax.cond(el == 0, lambda x: _el0(x, L), lambda x: x, dl)
+    dl = lax.cond(
+        el == 0, 
+        lambda x: _el0(x, L), 
+        lambda x: x, 
+        dl
+    )
     dl = lax.cond(
         jnp.any(dl),
         lambda x: x,
-        lambda x: _compute_quarter_slice(x, beta, el, L, mm),
+        lambda x: _compute_quarter_slice(x, beta, el, L, mm, positive_m_only),
         dl,
     )
-
     return reindex(dl, el, L, mm)
 
 
-@partial(jit, static_argnums=(3, 4))
+@partial(jit, static_argnums=(3, 4,5))
 def _compute_quarter_slice(
-    dl: jnp.array, beta: float, el: int, L: int, mm: int
+    dl: jnp.array, beta: float, el: int, L: int, mm: int, positive_m_only: bool = False
 ) -> jnp.ndarray:
     r"""Compute a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated
     at :math:`\beta`.
@@ -149,49 +165,57 @@ def _compute_quarter_slice(
     indices = jnp.arange(2 * L - 1)
 
     for i in range(2):
-        sgn = (-1) ** (i)
+        if not (positive_m_only and i == 0):#-------------
+            sgn = (-1) ** (i)
 
-        # Initialise the vector
-        dl = dl.at[lims[i]].set(1.0)
-        lamb = ((el + 1) * omc - half_slices[i] + c) / s
-        dl = dl.at[lims[i] + sgn].set(lamb * dl[lims[i]] * cpi[0])
+            # Initialise the vector
+            dl = dl.at[lims[i]].set(1.0)
+            lamb = ((el + 1) * omc - half_slices[i] + c) / s
+            dl = dl.at[lims[i] + sgn].set(lamb * dl[lims[i]] * cpi[0])
 
-        def renorm_iteration(m, dl_lrenorm):
-            dl, lrenorm = dl_lrenorm
-            lamb = ((el + 1) * omc - half_slices[i] + m * c) / s
-            dl = dl.at[lims[i] + sgn * m].set(
-                lamb * cpi[m - 1] * dl[lims[i] + sgn * (m - 1)]
-                - cp2[m - 1] * dl[lims[i] + sgn * (m - 2)]
-            )
-            condition = dl[lims[i] + sgn * m] > big_const
-            lrenorm = lax.cond(
-                condition, lambda x: x.at[i].add(-lbig), lambda x: x, lrenorm
-            )
-            dl = lax.cond(
-                condition,
-                # multiply first m elements (if i == 0) or last m elements (if i == 1)
-                # of dl array by bigi - use jnp.where rather than directly updating
-                # array using 'in-place' update such as
-                #     dl.at[lims[i]:lims[i] + sgn * (m + 1):sgn].multiply(bigi)
-                # to avoid non-static array slice (due to m dependence) that will raise
-                # an IndexError exception when used with lax.fori_loop
-                lambda x: jnp.where((indices < (m + 1))[::sgn], bigi * x, x),
-                lambda x: x,
-                dl
-            )
-            return dl, lrenorm
+            def renorm_iteration(m, dl_lrenorm):
+                dl, lrenorm = dl_lrenorm
+                lamb = ((el + 1) * omc - half_slices[i] + m * c) / s
+                dl = dl.at[lims[i] + sgn * m].set(
+                    lamb * cpi[m - 1] * dl[lims[i] + sgn * (m - 1)]
+                    - cp2[m - 1] * dl[lims[i] + sgn * (m - 2)]
+                )
+                condition = dl[lims[i] + sgn * m] > big_const
+                lrenorm = lax.cond(
+                    condition, lambda x: x.at[i].add(-lbig), lambda x: x, lrenorm
+                )
+                dl = lax.cond(
+                    condition,
+                    # multiply first m elements (if i == 0) or last m elements (if i == 1)
+                    # of dl array by bigi - use jnp.where rather than directly updating
+                    # array using 'in-place' update such as
+                    #     dl.at[lims[i]:lims[i] + sgn * (m + 1):sgn].multiply(bigi)
+                    # to avoid non-static array slice (due to m dependence) that will raise
+                    # an IndexError exception when used with lax.fori_loop
+                    lambda x: jnp.where((indices < (m + 1))[::sgn], bigi * x, x),
+                    lambda x: x,
+                    dl
+                )
+                return dl, lrenorm
 
-        dl, lrenorm = lax.fori_loop(2, L, renorm_iteration, (dl, lrenorm))
+            dl, lrenorm = lax.fori_loop(2, L, renorm_iteration, (dl, lrenorm))
 
-        # Apply renormalisation
-        renorm = sign[i] * jnp.exp(log_first_row[half_slices[i] - 1] - lrenorm[i])
+            # Apply renormalisation
+            renorm = sign[i] * jnp.exp(log_first_row[half_slices[i] - 1] - lrenorm[i])
 
-        if i == 0:
-            dl = dl.at[: L - 1].multiply(renorm)
+            if i == 0:
+                dl = dl.at[: L - 1].multiply(renorm)
 
-        if i == 1:
-            dl = dl.at[-em].multiply((-1) ** ((mm - em + el + 1) % 2) * renorm)
-    
+            if i == 1:
+                dl = dl.at[-em].multiply((-1) ** ((mm - em + el + 1) % 2) * renorm)
+        
+
+    ###########
+    if positive_m_only : #s_ind = 0 if positive_m_only else -el
+        s_ind = 0 
+        for m in jnp.arange(s_ind, el + 1): # m is traced!, s_ind and el are traced
+            dl = dl.at[m + L - 1].multiply((-1) ** (abs(mm - m)))
+    #############
 
     return jnp.nan_to_num(dl, neginf=0, posinf=0)
 
