@@ -26,6 +26,26 @@ def parameters_string(parameters, names):
     )
 
 
+def print_summary(results):
+
+    print(f"--- Summary of benchmarks")
+    number_of_cases = len(results)
+    print(f"Benchmarks have run for the following {number_of_cases:02} cases: ")
+
+    cases = list(results.keys())
+    for count_case in range(number_of_cases):
+        print(f"Case {count_case:02}: {cases[count_case]}")
+
+    for count_case in range(number_of_cases):
+        print(f"------ Summary of Case {count_case:02}: {cases[count_case]}: ")
+        benchmark_pairs = results[cases[count_case]]
+        number_of_parameters = len(benchmark_pairs)
+        print(f"Number of benchmarks = {number_of_parameters:04} ")
+        parameter_list = list(benchmark_pairs.keys())
+        parameter_type = parameter_list[0][0][0]
+        # print(f"{parameter_type} = [{number_of_parameters}] ")
+
+
 def run_benchmarks(benchmarks, number_runs, number_repeats, print_results=True):
     results = {}
     for benchmark in benchmarks:

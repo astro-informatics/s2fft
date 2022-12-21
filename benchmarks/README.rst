@@ -7,7 +7,7 @@ Benchmarking ``ss2ft`` with ``timeit``.
 Description
 -----------
 
-The becnhmark scripts are arranged as follows::
+The benchmark scripts are arranged as follows::
 
     .
     ├── README.rst

@@ -23,11 +23,11 @@ from jax.config import config
 
 config.update("jax_enable_x64", True)  # this only works on startup!
 
-from utils import parametrize, parameters_string, run_benchmarks
+from utils import parametrize, parameters_string, run_benchmarks, print_summary
 
 # list of different parameters to benchmark
 # harmonic band-limit
-L_VALUES = [16]
+L_VALUES = [2, 8]
 # colatitude
 BETA = np.pi / 2
 # harmonic order
@@ -142,3 +142,4 @@ if __name__ == "__main__":
         number_runs=args.number_runs,
         number_repeats=args.number_repeats,
     )
+    # print_summary(results)
