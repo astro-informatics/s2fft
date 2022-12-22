@@ -27,7 +27,7 @@ SAMPLING_VALUES = ["mw"]
 # implementation
 METHOD_VALUES = [
     "pyssht",
-]  # , "sov_fft_jax_map", "sov_fft_jax_scan", "sov_fft_jax_vmap"]
+]
 
 RNG = np.random.default_rng(1234)
 F_ARRAYS = {
