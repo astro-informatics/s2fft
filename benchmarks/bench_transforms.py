@@ -15,7 +15,7 @@ from jax.config import config
 
 config.update("jax_enable_x64", True)  # this only works on startup!
 
-from utils import parametrize, run_benchmarks
+from utils import parametrize, run_benchmarks, print_summary
 
 # list of different parameters to benchmark
 # harmonic band-limit
@@ -61,8 +61,24 @@ def forward_transform(method, L, sampling):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser("Run transform benchmarks")
-    parser.add_argument("--number-runs", type=int, default=10)
-    parser.add_argument("--number-repeats", type=int, default=3)
+    parser.add_argument(
+        "--number-runs",
+        type=int,
+        default=10,
+        help="number of times the script is timed",
+    )
+    parser.add_argument(
+        "--number-repeats",
+        type=int,
+        default=3,
+        help="number of times the timer is repeated",
+    )
+    parser.add_argument(
+        "--print-summary",
+        action="store_true",
+        default=False,
+        help="print basic summary",
+    )
     args = parser.parse_args()
 
     results = run_benchmarks(
@@ -72,3 +88,5 @@ if __name__ == "__main__":
         number_runs=args.number_runs,
         number_repeats=args.number_repeats,
     )
+    if args.print_summary:
+        print_summary(results)
