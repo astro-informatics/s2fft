@@ -142,4 +142,4 @@ if __name__ == "__main__":
         number_runs=args.number_runs,
         number_repeats=args.number_repeats,
     )
-    # print_summary(results)
+    print_summary(results)

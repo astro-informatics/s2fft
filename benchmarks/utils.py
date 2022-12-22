@@ -5,6 +5,7 @@ Common utility functions
 from functools import partial
 from itertools import product
 import timeit
+from collections import defaultdict
 
 
 def parametrize(parameter_dict):
@@ -28,7 +29,7 @@ def parameters_string(parameters, names):
 
 def print_summary(results):
 
-    print(f"--- Summary of benchmarks")
+    print(f"\n--- Summary of benchmarks")
     number_of_cases = len(results)
     print(f"Benchmarks have run for the following {number_of_cases:02} cases: ")
 
@@ -36,14 +37,39 @@ def print_summary(results):
     for count_case in range(number_of_cases):
         print(f"Case {count_case:02}: {cases[count_case]}")
 
+    summary = defaultdict(dict)
     for count_case in range(number_of_cases):
-        print(f"------ Summary of Case {count_case:02}: {cases[count_case]}: ")
+
+        print(f"\n------ Summary of Case {count_case:02}: {cases[count_case]}: ")
+        L = []
+        timings = []
+        time_min = []
+        time_max = []
+        time_avg = []
         benchmark_pairs = results[cases[count_case]]
-        number_of_parameters = len(benchmark_pairs)
-        print(f"Number of benchmarks = {number_of_parameters:04} ")
-        parameter_list = list(benchmark_pairs.keys())
-        parameter_type = parameter_list[0][0][0]
-        # print(f"{parameter_type} = [{number_of_parameters}] ")
+        number_of_benchmarks = len(benchmark_pairs)
+        print(f"Number of benchmarks = {number_of_benchmarks:04} ")
+
+        parameter_tuple_list = list(benchmark_pairs.keys())
+        for count_benchmark in range(number_of_benchmarks):
+            L.append(parameter_tuple_list[count_benchmark][0][1])
+            benchmarked_values = benchmark_pairs[parameter_tuple_list[count_benchmark]]
+            timings.append(benchmarked_values["time"])
+            time_min.append(min(timings[-1]))
+            time_max.append(max(timings[-1]))
+            time_avg.append(sum(timings[-1]) / len(timings[-1]))
+
+        summary[cases[count_case]]["L"] = L
+        summary[cases[count_case]]["timings"] = timings
+        summary[cases[count_case]]["time_min"] = time_min
+        summary[cases[count_case]]["time_max"] = time_max
+        summary[cases[count_case]]["time_avg"] = time_avg
+
+        for count_benchmark in range(number_of_benchmarks):
+            smry = summary[cases[count_case]]
+            print(
+                f"L: {smry['L'][count_benchmark]:04} {smry['time_min'][count_benchmark]:>#7.2g}s (min) {smry['time_max'][count_benchmark]:>#7.2g}s (max) {smry['time_avg'][count_benchmark]:>#7.2g}s (avg) "
+            )
 
 
 def run_benchmarks(benchmarks, number_runs, number_repeats, print_results=True):
