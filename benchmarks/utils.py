@@ -41,7 +41,7 @@ def print_summary(results):
     for count_case in range(number_of_cases):
 
         print(f"\n------ Summary of Case {count_case:02}: {cases[count_case]}: ")
-        L = []
+        parameter = []
         time_min = []
         time_max = []
         time_avg = []
@@ -50,13 +50,13 @@ def print_summary(results):
         print(f"Number of benchmarks = {number_of_benchmarks:04} ")
 
         for parameter_tuple in benchmark_pairs.keys():
-            L.append(parameter_tuple[0][1])
+            parameter.append(parameter_tuple[0])
             times = benchmark_pairs[parameter_tuple]["time"]
             time_min.append(min(times))
             time_max.append(max(times))
             time_avg.append(sum(times) / len(times))
 
-        summary[cases[count_case]]["L"] = L
+        summary[cases[count_case]]["parameter"] = parameter
         summary[cases[count_case]]["time_min"] = time_min
         summary[cases[count_case]]["time_max"] = time_max
         summary[cases[count_case]]["time_avg"] = time_avg
@@ -64,7 +64,7 @@ def print_summary(results):
         for count_benchmark in range(number_of_benchmarks):
             smry = summary[cases[count_case]]
             print(
-                f"L: {smry['L'][count_benchmark]:04} {smry['time_min'][count_benchmark]:>#7.2g}s (min) {smry['time_max'][count_benchmark]:>#7.2g}s (max) {smry['time_avg'][count_benchmark]:>#7.2g}s (avg) "
+                f"par: {smry['parameter'][count_benchmark]} {smry['time_min'][count_benchmark]:>#7.2g}s (min) {smry['time_max'][count_benchmark]:>#7.2g}s (max) {smry['time_avg'][count_benchmark]:>#7.2g}s (avg) "
             )
 
 
