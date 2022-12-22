@@ -19,7 +19,7 @@ from utils import parametrize, run_benchmarks
 
 # list of different parameters to benchmark
 # harmonic band-limit
-L_VALUES = [16]
+L_VALUES = [4, 8, 16, 32, 64]
 # spin
 SPIN = 0
 # sampling scheme
