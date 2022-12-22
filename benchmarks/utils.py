@@ -42,7 +42,6 @@ def print_summary(results):
 
         print(f"\n------ Summary of Case {count_case:02}: {cases[count_case]}: ")
         L = []
-        timings = []
         time_min = []
         time_max = []
         time_avg = []
@@ -50,17 +49,14 @@ def print_summary(results):
         number_of_benchmarks = len(benchmark_pairs)
         print(f"Number of benchmarks = {number_of_benchmarks:04} ")
 
-        parameter_tuple_list = list(benchmark_pairs.keys())
-        for count_benchmark in range(number_of_benchmarks):
-            L.append(parameter_tuple_list[count_benchmark][0][1])
-            benchmarked_values = benchmark_pairs[parameter_tuple_list[count_benchmark]]
-            timings.append(benchmarked_values["time"])
-            time_min.append(min(timings[-1]))
-            time_max.append(max(timings[-1]))
-            time_avg.append(sum(timings[-1]) / len(timings[-1]))
+        for parameter_tuple in benchmark_pairs.keys():
+            L.append(parameter_tuple[0][1])
+            times = benchmark_pairs[parameter_tuple]["time"]
+            time_min.append(min(times))
+            time_max.append(max(times))
+            time_avg.append(sum(times) / len(times))
 
         summary[cases[count_case]]["L"] = L
-        summary[cases[count_case]]["timings"] = timings
         summary[cases[count_case]]["time_min"] = time_min
         summary[cases[count_case]]["time_max"] = time_max
         summary[cases[count_case]]["time_avg"] = time_avg
