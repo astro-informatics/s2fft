@@ -3,7 +3,6 @@ Benchmarks for Wigner-d recursions
 """
 
 
-
 import argparse
 import numpy as np
 import jax
@@ -20,7 +19,7 @@ from utils import parametrize, parameters_string, run_benchmarks, print_summary
 
 # list of different parameters to benchmark
 # harmonic band-limit
-L_VALUES = [2, 8]
+L_VALUES = [4, 8, 16, 32, 64]
 # colatitude
 BETA = np.pi / 2
 # harmonic order
