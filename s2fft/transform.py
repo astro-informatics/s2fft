@@ -1281,6 +1281,7 @@ def _compute_forward_jax_vmap_scan(
 
     return flm
 
+
 @partial(jit, static_argnums=(1, 2, 3, 6, 7, 8))
 def _compute_forward_jax_vmap_loop(
     f: np.ndarray,
@@ -1345,7 +1346,6 @@ def _compute_forward_jax_vmap_loop(
         else:
             ftm = jfft.fftshift(jfft.fft(f, axis=1, norm="backward"), axes=1)
 
-
     # Compute dl_vmapped fn (single vmap)
     dl_vmapped = jax.vmap(
         wigner.turok_jax.compute_slice,
@@ -1363,15 +1363,19 @@ def _compute_forward_jax_vmap_loop(
 
     ###
     # compute flm using a manual loop over theta
-    for ti, theta in enumerate(thetas): # ti not traced
+    for ti, theta in enumerate(thetas):  # ti not traced
         flm = flm.at[:, m_start_ind:].add(
             weights[ti]
-            * jnp.sqrt((2 * el_array + 1) / (4 * jnp.pi))[:,None]
+            * jnp.sqrt((2 * el_array + 1) / (4 * jnp.pi))[:, None]
             * dl_vmapped(theta, el_array, L, -spin, reality)[:, m_start_ind:]
             * jax.lax.slice_in_dim(
-                    ftm[ti,:], m_start_ind + m_offset, 2 * L - 1 + m_offset, axis=0
-                )[:,None].T # 1,8
-            * samples.ring_phase_shift_hp_vmappable(L, ti, nside, True) if sampling.lower() == "healpix" else 1.0   # I think it could be 'samples.ring_phase_shift_hp'
+                ftm[ti, :], m_start_ind + m_offset, 2 * L - 1 + m_offset, axis=0
+            )[
+                :, None
+            ].T  # 1,8
+            * samples.ring_phase_shift_hp_vmappable(L, ti, nside, True)
+            if sampling.lower() == "healpix"
+            else 1.0  # I think it could be 'samples.ring_phase_shift_hp'
         )
 
     # Pad the first n=max(L_lower, abs(spin)) rows with zeros
@@ -1395,6 +1399,7 @@ def _compute_forward_jax_vmap_loop(
         )
 
     return flm
+
 
 ################
 # @partial(jit, static_argnums=(1, 2, 3, 6))
