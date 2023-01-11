@@ -211,10 +211,10 @@ def _compute_quarter_slice(
         
 
     ###########
-    if positive_m_only : #s_ind = 0 if positive_m_only else -el
-        s_ind = 0 
-        for m in jnp.arange(s_ind, el + 1): # m is traced!, s_ind and el are traced
-            dl = dl.at[m + L - 1].multiply((-1) ** (abs(mm - m)))
+    # if positive_m_only : #s_ind = 0 if positive_m_only else -el
+    #     s_ind = 0 
+    #     for m in jnp.arange(s_ind, el + 1): # m is traced!, s_ind and el are traced
+    #         dl = dl.at[m + L - 1].multiply((-1) ** (abs(mm - m)))
     #############
 
     return jnp.nan_to_num(dl, neginf=0, posinf=0)
