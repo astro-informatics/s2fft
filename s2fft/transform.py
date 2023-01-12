@@ -263,6 +263,7 @@ def _forward(
         "jax_vmap_scan_0": _compute_forward_jax_vmap_scan_0,
         "jax_vmap_loop": _compute_forward_jax_vmap_loop,
         "jax_vmap_loop_0": _compute_forward_jax_vmap_loop_0,
+        "jax_map": _compute_forward_jax_map,
     }
     return transform_methods[method](
         f,
@@ -1654,6 +1655,101 @@ def _compute_forward_jax_vmap_loop_0(
 
     return flm
 
+
+@partial(jit, static_argnums=(1, 2, 3, 6, 7, 8))
+def _compute_forward_jax_map(
+    f: np.ndarray,
+    L: int,
+    spin: int,
+    sampling: str,
+    thetas: np.ndarray,
+    weights: np.ndarray,
+    nside: int,
+    reality: bool,
+    L_lower: int,
+):
+    # m offset
+    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+
+    # ftm array
+    if sampling.lower() == "healpix":
+        ftm = hp.healpix_fft_jax(f, L, nside, jnp)
+    else:
+        if reality:
+            t = jfft.rfft(
+                jnp.real(f),
+                axis=1,
+                norm="backward",
+            )
+            if m_offset != 0:
+                t = t[:, :-1]
+
+            # build ftm by concatenating t with a zero array
+            ftm = jnp.hstack(
+                (jnp.zeros((f.shape[0], L - 1 + m_offset)).astype(jnp.complex128), t),
+            )
+        else:
+            ftm = jfft.fftshift(jfft.fft(f, axis=1, norm="backward"), axes=1)
+
+    # phase shift
+    if sampling.lower() != "healpix":
+        phase_shifts = jnp.array([[1.0]])
+    else:
+        phase_shifts = jax.vmap(
+            samples.ring_phase_shift_hp_vmappable, in_axes=(None, 0, None, None)
+        )(L, jnp.arange(len(thetas)), nside, True)
+
+    # m start index
+    m_start_ind = L - 1 if reality else 0
+
+    # Compute flm
+    els = jnp.arange(max(L_lower, abs(spin)), L)
+    elfactors = jnp.sqrt((2 * els + 1) / (4 * jnp.pi))
+    flm = jnp.zeros(
+        (len(thetas), len(els), samples.flm_shape(L)[-1]), dtype=jnp.complex128
+    )
+
+    # Compute dl (double map)
+    dl_mapped = jax.lax.map(
+        lambda theta: jax.lax.map(
+            lambda el: wigner.turok_jax.compute_slice(theta, el, L, -spin), els
+        ),
+        thetas,
+    )
+
+    flm = (
+        flm.at[:, :, m_start_ind:]
+        .set(
+            weights[:, None, None]
+            * elfactors[None, :, None]
+            * dl_mapped[:, :, m_start_ind:]
+            * ftm[:, None, m_start_ind + m_offset : 2 * L - 1 + m_offset]
+            * phase_shifts[:, None, :]
+        )
+        .sum(axis=0)
+    )
+
+    # Apply spin
+    flm *= (-1) ** spin
+
+    # Pad the first n=max(L_lower, abs(spin)) rows with zeros
+    flm = jnp.pad(flm, ((max(L_lower, abs(spin)), 0), (0, 0)))
+
+    # Mask after pad (to set spurious results from wigner.turok_jax.compute_slice to zero)
+    upper_diag = jnp.triu(jnp.ones_like(flm, dtype=bool).T, k=-(L - 1)).T
+    mask = upper_diag * jnp.fliplr(upper_diag)
+    flm *= mask
+
+    # if reality=True: fill the first half of the columns w/ conjugate symmetric values
+    if reality:
+        # m conj
+        m_conj = (-1) ** (jnp.arange(1, L) % 2)
+
+        flm = flm.at[:, :m_start_ind].set(
+            jnp.flip(m_conj * jnp.conj(flm[:, m_start_ind + 1 :]), axis=-1)
+        )
+
+    return flm
 
 ################
 # @partial(jit, static_argnums=(1, 2, 3, 6))
