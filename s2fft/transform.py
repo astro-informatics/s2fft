@@ -465,12 +465,14 @@ def _compute_inverse_sov_fft(
     for t, theta in enumerate(thetas):
 
         phi_ring_offset = (
-            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
+            samples.p2phi_ring(t, 0, nside)
+            if sampling.lower() == "healpix"
+            else 0
         )
 
         for el in range(max(L_lower, abs(spin)), L):
 
-            dl = wigner.turok.compute_slice(theta, el, L, -spin)
+            dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -493,9 +495,8 @@ def _compute_inverse_sov_fft(
 
                 if reality and sampling.lower() == "healpix":
                     if m != 0:
-                        ftm[t, -m + L - 1 + m_offset] += (
-                            np.conj(val / phase_shift) / phase_shift
-                        )
+                        ftm[t, -m + L - 1 + m_offset] += np.conj(val)
+
                 ftm[t, m + L - 1 + m_offset] += val
 
     if sampling.lower() == "healpix":
@@ -567,11 +568,15 @@ def _compute_inverse_sov_fft_vectorized(
             dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
             m_start_ind = L - 1 if reality else 0
-            val = elfactor * dl[m_start_ind:] * flm[el, m_start_ind:] * phase_shift
+            val = (
+                elfactor
+                * dl[m_start_ind:]
+                * flm[el, m_start_ind:]
+                * phase_shift
+            )
             if reality and sampling.lower() == "healpix":
-                ftm[t, m_offset : L - 1 + m_offset] += np.flip(
-                    np.conj(val[1:] / phase_shift[1:]) / phase_shift[1:]
-                )
+                ftm[t, m_offset : L - 1 + m_offset] += np.flip(np.conj(val[1:]))
+
             ftm[t, m_start_ind + m_offset : 2 * L - 1 + m_offset] += val
 
     ftm *= (-1) ** (spin)
@@ -655,7 +660,11 @@ def _compute_forward_direct(
 
                 if reality:
                     flm[el, L - 1] += (
-                        weights[t] * (-1) ** spin * elfactor * dl[L - 1] * f[entry]
+                        weights[t]
+                        * (-1) ** spin
+                        * elfactor
+                        * dl[L - 1]
+                        * f[entry]
                     )  # m = 0
                     for m in range(1, el + 1):
                         val = (
@@ -755,7 +764,11 @@ def _compute_forward_sov(
 
             if reality:
                 flm[el, L - 1] += (
-                    weights[t] * (-1) ** spin * elfactor * dl[L - 1] * ftm[t, L - 1]
+                    weights[t]
+                    * (-1) ** spin
+                    * elfactor
+                    * dl[L - 1]
+                    * ftm[t, L - 1]
                 )  # m = 0
                 for m in range(1, el + 1):
                     val = (
@@ -844,7 +857,9 @@ def _compute_forward_sov_fft(
     for t, theta in enumerate(thetas):
 
         phi_ring_offset = (
-            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
+            samples.p2phi_ring(t, 0, nside)
+            if sampling.lower() == "healpix"
+            else 0
         )
 
         for el in range(max(L_lower, abs(spin)), L):
