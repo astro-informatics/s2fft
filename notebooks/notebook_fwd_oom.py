@@ -66,7 +66,6 @@ else:
         Spin=spin,
         Reality=False,
     )
-
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Using SOV + FFT Vectorised (Numpy)
 method_str = "sov_fft_vectorized"
@@ -83,76 +82,39 @@ flm_sov_fft_vec = s2f.transform._forward(
 
 print(f'{sampling}, numpy vs GT: {np.allclose(flm_gt, flm_sov_fft_vec, atol=1e-14)}')  # False if healpix
 
-%timeit s2f.transform._forward(f, L, spin, sampling, method=method_str, nside=nside)
+%timeit s2f.transform._forward(f, L, spin, sampling, method=method_str, nside=nside, reality=reality, L_lower=L_lower)
 # 2.62 ms ± 4 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
 
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Using SOV + FFT Vectorised JAXed w JIT + double vmap (OOM issues)
-method_str = "sov_fft_vectorized_double_vmap"
-flm_sov_fft_vec_jax = s2f.transform._forward(
-    f,
-    L,
-    spin,
-    sampling,
-    method=method_str,
-    nside=nside,
-    reality=reality,
-    L_lower=L_lower,
-)
+# %%%%%%%%%%%%%%%%%%%%%%
+# All JAX methods
+list_method_str = [ 
+        "jax_vmap_double",
+        "jax_vmap_scan",
+        "jax_vmap_scan_0",
+        "jax_vmap_loop",
+        "jax_vmap_loop_0",
+]
+for m_str in list_method_str: 
+    flm_sov_fft_vec_jax = s2f.transform._forward(
+        f,
+        L,
+        spin,
+        sampling,
+        method=m_str,
+        nside=nside,
+        reality=reality,
+        L_lower=L_lower,
+    )
 
-if sampling=='healpix': # if healpix: compare to numpy
-    print(f'{sampling}, JAX double vmap vs numpy: {np.allclose(flm_sov_fft_vec, flm_sov_fft_vec_jax, atol=1e-14)}') 
-else:
-    print(f'{sampling}, JAX double vmap vs GT: {np.allclose(flm_gt, flm_sov_fft_vec_jax, atol=1e-14)}') 
+    print(m_str)
+    if sampling=='healpix': # compare to numpy
+        print(f'{sampling}, JAX vs numpy: {np.allclose(flm_sov_fft_vec, flm_sov_fft_vec_jax, atol=1e-14)}') 
+    else:
+        print(f'{sampling}, JAX vs GT: {np.allclose(flm_gt, flm_sov_fft_vec_jax, atol=1e-14)}') 
 
-%timeit s2f.transform._forward(f, L, spin, sampling, method=method_str, nside=nside)
-# 271 µs ± 1.47 µs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Using SOV + FFT Vectorised JAXed w JIT + vmap & scan
-method_str = "sov_fft_vectorized_vmap_scan"
-flm_sov_fft_vec_jax = s2f.transform._forward(
-    f,
-    L,
-    spin,
-    sampling,
-    method=method_str,
-    nside=nside,
-    reality=reality,
-    L_lower=L_lower,
-)
+    %timeit s2f.transform._forward(f, L, spin, sampling, method=m_str, nside=nside, reality=reality, L_lower=L_lower)
+    %timeit s2f.transform._forward(f, L, spin, sampling, method=m_str, nside=nside, reality=reality, L_lower=L_lower)
+    print('----')
 
 
-if sampling=='healpix': # compare to numpy
-    print(f'{sampling}, JAX vmap & scan vs numpy: {np.allclose(flm_sov_fft_vec, flm_sov_fft_vec_jax, atol=1e-14)}') 
-else:
-    print(f'{sampling}, JAX vmap & scan vs GT: {np.allclose(flm_gt, flm_sov_fft_vec_jax, atol=1e-14)}') 
-
-%timeit s2f.transform._forward(f, L, spin, sampling, method=method_str, nside=nside)
-# 274 µs ± 1.12 µs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Using SOV + FFT Vectorised JAXed w JIT + vmap & manual loop
-method_str = "sov_fft_vectorized_vmap_loop"
-flm_sov_fft_vec_jax = s2f.transform._forward(
-    f,
-    L,
-    spin,
-    sampling,
-    method=method_str,
-    nside=nside,
-    reality=reality,
-    L_lower=L_lower,
-)
-
-
-if sampling=='healpix': # compare to numpy
-    print(f'{sampling}, JAX vmap & scan vs numpy: {np.allclose(flm_sov_fft_vec, flm_sov_fft_vec_jax, atol=1e-14)}') 
-else:
-    print(f'{sampling}, JAX vmap & scan vs GT: {np.allclose(flm_gt, flm_sov_fft_vec_jax, atol=1e-14)}') 
-
-%timeit s2f.transform._forward(f, L, spin, sampling, method=method_str, nside=nside)
-# 245 µs ± 1.76 µs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
-
-
-# %%
+#######################################
