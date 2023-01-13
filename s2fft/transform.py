@@ -263,6 +263,7 @@ def _forward(
         "jax_vmap_scan_0": _compute_forward_jax_vmap_scan_0,
         "jax_vmap_loop": _compute_forward_jax_vmap_loop,
         "jax_vmap_loop_0": _compute_forward_jax_vmap_loop_0,
+        "jax_map_double": _compute_forward_jax_map_double,
         "jax_map_scan": _compute_forward_jax_map_scan,
     }
     return transform_methods[method](
@@ -1111,10 +1112,15 @@ def _compute_forward_jax_vmap_double(
         * dl_vmapped(thetas, el_array, L, -spin, reality)[:, m_start_ind:, :]
         * jax.lax.slice_in_dim(
             ftm, m_start_ind + m_offset, 2 * L - 1 + m_offset, axis=-1
-        )[:, :, None].T
+        )[
+            :, :, None
+        ].T  # do I need slice_in_dim? why not ftm[None, m_start_ind +  m_offset : 2 * L - 1 + m_offset,:]?
         * phase_shift
     )
     flm = flm.sum(axis=-1)
+
+    # Apply spin
+    flm *= (-1) ** spin
 
     # Pad the first n=max(L_lower, abs(spin)) rows with zeros
     flm = jnp.pad(flm, ((max(L_lower, abs(spin)), 0), (0, 0)))
@@ -1123,9 +1129,6 @@ def _compute_forward_jax_vmap_double(
     upper_diag = jnp.triu(jnp.ones_like(flm, dtype=bool).T, k=-(L - 1)).T
     mask = upper_diag * jnp.fliplr(upper_diag)
     flm *= mask
-
-    # Apply spin
-    flm *= (-1) ** spin
 
     # if reality=True: fill the first half of the columns w/ conjugate symmetric values
     if reality:
@@ -1205,14 +1208,12 @@ def _compute_forward_jax_vmap_scan(
 
     # # phase shift
     if sampling.lower() == "healpix":
-
         phase_shift_vmapped = jax.vmap(
             samples.ring_phase_shift_hp_vmappable,
             in_axes=(None, 0, None, None),
             out_axes=0,  # theta along first dimension
         )
         phase_shift = phase_shift_vmapped(L, jnp.arange(len(thetas)), nside, True)
-
     else:
         phase_shift = jnp.ones_like(thetas)
 
@@ -1249,7 +1250,7 @@ def _compute_forward_jax_vmap_scan(
             )[:, None].T
             * phase_shift_one
         )
-        return flm_half_carry, flm_half_carry
+        return flm_half_carry, None
 
     theta_weight_ftm_phase_shift = (thetas, weights, ftm, phase_shift)
     flm_half, _ = jax.lax.scan(cumsum, flm_half, theta_weight_ftm_phase_shift)
@@ -1657,7 +1658,7 @@ def _compute_forward_jax_vmap_loop_0(
 
 
 @partial(jit, static_argnums=(1, 2, 3, 6, 7, 8))
-def _compute_forward_jax_map(
+def _compute_forward_jax_map_double(
     f: np.ndarray,
     L: int,
     spin: int,
@@ -1718,7 +1719,9 @@ def _compute_forward_jax_map(
     )
 
     flm = (
-        flm.at[:, :, m_start_ind:]
+        flm.at[
+            :, :, m_start_ind:
+        ]  # fill in only from [:, max(L_lower, abs(spin)):, m_start_ind:]?
         .set(
             weights[:, None, None]
             * elfactors[None, :, None]
