@@ -3,7 +3,9 @@ import numpy.fft as fft
 import s2fft as s2f
 
 
-def inverse(flmn: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
+def inverse(
+    flmn: np.ndarray, L: int, N: int, sampling: str = "mw"
+) -> np.ndarray:
     r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
     :math:`SO(3)`.
 
@@ -38,18 +40,20 @@ def inverse(flmn: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarra
     if sampling not in ["mw", "mwss", "dh"]:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
-    fban = np.zeros(s2f.wigner.samples.f_shape(L, N, sampling), dtype=np.complex128)
+    fban = np.zeros(
+        s2f.wigner.samples.f_shape(L, N, sampling), dtype=np.complex128
+    )
 
     flmn_scaled = np.einsum(
-        "ijk,i->ijk", flmn, np.sqrt((2 * np.arange(L) + 1) / (16 * np.pi**3))
+        "nlm,l->nlm", flmn, np.sqrt((2 * np.arange(L) + 1) / (16 * np.pi**3))
     )
 
     for n in range(-N + 1, N):
-        fban[..., N - 1 + n] = (-1) ** n * s2f.transform.inverse(
-            flmn_scaled[..., N - 1 + n], L, spin=-n, sampling=sampling
+        fban[N - 1 + n] = (-1) ** n * s2f.transform.inverse(
+            flmn_scaled[N - 1 + n], L, spin=-n, sampling=sampling
         )
 
-    f = fft.ifft(fft.ifftshift(fban, axes=2), axis=2, norm="forward")
+    f = fft.ifft(fft.ifftshift(fban, axes=0), axis=0, norm="forward")
 
     return f
 
@@ -95,14 +99,16 @@ def forward(f: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
         2
         * np.pi
         / (2 * N - 1)
-        * fft.fftshift(fft.fft(f, axis=2, norm="backward"), axes=2)
+        * fft.fftshift(fft.fft(f, axis=0, norm="backward"), axes=0)
     )
 
     for n in range(-N + 1, N):
-        flmn[..., N - 1 + n] = (-1) ** n * s2f.transform.forward(
-            fabn[..., N - 1 + n], L, spin=-n, sampling=sampling
+        flmn[N - 1 + n] = (-1) ** n * s2f.transform.forward(
+            fabn[N - 1 + n], L, spin=-n, sampling=sampling
         )
 
-    flmn = np.einsum("ijk,i->ijk", flmn, np.sqrt(4 * np.pi / (2 * np.arange(L) + 1)))
+    flmn = np.einsum(
+        "nlm,l->nlm", flmn, np.sqrt(4 * np.pi / (2 * np.arange(L) + 1))
+    )
 
     return flmn

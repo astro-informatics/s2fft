@@ -87,22 +87,22 @@ def generate_flmn(
         for el in range(max(L_lower, abs(n)), L):
 
             if reality:
-                flmn[el, 0 + L - 1, N - 1 + n] = rng.uniform()
+                flmn[N - 1 + n, el, 0 + L - 1] = rng.uniform()
             else:
-                flmn[el, 0 + L - 1, N - 1 + n] = (
+                flmn[N - 1 + n, el, 0 + L - 1] = (
                     rng.uniform() + 1j * rng.uniform()
                 )
 
             for m in range(1, el + 1):
-                flmn[el, m + L - 1, N - 1 + n] = (
+                flmn[N - 1 + n, el, m + L - 1] = (
                     rng.uniform() + 1j * rng.uniform()
                 )
                 if reality:
-                    flmn[el, -m + L - 1, N - 1 + n] = (-1) ** m * np.conj(
-                        flmn[el, m + L - 1, N - 1 + n]
+                    flmn[N - 1 + n, el, -m + L - 1] = (-1) ** m * np.conj(
+                        flmn[N - 1 + n, el, m + L - 1]
                     )
                 else:
-                    flmn[el, -m + L - 1, N - 1 + n] = (
+                    flmn[N - 1 + n, el, -m + L - 1] = (
                         rng.uniform() + 1j * rng.uniform()
                     )
 

@@ -26,9 +26,7 @@ def test_inverse_wigner_transform(
     f_check = so3.inverse(flmn_1D, params)
 
     f = s2f.wigner.transform.inverse(flmn_3D, L, N, sampling)
-    f = np.moveaxis(f, -1, 0).flatten("C")
-
-    np.testing.assert_allclose(f, f_check, atol=1e-14)
+    np.testing.assert_allclose(f.flatten("C"), f_check, atol=1e-14)
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -50,9 +48,10 @@ def test_forward_wigner_transform(
         s2f.wigner.samples._nbeta(L, sampling),
         s2f.wigner.samples._nalpha(L, sampling),
     )
-    f_3D = np.moveaxis(f_3D, 0, -1)
 
-    flmn_check = s2f.wigner.samples.flmn_1d_to_3d(so3.forward(f_1D, params), L, N)
+    flmn_check = s2f.wigner.samples.flmn_1d_to_3d(
+        so3.forward(f_1D, params), L, N
+    )
     flmn = s2f.wigner.transform.forward(f_3D, L, N, sampling)
 
     np.testing.assert_allclose(flmn, flmn_check, atol=1e-14)
@@ -61,7 +60,9 @@ def test_forward_wigner_transform(
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
 @pytest.mark.parametrize("sampling", sampling_schemes)
-def test_round_trip_wigner_transform(flmn_generator, L: int, N: int, sampling: str):
+def test_round_trip_wigner_transform(
+    flmn_generator, L: int, N: int, sampling: str
+):
 
     flmn = flmn_generator(L=L, N=N, reality=False)
     f = s2f.wigner.transform.inverse(flmn, L, N, sampling)

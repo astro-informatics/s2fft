@@ -1,8 +1,11 @@
 import numpy as np
+from s2fft import samples
 from typing import Tuple
 
 
-def f_shape(L: int, N: int, sampling: str = "mw") -> Tuple[int, int, int]:
+def f_shape(
+    L: int, N: int, sampling: str = "mw", nside: int = None
+) -> Tuple[int, int, int]:
     r"""Computes the pixel-space sampling shape for signal on the rotation group
     :math:`SO(3)`.
 
@@ -22,6 +25,9 @@ def f_shape(L: int, N: int, sampling: str = "mw") -> Tuple[int, int, int]:
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh"}.  Defaults to "mw".
 
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
     Raises:
         ValueError: Unknown sampling scheme.
 
@@ -31,7 +37,11 @@ def f_shape(L: int, N: int, sampling: str = "mw") -> Tuple[int, int, int]:
     """
     if sampling in ["mw", "mwss", "dh"]:
 
-        return _nbeta(L, sampling), _nalpha(L, sampling), _ngamma(N)
+        return _ngamma(N), _nbeta(L, sampling), _nalpha(L, sampling)
+
+    elif sampling.lower() == "healpix":
+
+        return _ngamma(N), 12 * nside**2
 
     else:
 
@@ -51,7 +61,7 @@ def flmn_shape(L: int, N: int) -> Tuple[int, int, int]:
         Tuple[int,int,int]: Shape of Wigner space sampling of rotation group
             :math:`SO(3)`.
     """
-    return L, 2 * L - 1, 2 * N - 1
+    return 2 * N - 1, L, 2 * L - 1
 
 
 def flmn_shape_1d(L: int, N: int) -> int:
@@ -95,8 +105,6 @@ def _nalpha(L: int, sampling: str = "mw") -> int:
 
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
-    return 1
-
 
 def _nbeta(L: int, sampling: str = "mw") -> int:
     r"""Computes the number of :math:`\beta` samples.
@@ -128,8 +136,6 @@ def _nbeta(L: int, sampling: str = "mw") -> int:
     else:
 
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
-
-    return 1
 
 
 def _ngamma(N: int) -> int:
@@ -197,7 +203,9 @@ def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int) -> np.ndarray:
     for n in range(-N + 1, N):
         for el in range(L):
             for m in range(-el, el + 1):
-                flmn_1d[elmn2ind(el, m, n, L, N)] = flmn_3d[el, L - 1 + m, N - 1 + n]
+                flmn_1d[elmn2ind(el, m, n, L, N)] = flmn_3d[
+                    N - 1 + n, el, L - 1 + m
+                ]
 
     return flmn_1d
 
@@ -233,6 +241,8 @@ def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int) -> np.ndarray:
     for n in range(-N + 1, N):
         for el in range(L):
             for m in range(-el, el + 1):
-                flmn_3d[el, L - 1 + m, N - 1 + n] = flmn_1d[elmn2ind(el, m, n, L, N)]
+                flmn_3d[N - 1 + n, el, L - 1 + m] = flmn_1d[
+                    elmn2ind(el, m, n, L, N)
+                ]
 
     return flmn_3d
