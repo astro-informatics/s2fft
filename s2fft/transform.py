@@ -1485,13 +1485,6 @@ def _compute_forward_jax_vmap_loop(
         out_axes=0,  # place in first dim
     )
 
-    # phase shift
-    phase_shift = (
-        samples.ring_phase_shift_hp_vmappable(L, ti, nside, True)
-        if sampling.lower() == "healpix"
-        else 1.0
-    )
-
     # m start index
     if reality:
         m_start_ind = L - 1
@@ -1516,7 +1509,11 @@ def _compute_forward_jax_vmap_loop(
             * jax.lax.slice_in_dim(
                 ftm[ti, :], m_start_ind + m_offset, 2 * L - 1 + m_offset, axis=0
             )[:, None].T
-            * phase_shift
+            * (
+                samples.ring_phase_shift_hp_vmappable(L, ti, nside, True)
+                if sampling.lower() == "healpix"
+                else 1.0
+            )
         )
 
     # Compute full flm
@@ -1606,12 +1603,6 @@ def _compute_forward_jax_vmap_loop_0(
         in_axes=(None, 0, None, None, None),  # map along el
         out_axes=0,  # place in first dim
     )
-    # phase shift
-    phase_shift = (
-        samples.ring_phase_shift_hp_vmappable(L, ti, nside, True)
-        if sampling.lower() == "healpix"
-        else 1.0
-    )
 
     # m start index
     if reality:
@@ -1634,7 +1625,11 @@ def _compute_forward_jax_vmap_loop_0(
             * jax.lax.slice_in_dim(
                 ftm[ti, :], m_start_ind + m_offset, 2 * L - 1 + m_offset, axis=0
             )[:, None].T
-            * phase_shift
+            * (
+                samples.ring_phase_shift_hp_vmappable(L, ti, nside, True)
+                if sampling.lower() == "healpix"
+                else 1.0
+            )
         )
 
     # Pad the first n=max(L_lower, abs(spin)) rows with zeros
