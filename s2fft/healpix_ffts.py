@@ -41,50 +41,50 @@ def spectral_folding(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
     return ftm_slice
 
 
-def spectral_periodic_extension(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
+# def spectral_periodic_extension(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
+#     """Extends lower frequency Fourier coefficients onto higher frequency
+#     coefficients, i.e. imposed periodicity in Fourier space.
+
+#     Args:
+#         fm (np.ndarray): Slice of Fourier coefficients corresponding to ring at latitute t.
+
+#         nphi (int): Total number of pixel space phi samples for latitude t.
+
+#         L (int): Harmonic band-limit.
+
+#     Returns:
+#         np.ndarray: Higher resolution set of periodic Fourier coefficients.
+#     """
+#     assert nphi <= 2 * L
+
+#     slice_start = L - nphi // 2
+#     slice_stop = slice_start + nphi
+#     fm_full = np.zeros(2 * L, dtype=np.complex128)
+#     fm_full[slice_start:slice_stop] = fm
+
+#     idx = 1
+#     while slice_start - idx >= 0:
+#         fm_full[slice_start - idx] = fm[-idx % nphi]
+#         idx += 1
+#     idx = 0
+#     while slice_stop + idx < len(fm_full):
+#         fm_full[slice_stop + idx] = fm[idx % nphi]
+#         idx += 1
+
+#     return fm_full
+
+
+def spectral_periodic_extension(fm: np.ndarray, L: int, numpy_module=np) -> np.ndarray: 
     """Extends lower frequency Fourier coefficients onto higher frequency
-    coefficients, i.e. imposed periodicity in Fourier space.
-
-    Args:
-        fm (np.ndarray): Slice of Fourier coefficients corresponding to ring at latitute t.
-
-        nphi (int): Total number of pixel space phi samples for latitude t.
-
-        L (int): Harmonic band-limit.
-
-    Returns:
-        np.ndarray: Higher resolution set of periodic Fourier coefficients.
-    """
-    assert nphi <= 2 * L
-
-    slice_start = L - nphi // 2
-    slice_stop = slice_start + nphi
-    fm_full = np.zeros(2 * L, dtype=np.complex128)
-    fm_full[slice_start:slice_stop] = fm
-
-    idx = 1
-    while slice_start - idx >= 0:
-        fm_full[slice_start - idx] = fm[-idx % nphi]
-        idx += 1
-    idx = 0
-    while slice_stop + idx < len(fm_full):
-        fm_full[slice_stop + idx] = fm[idx % nphi]
-        idx += 1
-
-    return fm_full
-
-
-def spectral_periodic_extension_jax(fm, L, numpy_module=np): 
-    """Extends lower frequency Fourier coefficients onto higher frequency
-    coefficients, i.e. imposed periodicity in Fourier space. Based on `spectral_periodic_extension`,
-    modified to be JIT-compilable.
+    coefficients, i.e. imposed periodicity in Fourier space. 
+    Based on `spectral_periodic_extension`, modified to be JIT-compilable.
 
     Args:
         fm (np.ndarray): Slice of Fourier coefficients corresponding to ring at latitute t.
 
         L (int): Harmonic band-limit.
         
-        numpy_module: module to use, either numpy (np, default) or JAX's Numpy-like API (jnp)
+        numpy_module: JAX's Numpy-like API or Numpy. Default Numpy.
 
     Returns:
         np.ndarray: Higher resolution set of periodic Fourier coefficients.
@@ -98,38 +98,38 @@ def spectral_periodic_extension_jax(fm, L, numpy_module=np):
         ) 
     )
 
-def healpix_fft(f: np.ndarray, L: int, nside: int) -> np.ndarray:
-    """Computes the Forward Fast Fourier Transform with spectral back-projection
-    in the polar regions to manually enforce Fourier periodicity.
+# def healpix_fft(f: np.ndarray, L: int, nside: int) -> np.ndarray:
+#     """Computes the Forward Fast Fourier Transform with spectral back-projection
+#     in the polar regions to manually enforce Fourier periodicity.
 
-    Args:
-        f (np.ndarray): HEALPix pixel-space array.
+#     Args:
+#         f (np.ndarray): HEALPix pixel-space array.
 
-        L (int): Harmonic band-limit.
+#         L (int): Harmonic band-limit.
 
-        nside (int): HEALPix Nside resolution parameter.
+#         nside (int): HEALPix Nside resolution parameter.
 
-    Returns:
-        np.ndarray: Array of Fourier coefficients for all latitudes.
-    """
-    assert L >= 2 * nside
+#     Returns:
+#         np.ndarray: Array of Fourier coefficients for all latitudes.
+#     """
+#     assert L >= 2 * nside
 
-    index = 0
-    ftm = np.zeros(samples.ftm_shape(L, "healpix", nside), dtype=np.complex128)
-    ntheta = ftm.shape[0]
-    for t in range(ntheta):
-        nphi = samples.nphi_ring(t, nside)
-        fm_chunk = fft.fftshift(fft.fft(f[index : index + nphi], norm="backward"))
-        ftm[t] = (
-            fm_chunk
-            if nphi == 2 * L
-            else spectral_periodic_extension(fm_chunk, nphi, L)
-        )
-        index += nphi
-    return ftm
+#     index = 0
+#     ftm = np.zeros(samples.ftm_shape(L, "healpix", nside), dtype=np.complex128)
+#     ntheta = ftm.shape[0]
+#     for t in range(ntheta):
+#         nphi = samples.nphi_ring(t, nside)
+#         fm_chunk = fft.fftshift(fft.fft(f[index : index + nphi], norm="backward"))
+#         ftm[t] = (
+#             fm_chunk
+#             if nphi == 2 * L
+#             else spectral_periodic_extension(fm_chunk, nphi, L)
+#         )
+#         index += nphi
+#     return ftm
 
 
-def healpix_fft_jax(f: np.ndarray, L: int, nside: int, numpy_module=np) -> np.ndarray:
+def healpix_fft(f: np.ndarray, L: int, nside: int, numpy_module=np) -> np.ndarray:
     '''
     Healpix FFT JAX implementation using jax.numpy/numpy stack
 
@@ -158,7 +158,7 @@ def healpix_fft_jax(f: np.ndarray, L: int, nside: int, numpy_module=np) -> np.nd
         fm_chunk = numpy_module.fft.fftshift(
             numpy_module.fft.fft(f[index : index + nphi], norm="backward")
         )
-        ftm_rows.append(spectral_periodic_extension_jax(fm_chunk, L, numpy_module))
+        ftm_rows.append(spectral_periodic_extension(fm_chunk, L, numpy_module))
         index += nphi
     return numpy_module.stack(ftm_rows)
 

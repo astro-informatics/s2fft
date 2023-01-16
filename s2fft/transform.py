@@ -1067,7 +1067,7 @@ def _compute_forward_jax(
 
     # ftm array
     if sampling.lower() == "healpix":
-        ftm = hp.healpix_fft_jax(f, L, nside, jnp)
+        ftm = hp.healpix_fft(f, L, nside, jnp)
     else:
         if reality:
             t = jfft.rfft(
@@ -1202,10 +1202,10 @@ def _compute_flm_vmap_double(
         phase_shifts = jnp.array([[1.0]])
     else:
         phase_shifts = jax.vmap(
-            samples.ring_phase_shift_hp_vmappable,
-            in_axes=(None, 0, None, None),
+            samples.ring_phase_shift_hp,
+            in_axes=(None, 0, None, None, None),
             out_axes=-1,  # theta along last dimension
-        )(L, jnp.arange(len(thetas)), nside, True)
+        )(L, jnp.arange(len(thetas)), nside, True, jnp)
 
     # dl vmapped function (double vmap along theta and el)
     dl_fn = jax.vmap(
@@ -1309,10 +1309,10 @@ def _compute_flm_vmap_scan(
         phase_shifts = jnp.ones_like(thetas)
     else:
         phase_shifts = jax.vmap(
-            samples.ring_phase_shift_hp_vmappable,
-            in_axes=(None, 0, None, None),
+            samples.ring_phase_shift_hp,
+            in_axes=(None, 0, None, None, None),
             out_axes=0,  # theta along first dimension
-        )(L, jnp.arange(len(thetas)), nside, True)
+        )(L, jnp.arange(len(thetas)), nside, True, jnp)
 
     # dl vmapped function (single vmap along el)
     dl_vmapped = jax.vmap(
@@ -1406,10 +1406,10 @@ def _compute_flm_vmap_loop(
         phase_shifts = jnp.array([[1.0]])
     else:
         phase_shifts = jax.vmap(
-            samples.ring_phase_shift_hp_vmappable,
-            in_axes=(None, 0, None, None),
+            samples.ring_phase_shift_hp,
+            in_axes=(None, 0, None, None, None),
             out_axes=0,  # theta along first dimension
-        )(L, jnp.arange(len(thetas)), nside, True)
+        )(L, jnp.arange(len(thetas)), nside, True, jnp)
 
     # dl vmapped function (single vmap along el)
     dl_vmapped = jax.vmap(
@@ -1504,10 +1504,10 @@ def _compute_flm_map_double(
         phase_shifts = jnp.array([[1.0]])
     else:
         phase_shifts = jax.vmap(
-            samples.ring_phase_shift_hp_vmappable,
-            in_axes=(None, 0, None, None),
+            samples.ring_phase_shift_hp,
+            in_axes=(None, 0, None, None, None),
             out_axes=-1,  # theta along last dimension
-        )(L, jnp.arange(len(thetas)), nside, True)
+        )(L, jnp.arange(len(thetas)), nside, True, jnp)
 
     # dl array (double map along theta and el)
     dl = jax.lax.map(
@@ -1604,10 +1604,10 @@ def _compute_flm_map_scan(
         phase_shifts = jnp.ones_like(thetas)
     else:
         phase_shifts = jax.vmap(
-            samples.ring_phase_shift_hp_vmappable,
-            in_axes=(None, 0, None, None),
+            samples.ring_phase_shift_hp,
+            in_axes=(None, 0, None, None, None),
             out_axes=0,  # theta along first dimension
-        )(L, jnp.arange(len(thetas)), nside, True)
+        )(L, jnp.arange(len(thetas)), nside, True, jnp)
 
     # flm (lax.scan over theta)
     ts = jnp.arange(len(thetas))

@@ -210,68 +210,6 @@ def nphi_ring(t: int, nside: int = None) -> int:
         raise ValueError(f"Ring t={t} not contained by nside={nside}")
 
 
-#####################################
-# def nphi_ring_vmappable(t: int, nside: int = None) -> int:
-#     r"""Number of :math:`\phi` samples for HEALPix sampling on given :math:`\theta`
-#     ring.
-
-#     Args:
-#         t (int): Index of HEALPix :math:`\theta` ring.
-
-#         nside (int, optional): HEALPix Nside resolution parameter.
-
-#     Raises:
-#         ValueError: Invalid ring index given nside.
-
-#     Returns:
-#         int: Number of :math:`\phi` samples on given :math:`\theta` ring.
-#     """
-#     # If both lax.cond and jnp.where evaluate both branches
-#     # we may just use jnp.where here instead (similar to this https://github.com/astro-informatics/s2fft/blob/c5873cc54deb4b0dc2bca71d31718b0b65061a07/s2fft/samples.py#L375)
-#     # and have only one function for numpy and jax
-
-#     #######################
-#     # lax.cond approach
-#     nphi = lax.cond(
-#         (t >= 0) & (t < nside - 1),
-#         lambda t: 4 * (t + 1),
-#         lambda t: lax.cond(
-#             (t >= nside - 1) & (t <= 3 * nside - 1),
-#             lambda t: 4 * nside,
-#             lambda t: lax.cond(
-#                 (t > 3 * nside - 1) & (t <= 4 * nside - 2),
-#                 lambda t: 4 * (4 * nside - t - 1),
-#                 lambda t: 0*t, # this originally raised ValueError; I think because all branches are traced I need to give a value? but we don't expect this to be hit in ok conditions?
-#                 t),
-#             t),
-#         t) 
-    
-#     ##########################
-#     # jnp.where approach
-#     # nan where it would throw value error?
-
-#     # nphi_region_1 = jnp.where(
-#     #     (t >= 0) and (t < nside - 1),
-#     #     4 * (t + 1),
-#     #     jnp.nan)
-
-#     # nphi_region_2 = jnp.where(
-#     #     (t >= nside - 1) and (t <= 3 * nside - 1),
-#     #     4 * nside,
-#     #     jnp.nan)
-
-#     # nphi_region_3 = jnp.where(
-#     #     (t > 3 * nside - 1) and (t <= 4 * nside - 2),
-#     #     4 * (4 * nside - t - 1),
-#     #     jnp.nan)
-
-#     # nphi = nphi_region_1 * nphi_region_2 * nphi_region_3
-
-#     ############
-#     return nphi
-#####################################   
-
-
 def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray:
     r"""Compute :math:`\theta` samples for given sampling scheme.
 
@@ -395,8 +333,10 @@ def phis_ring(t: int, nside: int) -> np.ndarray:
     return p2phi_ring(t, p, nside)
 
 
-def p2phi_ring(t: int, p: int, nside: int) -> np.ndarray:
+def p2phi_ring(t: int, p: int, nside: int, numpy_module=np):
     r"""Convert index to :math:`\phi` angle for HEALPix for given :math:`\theta` ring.
+
+    See 'p2phi_ring_jax_lax' for an alternative JAX implementation using nested lax.cond's
 
     Args:
         t (int): :math:`\theta` index of ring.
@@ -405,23 +345,47 @@ def p2phi_ring(t: int, p: int, nside: int) -> np.ndarray:
 
         nside (int): HEALPix Nside resolution parameter.
 
+        numpy_module: JAX's Numpy-like API or Numpy. Default Numpy.
+
     Returns:
         np.ndarray: :math:`\phi` angle.
     """
 
-    shift = 1 / 2
-    if (t + 1 >= nside) & (t + 1 <= 3 * nside):
-        shift *= (t - nside + 2) % 2
-        factor = np.pi / (2 * nside)
-    elif t + 1 > 3 * nside:
-        factor = np.pi / (2 * (4 * nside - t - 1))
-    else:
-        factor = np.pi / (2 * (t + 1))
+    ## original
+    # shift = 1 / 2
+    # if (t + 1 >= nside) & (t + 1 <= 3 * nside):
+    #     shift *= (t - nside + 2) % 2
+    #     factor = np.pi / (2 * nside)
+    # elif t + 1 > 3 * nside:
+    #     factor = np.pi / (2 * (4 * nside - t - 1))
+    # else:
+    #     factor = np.pi / (2 * (t + 1))
+
+    ## alternative using jnp.where:
+    # shift per region (only 2 regions)
+    shift = numpy_module.where(
+        (t + 1 >= nside) & (t + 1 <= 3 * nside), (1 / 2) * ((t - nside + 2) % 2), 1 / 2
+    )
+    
+    # factor per region
+    factor_reg_1 = numpy_module.where(
+        (t + 1 >= nside) & (t + 1 <= 3 * nside), np.pi / (2 * nside), 1
+    )
+    factor_reg_2 = numpy_module.where(t + 1 > 3 * nside, np.pi / (2 * (4 * nside - t - 1)), 1)
+    factor_reg_3 = numpy_module.where(
+        (factor_reg_1 == 1) & (factor_reg_2 == 1), np.pi / (2 * (t + 1)), 1
+    )
+    factor = (
+        factor_reg_1 * factor_reg_2 * factor_reg_3
+    ) 
+
     return factor * (p + shift)
 
-
-def p2phi_ring_vmappable(t: int, p: int, nside: int) -> np.ndarray:
+def p2phi_ring_jax_lax(t: int, p: int, nside: int) -> jnp.ndarray:
     r"""Convert index to :math:`\phi` angle for HEALPix for given :math:`\theta` ring.
+    
+    Uses nested lax.cond from JAX. See 'p2phi_ring' for an alternative implementation using 
+    jnp.where/np.where
 
     Args:
         t (int): :math:`\theta` index of ring.
@@ -431,25 +395,8 @@ def p2phi_ring_vmappable(t: int, p: int, nside: int) -> np.ndarray:
         nside (int): HEALPix Nside resolution parameter.
 
     Returns:
-        np.ndarray: :math:`\phi` angle.
+        jnp.ndarray: :math:`\phi` angle.
     """
-
-    # shift per region (only 2 regions)
-    # shift = jnp.where(
-    #     (t + 1 >= nside) & (t + 1 <= 3 * nside), (1 / 2) * ((t - nside + 2) % 2), 1 / 2
-    # )
-    #
-    # factor per region
-    # factor_reg_1 = jnp.where(
-    #     (t + 1 >= nside) & (t + 1 <= 3 * nside), np.pi / (2 * nside), 1
-    # )
-    # factor_reg_2 = jnp.where(t + 1 > 3 * nside, np.pi / (2 * (4 * nside - t - 1)), 1)
-    # factor_reg_3 = jnp.where(
-    #     (factor_reg_1 == 1) & (factor_reg_2 == 1), np.pi / (2 * (t + 1)), 1
-    # )
-    # factor = (
-    #     factor_reg_1 * factor_reg_2 * factor_reg_3
-    # )  
 
     # using nested lax.cond
     shift = lax.cond((t + 1 >= nside) & (t + 1 <= 3 * nside),
@@ -466,8 +413,9 @@ def p2phi_ring_vmappable(t: int, p: int, nside: int) -> np.ndarray:
             lambda x: np.pi / (2 * (x + 1)),
             x),
         t)
-   
 
+ 
+   
     return factor * (p + shift)
 
 
@@ -530,8 +478,8 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
 
 
 def ring_phase_shift_hp(
-    L: int, t: int, nside: int, forward: bool = False
-) -> np.ndarray:
+    L: int, t: int, nside: int, forward: bool = False, numpy_module=np
+):
     r"""Generates a phase shift vector for HEALPix for a given :math:`\theta` ring.
 
     Args:
@@ -544,36 +492,14 @@ def ring_phase_shift_hp(
         forward (bool, optional): Whether to provide forward or inverse shift.
             Defaults to False.
 
-    Returns:
-        np.ndarray: Vector of phase shifts with shape :math:`[2L-1]`.
-    """
-    phi_offset = p2phi_ring(t, 0, nside)
-    sign = -1 if forward else 1
-    return np.exp(sign * 1j * np.arange(-L + 1, L) * phi_offset)
-
-
-def ring_phase_shift_hp_vmappable(
-    L: int, t: int, nside: int, forward: bool = False
-) -> np.ndarray:
-    r"""Generates a phase shift vector for HEALPix for a given :math:`\theta` ring.
-
-    Args:
-        L (int, optional): Harmonic band-limit.
-
-        t (int): :math:`\theta` index of ring.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-        forward (bool, optional): Whether to provide forward or inverse shift.
-            Defaults to False.
+        numpy_module: JAX's Numpy-like API or Numpy. Default Numpy.
 
     Returns:
         np.ndarray: Vector of phase shifts with shape :math:`[2L-1]`.
     """
-    phi_offset = p2phi_ring_vmappable(t, 0, nside)
+    phi_offset = p2phi_ring(t, 0, nside, numpy_module)
     sign = -1 if forward else 1
-    return jnp.exp(sign * 1j * jnp.arange(-L + 1, L) * phi_offset)
-
+    return numpy_module.exp(sign * 1j * numpy_module.arange(-L + 1, L) * phi_offset)
 
 def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> tuple:
     """Shape of spherical signal.
