@@ -48,7 +48,7 @@ positive_m_only: bool = False) -> jnp.ndarray:
         Warning: If positive_m_only is true but mm not 0.
 
     Returns:
-        np.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
+        jnp.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
     """
     if positive_m_only and mm != 0:
         positive_m_only = False
@@ -165,7 +165,7 @@ def _compute_quarter_slice(
     indices = jnp.arange(2 * L - 1)
 
     for i in range(2):
-        if not (positive_m_only and i == 0):#-------------
+        if not (positive_m_only and i == 0):
             sgn = (-1) ** (i)
 
             # Initialise the vector
@@ -208,14 +208,6 @@ def _compute_quarter_slice(
 
             if i == 1:
                 dl = dl.at[-em].multiply((-1) ** ((mm - em + el + 1) % 2) * renorm)
-        
-
-    ###########
-    # if positive_m_only : #s_ind = 0 if positive_m_only else -el
-    #     s_ind = 0 
-    #     for m in jnp.arange(s_ind, el + 1): # m is traced!, s_ind and el are traced
-    #         dl = dl.at[m + L - 1].multiply((-1) ** (abs(mm - m)))
-    #############
 
     return jnp.nan_to_num(dl, neginf=0, posinf=0)
 
