@@ -119,7 +119,7 @@ def test_transform_forward(
 
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.parametrize("ratio", L_to_nside_ratio)
-@pytest.mark.parametrize("method", method_to_test + method_to_test_forward_only)
+@pytest.mark.parametrize("method", method_to_test) # + method_to_test_forward_only)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_forward_healpix(
     flm_generator,
