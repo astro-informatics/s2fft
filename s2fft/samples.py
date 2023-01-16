@@ -369,11 +369,11 @@ def p2phi_ring(t: int, p: int, nside: int, numpy_module=np):
     
     # factor per region
     factor_reg_1 = numpy_module.where(
-        (t + 1 >= nside) & (t + 1 <= 3 * nside), np.pi / (2 * nside), 1
+        (t + 1 >= nside) & (t + 1 <= 3 * nside), numpy_module.pi / (2 * nside), 1
     )
-    factor_reg_2 = numpy_module.where(t + 1 > 3 * nside, np.pi / (2 * (4 * nside - t - 1)), 1)
+    factor_reg_2 = numpy_module.where(t + 1 > 3 * nside, numpy_module.pi / (2 * (4 * nside - t - 1)), 1)
     factor_reg_3 = numpy_module.where(
-        (factor_reg_1 == 1) & (factor_reg_2 == 1), np.pi / (2 * (t + 1)), 1
+        (factor_reg_1 == 1) & (factor_reg_2 == 1), numpy_module.pi / (2 * (t + 1)), 1
     )
     factor = (
         factor_reg_1 * factor_reg_2 * factor_reg_3
@@ -406,11 +406,11 @@ def p2phi_ring_jax_lax(t: int, p: int, nside: int) -> jnp.ndarray:
 
     factor = lax.cond(
         (t + 1 >= nside) & (t + 1 <= 3 * nside),
-        lambda x: np.pi / (2 * nside),
+        lambda x: jnp.pi / (2 * nside),
         lambda x: lax.cond(
             x + 1 > 3 * nside,
-            lambda x: np.pi / (2 * (4 * nside - x - 1)),
-            lambda x: np.pi / (2 * (x + 1)),
+            lambda x: jnp.pi / (2 * (4 * nside - x - 1)),
+            lambda x: jnp.pi / (2 * (x + 1)),
             x),
         t)
 
