@@ -255,11 +255,8 @@ def _forward(
 
     list_jax_methods = [
         "jax_vmap_double",
-        "jax_vmap_double_0",
         "jax_vmap_scan",
-        "jax_vmap_scan_0",
         "jax_vmap_loop",
-        "jax_vmap_loop_0",
         "jax_map_double",
         "jax_map_scan",
     ]
