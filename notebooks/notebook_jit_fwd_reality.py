@@ -33,7 +33,7 @@ sampling = "healpix"  #'dh' # in tests: ["mw", "mwss", "dh", "healpix"]
 nside = 4  # 2,4,8, if healpix, else None 
 if nside:
     L = 2 * nside  # 2 or 3 in tests
-reality = True
+reality = False # reality is set to false if Healpix and method is not direct or sov
 L_lower = 2  # in tests: L_lower_to_test = [0, 1, 2]
 
 
@@ -87,8 +87,28 @@ print(f'{sampling}, numpy vs GT: {np.allclose(flm_gt, flm_sov_fft_vec, atol=1e-1
 # 3.19 ms ± 28.5 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Using SOV + FFT Vectorised JAXed w JIT + vmap
-method_str = "sov_fft_vectorized_jax_vmap"
+# Using SOV + FFT Vectorised JAXed w JIT + double vmap (OOM issues)
+method_str = "sov_fft_vectorized_double_vmap"
+flm_sov_fft_vec_jax = s2f.transform._forward(
+    f,
+    L,
+    spin,
+    sampling,
+    method=method_str,
+    nside=nside,
+    reality=reality,
+    L_lower=L_lower,
+)
+
+if sampling=='healpix': # if healpix: compare to numpy
+    print(f'{sampling}, JAX vs numpy: {np.allclose(flm_sov_fft_vec, flm_sov_fft_vec_jax, atol=1e-14)}') 
+else:
+    print(f'{sampling}, JAX vs GT: {np.allclose(flm_gt, flm_sov_fft_vec_jax, atol=1e-14)}') 
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Using SOV + FFT Vectorised JAXed w JIT + vmap & scan
+method_str = "sov_fft_vectorized_vmap_scan"
 flm_sov_fft_vec_jax = s2f.transform._forward(
     f,
     L,
@@ -116,8 +136,6 @@ if sampling=='healpix': # compare to numpy
     print(f'{sampling}, JAX vs numpy: {np.allclose(flm_sov_fft_vec, flm_sov_fft_vec_jax, atol=1e-14)}') 
 else:
     print(f'{sampling}, JAX vs GT: {np.allclose(flm_gt, flm_sov_fft_vec_jax, atol=1e-14)}') 
-
-
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
