@@ -253,25 +253,28 @@ def _forward(
     # since accounted for already in periodic extension and upsampling.
     weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
 
-    list_jax_methods = [ 
+    list_jax_methods = [
         "jax_vmap_double",
+        "jax_vmap_double_0",
         "jax_vmap_scan",
         "jax_vmap_scan_0",
         "jax_vmap_loop",
         "jax_vmap_loop_0",
         "jax_map_double",
-        "jax_map_scan"
+        "jax_map_scan",
     ]
     transform_methods = dict(
         {
-        "direct": _compute_forward_direct,
-        "sov": _compute_forward_sov,
-        "sov_fft": _compute_forward_sov_fft,
-        "sov_fft_vectorized": _compute_forward_sov_fft_vectorized,},
+            "direct": _compute_forward_direct,
+            "sov": _compute_forward_sov,
+            "sov_fft": _compute_forward_sov_fft,
+            "sov_fft_vectorized": _compute_forward_sov_fft_vectorized,
+        },
         **{
-            jx_str: partial(_compute_forward_jax, jax_method=jx_str) 
+            jx_str: partial(_compute_forward_jax, jax_method=jx_str)
             for jx_str in list_jax_methods
-        })
+        }
+    )
 
     return transform_methods[method](
         f,
@@ -1025,7 +1028,44 @@ def _compute_forward_jax(
     L_lower: int,
     jax_method: str,
 ):
-    # m offset 
+    r"""Compute forward spherical harmonic transform using a specified JAX method.
+
+    Args:
+        f (np.ndarray): Signal on the sphere.
+
+        L (int): Harmonic band-limit.
+
+        spin (int): Harmonic spin.
+
+        sampling (str): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.
+
+        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+
+        weights (np.ndarray): Vector of quadrature weights on the sphere.
+
+        nside (int): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
+        L_lower (int): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
+
+        jax_method (str): Harmonic transform algorithm based on JAX functions.
+            They are all based on "sov_fft_vectorized", a vectorized function to
+            compute forward spherical harmonic transform by separation of variables
+            with a manual Fourier transform. Supported algorithms include
+            {"jax_vmap_double", "jax_vmap_scan", "jax_vmap_loop",
+            "jax_map_double", "jax_map_scan""}.
+
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients.
+    """
+
+    # m offset
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     # ftm array
@@ -1055,22 +1095,15 @@ def _compute_forward_jax(
     # m_start_ind
     m_start_ind = L - 1 if reality else 0
 
-    # Compute dl and flm---- diff approaches
-    # - double vmap
-    # - vmap + scan
-    # - vmap + loop
-    # - double map
-    # - map + scan
+    # Compute flm using the selected approach---change name to fn?
     flm_methods = {
-        'jax_vmap_double': _compute_flm_vmap_double,
-        'jax_vmap_scan': _compute_flm_vmap_scan,
-        'jax_vmap_scan_0': _compute_flm_vmap_scan_0,
-        'jax_vmap_loop': _compute_flm_vmap_loop,
-        'jax_vmap_loop_0': _compute_flm_vmap_loop_0,
-        'jax_map_double': _compute_flm_map_double,
-        'jax_map_scan': _compute_flm_map_scan,
+        "jax_vmap_double": _compute_flm_vmap_double,
+        "jax_vmap_scan": _compute_flm_vmap_scan,
+        "jax_vmap_loop": _compute_flm_vmap_loop,
+        "jax_map_double": _compute_flm_map_double,
+        "jax_map_scan": _compute_flm_map_scan,
     }
-    return flm_methods[jax_method](
+    flm = flm_methods[jax_method](
         L,
         spin,
         sampling,
@@ -1083,8 +1116,27 @@ def _compute_forward_jax(
         ftm,
         els,
         elfactors,
-        m_start_ind
+        m_start_ind,
     )
+
+    # Apply spin
+    flm *= (-1) ** spin
+
+    # Mask after pad (to set spurious results from wigner.turok_jax.compute_slice to zero)
+    upper_diag = jnp.triu(jnp.ones_like(flm, dtype=bool).T, k=-(L - 1)).T
+    mask = upper_diag * jnp.fliplr(upper_diag)
+    flm *= mask
+
+    # if reality=True: fill the first half of the columns w/ conjugate symmetric values
+    if reality:
+        # m conj
+        m_conj = (-1) ** (jnp.arange(1, L) % 2)
+
+        flm = flm.at[:, :m_start_ind].set(
+            jnp.flip(m_conj * jnp.conj(flm[:, m_start_ind + 1 :]), axis=-1)
+        )
+
+    return flm
 
 
 def _compute_flm_vmap_double(
@@ -1102,69 +1154,93 @@ def _compute_flm_vmap_double(
     elfactors: np.ndarray,
     m_start_ind: int,
 ):
-    ### Compute phase shift
-    if sampling.lower() == "healpix":
-        phase_shift_vmapped = jax.vmap(
+    r"""Compute forward spherical harmonic transform using the 'double vmap' JAX method.
+
+    We use the JAX `vmap` function to sweep across :math:`\theta` and :math:`\ell` (`el`).
+    Specifically, we compute the complete Wigner-d matrix (`dl`) as a 3D array by vmapping
+    the Turok & Bucher recursion twice, first along :math:`\theta` and then along :math:`\ell` (`el`).
+    The spherical harmonic coefficients are computed as the 2D array `flm` that results
+    from summing along the last dimension (:math:`\theta`) of the product 3D array.
+
+    Args:
+
+        L (int): Harmonic band-limit.
+
+        spin (int): Harmonic spin.
+
+        sampling (str): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.
+
+        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+
+        weights (np.ndarray): Vector of quadrature weights on the sphere.
+
+        nside (int): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
+        L_lower (int): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+
+        m_offset (int): set to 1 if sampling in ["mwss", "healpix"],
+            otherwise set to 0.
+
+        ftm (np.ndarray): fast Fourier transform matrix.
+
+        els (np.ndarray): vector of `el` values
+
+        elfactors (np.ndarray): vector of `el` factors, computed as
+            :math:`\sqrt{\frac{2el + 1}{4\pi}}`
+
+        m_start_ind (int): column offset if reality = True (set to L-1)
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients.
+    """
+
+    # phase shifts per theta
+    if sampling.lower() != "healpix":
+        phase_shifts = jnp.array([[1.0]])
+    else:
+        phase_shifts = jax.vmap(
             samples.ring_phase_shift_hp_vmappable,
             in_axes=(None, 0, None, None),
             out_axes=-1,  # theta along last dimension
-        )
+        )(L, jnp.arange(len(thetas)), nside, True)
 
-        # expand to 3D array (theta dim is the last)
-        phase_shift = phase_shift_vmapped(L, jnp.arange(len(thetas)), nside, True)[
-            None, :, :
-        ]
-
-    else:
-        phase_shift = 1.0
-
-
-    ### Compute dl_vmapped fn (double vmap)
-    dl_vmapped = jax.vmap(
+    # dl vmapped function (double vmap along theta and el)
+    dl_fn = jax.vmap(
         jax.vmap(
             wigner.turok_jax.compute_slice,
             in_axes=(0, None, None, None, None),
-            out_axes=-1,
+            out_axes=-1,  # theta along last dimension
         ),
         in_axes=(None, 0, None, None, None),
-        out_axes=0,
+        out_axes=0,  # el along first dimension
     )
 
-    ### Compute flm
+    # flm
     flm = jnp.zeros(
-        (len(els), samples.flm_shape(L)[-1], len(thetas)), dtype=jnp.complex128
+        (*samples.flm_shape(L), len(thetas)),  # 3D array (L, 2L-1, ntheta)
+        dtype=jnp.complex128,
     )
-    flm = flm.at[:, m_start_ind:, :].set(
-        weights[None, None, :]
-        * elfactors[:, None, None]
-        * dl_vmapped(thetas, els, L, -spin, reality)[:, m_start_ind:, :]
-        * jax.lax.slice_in_dim(
-            ftm, m_start_ind + m_offset, 2 * L - 1 + m_offset, axis=-1
-        )[
-            :, :, None
-        ].T  # -----do I need slice_in_dim? why not ftm[None, m_start_ind +  m_offset : 2 * L - 1 + m_offset,:]?
-        * phase_shift
-    ).sum(axis=-1)
-
-    # Apply spin
-    flm *= (-1) ** spin
-
-    # Pad the first n=max(L_lower, abs(spin)) rows with zeros--- via initialization instead?
-    flm = jnp.pad(flm, ((max(L_lower, abs(spin)), 0), (0, 0)))
-
-    # Mask after pad (to set spurious results from wigner.turok_jax.compute_slice to zero)
-    upper_diag = jnp.triu(jnp.ones_like(flm, dtype=bool).T, k=-(L - 1)).T
-    mask = upper_diag * jnp.fliplr(upper_diag)
-    flm *= mask
-
-    # if reality=True: fill the first half of the columns w/ conjugate symmetric values
-    if reality:
-        # m conj
-        m_conj = (-1) ** (jnp.arange(1, L) % 2)
-
-        flm = flm.at[:, :m_start_ind].set(
-            jnp.flip(m_conj * jnp.conj(flm[:, m_start_ind + 1 :]), axis=-1)
+    flm = (
+        flm.at[max(L_lower, abs(spin)) :, m_start_ind:, :]
+        .set(
+            weights  # [None,None,:]
+            * elfactors[:, None, None]
+            * dl_fn(thetas, els, L, -spin, reality)[:, m_start_ind:, :]
+            * ftm[:, m_start_ind + m_offset : 2 * L - 1 + m_offset, None].T
+            * phase_shifts[None, :, :]
         )
+        .sum(axis=-1)
+    )
+
+    # Pad the first n=max(L_lower, abs(spin)) rows with zeros--- now via initialization
+    # (Q for review: any advantage of one over the other?)
+    # flm = jnp.pad(flm, ((max(L_lower, abs(spin)), 0), (0, 0)))
 
     return flm
 
@@ -1184,151 +1260,85 @@ def _compute_flm_vmap_scan(
     elfactors: np.ndarray,
     m_start_ind: int,
 ):
+    r"""Compute forward spherical harmonic transform using the 'vmap + scan' JAX method.
+
+    We use the JAX `vmap` function to sweep across :math:`\ell` (`el`) and the JAX `lax.scan`
+    function to sweep across :math:`\theta`.
+    Specifically, we compute the complete Wigner-d matrix (`dl`) as a 2D array defined for each
+    :math:`\theta` value, by vmapping the Turok & Bucher recursion along :math:`\ell` (`el`).
+    The spherical harmonic coefficients are computed as the 2D array `flm` that results
+    from scanning along :math:`\theta` values and accumulating the result of the product.
+
+    Args:
+
+        L (int): Harmonic band-limit.
+
+        spin (int): Harmonic spin.
+
+        sampling (str): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.
+
+        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+
+        weights (np.ndarray): Vector of quadrature weights on the sphere.
+
+        nside (int): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
+        L_lower (int): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+
+        m_offset (int): set to 1 if sampling in ["mwss", "healpix"],
+            otherwise set to 0.
+
+        ftm (np.ndarray): fast Fourier transform matrix.
+
+        els (np.ndarray): vector of `el` values
+
+        elfactors (np.ndarray): vector of `el` factors, computed as
+            :math:`\sqrt{\frac{2el + 1}{4\pi}}`
+
+        m_start_ind (int): column offset if reality = True (set to L-1)
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients.
+    """
+
     # phase shift
-    if sampling.lower() == "healpix":
-        phase_shift = jax.vmap(
+    if sampling.lower() != "healpix":
+        phase_shifts = jnp.ones_like(thetas)
+    else:
+        phase_shifts = jax.vmap(
             samples.ring_phase_shift_hp_vmappable,
             in_axes=(None, 0, None, None),
             out_axes=0,  # theta along first dimension
         )(L, jnp.arange(len(thetas)), nside, True)
-    else:
-        phase_shift = jnp.ones_like(thetas)
 
-    # Compute dl_vmapped fn (single vmap)
+    # dl vmapped function (single vmap along el)
     dl_vmapped = jax.vmap(
         wigner.turok_jax.compute_slice,
-        in_axes=(None, 0, None, None, None),  # map along el
-        out_axes=0,  # place el along first dim
+        in_axes=(None, 0, None, None, None),  # vmap along el
+        out_axes=0,  # el along first dimension
     )
 
-    # Compute flm using lax.scan over theta
-    flm_half = jnp.zeros(
-        (len(els), samples.flm_shape(L)[-1] - m_start_ind),
-        dtype=jnp.complex128,  # len(thetas)),
-    ) # initialise flm_half (second half of the columns, from m_start_ind)
+    # flm (lax.scan over theta)
+    flm = jnp.zeros(samples.flm_shape(L), dtype=jnp.complex128)  # (L, 2L-1)
 
-    def accumulate(flm_half_carry, theta_weight_ftm_phase_shift):
-        theta, weight, ftm_one, phase_shift_one = theta_weight_ftm_phase_shift
-        flm_half_carry += (
+    def accumulate(flm_carry, theta_weight_ftm_phase_shift):
+        theta, weight, ftm_slice, phase_shift = theta_weight_ftm_phase_shift
+        flm_carry = flm_carry.at[max(L_lower, abs(spin)) :, m_start_ind:].add(
             weight
             * elfactors[:, None]
             * dl_vmapped(theta, els, L, -spin, reality)[:, m_start_ind:]
-            * jax.lax.slice_in_dim(
-                ftm_one, m_start_ind + m_offset, 2 * L - 1 + m_offset, axis=0
-            )[:, None].T
-            * phase_shift_one
+            * ftm_slice[None, m_start_ind + m_offset : 2 * L - 1 + m_offset]
+            * phase_shift
         )
-        return flm_half_carry, None
+        return flm_carry, None
 
-    flm_half, _ = jax.lax.scan(
-        accumulate, 
-        flm_half, 
-        (thetas, weights, ftm, phase_shift))
-
-    # Compute full flm
-    # 1- Pad the first n=max(L_lower, abs(spin)) rows with zeros,
-    flm_half = jnp.pad(flm_half, ((max(L_lower, abs(spin)), 0), (0, 0)))
-    # 2- if reality True: concatenate flm_half_padded with symm conj along columns
-    #    if reality False: pad the first m_start_ind columns w zeros
-    if reality:
-        # m conj
-        m_conj = (-1) ** (jnp.arange(1, L) % 2)
-
-        flm = jnp.hstack(
-            (
-                jnp.flip(m_conj * jnp.conj(flm_half[:, 1:]), axis=-1),
-                flm_half,
-            )
-        )
-    else:
-        flm = jnp.pad(flm_half, ((0, 0), (m_start_ind, 0)))
-
-    # Mask after pad (to set spurious results from wigner.turok_jax.compute_slice to zero)
-    upper_diag = jnp.triu(jnp.ones_like(flm, dtype=bool).T, k=-(L - 1)).T
-    mask = upper_diag * jnp.fliplr(upper_diag)
-    flm *= mask
-
-    # Apply spin
-    flm *= (-1) ** spin
-
-    return flm
-
-def _compute_flm_vmap_scan_0(
-    L: int,
-    spin: int,
-    sampling: str,
-    thetas: np.ndarray,
-    weights: np.ndarray,
-    nside: int,
-    reality: bool,
-    L_lower: int,
-    m_offset: int,
-    ftm: np.ndarray,
-    els: np.ndarray,
-    elfactors: np.ndarray,
-    m_start_ind: int,
-):
-    # phase shift
-    if sampling.lower() == "healpix":
-
-        phase_shift_vmapped = jax.vmap(
-            samples.ring_phase_shift_hp_vmappable,
-            in_axes=(None, 0, None, None),
-            out_axes=0,  # theta along first dimension
-        )
-        phase_shift = phase_shift_vmapped(L, jnp.arange(len(thetas)), nside, True)
-
-    else:
-        phase_shift = jnp.ones_like(thetas)
-
-    # Compute dl_vmapped fn (single vmap)
-    dl_vmapped = jax.vmap(
-        wigner.turok_jax.compute_slice,
-        in_axes=(None, 0, None, None, None),  # map along el
-        out_axes=0,  # place in first dim
-    )
-
-    
-    # compute flm using lax.scan over theta
-    flm = jnp.zeros(
-        (len(els), samples.flm_shape(L)[-1]), dtype=jnp.complex128  # len(thetas)),
-    ) # ---or jnp.zeros(samples.flm_shape(L), dtype=jnp.complex128): 
-
-    def cumsum(flm_carry, theta_weight_ftm_phase_shift):
-        theta, weight, ftm_one, phase_shift_one = theta_weight_ftm_phase_shift
-        flm_carry = flm_carry.at[:, m_start_ind:].add( # ----or: flm_carry.at[max(L_lower, abs(spin)):, m_start_ind:].add( 
-            weight
-            * elfactors[:, None]
-            * dl_vmapped(theta, els, L, -spin, reality)[:, m_start_ind:]
-            * jax.lax.slice_in_dim(
-                ftm_one, m_start_ind + m_offset, 2 * L - 1 + m_offset, axis=0
-            )[:, None].T
-            * phase_shift_one
-        )
-        return flm_carry, flm_carry
-
-    theta_weight_ftm_phase_shift = (thetas, weights, ftm, phase_shift)
-    flm, _ = jax.lax.scan(cumsum, flm, theta_weight_ftm_phase_shift)
-
-    # Pad the first n=max(L_lower, abs(spin)) rows with zeros
-    flm = jnp.pad(flm, ((max(L_lower, abs(spin)), 0), (0, 0)))
-
-    # Mask after pad (to set spurious results from wigner.turok_jax.compute_slice to zero)
-    upper_diag = jnp.triu(jnp.ones_like(flm, dtype=bool).T, k=-(L - 1)).T
-    mask = upper_diag * jnp.fliplr(upper_diag)
-    flm *= mask
-
-    # Apply spin
-    flm *= (-1) ** spin
-
-    # if reality=True: fill the first half of the columns w/ conjugate symmetric values
-    if reality:
-        # m conj
-        m_conj = (-1) ** (jnp.arange(1, L) % 2)
-
-        flm = flm.at[:, :m_start_ind].set(
-            jnp.flip(m_conj * jnp.conj(flm[:, m_start_ind + 1 :]), axis=-1)
-        )
+    flm, _ = jax.lax.scan(accumulate, flm, (thetas, weights, ftm, phase_shifts))
 
     return flm
 
@@ -1348,124 +1358,87 @@ def _compute_flm_vmap_loop(
     elfactors: np.ndarray,
     m_start_ind: int,
 ):
+    r"""Compute forward spherical harmonic transform using the 'vmap + loop' JAX method.
 
-    
-    # Compute dl_vmapped fn (single vmap)
-    dl_vmapped = jax.vmap(
-        wigner.turok_jax.compute_slice,
-        in_axes=(None, 0, None, None, None),  # map along el
-        out_axes=0,  # place in first dim
-    )
+    We use the JAX `vmap` function to sweep across :math:`\ell` (`el`) and a regular Python
+    loop to sweep across :math:`\theta`.
+    Specifically, we compute the complete Wigner-d matrix (`dl`) as a 2D array defined for each
+    :math:`\theta` value, by vmapping the Turok & Bucher recursion along :math:`\ell` (`el`).
+    The spherical harmonic coefficients are computed as the 2D array `flm` that results
+    from looping along :math:`\theta` values and accumulating the result of the product.
 
+    Args:
 
-    ###
-    # compute flm_half using a manual loop over theta
-    flm_half = jnp.zeros(
-        (len(els), samples.flm_shape(L)[-1] - m_start_ind),
-        dtype=jnp.complex128,  # len(thetas)),
-    )
-    for ti, theta in enumerate(thetas):  # ti not traced
-        flm_half += (
-            weights[ti]
-            * elfactors[:, None]
-            * dl_vmapped(theta, els, L, -spin, reality)[:, m_start_ind:]
-            * jax.lax.slice_in_dim(
-                ftm[ti, :], m_start_ind + m_offset, 2 * L - 1 + m_offset, axis=0
-            )[:, None].T
-            * (
-                samples.ring_phase_shift_hp_vmappable(L, ti, nside, True)
-                if sampling.lower() == "healpix"
-                else 1.0
-            )
-        )
+        L (int): Harmonic band-limit.
 
-    # Compute full flm
-    # 1- Pad the first n=max(L_lower, abs(spin)) rows with zeros,
-    flm_half = jnp.pad(flm_half, ((max(L_lower, abs(spin)), 0), (0, 0)))
-    # 2- if reality True: concatenate flm_half_padded with symm conj along columns
-    #    if reality False: pad the first m_start_ind columns w zeros
-    if reality:
-        m_conj = (-1) ** (jnp.arange(1, L) % 2)
-        flm = jnp.hstack(
-            (
-                jnp.flip(m_conj * jnp.conj(flm_half[:, 1:]), axis=-1),
-                flm_half,
-            )
-        )
+        spin (int): Harmonic spin.
+
+        sampling (str): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.
+
+        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+
+        weights (np.ndarray): Vector of quadrature weights on the sphere.
+
+        nside (int): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
+        L_lower (int): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+
+        m_offset (int): set to 1 if sampling in ["mwss", "healpix"],
+            otherwise set to 0.
+
+        ftm (np.ndarray): fast Fourier transform matrix.
+
+        els (np.ndarray): vector of `el` values
+
+        elfactors (np.ndarray): vector of `el` factors, computed as
+            :math:`\sqrt{\frac{2el + 1}{4\pi}}`
+
+        m_start_ind (int): column offset if reality = True (set to L-1)
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients.
+    """
+    # phase shift
+    if sampling.lower() != "healpix":
+        phase_shifts = jnp.array([[1.0]])
     else:
-        flm = jnp.pad(flm_half, ((0, 0), (m_start_ind, 0)))
+        phase_shifts = jax.vmap(
+            samples.ring_phase_shift_hp_vmappable,
+            in_axes=(None, 0, None, None),
+            out_axes=0,  # theta along first dimension
+        )(L, jnp.arange(len(thetas)), nside, True)
 
-    # Mask after pad (to set spurious results from wigner.turok_jax.compute_slice to zero)
-    upper_diag = jnp.triu(jnp.ones_like(flm, dtype=bool).T, k=-(L - 1)).T
-    mask = upper_diag * jnp.fliplr(upper_diag)
-    flm *= mask
-
-    # Apply spin
-    flm *= (-1) ** spin
-
-    return flm
-
-def _compute_flm_vmap_loop_0(
-    L: int,
-    spin: int,
-    sampling: str,
-    thetas: np.ndarray,
-    weights: np.ndarray,
-    nside: int,
-    reality: bool,
-    L_lower: int,
-    m_offset: int,
-    ftm: np.ndarray,
-    els: np.ndarray,
-    elfactors: np.ndarray,
-    m_start_ind: int,
-):
-    # Compute dl_vmapped fn (single vmap)
+    # dl vmapped function (single vmap along el)
     dl_vmapped = jax.vmap(
         wigner.turok_jax.compute_slice,
-        in_axes=(None, 0, None, None, None),  # map along el
-        out_axes=0,  # place in first dim
+        in_axes=(None, 0, None, None, None),  # vmap along el
+        out_axes=0,  # el along first dimension
     )
 
-    # compute flm using a manual loop over theta
-    flm = jnp.zeros((len(els), samples.flm_shape(L)[-1]), dtype=jnp.complex128)
-
+    # flm (Python loop over theta)
+    flm = jnp.zeros(samples.flm_shape(L), dtype=jnp.complex128)  # (L, 2L-1)
     for ti, theta in enumerate(thetas):
-        flm = flm.at[:, m_start_ind:].add(
+        flm = flm.at[max(L_lower, abs(spin)) :, m_start_ind:].add(
             weights[ti]
             * elfactors[:, None]
             * dl_vmapped(theta, els, L, -spin, reality)[:, m_start_ind:]
-            * jax.lax.slice_in_dim(
-                ftm[ti, :], m_start_ind + m_offset, 2 * L - 1 + m_offset, axis=0
-            )[:, None].T
-            * (
-                samples.ring_phase_shift_hp_vmappable(L, ti, nside, True)
-                if sampling.lower() == "healpix"
-                else 1.0
-            )
-        )
-
-    # Pad the first n=max(L_lower, abs(spin)) rows with zeros
-    flm = jnp.pad(flm, ((max(L_lower, abs(spin)), 0), (0, 0)))
-
-    # Mask after pad (to set spurious results from wigner.turok_jax.compute_slice to zero)
-    upper_diag = jnp.triu(jnp.ones_like(flm, dtype=bool).T, k=-(L - 1)).T
-    mask = upper_diag * jnp.fliplr(upper_diag)
-    flm *= mask
-
-    # Apply spin
-    flm *= (-1) ** spin
-
-    # if reality=True: fill the first half of the columns w/ conjugate symmetric values
-    if reality:
-        # m conj
-        m_conj = (-1) ** (jnp.arange(1, L) % 2)
-
-        flm = flm.at[:, :m_start_ind].set(
-            jnp.flip(m_conj * jnp.conj(flm[:, m_start_ind + 1 :]), axis=-1)
+            * ftm[ti, m_start_ind + m_offset : 2 * L - 1 + m_offset][:, None].T
+            * phase_shifts[ti, :]
+            # * (
+            #     samples.ring_phase_shift_hp_vmappable(L, ti, nside, True)
+            #     if sampling.lower() == "healpix"
+            #     else 1.0
+            # ) # Q for review: is this alternative phase_shift computation preferred? (less memory?)
         )
 
     return flm
+
 
 def _compute_flm_map_double(
     L: int,
@@ -1482,61 +1455,90 @@ def _compute_flm_map_double(
     elfactors: np.ndarray,
     m_start_ind: int,
 ):
-    # phase shift
+    r"""Compute forward spherical harmonic transform using the 'double map' JAX method.
+
+    We use the JAX `lax.map` function to sweep across :math:`\theta` and :math:`\ell` (`el`).
+    Specifically, we compute the complete Wigner-d matrix (`dl`) as a 3D array by mapping
+    the Turok & Bucher recursion twice, first along :math:`\theta` and then along :math:`\ell` (`el`).
+    The spherical harmonic coefficients are computed as the 2D array `flm` that results
+    from summing along the last dimension (:math:`\theta`) of the product 3D array.
+
+
+    Args:
+
+        L (int): Harmonic band-limit.
+
+        spin (int): Harmonic spin.
+
+        sampling (str): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.
+
+        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+
+        weights (np.ndarray): Vector of quadrature weights on the sphere.
+
+        nside (int): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
+        L_lower (int): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+
+        m_offset (int): set to 1 if sampling in ["mwss", "healpix"],
+            otherwise set to 0.
+
+        ftm (np.ndarray): fast Fourier transform matrix.
+
+        els (np.ndarray): vector of `el` values
+
+        elfactors (np.ndarray): vector of `el` factors, computed as
+            :math:`\sqrt{\frac{2el + 1}{4\pi}}`
+
+        m_start_ind (int): column offset if reality = True (set to L-1)
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients.
+    """
+
+    # phase shifts per theta
     if sampling.lower() != "healpix":
         phase_shifts = jnp.array([[1.0]])
     else:
         phase_shifts = jax.vmap(
-            samples.ring_phase_shift_hp_vmappable, in_axes=(None, 0, None, None)
+            samples.ring_phase_shift_hp_vmappable,
+            in_axes=(None, 0, None, None),
+            out_axes=-1,  # theta along last dimension
         )(L, jnp.arange(len(thetas)), nside, True)
 
-    # Compute dl (double map)
-    dl_mapped = jax.lax.map(
-        lambda theta: jax.lax.map(
-            lambda el: wigner.turok_jax.compute_slice(theta, el, L, -spin), els
-        ),
-        thetas,
+    # dl array (double map along theta and el)
+    dl = jax.lax.map(
+        lambda el: jax.lax.map(
+            lambda theta: wigner.turok_jax.compute_slice(theta, el, L, -spin), thetas
+        ).T,
+        els,
     )
 
-    # Compute flm
+    # flm
     flm = jnp.zeros(
-        (len(thetas), len(els), samples.flm_shape(L)[-1]), dtype=jnp.complex128
+        (*samples.flm_shape(L), len(thetas)),  # 3D array (L, 2L-1, ntheta)
+        dtype=jnp.complex128,
     )
     flm = (
-        flm.at[
-            :, :, m_start_ind:
-        ]  # fill in only from [:, max(L_lower, abs(spin)):, m_start_ind:]?
+        flm.at[max(L_lower, abs(spin)) :, m_start_ind:, :]
         .set(
-            weights[:, None, None]
-            * elfactors[None, :, None]
-            * dl_mapped[:, :, m_start_ind:]
-            * ftm[:, None, m_start_ind + m_offset : 2 * L - 1 + m_offset]
-            * phase_shifts[:, None, :]
+            weights
+            * elfactors[:, None, None]
+            * dl[:, m_start_ind:, :]
+            * ftm[:, m_start_ind + m_offset : 2 * L - 1 + m_offset, None].T
+            * phase_shifts[None, :, :]
         )
-        .sum(axis=0)
+        .sum(axis=-1)
     )
 
-    # Apply spin
-    flm *= (-1) ** spin
-
-    # Pad the first n=max(L_lower, abs(spin)) rows with zeros
-    flm = jnp.pad(flm, ((max(L_lower, abs(spin)), 0), (0, 0)))
-
-    # Mask after pad (to set spurious results from wigner.turok_jax.compute_slice to zero)
-    upper_diag = jnp.triu(jnp.ones_like(flm, dtype=bool).T, k=-(L - 1)).T
-    mask = upper_diag * jnp.fliplr(upper_diag)
-    flm *= mask
-
-    # if reality=True: fill the first half of the columns w/ conjugate symmetric values
-    if reality:
-        # m conj
-        m_conj = (-1) ** (jnp.arange(1, L) % 2)
-
-        flm = flm.at[:, :m_start_ind].set(
-            jnp.flip(m_conj * jnp.conj(flm[:, m_start_ind + 1 :]), axis=-1)
-        )
-
     return flm
+
 
 def _compute_flm_map_scan(
     L: int,
@@ -1553,59 +1555,96 @@ def _compute_flm_map_scan(
     elfactors: np.ndarray,
     m_start_ind: int,
 ):
-    def accumulate(flm, t_theta_weight_ftm):
-        t, theta, weight, ftm_slice = t_theta_weight_ftm
+    r"""Compute forward spherical harmonic transform using the 'map + scan' JAX method.
 
-        phase_shift = (
-            samples.ring_phase_shift_hp_vmappable(L, t, nside, forward=True)
-            if sampling.lower() == "healpix"
-            else 1.0
-        )
-        # Compute dl (single map across el)
+    We use the JAX `map` function to sweep across :math:`\ell` (`el`) and the JAX `lax.scan`
+    function to sweep across :math:`\theta`.
+    Specifically, we compute the complete Wigner-d matrix (`dl`) as a 2D array defined for each
+    :math:`\theta` value, by mapping the Turok & Bucher recursion along :math:`\ell` (`el`).
+    The spherical harmonic coefficients are computed as the 2D array `flm` that results
+    from scanning along :math:`\theta` values and accumulating the result of the product.
+
+    Args:
+
+        L (int): Harmonic band-limit.
+
+        spin (int): Harmonic spin.
+
+        sampling (str): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.
+
+        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+
+        weights (np.ndarray): Vector of quadrature weights on the sphere.
+
+        nside (int): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
+        L_lower (int): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+
+        m_offset (int): set to 1 if sampling in ["mwss", "healpix"],
+            otherwise set to 0.
+
+        ftm (np.ndarray): fast Fourier transform matrix.
+
+        els (np.ndarray): vector of `el` values
+
+        elfactors (np.ndarray): vector of `el` factors, computed as
+            :math:`\sqrt{\frac{2el + 1}{4\pi}}`
+
+        m_start_ind (int): column offset if reality = True (set to L-1)
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients.
+    """
+
+    # phase shift
+    if sampling.lower() != "healpix":
+        phase_shifts = jnp.ones_like(thetas)
+    else:
+        phase_shifts = jax.vmap(
+            samples.ring_phase_shift_hp_vmappable,
+            in_axes=(None, 0, None, None),
+            out_axes=0,  # theta along first dimension
+        )(L, jnp.arange(len(thetas)), nside, True)
+
+    # flm (lax.scan over theta)
+    ts = jnp.arange(len(thetas))
+    flm = jnp.zeros(samples.flm_shape(L), dtype=jnp.complex128)  # (L, 2L-1)
+
+    def accumulate(flm_carry, t_theta_weight_ftm_phase_shift):
+        t, theta, weight, ftm_slice, phase_shift = t_theta_weight_ftm_phase_shift
+
+        # alternative: compute phase_shift inside accumulate for each theta value?
+        # Q for review: is this preferred? (less memory but slower?)
+        # phase_shift = (
+        #     samples.ring_phase_shift_hp_vmappable(L, t, nside, forward=True)
+        #     if sampling.lower() == "healpix"
+        #     else 1.0
+        # )
+
+        # dl array (single map across el)
         dl = jax.lax.map(
             lambda el: wigner.turok_jax.compute_slice(theta, el, L, -spin), els
         )
 
-        flm = flm.at[max(L_lower, abs(spin)) : L, m_start_ind:].add(
-            weight * elfactors[:, None] * dl[:, m_start_ind:] * ftm_slice * phase_shift
+        flm_carry = flm_carry.at[max(L_lower, abs(spin)) :, m_start_ind:].add(
+            weight
+            * elfactors[:, None]
+            * dl[:, m_start_ind:]
+            * ftm_slice[None, m_start_ind + m_offset : 2 * L - 1 + m_offset]
+            * phase_shift
         )
-        return flm, None  # return carry, stacked
+        return flm_carry, None
 
-    # Compute flm
-    ts = jnp.arange(len(thetas))
     flm, _ = jax.lax.scan(
         accumulate,
-        jnp.zeros(samples.flm_shape(L), dtype=jnp.complex128),
-        (
-            ts,
-            thetas,
-            weights,
-            ftm[:, None, m_start_ind + m_offset : 2 * L - 1 + m_offset],
-        ),
+        flm,
+        (ts, thetas, weights, ftm, phase_shifts),
     )
 
-    # Apply spin
-    flm *= (-1) ** spin
-
-    # No padding required!
-
-    # Mask after pad (to set spurious results from wigner.turok_jax.compute_slice to zero)
-    upper_diag = jnp.triu(jnp.ones_like(flm, dtype=bool).T, k=-(L - 1)).T
-    mask = upper_diag * jnp.fliplr(upper_diag)
-    flm *= mask
-
-    # if reality=True: fill the first half of the columns w/ conjugate symmetric values
-    if reality:
-        # m conj
-        m_conj = (-1) ** (jnp.arange(1, L) % 2)
-
-        flm = flm.at[:, :m_start_ind].set(
-            jnp.flip(m_conj * jnp.conj(flm[:, m_start_ind + 1 :]), axis=-1)
-        )
-
     return flm
-
-
-
-
-
