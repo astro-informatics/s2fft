@@ -108,24 +108,25 @@ def inverse_transform(
     Returns:
         np.ndarray: Pixel-space coefficients.
     """
-    fnab = np.zeros(samples.f_shape(L, N, sampling), dtype=np.complex128)
-    glmn = np.einsum(
-        "...nlm,...l->...nlm",
-        flmn,
-        np.sqrt((2 * np.arange(L) + 1) / (16 * np.pi**3)),
+    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    fnab = np.zeros(samples.fnab_shape(L, N, sampling), dtype=np.complex128)
+    fnab[..., m_offset:] = np.einsum(
+        "...ntlm, ...nlm -> ...ntm",
+        kernel,
+        np.einsum(
+            "...nlm,...l->...nlm",
+            flmn,
+            np.sqrt((2 * np.arange(L) + 1) / (16 * np.pi**3)),
+        ),
+        optimize=True,
     )
-    for n in range(-N + 1, N):
-        fnab[N - 1 + n] = (-1) ** n * s2.inverse_transform(
-            glmn[N - 1 + n],
-            kernel[N - 1 + n],
-            L,
-            sampling,
-            spin=-n,
-            nside=nside,
-            phase_shifts=phase_shifts,
-        )
-    fnab = np.fft.ifftshift(fnab, axes=-3)
-    return np.fft.ifft(fnab, axis=-3, norm="forward")
+
+    if sampling.lower() in ["mw", "mwss", "dh"]:
+        fnab = np.fft.ifftshift(fnab, axes=(-1, -3))
+        return np.fft.ifft2(fnab, axes=(-1, -3), norm="forward")
+
+    else:
+        raise ValueError("Sampling not yet implemented")
 
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
@@ -162,27 +163,27 @@ def inverse_transform_jax(
     Returns:
         jnp.ndarray: Pixel-space coefficients.
     """
-    fnab = jnp.zeros(samples.f_shape(L, N, sampling), dtype=jnp.complex128)
-    glmn = jnp.einsum(
-        "...nlm,...l->...nlm",
-        flmn,
-        jnp.sqrt((2 * jnp.arange(L) + 1) / (16 * jnp.pi**3)),
-    )
-    for n in range(-N + 1, N):
-        fnab = fnab.at[N - 1 + n].set(
-            (-1) ** n
-            * s2.inverse_transform_jax(
-                glmn[N - 1 + n],
-                kernel[N - 1 + n],
-                L,
-                sampling,
-                spin=-n,
-                nside=nside,
-                phase_shifts=phase_shifts,
-            )
+    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    fnab = jnp.zeros(samples.fnab_shape(L, N, sampling), dtype=jnp.complex128)
+    fnab = fnab.at[..., m_offset:].set(
+        jnp.einsum(
+            "...ntlm, ...nlm -> ...ntm",
+            kernel,
+            jnp.einsum(
+                "...nlm,...l->...nlm",
+                flmn,
+                jnp.sqrt((2 * jnp.arange(L) + 1) / (16 * jnp.pi**3)),
+            ),
+            optimize=True,
         )
-    fnab = jnp.fft.ifftshift(fnab, axes=-3)
-    return jnp.fft.ifft(fnab, axis=-3, norm="forward")
+    )
+
+    if sampling.lower() in ["mw", "mwss", "dh"]:
+        fnab = jnp.fft.ifftshift(fnab, axes=(-1, -3))
+        return jnp.fft.ifft2(fnab, axes=(-1, -3), norm="forward")
+
+    else:
+        raise ValueError("Sampling not yet implemented")
 
 
 def forward(

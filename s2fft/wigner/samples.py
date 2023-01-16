@@ -64,6 +64,45 @@ def flmn_shape(L: int, N: int) -> Tuple[int, int, int]:
     return 2 * N - 1, L, 2 * L - 1
 
 
+def fnab_shape(
+    L: int, N: int, sampling: str = "mw", nside: int = None
+) -> Tuple[int, int, int]:
+    r"""Computes the shape of Wigner coefficients for signal on the rotation group
+    :math:`SO(3)`.
+
+    Args:
+        L (int): Harmonic band-limit.
+
+        N (int): Directional band-limit.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.
+
+    Raises:
+        ValueError: Unknown sampling scheme.
+
+    Returns:
+        Tuple[int,int,int]: Shape of Wigner space sampling of rotation group
+            :math:`SO(3)`.
+    """
+
+    if sampling.lower() in ["mwss", "healpix"]:
+
+        return 2 * N - 1, samples.ntheta(L, sampling, nside), 2 * L
+
+    elif sampling.lower() in ["mw", "dh"]:
+
+        return 2 * N - 1, samples.ntheta(L, sampling, nside), 2 * L - 1
+
+    else:
+
+        raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+
+    return 1
+
+
 def flmn_shape_1d(L: int, N: int) -> int:
     r"""Computes the number of non-zero Wigner coefficients.
 
