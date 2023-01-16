@@ -144,6 +144,35 @@ def test_transform_forward_healpix(
 
     np.testing.assert_allclose(flm_direct_hp, flm_check, atol=1e-14)
 
+@pytest.mark.parametrize("nside", nside_to_test)
+@pytest.mark.parametrize("ratio", L_to_nside_ratio)
+@pytest.mark.parametrize("method", method_to_test_forward_only)
+@pytest.mark.parametrize("reality", reality_to_test)
+def test_transform_forward_healpix_jax(
+    flm_generator,
+    nside: int,
+    ratio: int,
+    method: str,
+    reality: bool,
+):
+    sampling = "healpix"
+    L = ratio * nside
+    flm = flm_generator(L=L, reality=reality)
+    f = s2f.transform._inverse(
+        flm, L, sampling=sampling, method='direct', nside=nside, reality=reality
+    )
+
+    # use output from vectorized approach as ground-truth
+    flm_sov_fft_vec = s2f.transform._forward(
+        f, L, sampling=sampling, method='sov_fft_vectorized', nside=nside, reality=reality
+    )
+
+    flm_recov = s2f.transform._forward(
+        f, L, sampling=sampling, method=method, nside=nside, reality=reality
+    )
+
+    np.testing.assert_allclose(flm_sov_fft_vec, flm_recov, atol=1e-14)
+
 
 @pytest.mark.parametrize("nside", nside_to_test)
 def test_healpix_nside_to_L_exceptions(flm_generator, nside: int):
