@@ -21,10 +21,10 @@ DEFAULT_SEED = 8966433580120847635
 rn_gen = np.random.default_rng(DEFAULT_SEED)  # modify to use JAX random key approach?
 
 ### input params
-L_in = 5  # input L, redefined to 2*nside if sampling is healpix
-spin = 0
-reality = True
-L_lower = 2
+L_in = 6  # input L, redefined to 2*nside if sampling is healpix
+spin = -2
+reality = False
+L_lower = 1
 nside_healpix = 2
 
 # list jax implementations
@@ -76,7 +76,7 @@ for m_str in list_jax_str:
             # compute ground truth and starting point f
             flm_gt0 = s2f.utils.generate_flm(rn_gen, L, L_lower, spin, reality=reality)
             f = s2f.transform._inverse(
-                flm_gt0, L, sampling=sampling, method="direct", nside=nside
+                flm_gt0, L, spin, sampling=sampling, method="direct", nside=nside, reality=reality, L_lower=L_lower
             )
 
             # Compute numpy solution if sampling is healpix (used as GT)
@@ -106,11 +106,11 @@ for m_str in list_jax_str:
         # Compare to GT
         if sampling == "healpix":  # compare to numpy result rather than GT
             print(
-                f"{m_str} vs numpy ({sampling}, L = {L}): {np.allclose(flm_sov_fft_vec, flm_sov_fft_vec_jax, atol=1e-14)}"
+                f"{m_str} vs numpy ({sampling}, L = {L}): {np.allclose(flm_sov_fft_vec, flm_sov_fft_vec_jax, atol=1e-14, rtol=1e-07)}"
             )
         else:
             print(
-                f"{m_str} vs GT ({sampling}, L = {L}): {np.allclose(flm_gt, flm_sov_fft_vec_jax, atol=1e-14)}"
+                f"{m_str} vs GT ({sampling}, L = {L}): {np.allclose(flm_gt, flm_sov_fft_vec_jax, atol=1e-14, rtol=1e-07)}" # rtol=1e-07 default in np.testing.assert_allclose
             )
 
         # %timeit s2f.transform._forward(f, L, spin, sampling, method=m_str, nside=nside, reality=reality, L_lower=L_lower)
