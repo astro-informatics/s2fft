@@ -1,6 +1,6 @@
 import numpy as np
 from s2fft.wigner import samples
-from s2fft import quadrature, resampling
+from s2fft.general_precompute import quadrature_jax, resampling_jax
 from s2fft.general_precompute import spin_spherical as s2
 from s2fft.general_precompute.construct import healpix_phase_shifts
 from functools import partial
@@ -281,12 +281,12 @@ def forward_transform(
         np.ndarray: Pixel-space coefficients.
     """
     flmn = np.zeros(samples.flmn_shape(L, N), dtype=np.complex128)
-    fban = np.fft.fftshift(np.fft.fft(f, axis=0, norm="backward"), axes=0)
-    fban *= 2 * np.pi / (2 * N - 1)
+    fnab = np.fft.fftshift(np.fft.fft(f, axis=0, norm="backward"), axes=0)
+    fnab *= 2 * np.pi / (2 * N - 1)
 
     for n in range(-N + 1, N):
         flmn[N - 1 + n] = (-1) ** n * s2.forward_transform(
-            fban[N - 1 + n],
+            fnab[N - 1 + n],
             kernel[N - 1 + n],
             L,
             sampling,
@@ -336,29 +336,30 @@ def forward_transform_jax(
     Returns:
         jnp.ndarray: Pixel-space coefficients.
     """
-    flmn = jnp.zeros(samples.flmn_shape(L, N), dtype=jnp.complex128)
     fban = jnp.fft.fftshift(jnp.fft.fft(f, axis=0, norm="backward"), axes=0)
     fban *= 2 * jnp.pi / (2 * N - 1)
 
-    for n in range(-N + 1, N):
-        flmn = flmn.at[N - 1 + n].set(
-            (-1) ** n
-            * s2.forward_transform_jax(
-                fban[N - 1 + n],
-                kernel[N - 1 + n],
-                L,
-                sampling,
-                -n,
-                nside,
-                phase_shifts,
-            )
-        )
+    spins = -jnp.arange(-N + 1, N)
+    if sampling.lower() == "mw":
+        fban = resampling_jax.mw_to_mwss(fban, L, spins)
 
-    flmn = jnp.einsum(
+    if sampling.lower() in ["mw", "mwss"]:
+        sampling = "mwss"
+        fban = resampling_jax.upsample_by_two_mwss(fban, L, spins)
+
+    weights = quadrature_jax.quad_weights_transform(L, sampling, nside)
+    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+
+    fban = jnp.fft.fft(fban, axis=-1, norm="backward")
+    fban = jnp.fft.fftshift(fban, axes=-1)[:, :, m_offset:]
+
+    fban = jnp.einsum("...ntm, ...t->...ntm", fban, weights, optimize=True)
+    fban = jnp.einsum("...ntlm, ...ntm -> ...nlm", kernel, fban, optimize=True)
+    fban = jnp.einsum(
         "nlm,l->nlm",
-        flmn,
+        fban,
         jnp.sqrt(4 * jnp.pi / (2 * jnp.arange(L) + 1)),
         optimize=True,
     )
 
-    return flmn
+    return fban

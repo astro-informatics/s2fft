@@ -284,7 +284,7 @@ def forward_transform_jax(
     nside: int,
     phase_shifts: jnp.ndarray,
 ) -> jnp.ndarray:
-    r"""Compute the forward spherical harmonic transform via precompute (vectorized
+    r"""Compute the forward spherical harmonic tranclearsform via precompute (vectorized
     implementation).
 
     Args:
@@ -309,11 +309,15 @@ def forward_transform_jax(
         jnp.ndarray: Pixel-space coefficients.
     """
     if sampling.lower() == "mw":
-        f = resampling_jax.mw_to_mwss(f, L, spin)
+        f = jnp.squeeze(
+            resampling_jax.mw_to_mwss(jnp.expand_dims(f, 0), L, spin)
+        )
 
     if sampling.lower() in ["mw", "mwss"]:
         sampling = "mwss"
-        f = resampling_jax.upsample_by_two_mwss(f, L, spin)
+        f = jnp.squeeze(
+            resampling_jax.upsample_by_two_mwss(jnp.expand_dims(f, 0), L, spin)
+        )
 
     weights = quadrature_jax.quad_weights_transform(L, sampling, nside)
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
