@@ -1,10 +1,10 @@
-import pytest
-import numpy as np
-import s2fft as s2f
-import pyssht as ssht
 import healpy as hp
-
+import numpy as np
+import pyssht as ssht
+import pytest
 from jax.config import config
+
+import s2fft as s2f
 
 config.update("jax_enable_x64", True)
 
@@ -119,7 +119,7 @@ def test_transform_forward(
 
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.parametrize("ratio", L_to_nside_ratio)
-@pytest.mark.parametrize("method", method_to_test)
+@pytest.mark.parametrize("method", method_to_test + method_to_test_forward_only)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_forward_healpix(
     flm_generator,
@@ -130,10 +130,17 @@ def test_transform_forward_healpix(
 ):
     sampling = "healpix"
     L = ratio * nside
-    flm = flm_generator(L=L, reality=True)
-    f = s2f.transform._inverse(
-        flm, L, sampling=sampling, method=method, nside=nside
-    )
+    flm = flm_generator(L=L, reality=True)  # should this be reality=reality?
+
+    if method in ["direct", "sov", "sov_fft", "sov_fft_vectorized"]:
+        f = s2f.transform._inverse(
+            flm, L, sampling=sampling, method=method, nside=nside
+        )
+    # use 'direct' for JAX approaches
+    else:
+        f = s2f.transform._inverse(
+            flm, L, sampling=sampling, method="direct", nside=nside
+        )
 
     flm_direct = s2f.transform._forward(
         f, L, sampling=sampling, method=method, nside=nside, reality=reality
@@ -144,34 +151,6 @@ def test_transform_forward_healpix(
 
     np.testing.assert_allclose(flm_direct_hp, flm_check, atol=1e-14)
 
-@pytest.mark.parametrize("nside", nside_to_test)
-@pytest.mark.parametrize("ratio", L_to_nside_ratio)
-@pytest.mark.parametrize("method", method_to_test_forward_only)
-@pytest.mark.parametrize("reality", reality_to_test)
-def test_transform_forward_healpix_jax(
-    flm_generator,
-    nside: int,
-    ratio: int,
-    method: str,
-    reality: bool,
-):
-    sampling = "healpix"
-    L = ratio * nside
-    flm = flm_generator(L=L, reality=reality)
-    f = s2f.transform._inverse(
-        flm, L, sampling=sampling, method='direct', nside=nside, reality=reality
-    )
-
-    # use output from vectorized approach as ground-truth
-    flm_sov_fft_vec = s2f.transform._forward(
-        f, L, sampling=sampling, method='sov_fft_vectorized', nside=nside, reality=reality
-    )
-
-    flm_recov = s2f.transform._forward(
-        f, L, sampling=sampling, method=method, nside=nside, reality=reality
-    )
-
-    np.testing.assert_allclose(flm_sov_fft_vec, flm_recov, atol=1e-14)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
