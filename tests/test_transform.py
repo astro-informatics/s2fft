@@ -4,6 +4,9 @@ import s2fft as s2f
 import pyssht as ssht
 import healpy as hp
 
+from jax.config import config
+
+config.update("jax_enable_x64", True)
 
 L_to_test = [6, 7, 8]
 L_lower_to_test = [0, 1, 2]
@@ -11,7 +14,19 @@ spin_to_test = [-2, -1, 0, 1, 2]
 nside_to_test = [2, 4, 8]
 L_to_nside_ratio = [2, 3]
 sampling_to_test = ["mw", "mwss", "dh"]
-method_to_test = ["direct", "sov", "sov_fft", "sov_fft_vectorized"]
+method_to_test = [
+    "direct",
+    "sov",
+    "sov_fft",
+    "sov_fft_vectorized",
+]
+method_to_test_forward_only = [
+    "jax_vmap_double",
+    "jax_vmap_scan",
+    "jax_vmap_loop",
+    "jax_map_double",
+    "jax_map_scan",
+]
 reality_to_test = [False, True]
 
 
@@ -74,7 +89,7 @@ def test_transform_inverse_healpix(
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
 @pytest.mark.parametrize("sampling", sampling_to_test)
-@pytest.mark.parametrize("method", method_to_test)
+@pytest.mark.parametrize("method", method_to_test + method_to_test_forward_only)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_forward(
     flm_generator,
