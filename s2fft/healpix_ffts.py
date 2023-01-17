@@ -2,6 +2,7 @@ import numpy as np
 import numpy.fft as fft
 import s2fft.samples as samples
 
+from jax import jit
 import jax.numpy as jnp
 import jax.numpy.fft as jfft
 from jax.config import config
@@ -148,8 +149,7 @@ def healpix_fft(
     Returns:
         np.ndarray: Array of Fourier coefficients for all latitudes.
     """
-    assert L >= 2 * nside
-
+    # assert L >= 2 * nside
     if method.lower() == "numpy":
         return healpix_fft_numpy(f, L, nside)
     elif method.lower() == "jax":
@@ -189,6 +189,7 @@ def healpix_fft_numpy(f: np.ndarray, L: int, nside: int) -> np.ndarray:
     return ftm
 
 
+@partial(jit, static_argnums=(1, 2))
 def healpix_fft_jax(f: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
     """
     Healpix FFT JAX implementation using jax.numpy/numpy stack

@@ -1,5 +1,6 @@
 import numpy as np
 from s2fft import wigner, samples, quadrature
+from warnings import warn
 
 
 def spin_spherical_kernel(
@@ -10,6 +11,13 @@ def spin_spherical_kernel(
     nside: int = None,
     forward: bool = False,
 ):
+    if reality and spin != 0:
+        reality = False
+        warn(
+            "Reality acceleration only supports spin 0 fields. "
+            + "Defering to complex transform."
+        )
+
     if forward and sampling.lower() in ["mw", "mwss"]:
         sampling = "mwss"
         thetas = samples.thetas(2 * L, "mwss")
@@ -30,7 +38,10 @@ def spin_spherical_kernel(
         dl = np.einsum(
             "...tlm,...tm->...tlm", dl, healpix_phase_shifts(L, nside, forward)
         )
-    return dl
+
+    m_start_ind = L - 1 if reality else 0
+
+    return dl[:, :, m_start_ind:] if reality else dl
 
 
 def wigner_kernel(
@@ -78,7 +89,9 @@ def wigner_kernel(
 
 
 def healpix_phase_shifts(
-    L: int, nside: int, forward: bool = False
+    L: int,
+    nside: int,
+    forward: bool = False,
 ) -> np.ndarray:
     r"""Generates a phase shift vector for HEALPix for all :math:`\theta` rings.
 

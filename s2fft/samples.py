@@ -209,7 +209,9 @@ def nphi_ring(t: int, nside: int = None) -> int:
         raise ValueError(f"Ring t={t} not contained by nside={nside}")
 
 
-def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray:
+def thetas(
+    L: int = None, sampling: str = "mw", nside: int = None
+) -> np.ndarray:
     r"""Compute :math:`\theta` samples for given sampling scheme.
 
     Args:
@@ -225,7 +227,9 @@ def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray
     Returns:
         np.ndarray: Array of :math:`\theta` samples for given sampling scheme.
     """
-    t = np.arange(0, ntheta(L=L, sampling=sampling, nside=nside)).astype(np.float64)
+    t = np.arange(0, ntheta(L=L, sampling=sampling, nside=nside)).astype(
+        np.float64
+    )
 
     return t2theta(t, L, sampling, nside)
 
@@ -417,7 +421,11 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
 
 
 def ring_phase_shift_hp(
-    L: int, t: int, nside: int, forward: bool = False
+    L: int,
+    t: int,
+    nside: int,
+    forward: bool = False,
+    reality: bool = False,
 ) -> np.ndarray:
     r"""Generates a phase shift vector for HEALPix for a given :math:`\theta` ring.
 
@@ -431,12 +439,17 @@ def ring_phase_shift_hp(
         forward (bool, optional): Whether to provide forward or inverse shift.
             Defaults to False.
 
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+            Defaults to False.
+
     Returns:
         np.ndarray: Vector of phase shifts with shape :math:`[2L-1]`.
     """
     phi_offset = p2phi_ring(t, 0, nside)
     sign = -1 if forward else 1
-    return np.exp(sign * 1j * np.arange(-L + 1, L) * phi_offset)
+    m_start_ind = 0 if reality else -L + 1
+    return np.exp(sign * 1j * np.arange(m_start_ind, L) * phi_offset)
 
 
 def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> tuple:

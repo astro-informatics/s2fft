@@ -9,7 +9,7 @@ spin_to_test = [-2, -1, 0, 1, 2]
 nside_to_test = [2, 4, 8]
 L_to_nside_ratio = [2, 3]
 sampling_to_test = ["mw", "mwss", "dh"]
-reality_to_test = [False]
+reality_to_test = [True, False]
 methods_to_test = ["numpy", "jax"]
 
 
@@ -27,10 +27,15 @@ def test_transform_inverse(
     method: str,
 ):
     flm = flm_generator(L=L, spin=spin, reality=reality)
-    f_check = s2fft.transform.inverse(flm, L, spin, sampling, reality)
+    f_check = s2fft.transform.inverse(flm, L, spin, sampling, reality=reality)
 
     kernel = spin_spherical_kernel(
-        L, spin, reality, sampling, nside=None, forward=False
+        L,
+        spin,
+        reality,
+        sampling,
+        nside=None,
+        forward=False,
     )
     f = inverse(flm, L, spin, kernel, sampling, reality, method)
 
@@ -76,8 +81,8 @@ def test_transform_forward(
 ):
     flm = flm_generator(L=L, spin=spin, reality=reality)
 
-    f = s2fft.transform.inverse(flm, L, spin, sampling, reality)
-    flm_check = s2fft.transform.forward(f, L, spin, sampling, reality)
+    f = s2fft.transform.inverse(flm, L, spin, sampling, reality=reality)
+    flm_check = s2fft.transform.forward(f, L, spin, sampling, reality=reality)
 
     kernel = spin_spherical_kernel(
         L, spin, reality, sampling, nside=None, forward=True
