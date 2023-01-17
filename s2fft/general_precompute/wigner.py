@@ -8,9 +8,6 @@ from functools import partial
 
 from jax import jit
 import jax.numpy as jnp
-from jax.config import config
-
-config.update("jax_enable_x64", True)
 
 
 def inverse(
@@ -99,16 +96,14 @@ def inverse_transform(
     """
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     fnab = np.zeros(
-        samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128
+        samples.fnab_shape(L, N, sampling, nside), dtype=np.complex64
     )
     fnab[..., m_offset:] = np.einsum(
         "...ntlm, ...nlm -> ...ntm", kernel, flmn, optimize=True
     )
 
     if sampling.lower() in "healpix":
-        f = np.zeros(
-            samples.f_shape(L, N, sampling, nside), dtype=np.complex128
-        )
+        f = np.zeros(samples.f_shape(L, N, sampling, nside), dtype=np.complex64)
         for n in range(-N + 1, N):
             ind = N - 1 + n
             f[ind] = hp.healpix_ifft(fnab[ind], L, nside, "numpy")
@@ -153,7 +148,7 @@ def inverse_transform_jax(
     """
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     fnab = jnp.zeros(
-        samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex128
+        samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex64
     )
     fnab = fnab.at[..., m_offset:].set(
         jnp.einsum("...ntlm, ...nlm -> ...ntm", kernel, flmn, optimize=True)
@@ -161,7 +156,7 @@ def inverse_transform_jax(
 
     if sampling.lower() in "healpix":
         f = jnp.zeros(
-            samples.f_shape(L, N, sampling, nside), dtype=jnp.complex128
+            samples.f_shape(L, N, sampling, nside), dtype=jnp.complex64
         )
         for n in range(-N + 1, N):
             ind = N - 1 + n
@@ -272,7 +267,7 @@ def forward_transform(
 
     if sampling.lower() in "healpix":
         temp = np.zeros(
-            samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128
+            samples.fnab_shape(L, N, sampling, nside), dtype=np.complex64
         )
         for n in range(-N + 1, N):
             ind = N - 1 + n
@@ -328,7 +323,7 @@ def forward_transform_jax(
 
     if sampling.lower() in "healpix":
         temp = jnp.zeros(
-            samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex128
+            samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex64
         )
         for n in range(-N + 1, N):
             ind = N - 1 + n

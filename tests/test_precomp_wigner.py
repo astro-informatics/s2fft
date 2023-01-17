@@ -34,7 +34,7 @@ def test_inverse_wigner_transform(
     kernel = wigner_kernel(L, N, reality, sampling, forward=False)
     f_check = inverse(flmn, L, N, kernel, sampling, reality, method)
 
-    np.testing.assert_allclose(f, f_check, atol=1e-14)
+    np.testing.assert_allclose(f, f_check, atol=1e-5, rtol=1e-5)
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -58,7 +58,7 @@ def test_forward_wigner_transform(
     kernel = wigner_kernel(L, N, reality, sampling, forward=True)
     flmn_check = forward(f, L, N, kernel, sampling, reality, method)
 
-    np.testing.assert_allclose(flmn, flmn_check, atol=1e-14)
+    np.testing.assert_allclose(flmn, flmn_check, atol=1e-5, rtol=1e-5)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -83,29 +83,29 @@ def test_inverse_wigner_transform_healpix(
     kernel = wigner_kernel(L, N, reality, sampling, nside=nside, forward=False)
     f_check = inverse(flmn, L, N, kernel, sampling, reality, method, nside)
 
-    np.testing.assert_allclose(f, f_check, atol=1e-14)
+    np.testing.assert_allclose(f, f_check, atol=1e-5, rtol=1e-5)
 
 
-# @pytest.mark.parametrize("nside", nside_to_test)
-# @pytest.mark.parametrize("ratio", L_to_nside_ratio)
-# @pytest.mark.parametrize("N", N_to_test)
-# @pytest.mark.parametrize("reality", reality_to_test)
-# @pytest.mark.parametrize("method", methods_to_test)
-# def test_forward_wigner_transform_healpix(
-#     flmn_generator,
-#     nside: int,
-#     ratio: int,
-#     N: int,
-#     reality: bool,
-#     method: str,
-# ):
-#     sampling = "healpix"
-#     L = ratio * nside
-#     flmn = flmn_generator(L=L, N=N, reality=reality)
+@pytest.mark.parametrize("nside", nside_to_test)
+@pytest.mark.parametrize("ratio", L_to_nside_ratio)
+@pytest.mark.parametrize("N", N_to_test)
+@pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("method", methods_to_test)
+def test_forward_wigner_transform_healpix(
+    flmn_generator,
+    nside: int,
+    ratio: int,
+    N: int,
+    reality: bool,
+    method: str,
+):
+    sampling = "healpix"
+    L = ratio * nside
+    flmn = flmn_generator(L=L, N=N, reality=reality)
 
-#     f = s2fft.wigner.transform.inverse(flmn, L, N, sampling, nside)
-#     flmn_check = s2fft.wigner.transform.forward(f, L, N, sampling, nside)
+    f = s2fft.wigner.transform.inverse(flmn, L, N, sampling, nside)
+    flmn_check = s2fft.wigner.transform.forward(f, L, N, sampling, nside)
 
-#     kernel = wigner_kernel(L, N, reality, sampling, nside=nside, forward=True)
-#     flmn_forward = forward(f, L, N, kernel, sampling, reality, method, nside)
-#     np.testing.assert_allclose(flmn_forward, flmn_check, atol=1e-14)
+    kernel = wigner_kernel(L, N, reality, sampling, nside=nside, forward=True)
+    flmn_forward = forward(f, L, N, kernel, sampling, reality, method, nside)
+    np.testing.assert_allclose(flmn_forward, flmn_check, atol=1e-5, rtol=1e-5)

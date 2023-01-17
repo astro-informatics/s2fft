@@ -34,7 +34,7 @@ def test_transform_inverse(
     )
     f = inverse(flm, L, spin, kernel, sampling, reality, method)
 
-    np.testing.assert_allclose(f, f_check, atol=1e-14)
+    np.testing.assert_allclose(f, f_check, atol=1e-5, rtol=1e-5)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -58,7 +58,7 @@ def test_transform_inverse_healpix(
     )
     f = inverse(flm, L, 0, kernel, sampling, reality, method, nside)
 
-    np.testing.assert_allclose(f, f_check, atol=1e-14)
+    np.testing.assert_allclose(f, f_check, atol=1e-5, rtol=1e-5)
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -84,7 +84,7 @@ def test_transform_forward(
     )
     flm_recov = forward(f, L, spin, kernel, sampling, reality, method)
 
-    np.testing.assert_allclose(flm_check, flm_recov, atol=1e-14)
+    np.testing.assert_allclose(flm_check, flm_recov, atol=1e-5, rtol=1e-5)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -109,4 +109,4 @@ def test_transform_forward_healpix(
     )
     flm_recov = forward(f, L, 0, kernel, sampling, reality, method, nside)
 
-    np.testing.assert_allclose(flm_recov, flm_check, atol=1e-14)
+    np.testing.assert_allclose(flm_recov, flm_check, atol=1e-5, rtol=1e-5)

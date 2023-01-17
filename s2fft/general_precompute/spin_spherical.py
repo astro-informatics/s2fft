@@ -1,15 +1,11 @@
 import numpy as np
-from s2fft import samples, quadrature, resampling
-from s2fft.general_precompute import resampling_jax, quadrature_jax
+from s2fft import samples, resampling
+from s2fft.general_precompute import resampling_jax
 import s2fft.healpix_ffts as hp
-from s2fft.general_precompute.construct import healpix_phase_shifts
 from functools import partial
 
 from jax import jit
 import jax.numpy as jnp
-from jax.config import config
-
-config.update("jax_enable_x64", True)
 
 
 def inverse(
@@ -87,7 +83,7 @@ def inverse_transform(
     """
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
-    ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
+    ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex64)
     ftm[:, m_offset:] = np.einsum("...tlm, ...lm -> ...tm", kernel, flm)
     ftm *= (-1) ** spin
 
@@ -132,7 +128,7 @@ def inverse_transform_jax(
     """
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
-    ftm = jnp.zeros(samples.ftm_shape(L, sampling, nside), dtype=jnp.complex128)
+    ftm = jnp.zeros(samples.ftm_shape(L, sampling, nside), dtype=jnp.complex64)
     ftm = ftm.at[:, m_offset:].add(
         jnp.einsum("...tlm, ...lm -> ...tm", kernel, flm, optimize=True)
     )

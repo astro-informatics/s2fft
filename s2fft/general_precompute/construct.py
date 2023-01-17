@@ -16,7 +16,7 @@ def spin_spherical_kernel(
     else:
         thetas = samples.thetas(L, sampling, nside)
 
-    dl = np.zeros((len(thetas), L, 2 * L - 1), dtype=np.float64)
+    dl = np.zeros((len(thetas), L, 2 * L - 1), dtype=np.float32)
     for t, theta in enumerate(thetas):
         for el in range(abs(spin), L):
             dl[t, el] = wigner.turok.compute_slice(theta, el, L, -spin, reality)
@@ -47,7 +47,7 @@ def wigner_kernel(
     else:
         thetas = samples.thetas(L, sampling, nside)
 
-    dl = np.zeros((2 * N - 1, len(thetas), L, 2 * L - 1), dtype=np.float64)
+    dl = np.zeros((2 * N - 1, len(thetas), L, 2 * L - 1), dtype=np.float32)
     for n in range(-N + 1, N):
         for t, theta in enumerate(thetas):
             for el in range(abs(n), L):
@@ -94,7 +94,7 @@ def healpix_phase_shifts(
         np.ndarray: Vector of phase shifts with shape :math:`[thetas, 2L-1]`.
     """
     thetas = samples.thetas(L, "healpix", nside)
-    phase_array = np.zeros((len(thetas), 2 * L - 1), dtype=np.complex128)
+    phase_array = np.zeros((len(thetas), 2 * L - 1), dtype=np.complex64)
     for t, theta in enumerate(thetas):
         phase_array[t] = samples.ring_phase_shift_hp(L, t, nside, forward)
 

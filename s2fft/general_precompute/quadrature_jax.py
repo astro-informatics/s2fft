@@ -3,9 +3,6 @@ from s2fft import samples
 
 from jax import jit
 import jax.numpy as jnp
-from jax.config import config
-
-config.update("jax_enable_x64", True)
 
 
 @partial(jit, static_argnums=(0, 1, 2))
@@ -51,7 +48,7 @@ def quad_weights(
 def quad_weights_hp(nside: int) -> jnp.ndarray:
     npix = 12 * nside**2
     rings = samples.ntheta(sampling="healpix", nside=nside)
-    return jnp.ones(rings, dtype=jnp.float64) * 4 * jnp.pi / npix
+    return jnp.ones(rings, dtype=jnp.float32) * 4 * jnp.pi / npix
 
 
 @partial(jit, static_argnums=(0))
@@ -84,7 +81,7 @@ def quad_weights_mwss(L: int) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(0))
 def quad_weights_mwss_theta_only(L: int) -> jnp.ndarray:
-    w = jnp.zeros(2 * L, dtype=jnp.complex128)
+    w = jnp.zeros(2 * L, dtype=jnp.complex64)
 
     for i in range(-(L - 1) + 1, L + 1):
         w = w.at[i + L - 1].set(mw_weights(i - 1))
@@ -98,7 +95,7 @@ def quad_weights_mwss_theta_only(L: int) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(0))
 def quad_weights_mw_theta_only(L: int) -> jnp.ndarray:
-    w = jnp.zeros(2 * L - 1, dtype=jnp.complex128)
+    w = jnp.zeros(2 * L - 1, dtype=jnp.complex64)
     for i in range(-(L - 1), L):
         w = w.at[i + L - 1].set(mw_weights(i))
 
