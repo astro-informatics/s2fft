@@ -90,7 +90,6 @@ def inverse_transform(
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
 
         spin (int): Harmonic spin.
 
@@ -155,7 +154,6 @@ def inverse_transform_jax(
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
 
         spin (int): Harmonic spin.
 
@@ -283,7 +281,6 @@ def forward_transform(
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
 
         spin (int): Harmonic spin.
 
@@ -352,7 +349,6 @@ def forward_transform_jax(
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
 
         spin (int): Harmonic spin.
 
