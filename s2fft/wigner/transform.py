@@ -4,7 +4,11 @@ import s2fft as s2f
 
 
 def inverse(
-    flmn: np.ndarray, L: int, N: int, sampling: str = "mw"
+    flmn: np.ndarray,
+    L: int,
+    N: int,
+    sampling: str = "mw",
+    nside: int = None,
 ) -> np.ndarray:
     r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
     :math:`SO(3)`.
@@ -27,6 +31,9 @@ def inverse(
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh"}.  Defaults to "mw".
 
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
     Raises:
         ValueError: Sampling scheme not currently supported.
 
@@ -37,11 +44,8 @@ def inverse(
     """
     assert flmn.shape == s2f.wigner.samples.flmn_shape(L, N)
 
-    if sampling not in ["mw", "mwss", "dh"]:
-        raise ValueError(f"Sampling scheme sampling={sampling} not supported")
-
     fban = np.zeros(
-        s2f.wigner.samples.f_shape(L, N, sampling), dtype=np.complex128
+        s2f.wigner.samples.f_shape(L, N, sampling, nside), dtype=np.complex128
     )
 
     flmn_scaled = np.einsum(
@@ -50,7 +54,7 @@ def inverse(
 
     for n in range(-N + 1, N):
         fban[N - 1 + n] = (-1) ** n * s2f.transform.inverse(
-            flmn_scaled[N - 1 + n], L, spin=-n, sampling=sampling
+            flmn_scaled[N - 1 + n], L, spin=-n, sampling=sampling, nside=nside
         )
 
     f = fft.ifft(fft.ifftshift(fban, axes=0), axis=0, norm="forward")
@@ -58,7 +62,13 @@ def inverse(
     return f
 
 
-def forward(f: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
+def forward(
+    f: np.ndarray,
+    L: int,
+    N: int,
+    sampling: str = "mw",
+    nside: int = None,
+) -> np.ndarray:
     r"""Compute the forward Wigner transform, i.e. Fourier transform on
     :math:`SO(3)`.
 
@@ -82,16 +92,16 @@ def forward(f: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh"}.  Defaults to "mw".
 
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
     Raises:
         ValueError: Sampling scheme not currently supported.
 
     Returns:
         np.ndarray: Wigner coefficients `flmn` with shape :math:`[L, 2L-1, 2N-1]`.
     """
-    assert f.shape == s2f.wigner.samples.f_shape(L, N, sampling)
-
-    if sampling not in ["mw", "mwss", "dh"]:
-        raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+    assert f.shape == s2f.wigner.samples.f_shape(L, N, sampling, nside)
 
     flmn = np.zeros(s2f.wigner.samples.flmn_shape(L, N), dtype=np.complex128)
 
@@ -103,8 +113,9 @@ def forward(f: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
     )
 
     for n in range(-N + 1, N):
+        print(fabn[N - 1 + n].ndim)
         flmn[N - 1 + n] = (-1) ** n * s2f.transform.forward(
-            fabn[N - 1 + n], L, spin=-n, sampling=sampling
+            fabn[N - 1 + n], L, spin=-n, sampling=sampling, nside=nside
         )
 
     flmn = np.einsum(

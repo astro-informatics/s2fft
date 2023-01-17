@@ -48,18 +48,10 @@ def inverse(
     Returns:
         np.ndarray: Pixel-space coefficients with shape.
     """
-    phase_shifts = None
-    if sampling.lower() == "healpix":
-        phase_shifts = healpix_phase_shifts(L, nside, False)
-
     if method == "numpy":
-        return inverse_transform(
-            flm, kernel, L, sampling, spin, nside, phase_shifts
-        )
+        return inverse_transform(flm, kernel, L, sampling, spin, nside)
     elif method == "jax":
-        return inverse_transform_jax(
-            flm, kernel, L, sampling, spin, nside, phase_shifts
-        )
+        return inverse_transform_jax(flm, kernel, L, sampling, spin, nside)
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -71,7 +63,6 @@ def inverse_transform(
     sampling: str,
     spin: int,
     nside: int,
-    phase_shifts: np.ndarray,
 ) -> np.ndarray:
     r"""Compute the forward spherical harmonic transform via precompute (vectorized
     implementation).
@@ -91,9 +82,6 @@ def inverse_transform(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        phase_shifts (np.ndarray): Array of ring phase shifts. Only required
-            if sampling="healpix".
-
     Returns:
         np.ndarray: Pixel-space coefficients.
     """
@@ -104,7 +92,6 @@ def inverse_transform(
     ftm *= (-1) ** spin
 
     if sampling.lower() == "healpix":
-        ftm[:, m_offset:] *= phase_shifts
         f = hp.healpix_ifft(ftm, L, nside, "numpy")
 
     else:
@@ -121,7 +108,6 @@ def inverse_transform_jax(
     sampling: str,
     spin: int,
     nside: int,
-    phase_shifts: np.ndarray,
 ) -> jnp.ndarray:
     r"""Compute the inverse spherical harmonic transform via precompute (JAX
     implementation).
@@ -141,9 +127,6 @@ def inverse_transform_jax(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        phase_shifts (np.ndarray): Array of ring phase shifts. Only required
-            if sampling="healpix".
-
     Returns:
         jnp.ndarray: Pixel-space coefficients with shape.
     """
@@ -156,7 +139,6 @@ def inverse_transform_jax(
     ftm *= (-1) ** spin
 
     if sampling.lower() == "healpix":
-        ftm = ftm.at[:, m_offset:].multiply(phase_shifts)
         f = hp.healpix_ifft(ftm, L, nside, "jax")
 
     else:
@@ -201,18 +183,10 @@ def forward(
     Returns:
         np.ndarray: Spherical harmonic coefficients.
     """
-    phase_shifts = None
-    if sampling.lower() == "healpix":
-        phase_shifts = healpix_phase_shifts(L, nside, True)
-
     if method == "numpy":
-        return forward_transform(
-            f, kernel, L, sampling, spin, nside, phase_shifts
-        )
+        return forward_transform(f, kernel, L, sampling, spin, nside)
     elif method == "jax":
-        return forward_transform_jax(
-            f, kernel, L, sampling, spin, nside, phase_shifts
-        )
+        return forward_transform_jax(f, kernel, L, sampling, spin, nside)
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -224,7 +198,6 @@ def forward_transform(
     sampling: str,
     spin: int,
     nside: int,
-    phase_shifts: np.ndarray,
 ) -> np.ndarray:
     r"""Compute the forward spherical harmonic transform via precompute (vectorized
     implementation).
@@ -244,9 +217,6 @@ def forward_transform(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        phase_shifts (np.ndarray): Array of ring phase shifts. Only required
-            if sampling="healpix".
-
     Returns:
         np.ndarray: Pixel-space coefficients.
     """
@@ -257,18 +227,15 @@ def forward_transform(
         sampling = "mwss"
         f = resampling.upsample_by_two_mwss(f, L, spin)
 
-    weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     if sampling.lower() == "healpix":
         ftm = hp.healpix_fft(f, L, nside, "numpy")[:, m_offset:]
-        ftm *= phase_shifts
 
     else:
         ftm = np.fft.fft(f, axis=-1, norm="backward")
         ftm = np.fft.fftshift(ftm, axes=-1)[:, m_offset:]
 
-    ftm = np.einsum("...tm, ...t->...tm", ftm, weights)
     flm = np.einsum("...tlm, ...tm -> ...lm", kernel, ftm)
 
     return flm * (-1) ** spin
@@ -282,7 +249,6 @@ def forward_transform_jax(
     sampling: str,
     spin: int,
     nside: int,
-    phase_shifts: jnp.ndarray,
 ) -> jnp.ndarray:
     r"""Compute the forward spherical harmonic tranclearsform via precompute (vectorized
     implementation).
@@ -302,35 +268,25 @@ def forward_transform_jax(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        phase_shifts (jnp.ndarray): Array of ring phase shifts. Only required
-            if sampling="healpix".
-
     Returns:
         jnp.ndarray: Pixel-space coefficients.
     """
     if sampling.lower() == "mw":
-        f = jnp.squeeze(
-            resampling_jax.mw_to_mwss(jnp.expand_dims(f, 0), L, spin)
-        )
+        f = resampling_jax.mw_to_mwss(f, L, spin)
 
     if sampling.lower() in ["mw", "mwss"]:
         sampling = "mwss"
-        f = jnp.squeeze(
-            resampling_jax.upsample_by_two_mwss(jnp.expand_dims(f, 0), L, spin)
-        )
+        f = resampling_jax.upsample_by_two_mwss(f, L, spin)
 
-    weights = quadrature_jax.quad_weights_transform(L, sampling, nside)
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     if sampling.lower() == "healpix":
         ftm = hp.healpix_fft(f, L, nside, "jax")[:, m_offset:]
-        ftm *= phase_shifts
 
     else:
         ftm = jnp.fft.fft(f, axis=-1, norm="backward")
         ftm = jnp.fft.fftshift(ftm, axes=-1)[:, m_offset:]
 
-    ftm = jnp.einsum("...tm, ...t->...tm", ftm, weights, optimize=True)
     flm = jnp.einsum("...tlm, ...tm -> ...lm", kernel, ftm, optimize=True)
 
     return flm * (-1) ** spin

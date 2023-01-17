@@ -11,7 +11,14 @@ config.update("jax_enable_x64", True)
 
 @partial(jit, static_argnums=(1))
 def mw_to_mwss(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
-    return mw_to_mwss_phi(mw_to_mwss_theta(f_mw, L, spin), L)
+    if f_mw.ndim == 2:
+        return jnp.squeeze(
+            mw_to_mwss_phi(
+                mw_to_mwss_theta(jnp.expand_dims(f_mw, 0), L, spin), L
+            )
+        )
+    else:
+        return mw_to_mwss_phi(mw_to_mwss_theta(f_mw, L, spin), L)
 
 
 @partial(jit, static_argnums=(1))
@@ -104,6 +111,7 @@ def periodic_extension(
                     m_offset : 2 * L - 1 + m_offset,
                 ],
                 (-1) ** spin,
+                optimize=True,
             )
         )
     else:
@@ -135,13 +143,12 @@ def unextend(f_ext: jnp.ndarray, L: int, sampling: str = "mw") -> jnp.ndarray:
 
 @partial(jit, static_argnums=(1))
 def upsample_by_two_mwss(f: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
-    if spin.size > 1:
-        print("HERE")
-        f_ext = periodic_extension_spatial_mwss_batched(f, L, spin)
-    else:
-        f_ext = periodic_extension_spatial_mwss(f, L, spin)
-    f_ext_up = upsample_by_two_mwss_ext(f_ext, L)
-    return unextend(f_ext_up, 2 * L, sampling="mwss")
+    if f.ndim == 2:
+        f = jnp.expand_dims(f, 0)
+    f_ext = periodic_extension_spatial_mwss(f, L, spin)
+    f_ext = upsample_by_two_mwss_ext(f_ext, L)
+    f_ext = unextend(f_ext, 2 * L, sampling="mwss")
+    return jnp.squeeze(f_ext)
 
 
 @partial(jit, static_argnums=(1))
@@ -177,36 +184,22 @@ def periodic_extension_spatial_mwss(
 
     f_ext = jnp.zeros((f.shape[0], ntheta_ext, nphi), dtype=jnp.complex128)
     f_ext = f_ext.at[:, 0:ntheta, 0:nphi].set(f[:, 0:ntheta, 0:nphi])
-    f_ext = f_ext.at[:, ntheta:, 0 : 2 * L].set(
-        (-1) ** spin
-        * jnp.fft.fftshift(
-            jnp.flip(f[:, 1 : ntheta - 1, 0 : 2 * L], axis=-2), axes=-1
-        ),
-    )
-    return f_ext
-
-
-@partial(jit, static_argnums=(1))
-def periodic_extension_spatial_mwss_batched(
-    f: jnp.ndarray,
-    L: int,
-    spin: jnp.ndarray,
-) -> jnp.ndarray:
-    ntheta = L + 1
-    nphi = 2 * L
-    ntheta_ext = 2 * L
-
-    f_ext = jnp.zeros((f.shape[0], ntheta_ext, nphi), dtype=jnp.complex128)
-    f_ext = f_ext.at[:, 0:ntheta, 0:nphi].set(f[:, 0:ntheta, 0:nphi])
-    f_ext = f_ext.at[:, ntheta:, 0 : 2 * L].set(
-        jnp.einsum(
-            "btp,b->btp",
-            jnp.fft.fftshift(
+    if spin.size > 1:
+        f_ext = f_ext.at[:, ntheta:, 0 : 2 * L].set(
+            jnp.einsum(
+                "btp,b->btp",
+                jnp.fft.fftshift(
+                    jnp.flip(f[:, 1 : ntheta - 1, 0 : 2 * L], axis=-2), axes=-1
+                ),
+                (-1) ** spin,
+                optimize=True,
+            ),
+        )
+    else:
+        f_ext = f_ext.at[:, ntheta:, 0 : 2 * L].set(
+            (-1) ** spin
+            * jnp.fft.fftshift(
                 jnp.flip(f[:, 1 : ntheta - 1, 0 : 2 * L], axis=-2), axes=-1
             ),
-            (-1) ** spin,
-            optimize=True,
-        ),
-    )
-
+        )
     return f_ext

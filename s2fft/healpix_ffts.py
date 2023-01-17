@@ -294,11 +294,11 @@ def healpix_ifft_jax(ftm: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
     Returns:
         jnp.ndarray: HEALPix pixel-space array.
     """
-    ntheta = ftm.shape[0]
-    index = 0
     f = jnp.zeros(
         samples.f_shape(sampling="healpix", nside=nside), dtype=jnp.complex128
     )
+    ntheta = ftm.shape[0]
+    index = 0
     for t in range(ntheta):
         nphi = samples.nphi_ring(t, nside)
         fm_chunk = (

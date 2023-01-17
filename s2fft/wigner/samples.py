@@ -90,11 +90,11 @@ def fnab_shape(
 
     if sampling.lower() in ["mwss", "healpix"]:
 
-        return 2 * N - 1, samples.ntheta(L, sampling, nside), 2 * L
+        return _ngamma(N), samples.ntheta(L, sampling, nside), 2 * L
 
     elif sampling.lower() in ["mw", "dh"]:
 
-        return 2 * N - 1, samples.ntheta(L, sampling, nside), 2 * L - 1
+        return _ngamma(N), samples.ntheta(L, sampling, nside), 2 * L - 1
 
     else:
 

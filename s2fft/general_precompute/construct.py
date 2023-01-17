@@ -1,6 +1,5 @@
 import numpy as np
-import s2fft.wigner as wigner
-import s2fft.samples as samples
+from s2fft import wigner, samples, quadrature
 
 
 def spin_spherical_kernel(
@@ -12,6 +11,7 @@ def spin_spherical_kernel(
     forward: bool = False,
 ):
     if forward and sampling.lower() in ["mw", "mwss"]:
+        sampling = "mwss"
         thetas = samples.thetas(2 * L, "mwss")
     else:
         thetas = samples.thetas(L, sampling, nside)
@@ -21,6 +21,15 @@ def spin_spherical_kernel(
         for el in range(abs(spin), L):
             dl[t, el] = wigner.turok.compute_slice(theta, el, L, -spin, reality)
             dl[t, el] *= np.sqrt((2 * el + 1) / (4 * np.pi))
+
+    if forward:
+        weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
+        dl = np.einsum("...tlm, ...t->...tlm", dl, weights)
+
+    if sampling.lower() == "healpix":
+        dl = np.einsum(
+            "...tlm,...tm->...tlm", dl, healpix_phase_shifts(L, nside, forward)
+        )
     return dl
 
 
@@ -33,6 +42,7 @@ def wigner_kernel(
     forward: bool = False,
 ):
     if forward and sampling.lower() in ["mw", "mwss"]:
+        sampling = "mwss"
         thetas = samples.thetas(2 * L, "mwss")
     else:
         thetas = samples.thetas(L, sampling, nside)
@@ -44,7 +54,26 @@ def wigner_kernel(
                 dl[N - 1 + n, t, el] = wigner.turok.compute_slice(
                     theta, el, L, n, reality
                 )
-                dl[N - 1 + n, t, el] *= np.sqrt((2 * el + 1) / (4 * np.pi))
+
+    if forward:
+        weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
+        dl = np.einsum("...ntlm, ...t->...ntlm", dl, weights)
+        dl *= 2 * np.pi / (2 * N - 1)
+
+    else:
+        dl = np.einsum(
+            "...ntlm,...l->...ntlm",
+            dl,
+            (2 * np.arange(L) + 1) / (8 * np.pi**2),
+        )
+
+    if sampling.lower() == "healpix":
+        dl = np.einsum(
+            "...ntlm,...tm->...ntlm",
+            dl,
+            healpix_phase_shifts(L, nside, forward),
+        )
+
     return dl
 
 

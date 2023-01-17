@@ -1,7 +1,8 @@
 import numpy as np
+from s2fft import resampling
 from s2fft.wigner import samples
-from s2fft.general_precompute import quadrature_jax, resampling_jax
-from s2fft.general_precompute import spin_spherical as s2
+import s2fft.healpix_ffts as hp
+from s2fft.general_precompute import resampling_jax
 from s2fft.general_precompute.construct import healpix_phase_shifts
 from functools import partial
 
@@ -59,18 +60,10 @@ def inverse(
         :math:`[\theta, \phi]`, i.e. we associate :math:`\beta` with :math:`\theta` and
         :math:`\alpha` with :math:`\phi`.
     """
-    phase_shifts = None
-    if sampling.lower() == "healpix":
-        phase_shifts = healpix_phase_shifts(L, nside, False)
-
     if method == "numpy":
-        return inverse_transform(
-            flmn, kernel, L, N, sampling, nside, phase_shifts
-        )
+        return inverse_transform(flmn, kernel, L, N, sampling, nside)
     elif method == "jax":
-        return inverse_transform_jax(
-            flmn, kernel, L, N, sampling, nside, phase_shifts
-        )
+        return inverse_transform_jax(flmn, kernel, L, N, sampling, nside)
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -82,7 +75,6 @@ def inverse_transform(
     N: int,
     sampling: str,
     nside: int,
-    phase_shifts: np.ndarray,
 ) -> np.ndarray:
     r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
     :math:`SO(3)`.
@@ -102,31 +94,31 @@ def inverse_transform(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        phase_shifts (np.ndarray): Array of ring phase shifts. Only required
-            if sampling="healpix".
-
     Returns:
         np.ndarray: Pixel-space coefficients.
     """
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
-    fnab = np.zeros(samples.fnab_shape(L, N, sampling), dtype=np.complex128)
+    fnab = np.zeros(
+        samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128
+    )
     fnab[..., m_offset:] = np.einsum(
-        "...ntlm, ...nlm -> ...ntm",
-        kernel,
-        np.einsum(
-            "...nlm,...l->...nlm",
-            flmn,
-            np.sqrt((2 * np.arange(L) + 1) / (16 * np.pi**3)),
-        ),
-        optimize=True,
+        "...ntlm, ...nlm -> ...ntm", kernel, flmn, optimize=True
     )
 
-    if sampling.lower() in ["mw", "mwss", "dh"]:
-        fnab = np.fft.ifftshift(fnab, axes=(-1, -3))
-        return np.fft.ifft2(fnab, axes=(-1, -3), norm="forward")
+    if sampling.lower() in "healpix":
+        f = np.zeros(
+            samples.f_shape(L, N, sampling, nside), dtype=np.complex128
+        )
+        for n in range(-N + 1, N):
+            ind = N - 1 + n
+            f[ind] = hp.healpix_ifft(fnab[ind], L, nside, "numpy")
+        return np.fft.ifft(
+            np.fft.ifftshift(f, axes=-2), axis=-2, norm="forward"
+        )
 
     else:
-        raise ValueError("Sampling not yet implemented")
+        fnab = np.fft.ifftshift(fnab, axes=(-1, -3))
+        return np.fft.ifft2(fnab, axes=(-1, -3), norm="forward")
 
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
@@ -137,7 +129,6 @@ def inverse_transform_jax(
     N: int,
     sampling: str,
     nside: int,
-    phase_shifts: jnp.ndarray,
 ) -> jnp.ndarray:
     r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
     :math:`SO(3)`.
@@ -157,33 +148,31 @@ def inverse_transform_jax(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        phase_shifts (jnp.ndarray): Array of ring phase shifts. Only required
-            if sampling="healpix".
-
     Returns:
         jnp.ndarray: Pixel-space coefficients.
     """
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
-    fnab = jnp.zeros(samples.fnab_shape(L, N, sampling), dtype=jnp.complex128)
+    fnab = jnp.zeros(
+        samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex128
+    )
     fnab = fnab.at[..., m_offset:].set(
-        jnp.einsum(
-            "...ntlm, ...nlm -> ...ntm",
-            kernel,
-            jnp.einsum(
-                "...nlm,...l->...nlm",
-                flmn,
-                jnp.sqrt((2 * jnp.arange(L) + 1) / (16 * jnp.pi**3)),
-            ),
-            optimize=True,
-        )
+        jnp.einsum("...ntlm, ...nlm -> ...ntm", kernel, flmn, optimize=True)
     )
 
-    if sampling.lower() in ["mw", "mwss", "dh"]:
-        fnab = jnp.fft.ifftshift(fnab, axes=(-1, -3))
-        return jnp.fft.ifft2(fnab, axes=(-1, -3), norm="forward")
+    if sampling.lower() in "healpix":
+        f = jnp.zeros(
+            samples.f_shape(L, N, sampling, nside), dtype=jnp.complex128
+        )
+        for n in range(-N + 1, N):
+            ind = N - 1 + n
+            f = f.at[ind].set(hp.healpix_ifft(fnab[ind], L, nside, "jax"))
+        return jnp.fft.ifft(
+            jnp.fft.ifftshift(f, axes=-2), axis=-2, norm="forward"
+        )
 
     else:
-        raise ValueError("Sampling not yet implemented")
+        fnab = jnp.fft.ifftshift(fnab, axes=(-1, -3))
+        return jnp.fft.ifft2(fnab, axes=(-1, -3), norm="forward")
 
 
 def forward(
@@ -233,16 +222,10 @@ def forward(
         :math:`[\theta, \phi]`, i.e. we associate :math:`\beta` with :math:`\theta` and
         :math:`\alpha` with :math:`\phi`.
     """
-    phase_shifts = None
-    if sampling.lower() == "healpix":
-        phase_shifts = healpix_phase_shifts(L, nside, True)
-
     if method == "numpy":
-        return forward_transform(f, kernel, L, N, sampling, nside, phase_shifts)
+        return forward_transform(f, kernel, L, N, sampling, nside)
     elif method == "jax":
-        return forward_transform_jax(
-            f, kernel, L, N, sampling, nside, phase_shifts
-        )
+        return forward_transform_jax(f, kernel, L, N, sampling, nside)
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -254,7 +237,6 @@ def forward_transform(
     N: int,
     sampling: str,
     nside: int,
-    phase_shifts: np.ndarray,
 ) -> np.ndarray:
     r"""Compute the forward spherical harmonic transform via precompute (vectorized
     implementation).
@@ -274,32 +256,33 @@ def forward_transform(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        phase_shifts (np.ndarray): Array of ring phase shifts. Only required
-            if sampling="healpix".
-
     Returns:
         np.ndarray: Pixel-space coefficients.
     """
-    flmn = np.zeros(samples.flmn_shape(L, N), dtype=np.complex128)
-    fnab = np.fft.fftshift(np.fft.fft(f, axis=0, norm="backward"), axes=0)
-    fnab *= 2 * np.pi / (2 * N - 1)
+    fban = np.fft.fftshift(np.fft.fft(f, axis=0, norm="backward"), axes=0)
+    spins = -np.arange(-N + 1, N)
+    if sampling.lower() == "mw":
+        fban = resampling.mw_to_mwss(fban, L, spins)
 
-    for n in range(-N + 1, N):
-        flmn[N - 1 + n] = (-1) ** n * s2.forward_transform(
-            fnab[N - 1 + n],
-            kernel[N - 1 + n],
-            L,
-            sampling,
-            -n,
-            nside,
-            phase_shifts,
+    if sampling.lower() in ["mw", "mwss"]:
+        sampling = "mwss"
+        fban = resampling.upsample_by_two_mwss(fban, L, spins)
+
+    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+
+    if sampling.lower() in "healpix":
+        temp = np.zeros(
+            samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128
         )
+        for n in range(-N + 1, N):
+            ind = N - 1 + n
+            temp[ind] = hp.healpix_fft(fban[ind], L, nside, "numpy")
+        fban = temp[..., m_offset:]
+    else:
+        fban = np.fft.fft(fban, axis=-1, norm="backward")
+        fban = np.fft.fftshift(fban, axes=-1)[:, :, m_offset:]
 
-    flmn = np.einsum(
-        "nlm,l->nlm", flmn, np.sqrt(4 * np.pi / (2 * np.arange(L) + 1))
-    )
-
-    return flmn
+    return np.einsum("...ntlm, ...ntm -> ...nlm", kernel, fban)
 
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
@@ -310,7 +293,6 @@ def forward_transform_jax(
     N: int,
     sampling: str,
     nside: int,
-    phase_shifts: jnp.ndarray,
 ) -> jnp.ndarray:
     r"""Compute the forward spherical harmonic transform via precompute (vectorized
     implementation).
@@ -330,15 +312,10 @@ def forward_transform_jax(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
-        phase_shifts (jnp.ndarray): Array of ring phase shifts. Only required
-            if sampling="healpix".
-
     Returns:
         jnp.ndarray: Pixel-space coefficients.
     """
     fban = jnp.fft.fftshift(jnp.fft.fft(f, axis=0, norm="backward"), axes=0)
-    fban *= 2 * jnp.pi / (2 * N - 1)
-
     spins = -jnp.arange(-N + 1, N)
     if sampling.lower() == "mw":
         fban = resampling_jax.mw_to_mwss(fban, L, spins)
@@ -347,19 +324,18 @@ def forward_transform_jax(
         sampling = "mwss"
         fban = resampling_jax.upsample_by_two_mwss(fban, L, spins)
 
-    weights = quadrature_jax.quad_weights_transform(L, sampling, nside)
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
-    fban = jnp.fft.fft(fban, axis=-1, norm="backward")
-    fban = jnp.fft.fftshift(fban, axes=-1)[:, :, m_offset:]
+    if sampling.lower() in "healpix":
+        temp = jnp.zeros(
+            samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex128
+        )
+        for n in range(-N + 1, N):
+            ind = N - 1 + n
+            temp = temp.at[ind].set(hp.healpix_fft(fban[ind], L, nside, "jax"))
+        fban = temp[..., m_offset:]
+    else:
+        fban = jnp.fft.fft(fban, axis=-1, norm="backward")
+        fban = jnp.fft.fftshift(fban, axes=-1)[:, :, m_offset:]
 
-    fban = jnp.einsum("...ntm, ...t->...ntm", fban, weights, optimize=True)
-    fban = jnp.einsum("...ntlm, ...ntm -> ...nlm", kernel, fban, optimize=True)
-    fban = jnp.einsum(
-        "nlm,l->nlm",
-        fban,
-        jnp.sqrt(4 * jnp.pi / (2 * jnp.arange(L) + 1)),
-        optimize=True,
-    )
-
-    return fban
+    return jnp.einsum("...ntlm, ...ntm -> ...nlm", kernel, fban, optimize=True)
