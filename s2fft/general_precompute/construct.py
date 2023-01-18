@@ -17,6 +17,8 @@ def spin_spherical_kernel(
             "Reality acceleration only supports spin 0 fields. "
             + "Defering to complex transform."
         )
+    m_start_ind = L - 1 if reality else 0
+    m_dim = L if reality else 2 * L - 1
 
     if forward and sampling.lower() in ["mw", "mwss"]:
         sampling = "mwss"
@@ -24,10 +26,12 @@ def spin_spherical_kernel(
     else:
         thetas = samples.thetas(L, sampling, nside)
 
-    dl = np.zeros((len(thetas), L, 2 * L - 1), dtype=np.float32)
+    dl = np.zeros((len(thetas), L, m_dim), dtype=np.float32)
     for t, theta in enumerate(thetas):
         for el in range(abs(spin), L):
-            dl[t, el] = wigner.turok.compute_slice(theta, el, L, -spin, reality)
+            dl[t, el] = wigner.turok.compute_slice(
+                theta, el, L, -spin, reality
+            )[m_start_ind:]
             dl[t, el] *= np.sqrt((2 * el + 1) / (4 * np.pi))
 
     if forward:
@@ -36,12 +40,12 @@ def spin_spherical_kernel(
 
     if sampling.lower() == "healpix":
         dl = np.einsum(
-            "...tlm,...tm->...tlm", dl, healpix_phase_shifts(L, nside, forward)
+            "...tlm,...tm->...tlm",
+            dl,
+            healpix_phase_shifts(L, nside, forward)[:, m_start_ind:],
         )
 
-    m_start_ind = L - 1 if reality else 0
-
-    return dl[:, :, m_start_ind:] if reality else dl
+    return dl
 
 
 def wigner_kernel(
@@ -52,17 +56,21 @@ def wigner_kernel(
     nside: int = None,
     forward: bool = False,
 ):
+    n_start_ind = N - 1 if reality else 0
+    n_dim = N if reality else 2 * N - 1
+
     if forward and sampling.lower() in ["mw", "mwss"]:
         sampling = "mwss"
         thetas = samples.thetas(2 * L, "mwss")
     else:
         thetas = samples.thetas(L, sampling, nside)
 
-    dl = np.zeros((2 * N - 1, len(thetas), L, 2 * L - 1), dtype=np.float32)
-    for n in range(-N + 1, N):
+    dl = np.zeros((n_dim, len(thetas), L, 2 * L - 1), dtype=np.float32)
+    for n in range(n_start_ind - N + 1, N):
         for t, theta in enumerate(thetas):
             for el in range(abs(n), L):
-                dl[N - 1 + n, t, el] = wigner.turok.compute_slice(
+                ind = n if reality else N - 1 + n
+                dl[ind, t, el] = wigner.turok.compute_slice(
                     theta, el, L, n, False
                 )
 
@@ -85,9 +93,7 @@ def wigner_kernel(
             healpix_phase_shifts(L, nside, forward),
         )
 
-    n_start_ind = N - 1 if reality else 0
-
-    return dl[n_start_ind:] if reality else dl
+    return dl
 
 
 def healpix_phase_shifts(
