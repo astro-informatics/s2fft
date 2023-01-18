@@ -193,7 +193,7 @@ def downsample_by_two_mwss(f_ext: np.ndarray, L: int) -> np.ndarray:
     if L % 2 != 0:
         raise ValueError(f"L must be even (L={L})")
 
-    f_ext_down = f_ext[0:-1:2, :]
+    f_ext_down = f_ext[:, 0:-1:2, :]
 
     return f_ext_down
 

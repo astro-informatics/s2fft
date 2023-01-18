@@ -63,7 +63,7 @@ def wigner_kernel(
         for t, theta in enumerate(thetas):
             for el in range(abs(n), L):
                 dl[N - 1 + n, t, el] = wigner.turok.compute_slice(
-                    theta, el, L, n, reality
+                    theta, el, L, n, False
                 )
 
     if forward:
@@ -85,7 +85,9 @@ def wigner_kernel(
             healpix_phase_shifts(L, nside, forward),
         )
 
-    return dl
+    n_start_ind = N - 1 if reality else 0
+
+    return dl[n_start_ind:] if reality else dl
 
 
 def healpix_phase_shifts(

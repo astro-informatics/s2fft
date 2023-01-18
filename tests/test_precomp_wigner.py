@@ -9,7 +9,7 @@ L_to_test = [8, 10]
 N_to_test = [2, 4]
 nside_to_test = [4, 6]
 L_to_nside_ratio = [2, 3]
-reality_to_test = [False]
+reality_to_test = [False, True]
 sampling_schemes = ["mw", "mwss", "dh"]
 methods_to_test = ["numpy", "jax"]
 
@@ -29,7 +29,7 @@ def test_inverse_wigner_transform(
 ):
     flmn = flmn_generator(L=L, N=N, reality=reality)
 
-    f = s2fft.wigner.transform.inverse(flmn, L, N, sampling)
+    f = s2fft.wigner.transform.inverse(flmn, L, N, 0, sampling, reality)
 
     kernel = wigner_kernel(L, N, reality, sampling, forward=False)
     f_check = inverse(flmn, L, N, kernel, sampling, reality, method)
@@ -52,12 +52,15 @@ def test_forward_wigner_transform(
 ):
     flmn = flmn_generator(L=L, N=N, reality=reality)
 
-    f = s2fft.wigner.transform.inverse(flmn, L, N, sampling)
-    flmn = s2fft.wigner.transform.forward(f, L, N, sampling)
+    f = s2fft.wigner.transform.inverse(
+        flmn, L, N, sampling=sampling, reality=reality
+    )
+    flmn = s2fft.wigner.transform.forward(
+        f, L, N, sampling=sampling, reality=reality
+    )
 
     kernel = wigner_kernel(L, N, reality, sampling, forward=True)
     flmn_check = forward(f, L, N, kernel, sampling, reality, method)
-
     np.testing.assert_allclose(flmn, flmn_check, atol=1e-5, rtol=1e-5)
 
 
@@ -78,7 +81,7 @@ def test_inverse_wigner_transform_healpix(
     L = ratio * nside
     flmn = flmn_generator(L=L, N=N, reality=reality)
 
-    f = s2fft.wigner.transform.inverse(flmn, L, N, sampling, nside)
+    f = s2fft.wigner.transform.inverse(flmn, L, N, 0, sampling, reality, nside)
 
     kernel = wigner_kernel(L, N, reality, sampling, nside=nside, forward=False)
     f_check = inverse(flmn, L, N, kernel, sampling, reality, method, nside)
@@ -103,8 +106,10 @@ def test_forward_wigner_transform_healpix(
     L = ratio * nside
     flmn = flmn_generator(L=L, N=N, reality=reality)
 
-    f = s2fft.wigner.transform.inverse(flmn, L, N, sampling, nside)
-    flmn_check = s2fft.wigner.transform.forward(f, L, N, sampling, nside)
+    f = s2fft.wigner.transform.inverse(flmn, L, N, 0, sampling, reality, nside)
+    flmn_check = s2fft.wigner.transform.forward(
+        f, L, N, 0, sampling, reality, nside
+    )
 
     kernel = wigner_kernel(L, N, reality, sampling, nside=nside, forward=True)
     flmn_forward = forward(f, L, N, kernel, sampling, reality, method, nside)

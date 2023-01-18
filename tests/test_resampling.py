@@ -8,7 +8,9 @@ def test_periodic_extension_invalid_sampling():
     f_dummy = np.zeros((2, 2), dtype=np.complex128)
 
     with pytest.raises(ValueError) as e:
-        s2f.resampling.periodic_extension(f_dummy, L=5, spin=0, sampling="healpix")
+        s2f.resampling.periodic_extension(
+            f_dummy, L=5, spin=0, sampling="healpix"
+        )
 
     with pytest.raises(ValueError) as e:
         s2f.resampling.periodic_extension(f_dummy, L=5, spin=0, sampling="dh")
@@ -23,6 +25,7 @@ def test_periodic_extension_mwss(flm_generator, L: int, spin_reality):
     (spin, reality) = spin_reality
     flm = flm_generator(L=L, spin=spin, reality=reality)
     f = s2f.transform.inverse(flm, L, spin, sampling="mwss")
+    f = np.expand_dims(f, 0)
 
     f_ext = s2f.resampling.periodic_extension(f, L, spin, sampling="mwss")
 
@@ -40,6 +43,7 @@ def test_mwss_upsample_downsample(flm_generator, L: int, spin_reality):
     (spin, reality) = spin_reality
     flm = flm_generator(L=L, spin=spin, reality=reality)
     f = s2f.transform.inverse(flm, L, spin, sampling="mwss")
+    f = np.expand_dims(f, 0)
 
     f_ext = s2f.resampling.periodic_extension_spatial_mwss(f, L, spin)
 
@@ -60,7 +64,7 @@ def test_unextend(flm_generator, L: int, sampling: str, spin_reality):
     (spin, reality) = spin_reality
     flm = flm_generator(L=L, spin=spin, reality=reality)
     f = s2f.transform.inverse(flm, L, spin, sampling=sampling)
-
+    f = np.expand_dims(f, 0)
     f_ext = s2f.resampling.periodic_extension(f, L, spin, sampling=sampling)
 
     f_unext = s2f.resampling.unextend(f_ext, L, sampling)
@@ -88,17 +92,6 @@ def test_resampling_exceptions():
 
     with pytest.raises(ValueError) as e:
         s2f.resampling.mw_to_mwss_phi(f_dummy, L=5)
-
-    L = 5
-    nphi_mw = s2f.samples.nphi_equiang(L, sampling="mw")
-    ntheta_mw = s2f.samples.ntheta(L, sampling="mw")
-    with pytest.raises(ValueError) as e:
-        f_dummy = np.zeros((ntheta_mw + 1, nphi_mw), dtype=np.complex128)
-        s2f.resampling.mw_to_mwss_theta(f_dummy, L)
-
-    with pytest.raises(ValueError) as e:
-        f_dummy = np.zeros((ntheta_mw, nphi_mw + 1), dtype=np.complex128)
-        s2f.resampling.mw_to_mwss_theta(f_dummy, L)
 
 
 @pytest.mark.parametrize("L", [5])

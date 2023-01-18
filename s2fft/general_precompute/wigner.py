@@ -1,9 +1,8 @@
 import numpy as np
-from s2fft import resampling
-from s2fft.wigner import samples
+from s2fft import resampling, samples
+import s2fft.wigner.samples as w_samples
 import s2fft.healpix_ffts as hp
 from s2fft.general_precompute import resampling_jax
-from s2fft.general_precompute.construct import healpix_phase_shifts
 from functools import partial
 
 from jax import jit
@@ -58,9 +57,11 @@ def inverse(
         :math:`\alpha` with :math:`\phi`.
     """
     if method == "numpy":
-        return inverse_transform(flmn, kernel, L, N, sampling, nside)
+        return inverse_transform(flmn, kernel, L, N, sampling, reality, nside)
     elif method == "jax":
-        return inverse_transform_jax(flmn, kernel, L, N, sampling, nside)
+        return inverse_transform_jax(
+            flmn, kernel, L, N, sampling, reality, nside
+        )
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -71,6 +72,7 @@ def inverse_transform(
     L: int,
     N: int,
     sampling: str,
+    reality: bool,
     nside: int,
 ) -> np.ndarray:
     r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
@@ -88,6 +90,9 @@ def inverse_transform(
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
 
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
@@ -95,34 +100,52 @@ def inverse_transform(
         np.ndarray: Pixel-space coefficients.
     """
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    n_start_ind = N - 1 if reality else 0
+
     fnab = np.zeros(
-        samples.fnab_shape(L, N, sampling, nside), dtype=np.complex64
+        w_samples.fnab_shape(L, N, sampling, nside), dtype=np.complex64
     )
-    fnab[..., m_offset:] = np.einsum(
-        "...ntlm, ...nlm -> ...ntm", kernel, flmn, optimize=True
+    fnab[n_start_ind:, :, m_offset:] = np.einsum(
+        "...ntlm, ...nlm -> ...ntm", kernel, flmn[n_start_ind:, :, :]
     )
 
     if sampling.lower() in "healpix":
-        f = np.zeros(samples.f_shape(L, N, sampling, nside), dtype=np.complex64)
-        for n in range(-N + 1, N):
+        f = np.zeros(
+            w_samples.f_shape(L, N, sampling, nside), dtype=np.complex64
+        )
+        for n in range(n_start_ind - N + 1, N):
             ind = N - 1 + n
             f[ind] = hp.healpix_ifft(fnab[ind], L, nside, "numpy")
-        return np.fft.ifft(
-            np.fft.ifftshift(f, axes=-2), axis=-2, norm="forward"
-        )
+        if reality:
+            return np.fft.irfft(
+                f[n_start_ind:], 2 * N - 1, axis=-2, norm="forward"
+            )
+        else:
+            return np.fft.ifft(
+                np.fft.ifftshift(f, axes=-2), axis=-2, norm="forward"
+            )
 
     else:
-        fnab = np.fft.ifftshift(fnab, axes=(-1, -3))
-        return np.fft.ifft2(fnab, axes=(-1, -3), norm="forward")
+        if reality:
+            fnab = np.fft.ifft(
+                np.fft.ifftshift(fnab, axes=-1), axis=-1, norm="forward"
+            )
+            return np.fft.irfft(
+                fnab[n_start_ind:], 2 * N - 1, axis=-3, norm="forward"
+            )
+        else:
+            fnab = np.fft.ifftshift(fnab, axes=(-1, -3))
+            return np.fft.ifft2(fnab, axes=(-1, -3), norm="forward")
 
 
-@partial(jit, static_argnums=(2, 3, 4, 5))
+@partial(jit, static_argnums=(2, 3, 4, 5, 6))
 def inverse_transform_jax(
     flmn: jnp.ndarray,
     kernel: jnp.ndarray,
     L: int,
     N: int,
     sampling: str,
+    reality: bool,
     nside: int,
 ) -> jnp.ndarray:
     r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
@@ -140,6 +163,9 @@ def inverse_transform_jax(
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
 
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
@@ -147,27 +173,47 @@ def inverse_transform_jax(
         jnp.ndarray: Pixel-space coefficients.
     """
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    n_start_ind = N - 1 if reality else 0
+
     fnab = jnp.zeros(
-        samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex64
+        w_samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex64
     )
-    fnab = fnab.at[..., m_offset:].set(
-        jnp.einsum("...ntlm, ...nlm -> ...ntm", kernel, flmn, optimize=True)
+    fnab = fnab.at[n_start_ind:, :, m_offset:].set(
+        jnp.einsum(
+            "...ntlm, ...nlm -> ...ntm",
+            kernel,
+            flmn[n_start_ind:, :, :],
+            optimize=True,
+        )
     )
 
     if sampling.lower() in "healpix":
         f = jnp.zeros(
-            samples.f_shape(L, N, sampling, nside), dtype=jnp.complex64
+            w_samples.f_shape(L, N, sampling, nside), dtype=jnp.complex64
         )
-        for n in range(-N + 1, N):
+        for n in range(n_start_ind - N + 1, N):
             ind = N - 1 + n
             f = f.at[ind].set(hp.healpix_ifft(fnab[ind], L, nside, "jax"))
-        return jnp.fft.ifft(
-            jnp.fft.ifftshift(f, axes=-2), axis=-2, norm="forward"
-        )
+        if reality:
+            return jnp.fft.irfft(
+                f[n_start_ind:], 2 * N - 1, axis=-2, norm="forward"
+            )
+        else:
+            return jnp.fft.ifft(
+                jnp.fft.ifftshift(f, axes=-2), axis=-2, norm="forward"
+            )
 
     else:
-        fnab = jnp.fft.ifftshift(fnab, axes=(-1, -3))
-        return jnp.fft.ifft2(fnab, axes=(-1, -3), norm="forward")
+        if reality:
+            fnab = jnp.fft.ifft(
+                jnp.fft.ifftshift(fnab, axes=-1), axis=-1, norm="forward"
+            )
+            return jnp.fft.irfft(
+                fnab[n_start_ind:], 2 * N - 1, axis=-3, norm="forward"
+            )
+        else:
+            fnab = jnp.fft.ifftshift(fnab, axes=(-1, -3))
+            return jnp.fft.ifft2(fnab, axes=(-1, -3), norm="forward")
 
 
 def forward(
@@ -218,9 +264,9 @@ def forward(
         :math:`\alpha` with :math:`\phi`.
     """
     if method == "numpy":
-        return forward_transform(f, kernel, L, N, sampling, nside)
+        return forward_transform(f, kernel, L, N, sampling, reality, nside)
     elif method == "jax":
-        return forward_transform_jax(f, kernel, L, N, sampling, nside)
+        return forward_transform_jax(f, kernel, L, N, sampling, reality, nside)
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -231,6 +277,7 @@ def forward_transform(
     L: int,
     N: int,
     sampling: str,
+    reality: bool,
     nside: int,
 ) -> np.ndarray:
     r"""Compute the forward spherical harmonic transform via precompute (vectorized
@@ -248,14 +295,24 @@ def forward_transform(
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
 
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
     Returns:
         np.ndarray: Pixel-space coefficients.
     """
-    fban = np.fft.fftshift(np.fft.fft(f, axis=0, norm="backward"), axes=0)
-    spins = -np.arange(-N + 1, N)
+    n_start_ind = N - 1 if reality else 0
+
+    ax = -2 if sampling.lower() == "healpix" else -3
+    if reality:
+        fban = np.fft.rfft(np.real(f), axis=ax, norm="backward")
+    else:
+        fban = np.fft.fftshift(np.fft.fft(f, axis=ax, norm="backward"), axes=ax)
+
+    spins = -np.arange(n_start_ind - N + 1, N)
     if sampling.lower() == "mw":
         fban = resampling.mw_to_mwss(fban, L, spins)
 
@@ -267,26 +324,45 @@ def forward_transform(
 
     if sampling.lower() in "healpix":
         temp = np.zeros(
-            samples.fnab_shape(L, N, sampling, nside), dtype=np.complex64
+            w_samples.fnab_shape(L, N, sampling, nside), dtype=np.complex64
         )
-        for n in range(-N + 1, N):
-            ind = N - 1 + n
-            temp[ind] = hp.healpix_fft(fban[ind], L, nside, "numpy")
-        fban = temp[..., m_offset:]
+        for n in range(n_start_ind - N + 1, N):
+            ind = n if reality else N - 1 + n
+            temp[N - 1 + n] = hp.healpix_fft(fban[ind], L, nside, "numpy")
+        fban = temp[n_start_ind:, :, m_offset:]
+
     else:
         fban = np.fft.fft(fban, axis=-1, norm="backward")
         fban = np.fft.fftshift(fban, axes=-1)[:, :, m_offset:]
 
-    return np.einsum("...ntlm, ...ntm -> ...nlm", kernel, fban)
+    flmn = np.zeros(w_samples.flmn_shape(L, N), dtype=np.complex64)
+    flmn[n_start_ind:] = np.einsum("...ntlm, ...ntm -> ...nlm", kernel, fban)
+    if reality:
+        flmn[:n_start_ind] = np.conj(
+            np.flip(flmn[n_start_ind + 1 :], axis=(-1, -3))
+        )
+        flmn[:n_start_ind] = np.einsum(
+            "...nlm,...m->...nlm",
+            flmn[:n_start_ind],
+            (-1) ** abs(np.arange(-L + 1, L)),
+        )
+        flmn[:n_start_ind] = np.einsum(
+            "...nlm,...n->...nlm",
+            flmn[:n_start_ind],
+            (-1) ** abs(np.arange(-N + 1, 0)),
+        )
+
+    return flmn
 
 
-@partial(jit, static_argnums=(2, 3, 4, 5))
+@partial(jit, static_argnums=(2, 3, 4, 5, 6))
 def forward_transform_jax(
     f: jnp.ndarray,
     kernel: jnp.ndarray,
     L: int,
     N: int,
     sampling: str,
+    reality: bool,
     nside: int,
 ) -> jnp.ndarray:
     r"""Compute the forward spherical harmonic transform via precompute (vectorized
@@ -304,14 +380,26 @@ def forward_transform_jax(
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "healpix"}.
 
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
     Returns:
         jnp.ndarray: Pixel-space coefficients.
     """
-    fban = jnp.fft.fftshift(jnp.fft.fft(f, axis=0, norm="backward"), axes=0)
-    spins = -jnp.arange(-N + 1, N)
+    n_start_ind = N - 1 if reality else 0
+
+    ax = -2 if sampling.lower() == "healpix" else -3
+    if reality:
+        fban = jnp.fft.rfft(jnp.real(f), axis=ax, norm="backward")
+    else:
+        fban = jnp.fft.fftshift(
+            jnp.fft.fft(f, axis=ax, norm="backward"), axes=ax
+        )
+
+    spins = -jnp.arange(n_start_ind - N + 1, N)
     if sampling.lower() == "mw":
         fban = resampling_jax.mw_to_mwss(fban, L, spins)
 
@@ -323,14 +411,40 @@ def forward_transform_jax(
 
     if sampling.lower() in "healpix":
         temp = jnp.zeros(
-            samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex64
+            w_samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex64
         )
-        for n in range(-N + 1, N):
-            ind = N - 1 + n
-            temp = temp.at[ind].set(hp.healpix_fft(fban[ind], L, nside, "jax"))
-        fban = temp[..., m_offset:]
+        for n in range(n_start_ind - N + 1, N):
+            ind = n if reality else N - 1 + n
+            temp = temp.at[N - 1 + n].set(
+                hp.healpix_fft(fban[ind], L, nside, "jax")
+            )
+        fban = temp[n_start_ind:, :, m_offset:]
+
     else:
         fban = jnp.fft.fft(fban, axis=-1, norm="backward")
         fban = jnp.fft.fftshift(fban, axes=-1)[:, :, m_offset:]
 
-    return jnp.einsum("...ntlm, ...ntm -> ...nlm", kernel, fban, optimize=True)
+    flmn = jnp.zeros(w_samples.flmn_shape(L, N), dtype=jnp.complex64)
+    flmn = flmn.at[n_start_ind:].set(
+        jnp.einsum("...ntlm, ...ntm -> ...nlm", kernel, fban, optimize=True)
+    )
+    if reality:
+        flmn = flmn.at[:n_start_ind].set(
+            jnp.conj(jnp.flip(flmn[n_start_ind + 1 :], axis=(-1, -3)))
+        )
+        flmn = flmn.at[:n_start_ind].set(
+            jnp.einsum(
+                "...nlm,...m->...nlm",
+                flmn[:n_start_ind],
+                (-1) ** abs(jnp.arange(-L + 1, L)),
+            )
+        )
+        flmn = flmn.at[:n_start_ind].set(
+            jnp.einsum(
+                "...nlm,...n->...nlm",
+                flmn[:n_start_ind],
+                (-1) ** abs(jnp.arange(-N + 1, 0)),
+            )
+        )
+
+    return flmn
