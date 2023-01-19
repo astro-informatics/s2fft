@@ -97,7 +97,6 @@ def _inverse(
     """
     assert flm.shape == samples.flm_shape(L)
     assert L > 0
-    assert 0 <= np.abs(spin) < L
     assert 0 <= L_lower < L
 
     if reality and spin != 0:
@@ -215,7 +214,6 @@ def _forward(
     """
     assert f.shape == samples.f_shape(L, sampling, nside)
     assert L > 0
-    assert 0 <= np.abs(spin) < L
     assert 0 <= L_lower < L
 
     if reality and spin != 0:
