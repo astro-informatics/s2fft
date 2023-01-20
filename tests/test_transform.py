@@ -117,7 +117,7 @@ def test_transform_forward_healpix(
     L = ratio * nside
     flm = flm_generator(L=L, reality=True)
     f = s2f.transform._inverse(
-        flm, L, sampling=sampling, method=method, nside=nside
+        flm, L, sampling=sampling, method=method, nside=nside, reality=reality
     )
 
     flm_direct = s2f.transform._forward(

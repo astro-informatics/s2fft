@@ -35,7 +35,9 @@ def spectral_folding(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
     return ftm_slice
 
 
-def spectral_periodic_extension(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
+def spectral_periodic_extension(
+    fm: np.ndarray, nphi: int, L: int
+) -> np.ndarray:
     """Extends lower frequency Fourier coefficients onto higher frequency
     coefficients, i.e. imposed periodicity in Fourier space.
 
@@ -68,7 +70,7 @@ def spectral_periodic_extension(fm: np.ndarray, nphi: int, L: int) -> np.ndarray
     return fm_full
 
 
-def healpix_fft(f: np.ndarray, L: int, nside: int) -> np.ndarray:
+def healpix_fft(f: np.ndarray, L: int, nside: int, reality: bool) -> np.ndarray:
     """Computes the Forward Fast Fourier Transform with spectral back-projection
     in the polar regions to manually enforce Fourier periodicity.
 
@@ -78,6 +80,9 @@ def healpix_fft(f: np.ndarray, L: int, nside: int) -> np.ndarray:
         L (int): Harmonic band-limit.
 
         nside (int): HEALPix Nside resolution parameter.
+
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
 
     Returns:
         np.ndarray: Array of Fourier coefficients for all latitudes.
@@ -89,7 +94,14 @@ def healpix_fft(f: np.ndarray, L: int, nside: int) -> np.ndarray:
     ntheta = ftm.shape[0]
     for t in range(ntheta):
         nphi = samples.nphi_ring(t, nside)
-        fm_chunk = fft.fftshift(fft.fft(f[index : index + nphi], norm="backward"))
+        if reality and nphi == 2 * L:
+            fm_chunk = np.zeros(nphi, dtype=np.complex128)
+            fm_chunk[nphi // 2 :] = fft.rfft(
+                np.real(f[index : index + nphi]), norm="backward"
+            )[:-1]
+        fm_chunk = fft.fftshift(
+            fft.fft(f[index : index + nphi], norm="backward")
+        )
         ftm[t] = (
             fm_chunk
             if nphi == 2 * L
@@ -99,7 +111,9 @@ def healpix_fft(f: np.ndarray, L: int, nside: int) -> np.ndarray:
     return ftm
 
 
-def healpix_ifft(ftm: np.ndarray, L: int, nside: int) -> np.ndarray:
+def healpix_ifft(
+    ftm: np.ndarray, L: int, nside: int, reality: bool
+) -> np.ndarray:
     """Computes the Inverse Fast Fourier Transform with spectral folding in the polar
     regions to mitigate aliasing.
 
@@ -110,17 +124,32 @@ def healpix_ifft(ftm: np.ndarray, L: int, nside: int) -> np.ndarray:
 
         nside (int): HEALPix Nside resolution parameter.
 
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
     Returns:
         np.ndarray: HEALPix pixel-space array.
     """
     assert L >= 2 * nside
 
-    f = np.zeros(samples.f_shape(sampling="healpix", nside=nside), dtype=np.complex128)
+    f = np.zeros(
+        samples.f_shape(sampling="healpix", nside=nside), dtype=np.complex128
+    )
     ntheta = ftm.shape[0]
     index = 0
+
     for t in range(ntheta):
         nphi = samples.nphi_ring(t, nside)
-        fm_chunk = ftm[t] if nphi == 2 * L else spectral_folding(ftm[t], nphi, L)
-        f[index : index + nphi] = fft.ifft(fft.ifftshift(fm_chunk), norm="forward")
+        fm_chunk = (
+            ftm[t] if nphi == 2 * L else spectral_folding(ftm[t], nphi, L)
+        )
+        if reality and nphi == 2 * L:
+            f[index : index + nphi] = fft.irfft(
+                fm_chunk[nphi // 2 :], nphi, norm="forward"
+            )
+        else:
+            f[index : index + nphi] = fft.ifft(
+                fft.ifftshift(fm_chunk), norm="forward"
+            )
         index += nphi
     return f
