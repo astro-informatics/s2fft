@@ -135,11 +135,11 @@
 <div class="section" id="quick-install-pypi">
 <h2>Quick install (PyPi)<a class="headerlink" href="#quick-install-pypi" title="Permalink to this headline"></a></h2>
 <p>Install <strong>&lt;Project-name&gt;</strong> from PyPi with a single command</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install &lt;Project-name&gt;
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>&lt;Project-name&gt;
 </pre></div>
 </div>
 <p>Check that the package has installed by running</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip list
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>list
 </pre></div>
 </div>
 <p>and locate &lt;Project-name&gt;.</p>
@@ -147,21 +147,21 @@
 <div class="section" id="install-from-source-github">
 <h2>Install from source (GitHub)<a class="headerlink" href="#install-from-source-github" title="Permalink to this headline"></a></h2>
 <p>When installing from source we recommend working within an existing conda environment, or creating a fresh conda environment to avoid any dependency conflicts,</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n &lt;Project-name&gt;_env <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.8
-conda activate &lt;Project-name&gt;_env
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>&lt;Project-name&gt;_env<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.8
+conda<span class="w"> </span>activate<span class="w"> </span>&lt;Project-name&gt;_env
 </pre></div>
 </div>
 <p>Once within a fresh environment <strong>&lt;Project-name&gt;</strong> may be installed by cloning the GitHub repository</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/astro-informatics/&lt;Project-name&gt;
-<span class="nb">cd</span> &lt;Project-name&gt;
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/astro-informatics/&lt;Project-name&gt;
+<span class="nb">cd</span><span class="w"> </span>&lt;Project-name&gt;
 </pre></div>
 </div>
 <p>and running the install script, within the root directory, with one command</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash build_&lt;Project-name&gt;.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash<span class="w"> </span>build_&lt;Project-name&gt;.sh
 </pre></div>
 </div>
 <p>To check the install has worked correctly run the unit tests with</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest --black &lt;Project-name&gt;/tests/
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>--black<span class="w"> </span>&lt;Project-name&gt;/tests/
 </pre></div>
 </div>
 <div class="admonition note">
