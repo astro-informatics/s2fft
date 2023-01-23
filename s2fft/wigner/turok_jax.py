@@ -52,10 +52,14 @@ positive_m_only: bool = False) -> jnp.ndarray:
     """
     if positive_m_only and mm != 0:
         positive_m_only = False
-        warn(
-            "Reality acceleration only supports spin 0 fields. "
-            + "Defering to complex transform."
-        )
+
+        # Commenting the following warning for now, as its output is probably lost in the compiled version 
+        # (side-effects don't get traced, see https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html#pure-functions)
+        #
+        # warn(
+        #     "Reality acceleration only supports spin 0 fields. "
+        #     + "Defering to complex transform."
+        # )
 
     dl = jnp.zeros(
         2 * L - 1, 
@@ -165,7 +169,7 @@ def _compute_quarter_slice(
     indices = jnp.arange(2 * L - 1)
 
     for i in ([1] if positive_m_only else range(2)): 
-        
+
             sgn = (-1) ** (i)
 
             # Initialise the vector
