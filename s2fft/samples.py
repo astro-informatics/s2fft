@@ -336,7 +336,8 @@ def phis_ring(t: int, nside: int) -> np.ndarray:
 def p2phi_ring(t: int, p: int, nside: int, numpy_module=np):
     r"""Convert index to :math:`\phi` angle for HEALPix for given :math:`\theta` ring.
 
-    See 'p2phi_ring_jax_lax' for an alternative JAX implementation using nested lax.cond's
+    See 'p2phi_ring_jax_lax' for an alternative JAX-only implementation using nested lax.cond's,
+    and 'p2phi_ring_np' for an alternative Numpy-only implementation. 
 
     Args:
         t (int): :math:`\theta` index of ring.
@@ -351,23 +352,12 @@ def p2phi_ring(t: int, p: int, nside: int, numpy_module=np):
         np.ndarray: :math:`\phi` angle.
     """
 
-    ## original
-    # shift = 1 / 2
-    # if (t + 1 >= nside) & (t + 1 <= 3 * nside):
-    #     shift *= (t - nside + 2) % 2
-    #     factor = np.pi / (2 * nside)
-    # elif t + 1 > 3 * nside:
-    #     factor = np.pi / (2 * (4 * nside - t - 1))
-    # else:
-    #     factor = np.pi / (2 * (t + 1))
-
-    ## alternative using jnp.where:
-    # shift per region (only 2 regions)
+    # shift per region (2 regions)
     shift = numpy_module.where(
         (t + 1 >= nside) & (t + 1 <= 3 * nside), (1 / 2) * ((t - nside + 2) % 2), 1 / 2
     )
     
-    # factor per region
+    # factor per region (3 regions)
     factor_reg_1 = numpy_module.where(
         (t + 1 >= nside) & (t + 1 <= 3 * nside), numpy_module.pi / (2 * nside), 1
     )
@@ -381,11 +371,39 @@ def p2phi_ring(t: int, p: int, nside: int, numpy_module=np):
 
     return factor * (p + shift)
 
+def p2phi_ring_np(t: int, p: int, nside: int):
+    r"""Convert index to :math:`\phi` angle for HEALPix for given :math:`\theta` ring - Numpy-only implementation.
+
+    See 'p2phi_ring_jax_lax' for an alternative JAX implementation using nested lax.cond's, and 'p2phi_ring' for a 
+    JAX/Numpy implementation using jnp.where/np.where.
+
+    Args:
+        t (int): :math:`\theta` index of ring.
+
+        p (int): :math:`\phi` index within ring.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+    Returns:
+        np.ndarray: :math:`\phi` angle.
+    """
+
+    shift = 1 / 2
+    if (t + 1 >= nside) & (t + 1 <= 3 * nside):
+        shift *= (t - nside + 2) % 2
+        factor = np.pi / (2 * nside)
+    elif t + 1 > 3 * nside:
+        factor = np.pi / (2 * (4 * nside - t - 1))
+    else:
+        factor = np.pi / (2 * (t + 1))
+
+    return factor * (p + shift)
+
 def p2phi_ring_jax_lax(t: int, p: int, nside: int) -> jnp.ndarray:
-    r"""Convert index to :math:`\phi` angle for HEALPix for given :math:`\theta` ring.
+    r"""Convert index to :math:`\phi` angle for HEALPix for given :math:`\theta` ring - JAX-only implementation.
     
-    Uses nested lax.cond from JAX. See 'p2phi_ring' for an alternative implementation using 
-    jnp.where/np.where
+    Uses nested lax.cond from JAX. See 'p2phi_ring' for an alternative JAX/Numpy implementation using 
+    jnp.where/np.where, and 'p2phi_ring_np' for a Numpy-only implementation.
 
     Args:
         t (int): :math:`\theta` index of ring.
