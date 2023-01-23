@@ -164,8 +164,8 @@ def _compute_quarter_slice(
     # Static array of indices for first dimension of dl array
     indices = jnp.arange(2 * L - 1)
 
-    for i in range(2):
-        if not (positive_m_only and i == 0):
+    for i in ([1] if positive_m_only else range(2)): 
+        
             sgn = (-1) ** (i)
 
             # Initialise the vector
