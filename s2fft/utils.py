@@ -88,6 +88,9 @@ def generate_flmn(
 
             if reality:
                 flmn[el, 0 + L - 1, N - 1 + n] = rng.uniform()
+                flmn[el, 0 + L - 1, N - 1 - n] = (-1) ** n * flmn[
+                    el, 0 + L - 1, N - 1 + n
+                ]
             else:
                 flmn[el, 0 + L - 1, N - 1 + n] = (
                     rng.uniform() + 1j * rng.uniform()
@@ -98,7 +101,7 @@ def generate_flmn(
                     rng.uniform() + 1j * rng.uniform()
                 )
                 if reality:
-                    flmn[el, -m + L - 1, N - 1 + n] = (-1) ** m * np.conj(
+                    flmn[el, -m + L - 1, N - 1 - n] = (-1) ** (m + n) * np.conj(
                         flmn[el, m + L - 1, N - 1 + n]
                     )
                 else:

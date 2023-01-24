@@ -1,9 +1,17 @@
 import numpy as np
 import numpy.fft as fft
-import s2fft as s2f
+import s2fft
 
 
-def inverse(flmn: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
+def inverse(
+    flmn: np.ndarray,
+    L: int,
+    N: int,
+    L_lower: int = 0,
+    sampling: str = "mw",
+    reality: bool = False,
+    nside: int = None,
+) -> np.ndarray:
     r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
     :math:`SO(3)`.
 
@@ -16,14 +24,23 @@ def inverse(flmn: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarra
         :math:`\alpha` with :math:`\phi`.
 
     Args:
-        flmn (np.ndarray): Wigner coefficients with shape :math:`[L, 2L-1, N]`.
+        flmn (np.ndarray): Wigner coefficients with shape :math:`[L, 2L-1, 2N-1]`.
 
         L (int): Harmonic bandlimit.
 
         N (int): Directional band-limit.
 
+        L_lower (int, optional): Harmonic lower bound. Defaults to 0.
+
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
 
     Raises:
         ValueError: Sampling scheme not currently supported.
@@ -33,28 +50,44 @@ def inverse(flmn: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarra
         n_{\alpha}, n_{\gamma}]`, where :math:`n_\xi` denotes the number of samples for
         angle :math:`\xi`.
     """
-    assert flmn.shape == s2f.wigner.samples.flmn_shape(L, N)
-
-    if sampling not in ["mw", "mwss", "dh"]:
-        raise ValueError(f"Sampling scheme sampling={sampling} not supported")
-
-    fban = np.zeros(s2f.wigner.samples.f_shape(L, N, sampling), dtype=np.complex128)
+    assert flmn.shape == s2fft.wigner.samples.flmn_shape(L, N)
+    fban = np.zeros(
+        s2fft.wigner.samples.f_shape(L, N, sampling, nside), dtype=np.complex128
+    )
 
     flmn_scaled = np.einsum(
         "ijk,i->ijk", flmn, np.sqrt((2 * np.arange(L) + 1) / (16 * np.pi**3))
     )
 
-    for n in range(-N + 1, N):
-        fban[..., N - 1 + n] = (-1) ** n * s2f.transform.inverse(
-            flmn_scaled[..., N - 1 + n], L, spin=-n, sampling=sampling
+    n_start_ind = 0 if reality else -N + 1
+    for n in range(n_start_ind, N):
+        fban[..., N - 1 + n] = (-1) ** n * s2fft.transform.inverse(
+            flmn_scaled[..., N - 1 + n],
+            L,
+            spin=-n,
+            sampling=sampling,
+            reality=reality,
+            L_lower=L_lower,
+            nside=nside,
         )
 
-    f = fft.ifft(fft.ifftshift(fban, axes=2), axis=2, norm="forward")
+    if reality:
+        f = fft.irfft(fban[..., N - 1 :], 2 * N - 1, axis=-1, norm="forward")
+    else:
+        f = fft.ifft(fft.ifftshift(fban, axes=-1), axis=-1, norm="forward")
 
     return f
 
 
-def forward(f: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
+def forward(
+    f: np.ndarray,
+    L: int,
+    N: int,
+    L_lower: int = 0,
+    sampling: str = "mw",
+    reality: bool = False,
+    nside: int = None,
+) -> np.ndarray:
     r"""Compute the forward Wigner transform, i.e. Fourier transform on
     :math:`SO(3)`.
 
@@ -75,8 +108,17 @@ def forward(f: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
 
         N (int): Directional band-limit.
 
+        L_lower (int, optional): Harmonic lower bound. Defaults to 0.
+
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
 
     Raises:
         ValueError: Sampling scheme not currently supported.
@@ -84,25 +126,37 @@ def forward(f: np.ndarray, L: int, N: int, sampling: str = "mw") -> np.ndarray:
     Returns:
         np.ndarray: Wigner coefficients `flmn` with shape :math:`[L, 2L-1, 2N-1]`.
     """
-    assert f.shape == s2f.wigner.samples.f_shape(L, N, sampling)
+    assert f.shape == s2fft.wigner.samples.f_shape(L, N, sampling, nside)
+    flmn = np.zeros(s2fft.wigner.samples.flmn_shape(L, N), dtype=np.complex128)
 
-    if sampling not in ["mw", "mwss", "dh"]:
-        raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+    if reality:
+        fban = fft.rfft(np.real(f), axis=-1, norm="backward")
+    else:
+        fban = fft.fftshift(fft.fft(f, axis=-1, norm="backward"), axes=-1)
 
-    flmn = np.zeros(s2f.wigner.samples.flmn_shape(L, N), dtype=np.complex128)
+    fban *= 2 * np.pi / (2 * N - 1)
 
-    fabn = (
-        2
-        * np.pi
-        / (2 * N - 1)
-        * fft.fftshift(fft.fft(f, axis=2, norm="backward"), axes=2)
-    )
+    if reality:
+        sgn = (-1) ** abs(np.arange(-L + 1, L))
 
-    for n in range(-N + 1, N):
-        flmn[..., N - 1 + n] = (-1) ** n * s2f.transform.forward(
-            fabn[..., N - 1 + n], L, spin=-n, sampling=sampling
+    n_start_ind = 0 if reality else -N + 1
+    for n in range(n_start_ind, N):
+        flmn[..., N - 1 + n] = (-1) ** n * s2fft.transform.forward(
+            fban[..., n - n_start_ind],
+            L,
+            spin=-n,
+            sampling=sampling,
+            reality=reality,
+            L_lower=L_lower,
+            nside=nside,
         )
+        if reality and n != 0:
+            flmn[..., N - 1 - n] = np.conj(
+                np.flip(flmn[..., N - 1 + n] * sgn * (-1) ** n, axis=1)
+            )
 
-    flmn = np.einsum("ijk,i->ijk", flmn, np.sqrt(4 * np.pi / (2 * np.arange(L) + 1)))
+    flmn = np.einsum(
+        "ijk,i->ijk", flmn, np.sqrt(4 * np.pi / (2 * np.arange(L) + 1))
+    )
 
     return flmn
