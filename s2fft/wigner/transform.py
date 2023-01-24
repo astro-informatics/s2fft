@@ -33,7 +33,7 @@ def inverse(
         L_lower (int, optional): Harmonic lower bound. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -51,10 +51,6 @@ def inverse(
         angle :math:`\xi`.
     """
     assert flmn.shape == s2fft.wigner.samples.flmn_shape(L, N)
-
-    # if sampling not in ["mw", "mwss", "dh"]:
-    #     raise ValueError(f"Sampling scheme sampling={sampling} not supported")
-
     fban = np.zeros(
         s2fft.wigner.samples.f_shape(L, N, sampling, nside), dtype=np.complex128
     )
@@ -115,7 +111,7 @@ def forward(
         L_lower (int, optional): Harmonic lower bound. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -131,10 +127,6 @@ def forward(
         np.ndarray: Wigner coefficients `flmn` with shape :math:`[L, 2L-1, 2N-1]`.
     """
     assert f.shape == s2fft.wigner.samples.f_shape(L, N, sampling, nside)
-
-    # if sampling not in ["mw", "mwss", "dh"]:
-    #     raise ValueError(f"Sampling scheme sampling={sampling} not supported")
-
     flmn = np.zeros(s2fft.wigner.samples.flmn_shape(L, N), dtype=np.complex128)
 
     if reality:
