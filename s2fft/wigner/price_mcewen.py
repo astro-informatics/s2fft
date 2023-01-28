@@ -61,24 +61,24 @@ def generate_precomputes(beta: np.ndarray, L: int, mm: int) -> np.ndarray:
                 lamb[i, j, k] -= (nel - k - 1) * cs[j]
                 lrenorm[i, j, k] = log_first_row[half_slices[i][k] - 1, j, k]
 
-    return [lrenorm, lamb, vsign, cpi, cp2]
+    return [lrenorm, lamb, vsign, cpi, cp2, cs]
 
 
-def compute_vectorised_slice(beta: np.ndarray, L: int, mm: int) -> np.ndarray:
+def compute_slice(
+    beta: np.ndarray, L: int, mm: int, precomps=None
+) -> np.ndarray:
     ntheta = len(beta)  # Number of theta samples
     el = np.arange(L)
     nel = len(el)  # Number of harmonic modes.
-
-    # Trigonometric constant adopted throughout
-    c = np.cos(beta)
-    s = np.sin(beta)
-    cs = c / s
 
     # Indexing boundaries
     lims = [0, -1]
 
     dl_test = np.zeros((2 * L - 1, ntheta, nel), dtype=np.float64)
-    lrenorm, lamb, vsign, cpi, cp2 = generate_precomputes(beta, L, mm)
+    if precomps is None:
+        lrenorm, lamb, vsign, cpi, cp2, cs = generate_precomputes(beta, L, mm)
+    else:
+        lrenorm, lamb, vsign, cpi, cp2, cs = precomps
 
     for i in range(2):
         lind = L - 1
@@ -146,18 +146,13 @@ def latitudinal_step(
     nel = len(el)  # Number of harmonic modes.
     ftm = np.zeros(samples.ftm_shape(L, sampling), dtype=np.complex128)
 
-    # Trigonometric constant adopted throughout
-    c = np.cos(beta)
-    s = np.sin(beta)
-    cs = c / s
-
     # Indexing boundaries
     lims = [0, -1]
 
     if precomps is None:
-        lrenorm, lamb, vsign, cpi, cp2 = generate_precomputes(beta, L, mm)
+        lrenorm, lamb, vsign, cpi, cp2, cs = generate_precomputes(beta, L, mm)
     else:
-        lrenorm, lamb, vsign, cpi, cp2 = precomps
+        lrenorm, lamb, vsign, cpi, cp2, cs = precomps
 
     for i in range(2):
         lind = L - 1
@@ -266,59 +261,61 @@ def inverse_transform_new(
     return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
 
-if __name__ == "__main__":
-    from s2fft import samples, wigner, transform, utils
-    from matplotlib import pyplot as plt
-    import warnings
-    import time
-
-    warnings.filterwarnings("ignore")
-
-    sampling = "mw"
-    L = 128
-    spin = -3
-
-    rng = np.random.default_rng(12341234515)
-    flm = utils.generate_flm(rng, L, 0, spin)
-
-    precomps = generate_precomputes(samples.thetas(L, sampling), L, -spin)
-
-    f = np.real(transform.inverse(flm, L, spin, sampling))
-    f_test = np.real(inverse_transform(flm, L, spin, sampling))
-    f_test_2 = np.real(inverse_transform_new(flm, L, spin, sampling, precomps))
-
-    mx, mn = np.nanmax(f), np.nanmin(f)
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
-    ax1.imshow(f, cmap="magma", vmax=mx, vmin=mn)
-    ax2.imshow(f_test, cmap="magma", vmax=mx, vmin=mn)
-    ax3.imshow(f_test_2, cmap="magma", vmax=mx, vmin=mn)
-    plt.show()
-
 # if __name__ == "__main__":
-#     import s2fft.samples as samples
-#     import s2fft.wigner as wigner
+#     from s2fft import samples, wigner, transform, utils
+#     from matplotlib import pyplot as plt
 #     import warnings
+#     import time
 
 #     warnings.filterwarnings("ignore")
 
 #     sampling = "mw"
-#     L = 32
-#     el = L - 1
-#     betas = samples.thetas(L, sampling)
-#     beta_ind = int(L / 2)
-#     beta = betas[beta_ind]
-#     spin = 2
+#     L = 128
+#     spin = -3
 
-#     dl_turok = wigner.turok.compute_slice(beta, el, L, -spin)
-#     dl_price_mcewen = compute_vectorised_slice(betas, L, -spin)[:, beta_ind, el]
+#     rng = np.random.default_rng(12341234515)
+#     flm = utils.generate_flm(rng, L, 0, spin)
 
-#     print(np.nanmax(np.log10(np.abs(dl_turok - dl_price_mcewen))))
-#     from matplotlib import pyplot as plt
+#     precomps = generate_precomputes(samples.thetas(L, sampling), L, -spin)
 
-#     fig, (ax1, ax2) = plt.subplots(1, 2)
-#     ax1.plot(dl_turok, label="turok")
-#     ax1.plot(dl_price_mcewen, label=" test")
-#     ax1.legend()
-#     ax2.plot(np.log10(np.abs(dl_turok - dl_price_mcewen)))
-#     ax2.axhline(y=-14, color="r", linestyle="--")
+#     f = np.real(transform.inverse(flm, L, spin, sampling))
+#     f_test = np.real(inverse_transform(flm, L, spin, sampling))
+#     f_test_2 = np.real(inverse_transform_new(flm, L, spin, sampling, precomps))
+
+#     mx, mn = np.nanmax(f), np.nanmin(f)
+#     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+#     ax1.imshow(f, cmap="magma", vmax=mx, vmin=mn)
+#     ax2.imshow(f_test, cmap="magma", vmax=mx, vmin=mn)
+#     ax3.imshow(f_test_2, cmap="magma", vmax=mx, vmin=mn)
 #     plt.show()
+
+if __name__ == "__main__":
+    import s2fft.samples as samples
+    import s2fft.wigner as wigner
+    import warnings
+
+    warnings.filterwarnings("ignore")
+
+    sampling = "mw"
+    L = 64
+    el = L - 1
+    betas = samples.thetas(L, sampling)
+    beta_ind = int(L / 2)
+    beta = betas[beta_ind]
+    spin = -3
+
+    precomps = generate_precomputes(samples.thetas(L, sampling), L, -spin)
+
+    dl_turok = wigner.turok.compute_slice(beta, el, L, -spin)
+    dl_price_mcewen = compute_slice(betas, L, -spin)[:, beta_ind, el]
+
+    print(np.nanmax(np.log10(np.abs(dl_turok - dl_price_mcewen))))
+    from matplotlib import pyplot as plt
+
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    ax1.plot(dl_turok, label="turok")
+    ax1.plot(dl_price_mcewen, label=" test")
+    ax1.legend()
+    ax2.plot(np.log10(np.abs(dl_turok - dl_price_mcewen)))
+    ax2.axhline(y=-14, color="r", linestyle="--")
+    plt.show()
