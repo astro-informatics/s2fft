@@ -133,7 +133,12 @@ def compute_vectorised_slice(beta: np.ndarray, L: int, mm: int) -> np.ndarray:
 
 
 def latitudinal_step(
-    flm: np.ndarray, beta: np.ndarray, L: int, mm: int, sampling: str = "mw"
+    flm: np.ndarray,
+    beta: np.ndarray,
+    L: int,
+    mm: int,
+    sampling: str = "mw",
+    precomps=None,
 ) -> np.ndarray:
 
     ntheta = len(beta)  # Number of theta samples
@@ -148,7 +153,11 @@ def latitudinal_step(
 
     # Indexing boundaries
     lims = [0, -1]
-    lrenorm, lamb, vsign, cpi, cp2 = generate_precomputes(beta, L, mm)
+
+    if precomps is None:
+        lrenorm, lamb, vsign, cpi, cp2 = generate_precomputes(beta, L, mm)
+    else:
+        lrenorm, lamb, vsign, cpi, cp2 = precomps
 
     for i in range(2):
         lind = L - 1
@@ -229,19 +238,22 @@ def inverse_transform(
                 ftm[t, m + L - 1] += (
                     elfactor * dl[m + L - 1] * flm[el, m + L - 1]
                 )
-    return ftm
-    # ftm *= (-1) ** spin
-    # return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+    ftm *= (-1) ** spin
+    return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
 
 def inverse_transform_new(
-    flm: np.ndarray, L: int, spin: int, sampling="mw"
+    flm: np.ndarray,
+    L: int,
+    spin: int,
+    sampling: str = "mw",
+    precomps=None,
 ) -> np.ndarray:
     thetas = samples.thetas(L, sampling)
     flm = np.einsum(
         "lm,l->lm", flm, np.sqrt((2 * np.arange(L) + 1) / (4 * np.pi))
     )
-    ftm = latitudinal_step(flm, thetas, L, -spin, sampling)
+    ftm = latitudinal_step(flm, thetas, L, -spin, sampling, precomps)
 
     # Remove pole singularity
     if sampling == "mw":
@@ -249,37 +261,37 @@ def inverse_transform_new(
         ftm[-1, L - 1 + spin] = np.nansum(
             (-1) ** abs(np.arange(L) - spin) * flm[:, L - 1 + spin]
         )
-    return ftm
-    # ftm *= (-1) ** spin
-    # return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+
+    ftm *= (-1) ** spin
+    return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
 
 if __name__ == "__main__":
     from s2fft import samples, wigner, transform, utils
     from matplotlib import pyplot as plt
     import warnings
+    import time
 
     warnings.filterwarnings("ignore")
 
     sampling = "mw"
-    L = 64
+    L = 128
     spin = -3
 
     rng = np.random.default_rng(12341234515)
     flm = utils.generate_flm(rng, L, 0, spin)
 
+    precomps = generate_precomputes(samples.thetas(L, sampling), L, -spin)
+
     f = np.real(transform.inverse(flm, L, spin, sampling))
     f_test = np.real(inverse_transform(flm, L, spin, sampling))
-    f_test_2 = np.real(inverse_transform_new(flm, L, spin, sampling))
+    f_test_2 = np.real(inverse_transform_new(flm, L, spin, sampling, precomps))
 
-    f = f_test
     mx, mn = np.nanmax(f), np.nanmin(f)
-    fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(1, 5)
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
     ax1.imshow(f, cmap="magma", vmax=mx, vmin=mn)
     ax2.imshow(f_test, cmap="magma", vmax=mx, vmin=mn)
-    ax3.imshow(f - f_test, cmap="magma", vmax=mx, vmin=mn)
-    ax4.imshow(f_test_2, cmap="magma", vmax=mx, vmin=mn)
-    ax5.imshow(f - f_test_2, cmap="magma", vmax=mx, vmin=mn)
+    ax3.imshow(f_test_2, cmap="magma", vmax=mx, vmin=mn)
     plt.show()
 
 # if __name__ == "__main__":
