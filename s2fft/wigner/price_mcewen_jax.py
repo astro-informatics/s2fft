@@ -1,5 +1,6 @@
 import numpy as np
 import jax.numpy as jnp
+import jax.lax as lax
 from jax import jit
 from jax.config import config
 
@@ -24,9 +25,11 @@ def compute_slice_jax(
 
     dl_test = jnp.zeros((2 * L - 1, ntheta, nel), dtype=jnp.float64)
     if precomps is None:
-        lrenorm, lamb, vsign, cpi, cp2, cs = generate_precomputes(beta, L, mm)
+        lrenorm, lamb, vsign, cpi, cp2, cs, indices = generate_precomputes(
+            beta, L, mm
+        )
     else:
-        lrenorm, lamb, vsign, cpi, cp2, cs = precomps
+        lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
 
     for i in range(2):
         lind = L - 1
@@ -54,33 +57,45 @@ def compute_slice_jax(
             * jnp.exp(lrenorm[i, :, lind - 1 :])
         )
 
-        for m in range(2, L):
-            lind = L - m - 1
-            lamb = lamb.at[i, :, jnp.arange(nel)].add(cs)
+        dl_entry = jnp.zeros((ntheta, nel), dtype=jnp.float64)
 
-            dl_entry = jnp.einsum(
-                "l,tl->tl",
-                cpi[m - 1, lind:],
-                dl_iter[1, :, lind:] * lamb[i, :, lind:],
+        def pm_recursion_step(m, args):
+            dl_test, dl_entry, dl_iter, lamb, lrenorm = args
+            index = indices >= L - m - 1
+            lamb = lamb.at[i, :, np.arange(L)].add(cs)
+            dl_entry = jnp.where(
+                index,
+                jnp.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i])
+                - jnp.einsum("l,tl->tl", cp2[m - 1], dl_iter[0]),
+                dl_entry,
             )
-            dl_entry -= jnp.einsum(
-                "l,tl->tl", cp2[m - 1, lind:], dl_iter[0, :, lind:]
-            )
-            dl_entry = dl_entry.at[:, 0].set(1)
+            dl_entry = dl_entry.at[:, -(m + 1)].set(1)
 
-            dl_test = dl_test.at[sind + sgn * m, :, lind:].set(
-                dl_entry
-                * vsign[sind + sgn * m, lind:]
-                * jnp.exp(lrenorm[i, :, lind:])
+            dl_test = dl_test.at[sind + sgn * m].set(
+                jnp.where(
+                    index,
+                    dl_entry * vsign[sind + sgn * m] * jnp.exp(lrenorm[i]),
+                    dl_test[sind + sgn * m],
+                )
             )
 
             bigi = 1.0 / abs(dl_entry)
             lbig = jnp.log(abs(dl_entry))
 
-            dl_iter = dl_iter.at[0, :, lind:].set(bigi * dl_iter[1, :, lind:])
-            dl_iter = dl_iter.at[1, :, lind:].set(bigi * dl_entry)
-            lrenorm = lrenorm.at[i, :, lind:].add(lbig)
+            dl_iter = dl_iter.at[0].set(
+                jnp.where(index, bigi * dl_iter[1], dl_iter[0])
+            )
+            dl_iter = dl_iter.at[1].set(
+                jnp.where(index, bigi * dl_entry, dl_iter[1])
+            )
+            lrenorm = lrenorm.at[i].set(
+                jnp.where(index, lrenorm[i] + lbig, lrenorm[i])
+            )
+            return dl_test, dl_entry, dl_iter, lamb, lrenorm
 
+        dl_test, dl_entry, dl_iter, lamb, lrenorm = lax.fori_loop(
+            2, L, pm_recursion_step, (dl_test, dl_entry, dl_iter, lamb, lrenorm)
+        )
     return dl_test
 
 
@@ -103,9 +118,11 @@ def latitudinal_step_jax(
     lims = [0, -1]
 
     if precomps is None:
-        lrenorm, lamb, vsign, cpi, cp2, cs = generate_precomputes(beta, L, mm)
+        lrenorm, lamb, vsign, cpi, cp2, cs, indices = generate_precomputes(
+            beta, L, mm
+        )
     else:
-        lrenorm, lamb, vsign, cpi, cp2, cs = precomps
+        lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
 
     for i in range(2):
         lind = L - 1
@@ -142,28 +159,29 @@ def latitudinal_step_jax(
                 axis=-1,
             )
         )
+        dl_entry = jnp.zeros((ntheta, nel), dtype=jnp.float64)
 
-        for m in range(2, L):
-            lind = L - m - 1
-            lamb = lamb.at[i, :, np.arange(nel)].add(cs)
+        def pm_recursion_step(m, args):
+            ftm, dl_entry, dl_iter, lamb, lrenorm = args
 
-            dl_entry = jnp.einsum(
-                "l,tl->tl",
-                cpi[m - 1, lind:],
-                dl_iter[1, :, lind:] * lamb[i, :, lind:],
+            index = indices >= L - m - 1
+            lamb = lamb.at[i, :, jnp.arange(nel)].add(cs)
+
+            dl_entry = jnp.where(
+                index,
+                jnp.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i])
+                - jnp.einsum("l,tl->tl", cp2[m - 1], dl_iter[0]),
+                dl_entry,
             )
-            dl_entry -= jnp.einsum(
-                "l,tl->tl", cp2[m - 1, lind:], dl_iter[0, :, lind:]
-            )
-            dl_entry = dl_entry.at[:, 0].set(1)
+            dl_entry = dl_entry.at[:, -(m + 1)].set(1)
 
             # Sum into transform vector
             ftm = ftm.at[:, sind + sgn * m].set(
                 jnp.nansum(
                     dl_entry
-                    * vsign[sind + sgn * m, lind:]
-                    * jnp.exp(lrenorm[i, :, lind:])
-                    * flm[lind:, sind + sgn * m],
+                    * vsign[sind + sgn * m]
+                    * jnp.exp(lrenorm[i])
+                    * flm[:, sind + sgn * m],
                     axis=-1,
                 )
             )
@@ -171,10 +189,20 @@ def latitudinal_step_jax(
             bigi = 1.0 / abs(dl_entry)
             lbig = jnp.log(abs(dl_entry))
 
-            dl_iter = dl_iter.at[0, :, lind:].set(bigi * dl_iter[1, :, lind:])
-            dl_iter = dl_iter.at[1, :, lind:].set(bigi * dl_entry)
-            lrenorm = lrenorm.at[i, :, lind:].add(lbig)
+            dl_iter = dl_iter.at[0].set(
+                jnp.where(index, bigi * dl_iter[1], dl_iter[0])
+            )
+            dl_iter = dl_iter.at[1].set(
+                jnp.where(index, bigi * dl_entry, dl_iter[1])
+            )
+            lrenorm = lrenorm.at[i].set(
+                jnp.where(index, lrenorm[i] + lbig, lrenorm[i])
+            )
+            return ftm, dl_entry, dl_iter, lamb, lrenorm
 
+        ftm, dl_entry, dl_iter, lamb, lrenorm = lax.fori_loop(
+            2, L, pm_recursion_step, (ftm, dl_entry, dl_iter, lamb, lrenorm)
+        )
     return ftm
 
 
@@ -247,16 +275,16 @@ if __name__ == "__main__":
     )
 
     mx, mn = np.nanmax(f), np.nanmin(f)
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4)
     ax1.imshow(f, cmap="magma", vmax=mx, vmin=mn)
     ax2.imshow(f_test, cmap="magma", vmax=mx, vmin=mn)
     ax3.imshow(f_test_2, cmap="magma", vmax=mx, vmin=mn)
+    ax4.imshow(f_test - f_test_2, cmap="magma")
     plt.show()
 
 # if __name__ == "__main__":
 #     import s2fft.samples as samples
 #     import s2fft.wigner as wigner
-#     from s2fft.wigner.price_mcewen import compute_slice
 
 #     import warnings
 
@@ -266,8 +294,7 @@ if __name__ == "__main__":
 #     L = 8
 #     el = L - 1
 #     betas = samples.thetas(L, sampling)
-#     # beta_ind = int(L / 2)
-#     beta_ind = -2
+#     beta_ind = int(L / 2)
 #     beta = betas[beta_ind]
 #     spin = 0
 

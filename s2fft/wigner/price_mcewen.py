@@ -61,7 +61,9 @@ def generate_precomputes(beta: np.ndarray, L: int, mm: int) -> np.ndarray:
                 lamb[i, j, k] -= (nel - k - 1) * cs[j]
                 lrenorm[i, j, k] = log_first_row[half_slices[i][k] - 1, j, k]
 
-    return [lrenorm, lamb, vsign, cpi, cp2, cs]
+    indices = np.repeat(np.expand_dims(np.arange(L), 0), ntheta, axis=0)
+
+    return [lrenorm, lamb, vsign, cpi, cp2, cs, indices]
 
 
 def compute_slice(
@@ -76,9 +78,11 @@ def compute_slice(
 
     dl_test = np.zeros((2 * L - 1, ntheta, nel), dtype=np.float64)
     if precomps is None:
-        lrenorm, lamb, vsign, cpi, cp2, cs = generate_precomputes(beta, L, mm)
+        lrenorm, lamb, vsign, cpi, cp2, cs, indices = generate_precomputes(
+            beta, L, mm
+        )
     else:
-        lrenorm, lamb, vsign, cpi, cp2, cs = precomps
+        lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
 
     for i in range(2):
         lind = L - 1
@@ -103,31 +107,30 @@ def compute_slice(
             * np.exp(lrenorm[i, :, lind - 1 :])
         )
 
+        dl_entry = np.zeros((ntheta, nel), dtype=np.float64)
         for m in range(2, L):
-            lind = L - m - 1
-            lamb[i, :, np.arange(nel)] += cs
+            index = indices >= L - m - 1
+            lamb[i, :, np.arange(L)] += cs
+            dl_entry = np.where(
+                index,
+                np.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i])
+                - np.einsum("l,tl->tl", cp2[m - 1], dl_iter[0]),
+                dl_entry,
+            )
+            dl_entry[:, -(m + 1)] = 1
 
-            dl_entry = np.einsum(
-                "l,tl->tl",
-                cpi[m - 1, lind:],
-                dl_iter[1, :, lind:] * lamb[i, :, lind:],
-            )
-            dl_entry -= np.einsum(
-                "l,tl->tl", cp2[m - 1, lind:], dl_iter[0, :, lind:]
-            )
-            dl_entry[:, 0] = 1
-            dl_test[sind + sgn * m, :, lind:] = (
-                dl_entry
-                * vsign[sind + sgn * m, lind:]
-                * np.exp(lrenorm[i, :, lind:])
+            dl_test[sind + sgn * m] = np.where(
+                index,
+                dl_entry * vsign[sind + sgn * m] * np.exp(lrenorm[i]),
+                dl_test[sind + sgn * m],
             )
 
             bigi = 1.0 / abs(dl_entry)
             lbig = np.log(abs(dl_entry))
 
-            dl_iter[0, :, lind:] = bigi * dl_iter[1, :, lind:]
-            dl_iter[1, :, lind:] = bigi * dl_entry
-            lrenorm[i, :, lind:] += lbig
+            dl_iter[0] = np.where(index, bigi * dl_iter[1], dl_iter[0])
+            dl_iter[1] = np.where(index, bigi * dl_entry, dl_iter[1])
+            lrenorm[i] = np.where(index, lrenorm[i] + lbig, lrenorm[i])
 
     return dl_test
 
@@ -150,9 +153,11 @@ def latitudinal_step(
     lims = [0, -1]
 
     if precomps is None:
-        lrenorm, lamb, vsign, cpi, cp2, cs = generate_precomputes(beta, L, mm)
+        lrenorm, lamb, vsign, cpi, cp2, cs, indices = generate_precomputes(
+            beta, L, mm
+        )
     else:
-        lrenorm, lamb, vsign, cpi, cp2, cs = precomps
+        lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
 
     for i in range(2):
         lind = L - 1
@@ -184,35 +189,34 @@ def latitudinal_step(
             axis=-1,
         )
 
+        dl_entry = np.zeros((ntheta, nel), dtype=np.float64)
         for m in range(2, L):
-            lind = L - m - 1
+            index = indices >= L - m - 1
             lamb[i, :, np.arange(nel)] += cs
 
-            dl_entry = np.einsum(
-                "l,tl->tl",
-                cpi[m - 1, lind:],
-                dl_iter[1, :, lind:] * lamb[i, :, lind:],
+            dl_entry = np.where(
+                index,
+                np.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i])
+                - np.einsum("l,tl->tl", cp2[m - 1], dl_iter[0]),
+                dl_entry,
             )
-            dl_entry -= np.einsum(
-                "l,tl->tl", cp2[m - 1, lind:], dl_iter[0, :, lind:]
-            )
-            dl_entry[:, 0] = 1
+            dl_entry[:, -(m + 1)] = 1
 
             # Sum into transform vector
             ftm[:, sind + sgn * m] = np.nansum(
                 dl_entry
-                * vsign[sind + sgn * m, lind:]
-                * np.exp(lrenorm[i, :, lind:])
-                * flm[lind:, sind + sgn * m],
+                * vsign[sind + sgn * m]
+                * np.exp(lrenorm[i])
+                * flm[:, sind + sgn * m],
                 axis=-1,
             )
 
             bigi = 1.0 / abs(dl_entry)
             lbig = np.log(abs(dl_entry))
 
-            dl_iter[0, :, lind:] = bigi * dl_iter[1, :, lind:]
-            dl_iter[1, :, lind:] = bigi * dl_entry
-            lrenorm[i, :, lind:] += lbig
+            dl_iter[0] = np.where(index, bigi * dl_iter[1], dl_iter[0])
+            dl_iter[1] = np.where(index, bigi * dl_entry, dl_iter[1])
+            lrenorm[i] = np.where(index, lrenorm[i] + lbig, lrenorm[i])
 
     return ftm
 
@@ -256,66 +260,66 @@ def inverse_transform_new(
         ftm[-1, L - 1 + spin] = np.nansum(
             (-1) ** abs(np.arange(L) - spin) * flm[:, L - 1 + spin]
         )
-
     ftm *= (-1) ** spin
     return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
 
-# if __name__ == "__main__":
-#     from s2fft import samples, wigner, transform, utils
-#     from matplotlib import pyplot as plt
-#     import warnings
-#     import time
-
-#     warnings.filterwarnings("ignore")
-
-#     sampling = "mw"
-#     L = 128
-#     spin = -3
-
-#     rng = np.random.default_rng(12341234515)
-#     flm = utils.generate_flm(rng, L, 0, spin)
-
-#     precomps = generate_precomputes(samples.thetas(L, sampling), L, -spin)
-
-#     f = np.real(transform.inverse(flm, L, spin, sampling))
-#     f_test = np.real(inverse_transform(flm, L, spin, sampling))
-#     f_test_2 = np.real(inverse_transform_new(flm, L, spin, sampling, precomps))
-
-#     mx, mn = np.nanmax(f), np.nanmin(f)
-#     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
-#     ax1.imshow(f, cmap="magma", vmax=mx, vmin=mn)
-#     ax2.imshow(f_test, cmap="magma", vmax=mx, vmin=mn)
-#     ax3.imshow(f_test_2, cmap="magma", vmax=mx, vmin=mn)
-#     plt.show()
-
 if __name__ == "__main__":
-    import s2fft.samples as samples
-    import s2fft.wigner as wigner
+    from s2fft import samples, wigner, transform, utils
+    from matplotlib import pyplot as plt
     import warnings
+    import time
 
     warnings.filterwarnings("ignore")
 
     sampling = "mw"
-    L = 64
-    el = L - 1
-    betas = samples.thetas(L, sampling)
-    beta_ind = int(L / 2)
-    beta = betas[beta_ind]
-    spin = -3
+    L = 32
+    spin = 0
+
+    rng = np.random.default_rng(12341234515)
+    flm = utils.generate_flm(rng, L, 0, spin)
 
     precomps = generate_precomputes(samples.thetas(L, sampling), L, -spin)
 
-    dl_turok = wigner.turok.compute_slice(beta, el, L, -spin)
-    dl_price_mcewen = compute_slice(betas, L, -spin)[:, beta_ind, el]
+    f = np.real(transform.inverse(flm, L, spin, sampling))
+    f_test = np.real(inverse_transform(flm, L, spin, sampling))
+    f_test_2 = np.real(inverse_transform_new(flm, L, spin, sampling, precomps))
 
-    print(np.nanmax(np.log10(np.abs(dl_turok - dl_price_mcewen))))
-    from matplotlib import pyplot as plt
-
-    fig, (ax1, ax2) = plt.subplots(1, 2)
-    ax1.plot(dl_turok, label="turok")
-    ax1.plot(dl_price_mcewen, label=" test")
-    ax1.legend()
-    ax2.plot(np.log10(np.abs(dl_turok - dl_price_mcewen)))
-    ax2.axhline(y=-14, color="r", linestyle="--")
+    mx, mn = np.nanmax(f), np.nanmin(f)
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4)
+    ax1.imshow(f, cmap="magma", vmax=mx, vmin=mn)
+    ax2.imshow(f_test, cmap="magma", vmax=mx, vmin=mn)
+    ax3.imshow(f_test_2, cmap="magma", vmax=mx, vmin=mn)
+    ax4.imshow(f_test - f_test_2, cmap="magma")
     plt.show()
+
+# if __name__ == "__main__":
+#     import s2fft.samples as samples
+#     import s2fft.wigner as wigner
+#     import warnings
+
+#     warnings.filterwarnings("ignore")
+
+#     sampling = "mw"
+#     L = 8
+#     el = L - 4
+#     betas = samples.thetas(L, sampling)
+#     beta_ind = int(L / 2)
+#     beta = betas[beta_ind]
+#     spin = 0
+
+#     precomps = generate_precomputes(samples.thetas(L, sampling), L, -spin)
+
+#     dl_turok = wigner.turok.compute_slice(beta, el, L, -spin)
+#     dl_price_mcewen = compute_slice(betas, L, -spin)[:, beta_ind, el]
+
+#     print(np.nanmax(np.log10(np.abs(dl_turok - dl_price_mcewen))))
+#     from matplotlib import pyplot as plt
+
+#     fig, (ax1, ax2) = plt.subplots(1, 2)
+#     ax1.plot(dl_turok, label="turok")
+#     ax1.plot(dl_price_mcewen, label=" test")
+#     ax1.legend()
+#     ax2.plot(np.log10(np.abs(dl_turok - dl_price_mcewen)))
+#     ax2.axhline(y=-14, color="r", linestyle="--")
+#     plt.show()
