@@ -1,10 +1,9 @@
+from jax import config; config.update("jax_enable_x64", True)
+
 import numpy as np
 import jax.numpy as jnp
 import jax.lax as lax
 from jax import jit
-from jax.config import config
-
-config.update("jax_enable_x64", True)
 from functools import partial
 
 from s2fft import samples
@@ -62,7 +61,7 @@ def compute_slice_jax(
         def pm_recursion_step(m, args):
             dl_test, dl_entry, dl_iter, lamb, lrenorm = args
             index = indices >= L - m - 1
-            lamb = lamb.at[i, :, np.arange(L)].add(cs)
+            lamb = lamb.at[i, :, jnp.arange(L)].add(cs)
             dl_entry = jnp.where(
                 index,
                 jnp.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i])
@@ -134,7 +133,7 @@ def latitudinal_step_jax(
             jnp.einsum(
                 "l,tl->tl",
                 cpi[0, lind:],
-                dl_iter[0, :, lind:] * lamb[i, :, lind:],
+                dl_iter[0, :, lind:] * lamb[i, :, lind:],optimize=True
             )
         )
 
@@ -169,8 +168,8 @@ def latitudinal_step_jax(
 
             dl_entry = jnp.where(
                 index,
-                jnp.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i])
-                - jnp.einsum("l,tl->tl", cp2[m - 1], dl_iter[0]),
+                jnp.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i], optimize=True)
+                - jnp.einsum("l,tl->tl", cp2[m - 1], dl_iter[0], optimize=True),
                 dl_entry,
             )
             dl_entry = dl_entry.at[:, -(m + 1)].set(1)
@@ -233,7 +232,7 @@ def inverse_transform_new_jax(
     spin: int,
     sampling: str = "mw",
     precomps=None,
-) -> np.ndarray:
+) -> jnp.ndarray:
     thetas = samples.thetas(L, sampling)
     flm = jnp.einsum(
         "lm,l->lm", flm, jnp.sqrt((2 * jnp.arange(L) + 1) / (4 * jnp.pi))
@@ -246,9 +245,9 @@ def inverse_transform_new_jax(
         ftm = ftm.at[-1, L - 1 + spin].set(
             jnp.nansum((-1) ** abs(jnp.arange(L) - spin) * flm[:, L - 1 + spin])
         )
-
     ftm *= (-1) ** spin
-    return jnp.fft.ifft(jnp.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+    ftm = jnp.conj(jnp.fft.ifftshift(ftm, axes=1))
+    return jnp.conj(jnp.fft.fft(ftm, axis=1, norm="backward"))
 
 
 if __name__ == "__main__":

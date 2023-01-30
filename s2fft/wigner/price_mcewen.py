@@ -261,7 +261,10 @@ def inverse_transform_new(
             (-1) ** abs(np.arange(L) - spin) * flm[:, L - 1 + spin]
         )
     ftm *= (-1) ** spin
-    return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+    ftm = np.fft.ifftshift(ftm, axes=1)
+    f = np.fft.ifft(ftm, axis=1, norm="forward")
+    return f
+    # return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
 
 if __name__ == "__main__":
