@@ -1,4 +1,6 @@
-from jax import config; config.update("jax_enable_x64", True)
+from jax import config
+
+config.update("jax_enable_x64", True)
 
 import numpy as np
 import jax.numpy as jnp
@@ -124,6 +126,8 @@ def latitudinal_step_jax(
         lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
 
     for i in range(2):
+        m_offset = 1 if sampling in ["mwss", "healpix"] and i == 0 else 0
+
         lind = L - 1
         sind = lims[i]
         sgn = (-1) ** (i)
@@ -133,12 +137,13 @@ def latitudinal_step_jax(
             jnp.einsum(
                 "l,tl->tl",
                 cpi[0, lind:],
-                dl_iter[0, :, lind:] * lamb[i, :, lind:],optimize=True
+                dl_iter[0, :, lind:] * lamb[i, :, lind:],
+                optimize=True,
             )
         )
 
         # Sum into transform vector
-        ftm = ftm.at[:, sind].set(
+        ftm = ftm.at[:, sind + m_offset].set(
             jnp.nansum(
                 dl_iter[0, :, lind:]
                 * vsign[sind, lind:]
@@ -149,7 +154,7 @@ def latitudinal_step_jax(
         )
 
         # Sum into transform vector
-        ftm = ftm.at[:, sind + sgn].set(
+        ftm = ftm.at[:, sind + sgn + m_offset].set(
             jnp.nansum(
                 dl_iter[1, :, lind - 1 :]
                 * vsign[sind + sgn, lind - 1 :]
@@ -168,14 +173,16 @@ def latitudinal_step_jax(
 
             dl_entry = jnp.where(
                 index,
-                jnp.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i], optimize=True)
+                jnp.einsum(
+                    "l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i], optimize=True
+                )
                 - jnp.einsum("l,tl->tl", cp2[m - 1], dl_iter[0], optimize=True),
                 dl_entry,
             )
             dl_entry = dl_entry.at[:, -(m + 1)].set(1)
 
             # Sum into transform vector
-            ftm = ftm.at[:, sind + sgn * m].set(
+            ftm = ftm.at[:, sind + sgn * m + m_offset].set(
                 jnp.nansum(
                     dl_entry
                     * vsign[sind + sgn * m]
@@ -209,6 +216,8 @@ def inverse_transform(
     flm: np.ndarray, L: int, spin: int, sampling="mw"
 ) -> np.ndarray:
     thetas = samples.thetas(L, sampling)
+    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+
     ftm = np.zeros(samples.ftm_shape(L, sampling), dtype=np.complex128)
 
     for t, theta in enumerate(thetas):
@@ -218,7 +227,7 @@ def inverse_transform(
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
             for m in range(-el, el + 1):
-                ftm[t, m + L - 1] += (
+                ftm[t, m + L - 1 + m_offset] += (
                     elfactor * dl[m + L - 1] * flm[el, m + L - 1]
                 )
     ftm *= (-1) ** spin
@@ -233,18 +242,37 @@ def inverse_transform_new_jax(
     sampling: str = "mw",
     precomps=None,
 ) -> jnp.ndarray:
+
+    # Define latitudinal sample positions and Fourier offsets
     thetas = samples.thetas(L, sampling)
+    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+
+    # Apply harmonic normalisation
     flm = jnp.einsum(
-        "lm,l->lm", flm, jnp.sqrt((2 * jnp.arange(L) + 1) / (4 * jnp.pi))
+        "lm,l->lm",
+        flm,
+        jnp.sqrt((2 * jnp.arange(L) + 1) / (4 * jnp.pi)),
+        optimize=True,
     )
+
+    # Perform latitudinal wigner-d recursions
     ftm = latitudinal_step_jax(flm, thetas, L, -spin, sampling, precomps)
 
-    # Remove pole singularity
-    if sampling == "mw":
+    # Remove south pole singularity
+    if sampling in ["mw", "mwss"]:
         ftm = ftm.at[-1].set(0)
-        ftm = ftm.at[-1, L - 1 + spin].set(
+        ftm = ftm.at[-1, L - 1 + spin + m_offset].set(
             jnp.nansum((-1) ** abs(jnp.arange(L) - spin) * flm[:, L - 1 + spin])
         )
+
+    # Remove north pole singularity
+    if sampling == "mwss":
+        ftm = ftm.at[0].set(0)
+        ftm = ftm.at[0, L - 1 - spin + m_offset].set(
+            jnp.nansum(flm[:, L - 1 - spin])
+        )
+
+    # Perform longitundal Fast Fourier Transforms
     ftm *= (-1) ** spin
     ftm = jnp.conj(jnp.fft.ifftshift(ftm, axes=1))
     return jnp.conj(jnp.fft.fft(ftm, axis=1, norm="backward"))
@@ -252,65 +280,46 @@ def inverse_transform_new_jax(
 
 if __name__ == "__main__":
     from s2fft import samples, wigner, transform, utils
+    import pyssht as ssht
     from matplotlib import pyplot as plt
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
     import warnings
 
     warnings.filterwarnings("ignore")
 
     sampling = "mw"
-    L = 16
+    L = 7
     spin = 0
 
     rng = np.random.default_rng(12341234515)
-    flm = utils.generate_flm(rng, L, 0, spin)
+    ntheta = samples.ntheta(L, sampling)
+    nphi = samples.nphi_equiang(L, sampling)
+    f_in = np.zeros((ntheta, nphi), dtype=np.complex128)
+    for i in range(ntheta):
+        for j in range(nphi):
+            f_in[i, j] = rng.uniform() + 1j * rng.uniform()
+
+    flm_1d = ssht.forward(f_in, L, spin, Method=sampling.upper())
+    flm = samples.flm_1d_to_2d(flm_1d, L)
     flm_jax = jnp.asarray(flm)
 
-    precomps = generate_precomputes(samples.thetas(L, sampling), L, -spin)
+    precomps = generate_precomputes(L, spin, sampling)
 
-    f = np.real(transform.inverse(flm, L, spin, sampling))
+    f = np.real(ssht.inverse(flm_1d, L, spin, Method=sampling.upper()))
     f_test = np.real(inverse_transform(flm, L, spin, sampling))
     f_test_2 = np.real(
         inverse_transform_new_jax(flm_jax, L, spin, sampling, precomps)
     )
 
+    error = np.log10(np.abs(f - f_test_2))
     mx, mn = np.nanmax(f), np.nanmin(f)
     fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4)
     ax1.imshow(f, cmap="magma", vmax=mx, vmin=mn)
     ax2.imshow(f_test, cmap="magma", vmax=mx, vmin=mn)
     ax3.imshow(f_test_2, cmap="magma", vmax=mx, vmin=mn)
-    ax4.imshow(f_test - f_test_2, cmap="magma")
+    im = ax4.imshow(error, cmap="magma")
+
+    divider = make_axes_locatable(ax4)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    fig.colorbar(im, cax=cax, orientation="vertical")
     plt.show()
-
-# if __name__ == "__main__":
-#     import s2fft.samples as samples
-#     import s2fft.wigner as wigner
-
-#     import warnings
-
-#     warnings.filterwarnings("ignore")
-
-#     sampling = "mw"
-#     L = 8
-#     el = L - 1
-#     betas = samples.thetas(L, sampling)
-#     beta_ind = int(L / 2)
-#     beta = betas[beta_ind]
-#     spin = 0
-
-#     precomps = generate_precomputes(samples.thetas(L, sampling), L, -spin)
-
-#     dl_turok = wigner.turok.compute_slice(beta, el, L, -spin)
-#     dl_price_mcewen_jax = compute_slice_jax(betas, L, -spin, precomps)[
-#         :, beta_ind, el
-#     ]
-
-#     print(np.nanmax(np.log10(np.abs(dl_turok - dl_price_mcewen_jax))))
-#     from matplotlib import pyplot as plt
-
-#     fig, (ax1, ax2) = plt.subplots(1, 2)
-#     ax1.plot(dl_turok, label="turok")
-#     ax1.plot(dl_price_mcewen_jax, label=" test")
-#     ax1.legend()
-#     ax2.plot(np.log10(np.abs(dl_turok - dl_price_mcewen_jax)))
-#     ax2.axhline(y=-14, color="r", linestyle="--")
-#     plt.show()

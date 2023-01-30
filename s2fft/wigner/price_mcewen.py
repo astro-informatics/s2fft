@@ -2,7 +2,9 @@ import numpy as np
 from s2fft import samples
 
 
-def generate_precomputes(beta: np.ndarray, L: int, mm: int) -> np.ndarray:
+def generate_precomputes(L: int, spin: int, sampling: str = "mw") -> np.ndarray:
+    mm = -spin
+    beta = samples.thetas(L, sampling)
     ntheta = len(beta)  # Number of theta samples
     el = np.arange(L)
     nel = len(el)  # Number of harmonic modes.
@@ -50,7 +52,7 @@ def generate_precomputes(beta: np.ndarray, L: int, mm: int) -> np.ndarray:
     msign = np.hstack(((-1) ** (abs(np.arange(L - 1))), np.ones(L)))
     lsign = (-1) ** abs(mm + el)
     vsign = np.einsum("m,l->ml", msign, lsign)
-    vsign[: L - 1] *= (-1) ** abs(mm + 1)
+    vsign[: L - 1] *= (-1) ** abs(mm + 1 + L)
 
     lrenorm = np.zeros((2, ntheta, nel), dtype=np.float64)
     lamb = np.zeros((2, ntheta, nel), np.float64)
