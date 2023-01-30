@@ -207,8 +207,9 @@ def _forward(
             {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
         method (str, optional): Harmonic transform algorithm. Supported algorithms include
-            {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to
-            "sov_fft_vectorized".
+            {"direct", "sov", "sov_fft", "sov_fft_vectorized"} and a set of exploratory JAX
+            implementations: {"jax_vmap_double", "jax_vmap_scan", "jax_vmap_loop", "jax_map_double",
+            "jax_map_scan"}. Defaults to "sov_fft_vectorized".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
