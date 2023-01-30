@@ -17,12 +17,13 @@ def inverse(
     spin: int,
     sampling: str = "mw",
     method: str = "numpy",
+    reality: bool = False,
     precomps=None,
 ) -> np.ndarray:
     if method == "numpy":
-        return inverse_numpy(flm, L, spin, sampling, precomps)
+        return inverse_numpy(flm, L, spin, sampling, reality, precomps)
     elif method == "jax":
-        return inverse_jax(flm, L, spin, sampling, precomps)
+        return inverse_jax(flm, L, spin, sampling, reality, precomps)
     else:
         raise ValueError(
             f"Implementation {method} not recognised. Should be either numpy or jax."
@@ -34,6 +35,7 @@ def inverse_numpy(
     L: int,
     spin: int,
     sampling: str = "mw",
+    reality: bool = False,
     precomps=None,
 ) -> np.ndarray:
 
@@ -47,7 +49,7 @@ def inverse_numpy(
     )
 
     # Perform latitudinal wigner-d recursions
-    ftm = latitudinal_step(flm, thetas, L, -spin, sampling, precomps)
+    ftm = latitudinal_step(flm, thetas, L, spin, sampling, reality, precomps)
 
     # Remove south pole singularity
     if sampling in ["mw", "mwss"]:
@@ -62,15 +64,26 @@ def inverse_numpy(
 
     # Perform longitundal Fast Fourier Transforms
     ftm *= (-1) ** spin
-    return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+    if reality:
+        return np.fft.irfft(
+            ftm[:, L - 1 + m_offset :],
+            samples.nphi_equiang(L, sampling),
+            axis=1,
+            norm="forward",
+        )
+    else:
+        return np.fft.ifft(
+            np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward"
+        )
 
 
-@partial(jit, static_argnums=(1, 2, 3))
+@partial(jit, static_argnums=(1, 2, 3, 4))
 def inverse_jax(
     flm: jnp.ndarray,
     L: int,
     spin: int,
     sampling: str = "mw",
+    reality: bool = False,
     precomps=None,
 ) -> jnp.ndarray:
 
@@ -87,7 +100,9 @@ def inverse_jax(
     )
 
     # Perform latitudinal wigner-d recursions
-    ftm = latitudinal_step_jax(flm, thetas, L, -spin, sampling, precomps)
+    ftm = latitudinal_step_jax(
+        flm, thetas, L, spin, sampling, reality, precomps
+    )
 
     # Remove south pole singularity
     if sampling in ["mw", "mwss"]:
@@ -105,5 +120,13 @@ def inverse_jax(
 
     # Perform longitundal Fast Fourier Transforms
     ftm *= (-1) ** spin
-    ftm = jnp.conj(jnp.fft.ifftshift(ftm, axes=1))
-    return jnp.conj(jnp.fft.fft(ftm, axis=1, norm="backward"))
+    if reality:
+        return jnp.fft.irfft(
+            ftm[:, L - 1 + m_offset :],
+            samples.nphi_equiang(L, sampling),
+            axis=1,
+            norm="forward",
+        )
+    else:
+        ftm = jnp.conj(jnp.fft.ifftshift(ftm, axes=1))
+        return jnp.conj(jnp.fft.fft(ftm, axis=1, norm="backward"))

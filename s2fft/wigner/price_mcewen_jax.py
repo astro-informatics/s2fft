@@ -100,13 +100,14 @@ def compute_slice_jax(
     return dl_test
 
 
-@partial(jit, static_argnums=(2, 3, 4))
+@partial(jit, static_argnums=(2, 3, 4, 5))
 def latitudinal_step_jax(
     flm: jnp.ndarray,
     beta: jnp.ndarray,
     L: int,
     mm: int,
     sampling: str = "mw",
+    reality: bool = False,
     precomps=None,
 ) -> jnp.ndarray:
 
@@ -126,94 +127,104 @@ def latitudinal_step_jax(
         lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
 
     for i in range(2):
-        m_offset = 1 if sampling in ["mwss", "healpix"] and i == 0 else 0
+        if not (reality and i == 0):
+            m_offset = 1 if sampling in ["mwss", "healpix"] and i == 0 else 0
 
-        lind = L - 1
-        sind = lims[i]
-        sgn = (-1) ** (i)
-        dl_iter = jnp.ones((2, ntheta, nel), dtype=jnp.float64)
+            lind = L - 1
+            sind = lims[i]
+            sgn = (-1) ** (i)
+            dl_iter = jnp.ones((2, ntheta, nel), dtype=jnp.float64)
 
-        dl_iter = dl_iter.at[1, :, lind:].set(
-            jnp.einsum(
-                "l,tl->tl",
-                cpi[0, lind:],
-                dl_iter[0, :, lind:] * lamb[i, :, lind:],
-                optimize=True,
-            )
-        )
-
-        # Sum into transform vector
-        ftm = ftm.at[:, sind + m_offset].set(
-            jnp.nansum(
-                dl_iter[0, :, lind:]
-                * vsign[sind, lind:]
-                * jnp.exp(lrenorm[i, :, lind:])
-                * flm[lind:, sind],
-                axis=-1,
-            )
-        )
-
-        # Sum into transform vector
-        ftm = ftm.at[:, sind + sgn + m_offset].set(
-            jnp.nansum(
-                dl_iter[1, :, lind - 1 :]
-                * vsign[sind + sgn, lind - 1 :]
-                * jnp.exp(lrenorm[i, :, lind - 1 :])
-                * flm[lind - 1 :, sind + sgn],
-                axis=-1,
-            )
-        )
-        dl_entry = jnp.zeros((ntheta, nel), dtype=jnp.float64)
-
-        def pm_recursion_step(m, args):
-            ftm, dl_entry, dl_iter, lamb, lrenorm = args
-
-            index = indices >= L - m - 1
-            lamb = lamb.at[i, :, jnp.arange(nel)].add(cs)
-
-            dl_entry = jnp.where(
-                index,
+            dl_iter = dl_iter.at[1, :, lind:].set(
                 jnp.einsum(
-                    "l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i], optimize=True
+                    "l,tl->tl",
+                    cpi[0, lind:],
+                    dl_iter[0, :, lind:] * lamb[i, :, lind:],
+                    optimize=True,
                 )
-                - jnp.einsum("l,tl->tl", cp2[m - 1], dl_iter[0], optimize=True),
-                dl_entry,
             )
-            dl_entry = dl_entry.at[:, -(m + 1)].set(1)
 
             # Sum into transform vector
-            ftm = ftm.at[:, sind + sgn * m + m_offset].set(
+            ftm = ftm.at[:, sind + m_offset].set(
                 jnp.nansum(
-                    dl_entry
-                    * vsign[sind + sgn * m]
-                    * jnp.exp(lrenorm[i])
-                    * flm[:, sind + sgn * m],
+                    dl_iter[0, :, lind:]
+                    * vsign[sind, lind:]
+                    * jnp.exp(lrenorm[i, :, lind:])
+                    * flm[lind:, sind],
                     axis=-1,
                 )
             )
 
-            bigi = 1.0 / abs(dl_entry)
-            lbig = jnp.log(abs(dl_entry))
+            # Sum into transform vector
+            ftm = ftm.at[:, sind + sgn + m_offset].set(
+                jnp.nansum(
+                    dl_iter[1, :, lind - 1 :]
+                    * vsign[sind + sgn, lind - 1 :]
+                    * jnp.exp(lrenorm[i, :, lind - 1 :])
+                    * flm[lind - 1 :, sind + sgn],
+                    axis=-1,
+                )
+            )
+            dl_entry = jnp.zeros((ntheta, nel), dtype=jnp.float64)
 
-            dl_iter = dl_iter.at[0].set(
-                jnp.where(index, bigi * dl_iter[1], dl_iter[0])
-            )
-            dl_iter = dl_iter.at[1].set(
-                jnp.where(index, bigi * dl_entry, dl_iter[1])
-            )
-            lrenorm = lrenorm.at[i].set(
-                jnp.where(index, lrenorm[i] + lbig, lrenorm[i])
-            )
-            return ftm, dl_entry, dl_iter, lamb, lrenorm
+            def pm_recursion_step(m, args):
+                ftm, dl_entry, dl_iter, lamb, lrenorm = args
 
-        ftm, dl_entry, dl_iter, lamb, lrenorm = lax.fori_loop(
-            2, L, pm_recursion_step, (ftm, dl_entry, dl_iter, lamb, lrenorm)
-        )
+                index = indices >= L - m - 1
+                lamb = lamb.at[i, :, jnp.arange(nel)].add(cs)
+
+                dl_entry = jnp.where(
+                    index,
+                    jnp.einsum(
+                        "l,tl->tl",
+                        cpi[m - 1],
+                        dl_iter[1] * lamb[i],
+                        optimize=True,
+                    )
+                    - jnp.einsum(
+                        "l,tl->tl", cp2[m - 1], dl_iter[0], optimize=True
+                    ),
+                    dl_entry,
+                )
+                dl_entry = dl_entry.at[:, -(m + 1)].set(1)
+
+                # Sum into transform vector
+                ftm = ftm.at[:, sind + sgn * m + m_offset].set(
+                    jnp.nansum(
+                        dl_entry
+                        * vsign[sind + sgn * m]
+                        * jnp.exp(lrenorm[i])
+                        * flm[:, sind + sgn * m],
+                        axis=-1,
+                    )
+                )
+
+                bigi = 1.0 / abs(dl_entry)
+                lbig = jnp.log(abs(dl_entry))
+
+                dl_iter = dl_iter.at[0].set(
+                    jnp.where(index, bigi * dl_iter[1], dl_iter[0])
+                )
+                dl_iter = dl_iter.at[1].set(
+                    jnp.where(index, bigi * dl_entry, dl_iter[1])
+                )
+                lrenorm = lrenorm.at[i].set(
+                    jnp.where(index, lrenorm[i] + lbig, lrenorm[i])
+                )
+                return ftm, dl_entry, dl_iter, lamb, lrenorm
+
+            ftm, dl_entry, dl_iter, lamb, lrenorm = lax.fori_loop(
+                2, L, pm_recursion_step, (ftm, dl_entry, dl_iter, lamb, lrenorm)
+            )
     return ftm
 
 
 def inverse_transform(
-    flm: np.ndarray, L: int, spin: int, sampling="mw"
+    flm: np.ndarray,
+    L: int,
+    spin: int,
+    sampling="mw",
+    reality: bool = False,
 ) -> np.ndarray:
     thetas = samples.thetas(L, sampling)
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
@@ -223,7 +234,7 @@ def inverse_transform(
     for t, theta in enumerate(thetas):
         for el in range(abs(spin), L):
 
-            dl = wigner.turok.compute_slice(theta, el, L, -spin)
+            dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
             for m in range(-el, el + 1):
@@ -234,12 +245,13 @@ def inverse_transform(
     return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
 
-@partial(jit, static_argnums=(1, 2, 3))
+@partial(jit, static_argnums=(1, 2, 3, 4))
 def inverse_transform_new_jax(
     flm: jnp.ndarray,
     L: int,
     spin: int,
     sampling: str = "mw",
+    reality: bool = False,
     precomps=None,
 ) -> jnp.ndarray:
 
@@ -256,7 +268,9 @@ def inverse_transform_new_jax(
     )
 
     # Perform latitudinal wigner-d recursions
-    ftm = latitudinal_step_jax(flm, thetas, L, -spin, sampling, precomps)
+    ftm = latitudinal_step_jax(
+        flm, thetas, L, -spin, sampling, reality, precomps
+    )
 
     # Remove south pole singularity
     if sampling in ["mw", "mwss"]:
@@ -274,8 +288,16 @@ def inverse_transform_new_jax(
 
     # Perform longitundal Fast Fourier Transforms
     ftm *= (-1) ** spin
-    ftm = jnp.conj(jnp.fft.ifftshift(ftm, axes=1))
-    return jnp.conj(jnp.fft.fft(ftm, axis=1, norm="backward"))
+    if reality:
+        return jnp.fft.irfft(
+            ftm[:, L - 1 + m_offset :],
+            samples.nphi_equiang(L, sampling),
+            axis=1,
+            norm="forward",
+        )
+    else:
+        ftm = jnp.conj(jnp.fft.ifftshift(ftm, axes=1))
+        return jnp.conj(jnp.fft.fft(ftm, axis=1, norm="backward"))
 
 
 if __name__ == "__main__":
@@ -288,8 +310,9 @@ if __name__ == "__main__":
     warnings.filterwarnings("ignore")
 
     sampling = "mw"
-    L = 7
+    L = 8
     spin = 0
+    reality = True
 
     rng = np.random.default_rng(12341234515)
     ntheta = samples.ntheta(L, sampling)
@@ -305,10 +328,12 @@ if __name__ == "__main__":
 
     precomps = generate_precomputes(L, spin, sampling)
 
-    f = np.real(ssht.inverse(flm_1d, L, spin, Method=sampling.upper()))
+    f = np.real(
+        ssht.inverse(flm_1d, L, spin, Method=sampling.upper(), Reality=reality)
+    )
     f_test = np.real(inverse_transform(flm, L, spin, sampling))
     f_test_2 = np.real(
-        inverse_transform_new_jax(flm_jax, L, spin, sampling, precomps)
+        inverse_transform_new_jax(flm_jax, L, spin, sampling, reality, precomps)
     )
 
     error = np.log10(np.abs(f - f_test_2))
