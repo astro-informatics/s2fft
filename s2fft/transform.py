@@ -1398,15 +1398,6 @@ def _compute_flm_vmap_loop(
     Returns:
         np.ndarray: Spherical harmonic coefficients.
     """
-    # phase shift
-    if sampling.lower() != "healpix":
-        phase_shifts = jnp.array([[1.0]])
-    else:
-        phase_shifts = jax.vmap(
-            samples.ring_phase_shift_hp,
-            in_axes=(None, 0, None, None, None),
-            out_axes=0,  # theta along first dimension
-        )(L, jnp.arange(len(thetas)), nside, True, jnp)
 
     # dl vmapped function (single vmap along el)
     dl_vmapped = jax.vmap(
@@ -1423,12 +1414,11 @@ def _compute_flm_vmap_loop(
             * elfactors[:, None]
             * dl_vmapped(theta, els, L, -spin, reality)[:, m_start_ind:]
             * ftm[ti, m_start_ind + m_offset : 2 * L - 1 + m_offset][:, None].T
-            * phase_shifts[ti, :]
-            # * (
-            #     samples.ring_phase_shift_hp_vmappable(L, ti, nside, True)
-            #     if sampling.lower() == "healpix"
-            #     else 1.0
-            # ) # Q for review: is this alternative phase_shift computation preferred? (less memory?)
+            * (
+                samples.ring_phase_shift_hp(L, ti, nside, True, jnp)
+                if sampling.lower() == "healpix"
+                else 1.0
+            ) 
         )
 
     return flm
