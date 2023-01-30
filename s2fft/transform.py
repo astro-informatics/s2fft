@@ -1613,14 +1613,6 @@ def _compute_flm_map_scan(
     def accumulate(flm_carry, t_theta_weight_ftm_phase_shift):
         t, theta, weight, ftm_slice, phase_shift = t_theta_weight_ftm_phase_shift
 
-        # alternative: compute phase_shift inside accumulate for each theta value?
-        # Q for review: is this preferred? (less memory but slower?)
-        # phase_shift = (
-        #     samples.ring_phase_shift_hp_vmappable(L, t, nside, forward=True)
-        #     if sampling.lower() == "healpix"
-        #     else 1.0
-        # )
-
         # dl array (single map across el)
         dl = jax.lax.map(
             lambda el: wigner.turok_jax.compute_slice(theta, el, L, -spin), els
