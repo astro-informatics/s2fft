@@ -1236,10 +1236,6 @@ def _compute_flm_vmap_double(
         .sum(axis=-1)
     )
 
-    # Pad the first n=max(L_lower, abs(spin)) rows with zeros--- now via initialization
-    # (Q for review: any advantage of one over the other?)
-    # flm = jnp.pad(flm, ((max(L_lower, abs(spin)), 0), (0, 0)))
-
     return flm
 
 
