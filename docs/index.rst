@@ -1,68 +1,97 @@
-|GitHub| |Build Status| |Docs| |CodeCov| |MIT Licence| |ArXiv|
-
-.. |GitHub| image:: https://img.shields.io/badge/GitHub-PyTemplate-brightgreen.svg?style=flat
-    :target: https://github.com/astro-informatics/s2fft
-.. |Build Status| image:: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main
-    :target: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml
-.. |Docs| image:: https://readthedocs.org/projects/ansicolortags/badge/?version=latest
-    :target: https://astro-informatics.github.io/s2fft
-.. |CodeCov| image:: https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE
-    :target: https://codecov.io/gh/astro-informatics/s2fft
-.. |MIT Licence| image:: https://img.shields.io/badge/License-MIT-yellow.svg
-    :target: https://opensource.org/licenses/MIT
-.. |ArXiv| image:: http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat
-    :target: https://arxiv.org/abs/xxxx.xxxxx
-
-S2FFT: JAX accelerated spin-spherical harmonic transforms
+Accelerated and differentiable spherical harmonic and Wigner transforms with JAX
 =================================================================================================================
 
-Add some basic discussion about ``S2FFT`` here.
+``S2FFT`` is a software package which provides support for Generalised Fast Fourier Transforms 
+on the sphere and the rotation group. Leveraging the highly engineered Price-McEwen 
+Wigner-d recursions our transforms exhibit a highly parallelisable algorithmic structure, 
+and are numerically stable beyond :math:`L > 20,000`. Moreover, these JAX transforms are 
+not only automatically differentiable and deployable on accelerators (GPU & TPUs), but they 
+are also sampling agnostic; all that is required are latitudinal samples on the sphere 
+and appropriate quadrature weights. As such we support `McEwen-Wiaux <https://arxiv.org/abs/1110.6298>`_, 
+and `HEALPix <https://healpix.jpl.nasa.gov>`_ in addition to various other discretisations of the sphere.
 
-Installation
-============
+.. note::
+   By construction ``S2FFT`` is straightforward to install, provides support 
+   for spin-spherical harmonic and Wigner transforms (over both real and complex signals), 
+   with straightforward extensions to adjoint transformations where needed, and comes 
+   with various different optimisations depending on available compute and/or memory.
 
-Add some basic installation instructions here.
-    
-Documentation
-=============
-
-Link to the full documentation (when deployed).
 
 Contributors
-============
-Author names & Contributors
+--------------
+The development of ``S2FFT`` is one aspect of the ``SAX`` collaborative project between 
+the Mullard Space Science Laboratory (MSSL) and Advanced Research Computing (ARC), which aims 
+to develop accelerated and differentiable spherical transforms to enable ongoing research 
+into next-generation informatics techniques on :math:`\mathbb{S}^2` and SO(3).
+Both academic groups are based at University College London (UCL) and this software was, in part, 
+funded by a UCL-ARC Open Source Software Sustainability grant. The development group includes: 
+`Matthew A. Price <https://cosmomatt.github.io/>`_ (MSSL, PI), 
+`Jason D. McEwen <http://www.jasonmcewen.org/>`_ (MSSL, Alan Turing Institute), 
+`Matthew Graham <https://matt-graham.github.io>`_ (ARC),
+`Sofía Miñano <https://www.linkedin.com/in/sofiaminano/?originalSubdomain=uk>`_ (ARC),
+`Devaraj Gopinathan <https://www.linkedin.com/in/devaraj-g/?originalSubdomain=uk>`_ (ARC), 
+pictured below left to right.
+
+.. image:: assets/authors/price.jpeg
+   :width: 155
+   :target: https://cosmomatt.github.io/
+
+
+.. image:: assets/authors/mcewen.jpeg
+   :width: 155
+   :target: http://www.jasonmcewen.org/
+
+
+.. image:: assets/authors/graham.jpeg
+   :width: 155
+   :target: https://matt-graham.github.io
+
+
+.. image:: assets/authors/minano.jpeg
+   :width: 155
+   :target: https://www.linkedin.com/in/sofiaminano/?originalSubdomain=uk
+
+
+.. image:: assets/authors/gopinathan.jpeg
+   :width: 155
+   :target: https://www.linkedin.com/in/devaraj-g/?originalSubdomain=uk
+
+
 
 Attribution
-===========
-A BibTeX entry for ``S2FFT`` is:
+--------------
+
+We provide this code under an MIT open-source licence with the hope that it will be of use 
+to a wider community. Should this code be used in any way, we kindly request that the follow 
+article is correctly referenced. A BibTeX entry for this reference may look like:
 
 .. code-block:: 
 
-     @article{S2FFT, 
-        author = {Author~List},
-         title = {"A totally amazing name"},
+     @article{price:2023:sax, 
+        author = {Price, Matthew A and McEwen, Jason D and Graham, Matthew and Miñano-González, Sofía and Gopinathan, Devaraj},
+         title = {"Name pending"},
        journal = {ArXiv},
         eprint = {arXiv:0000.00000},
-          year = {what year is it?!}
+          year = {2023}
      }
 
 License
-=======
+--------------
 
 ``S2FFT`` is released under the MIT license (see `LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
 
 .. code-block::
 
      S2fft
-     Copyright (C) 2022 Author names & contributors
+     Copyright (C) 2023 Matthew A Price & contributors
 
-     This program is released under the MIT license (see `LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
+     This program is released under the MIT license.
 
 .. bibliography:: 
     :notcited:
     :list: bullet
 
-* :ref:`modindex`
+.. * :ref:`modindex`
 
 .. toctree::
    :hidden:
@@ -71,6 +100,12 @@ License
 
    user_guide/install
 
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+   :caption: Benchmarking
+
+   benchmarking/index
 
 .. toctree::
    :hidden:
@@ -81,27 +116,15 @@ License
 
 .. toctree::
    :hidden:
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Interactive Tutorials
    
    tutorials/example_notebook.nblink
 
 .. toctree::
    :hidden:
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: API
 
-   api/trapani
-   api/risbo
-   api/turok
-   api/turok_jax
-   api/logs
-   api/legendre_matrix 
-   api/precompute_transforms
-   api/quadrature
-   api/resampling 
-   api/sampling 
-   api/transforms 
-   api/wigner_samples
-   api/wigner_transform
-   api/utils
+   api/index
+

@@ -2,24 +2,20 @@
 
 Installation
 ============
-Link to `PyPi <https://pypi.org>`_ and provide link for source install.
+There are two primary ways to install ``S2FFT``. One can either build the project from 
+the most recent GitHub source, which comes with the added benefit of being able to 
+locally execute the unit testing. Alternately, one may simply install the package directly 
+from PyPi, an online python package manager.
 
 Quick install (PyPi)
 --------------------
-Install **<Project-name>** from PyPi with a single command
+Install ``S2FFT`` from PyPi with a single command
 
 .. code-block:: bash
 
-    pip install <Project-name>
+    pip install s2fft
 
-Check that the package has installed by running 
-
-.. code-block:: bash 
-
-	pip list 
-
-and locate <Project-name>.
-
+Check that the package has installed by running pip list and locating ``S2FFT``.
 
 Install from source (GitHub)
 ----------------------------
@@ -28,26 +24,14 @@ When installing from source we recommend working within an existing conda enviro
 
 .. code-block:: bash
 
-    conda create -n <Project-name>_env python=3.8
-    conda activate <Project-name>_env
+    conda create -n "env_name" python>=3.8
+    conda activate "env_name"
 
-Once within a fresh environment **<Project-name>** may be installed by cloning the GitHub repository
-
-.. code-block:: bash
-
-    git clone https://github.com/astro-informatics/<Project-name>
-    cd <Project-name>
-
-and running the install script, within the root directory, with one command 
+Once within a fresh environment ``S2FFT`` may be installed by cloning the GitHub repository 
+and pip installing locally
 
 .. code-block:: bash
 
-    bash build_<Project-name>.sh
-
-To check the install has worked correctly run the unit tests with 
-
-.. code-block:: bash
-
-	pytest --black <Project-name>/tests/ 
-
-.. note:: For installing from source a conda environment is required by the installation bash script, which is recommended, due to a pandoc dependency.
+    git clone https://github.com/astro-informatics/s2fft
+    cd s2fft
+    pip install .

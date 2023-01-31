@@ -47,11 +47,12 @@ A BibTeX entry for <project-name> is:
 License
 =======
 
-``S2FFT`` is released under the MIT license (see `LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
+``S2FFT`` is released under the MIT license (see 
+`LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
 
 .. code-block::
 
-     S2fft
+     S2FFT
      Copyright (C) 2022 Author names & contributors
 
-     This program is released under the MIT license (see `LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
+     This program is released under the MIT license (see `LICENSE.txt`).

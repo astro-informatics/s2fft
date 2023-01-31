@@ -1,19 +1,14 @@
 :html_theme.sidebar_secondary.remove:
 
 **************************
-API
+S2FFT Transforms
 **************************
 Automatically generated documentation for ``S2FFT`` APIs. All functionality is accessible through a pip installation of the ``S2FFT`` package.
 
 .. toctree::
-   :hidden:
-   :maxdepth: 1
-   :caption: Namespaces
+   :maxdepth: 3
+   :caption: S2FFT Transforms
 
-   helper_functions/index
-   recursions/index
-   precompute_transforms/index
-   reference_transforms/index
-   transforms/index
-   utility/index
-   logs/index
+   on_the_fly_recursions
+   spin_spherical_transform
+

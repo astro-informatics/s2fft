@@ -1,4 +1,4 @@
-.. image:: https://img.shields.io/badge/GitHub-s2fft-brightgreen.svg?style=flat
+.. image:: https://img.shields.io/badge/GitHub-S2FFT-blue.svg?style=flat
     :target: https://github.com/astro-informatics/s2fft
 .. image:: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml
@@ -10,13 +10,15 @@
     :target: https://opensource.org/licenses/MIT
 .. image:: http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat
     :target: https://arxiv.org/abs/xxxx.xxxxx
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
 
-|logo| S2FFT: Differentiable and accelerated spin-spherical harmonic transforms with JAX
+|logo| S2FFT: Differentiable and accelerated spin-spherical harmonic and Wigner transforms with JAX
 =================================================================================================================
 
 .. |logo| raw:: html
 
-   <img src="./docs/assets/placeholder_logo.png" align="center" height="80" width="80">
+   <img src="./docs/assets/sax_logo.png" align="left" height="142" width="163">
 
 A description of the overall software package.
 
@@ -120,11 +122,12 @@ A BibTeX entry for ``S2FFT`` is:
 License
 =======
 
-``S2FFT`` is released under the MIT license (see `LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
+``S2FFT`` is released under the MIT license (see 
+`LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
 
 .. code-block::
 
-     S2fft
+     S2FFT
      Copyright (C) 2022 Author names & contributors
 
-     This program is released under the MIT license (see `LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
+     This program is released under the MIT license (see `LICENSE.txt`).
