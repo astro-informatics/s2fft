@@ -18,7 +18,7 @@
 
 .. |logo| raw:: html
 
-   <img src="./docs/assets/sax_logo.png" align="left" height="71" width="81">
+   <img src="./docs/assets/sax_logo.png" align="left" height="85" width="98">
 
 A description of the overall software package.
 
