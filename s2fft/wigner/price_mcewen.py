@@ -1,12 +1,33 @@
+from jax import config
+
+config.update("jax_enable_x64", True)
+
 import numpy as np
+import jax.numpy as jnp
+import jax.lax as lax
+from jax import jit
+from functools import partial
+
 from s2fft import samples
 
 
 def generate_precomputes(
-    L: int, spin: int, sampling: str = "mw", nside: int = None
+    L: int,
+    spin: int,
+    sampling: str = "mw",
+    nside: int = None,
+    forward: bool = False,
 ) -> np.ndarray:
+
     mm = -spin
-    beta = samples.thetas(L, sampling, nside)
+
+    # Correct for mw to mwss conversion
+    if forward and sampling.lower() in ["mw", "mwss"]:
+        sampling = "mwss"
+        beta = samples.thetas(2 * L, "mwss")[1:-1]
+    else:
+        beta = samples.thetas(L, sampling, nside)
+
     ntheta = len(beta)  # Number of theta samples
     el = np.arange(L)
     nel = len(el)  # Number of harmonic modes.
@@ -70,9 +91,10 @@ def generate_precomputes(
     return [lrenorm, lamb, vsign, cpi, cp2, cs, indices]
 
 
-def compute_slice(
-    beta: np.ndarray, L: int, mm: int, precomps=None
+def compute_all_slices(
+    beta: np.ndarray, L: int, spin: int, precomps=None
 ) -> np.ndarray:
+    mm = -spin
     ntheta = len(beta)  # Number of theta samples
     el = np.arange(L)
     nel = len(el)  # Number of harmonic modes.
@@ -139,23 +161,19 @@ def compute_slice(
     return dl_test
 
 
-def latitudinal_step(
-    flm: np.ndarray,
-    beta: np.ndarray,
-    L: int,
-    mm: int,
-    sampling: str = "mw",
-    precomps=None,
-) -> np.ndarray:
-
-    ntheta = len(beta)  # Number of theta samples
-    el = np.arange(L)
-    nel = len(el)  # Number of harmonic modes.
-    ftm = np.zeros(samples.ftm_shape(L, sampling), dtype=np.complex128)
+@partial(jit, static_argnums=(1, 2))
+def compute_all_slices_jax(
+    beta: jnp.ndarray, L: int, spin: int, precomps=None
+) -> jnp.ndarray:
+    mm = -spin
+    ntheta = len(beta)
+    el = jnp.arange(L)
+    nel = len(el)
 
     # Indexing boundaries
     lims = [0, -1]
 
+    dl_test = jnp.zeros((2 * L - 1, ntheta, nel), dtype=jnp.float64)
     if precomps is None:
         lrenorm, lamb, vsign, cpi, cp2, cs, indices = generate_precomputes(
             beta, L, mm
@@ -167,166 +185,65 @@ def latitudinal_step(
         lind = L - 1
         sind = lims[i]
         sgn = (-1) ** (i)
-        dl_iter = np.ones((2, ntheta, nel), dtype=np.float64)
+        dl_iter = jnp.ones((2, ntheta, nel), dtype=jnp.float64)
 
-        dl_iter[1, :, lind:] = np.einsum(
-            "l,tl->tl",
-            cpi[0, lind:],
-            dl_iter[0, :, lind:] * lamb[i, :, lind:],
+        dl_iter = dl_iter.at[1, :, lind:].set(
+            jnp.einsum(
+                "l,tl->tl",
+                cpi[0, lind:],
+                dl_iter[0, :, lind:] * lamb[i, :, lind:],
+            )
         )
 
-        # Sum into transform vector
-        ftm[:, sind] = np.nansum(
+        dl_test = dl_test.at[sind, :, lind:].set(
             dl_iter[0, :, lind:]
             * vsign[sind, lind:]
-            * np.exp(lrenorm[i, :, lind:])
-            * flm[lind:, sind],
-            axis=-1,
+            * jnp.exp(lrenorm[i, :, lind:])
         )
 
-        # Sum into transform vector
-        ftm[:, sind + sgn] = np.nansum(
+        dl_test = dl_test.at[sind + sgn, :, lind - 1 :].set(
             dl_iter[1, :, lind - 1 :]
             * vsign[sind + sgn, lind - 1 :]
-            * np.exp(lrenorm[i, :, lind - 1 :])
-            * flm[lind - 1 :, sind + sgn],
-            axis=-1,
+            * jnp.exp(lrenorm[i, :, lind - 1 :])
         )
 
-        dl_entry = np.zeros((ntheta, nel), dtype=np.float64)
-        for m in range(2, L):
-            index = indices >= L - m - 1
-            lamb[i, :, np.arange(nel)] += cs
+        dl_entry = jnp.zeros((ntheta, nel), dtype=jnp.float64)
 
-            dl_entry = np.where(
+        def pm_recursion_step(m, args):
+            dl_test, dl_entry, dl_iter, lamb, lrenorm = args
+            index = indices >= L - m - 1
+            lamb = lamb.at[i, :, jnp.arange(L)].add(cs)
+            dl_entry = jnp.where(
                 index,
-                np.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i])
-                - np.einsum("l,tl->tl", cp2[m - 1], dl_iter[0]),
+                jnp.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i])
+                - jnp.einsum("l,tl->tl", cp2[m - 1], dl_iter[0]),
                 dl_entry,
             )
-            dl_entry[:, -(m + 1)] = 1
+            dl_entry = dl_entry.at[:, -(m + 1)].set(1)
 
-            # Sum into transform vector
-            ftm[:, sind + sgn * m] = np.nansum(
-                dl_entry
-                * vsign[sind + sgn * m]
-                * np.exp(lrenorm[i])
-                * flm[:, sind + sgn * m],
-                axis=-1,
+            dl_test = dl_test.at[sind + sgn * m].set(
+                jnp.where(
+                    index,
+                    dl_entry * vsign[sind + sgn * m] * jnp.exp(lrenorm[i]),
+                    dl_test[sind + sgn * m],
+                )
             )
 
             bigi = 1.0 / abs(dl_entry)
-            lbig = np.log(abs(dl_entry))
+            lbig = jnp.log(abs(dl_entry))
 
-            dl_iter[0] = np.where(index, bigi * dl_iter[1], dl_iter[0])
-            dl_iter[1] = np.where(index, bigi * dl_entry, dl_iter[1])
-            lrenorm[i] = np.where(index, lrenorm[i] + lbig, lrenorm[i])
+            dl_iter = dl_iter.at[0].set(
+                jnp.where(index, bigi * dl_iter[1], dl_iter[0])
+            )
+            dl_iter = dl_iter.at[1].set(
+                jnp.where(index, bigi * dl_entry, dl_iter[1])
+            )
+            lrenorm = lrenorm.at[i].set(
+                jnp.where(index, lrenorm[i] + lbig, lrenorm[i])
+            )
+            return dl_test, dl_entry, dl_iter, lamb, lrenorm
 
-    return ftm
-
-
-def inverse_transform(
-    flm: np.ndarray, L: int, spin: int, sampling="mw"
-) -> np.ndarray:
-    thetas = samples.thetas(L, sampling)
-    ftm = np.zeros(samples.ftm_shape(L, sampling), dtype=np.complex128)
-
-    for t, theta in enumerate(thetas):
-        for el in range(abs(spin), L):
-
-            dl = wigner.turok.compute_slice(theta, el, L, -spin)
-            elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
-
-            for m in range(-el, el + 1):
-                ftm[t, m + L - 1] += (
-                    elfactor * dl[m + L - 1] * flm[el, m + L - 1]
-                )
-    ftm *= (-1) ** spin
-    return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
-
-
-def inverse_transform_new(
-    flm: np.ndarray,
-    L: int,
-    spin: int,
-    sampling: str = "mw",
-    precomps=None,
-) -> np.ndarray:
-    thetas = samples.thetas(L, sampling)
-    flm = np.einsum(
-        "lm,l->lm", flm, np.sqrt((2 * np.arange(L) + 1) / (4 * np.pi))
-    )
-    ftm = latitudinal_step(flm, thetas, L, -spin, sampling, precomps)
-
-    # Remove pole singularity
-    if sampling == "mw":
-        ftm[-1] = 0
-        ftm[-1, L - 1 + spin] = np.nansum(
-            (-1) ** abs(np.arange(L) - spin) * flm[:, L - 1 + spin]
+        dl_test, dl_entry, dl_iter, lamb, lrenorm = lax.fori_loop(
+            2, L, pm_recursion_step, (dl_test, dl_entry, dl_iter, lamb, lrenorm)
         )
-    ftm *= (-1) ** spin
-    ftm = np.fft.ifftshift(ftm, axes=1)
-    f = np.fft.ifft(ftm, axis=1, norm="forward")
-    return f
-    # return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
-
-
-if __name__ == "__main__":
-    from s2fft import samples, wigner, transform, utils
-    from matplotlib import pyplot as plt
-    import warnings
-    import time
-
-    warnings.filterwarnings("ignore")
-
-    sampling = "mw"
-    L = 32
-    spin = 0
-
-    rng = np.random.default_rng(12341234515)
-    flm = utils.generate_flm(rng, L, 0, spin)
-
-    precomps = generate_precomputes(samples.thetas(L, sampling), L, -spin)
-
-    f = np.real(transform.inverse(flm, L, spin, sampling))
-    f_test = np.real(inverse_transform(flm, L, spin, sampling))
-    f_test_2 = np.real(inverse_transform_new(flm, L, spin, sampling, precomps))
-
-    mx, mn = np.nanmax(f), np.nanmin(f)
-    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4)
-    ax1.imshow(f, cmap="magma", vmax=mx, vmin=mn)
-    ax2.imshow(f_test, cmap="magma", vmax=mx, vmin=mn)
-    ax3.imshow(f_test_2, cmap="magma", vmax=mx, vmin=mn)
-    ax4.imshow(f_test - f_test_2, cmap="magma")
-    plt.show()
-
-# if __name__ == "__main__":
-#     import s2fft.samples as samples
-#     import s2fft.wigner as wigner
-#     import warnings
-
-#     warnings.filterwarnings("ignore")
-
-#     sampling = "mw"
-#     L = 8
-#     el = L - 4
-#     betas = samples.thetas(L, sampling)
-#     beta_ind = int(L / 2)
-#     beta = betas[beta_ind]
-#     spin = 0
-
-#     precomps = generate_precomputes(samples.thetas(L, sampling), L, -spin)
-
-#     dl_turok = wigner.turok.compute_slice(beta, el, L, -spin)
-#     dl_price_mcewen = compute_slice(betas, L, -spin)[:, beta_ind, el]
-
-#     print(np.nanmax(np.log10(np.abs(dl_turok - dl_price_mcewen))))
-#     from matplotlib import pyplot as plt
-
-#     fig, (ax1, ax2) = plt.subplots(1, 2)
-#     ax1.plot(dl_turok, label="turok")
-#     ax1.plot(dl_price_mcewen, label=" test")
-#     ax1.legend()
-#     ax2.plot(np.log10(np.abs(dl_turok - dl_price_mcewen)))
-#     ax2.axhline(y=-14, color="r", linestyle="--")
-#     plt.show()
+    return dl_test

@@ -47,8 +47,14 @@ def test_trapani_vectorized():
         dl = wigner.trapani.compute_full_loop(dl, L, el)
         dl_vect = wigner.trapani.compute_full_vectorized(dl_vect, L, el)
         np.testing.assert_allclose(
-            dl[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
-            dl_vect[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            dl[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
+            dl_vect[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
             atol=1e-10,
         )
 
@@ -68,8 +74,14 @@ def test_trapani_jax():
         dl = wigner.trapani.compute_full_vectorized(dl, L, el)
         dl_jax = wigner.trapani.compute_full_jax(dl_jax, L, el)
         np.testing.assert_allclose(
-            dl[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
-            dl_jax[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            dl[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
+            dl_jax[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
             atol=1e-10,
         )
 
@@ -90,19 +102,35 @@ def test_trapani_interfaces():
     dl_jax = wigner.trapani.init(dl_jax, L, implementation="jax")
 
     for el in range(1, L):
-        dl_loop = wigner.trapani.compute_full(dl_loop, L, el, implementation="loop")
+        dl_loop = wigner.trapani.compute_full(
+            dl_loop, L, el, implementation="loop"
+        )
         dl_vect = wigner.trapani.compute_full(
             dl_vect, L, el, implementation="vectorized"
         )
-        dl_jax = wigner.trapani.compute_full(dl_jax, L, el, implementation="jax")
+        dl_jax = wigner.trapani.compute_full(
+            dl_jax, L, el, implementation="jax"
+        )
         np.testing.assert_allclose(
-            dl_loop[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
-            dl_vect[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            dl_loop[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
+            dl_vect[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
             atol=1e-10,
         )
         np.testing.assert_allclose(
-            dl_vect[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
-            dl_jax[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            dl_vect[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
+            dl_jax[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
             atol=1e-10,
         )
 
@@ -180,7 +208,10 @@ def test_turok_slice_with_ssht(L: int, spin: int, sampling: str):
                 dl_turok = wigner.turok.compute_slice(beta, el, L, -spin)
 
                 np.testing.assert_allclose(
-                    dl_turok, dl_array[el, :, L - 1 - spin], atol=1e-10, rtol=1e-12
+                    dl_turok,
+                    dl_array[el, :, L - 1 - spin],
+                    atol=1e-10,
+                    rtol=1e-12,
                 )
 
 
@@ -212,8 +243,6 @@ def test_turok_slice_jax_with_ssht(L: int, spin: int, sampling: str):
 
 def test_turok_exceptions():
     L = 10
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
-    dl_full = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
     with pytest.raises(ValueError) as e:
         wigner.turok.compute_full(np.pi / 2, L, L)
