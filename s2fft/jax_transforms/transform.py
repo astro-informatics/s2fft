@@ -7,8 +7,13 @@ import jax.numpy as jnp
 from jax import jit
 from functools import partial
 
-from s2fft import samples, resampling, quadrature
-from s2fft.general_precompute import resampling_jax, quadrature_jax
+from s2fft import (
+    samples,
+    resampling,
+    quadrature,
+    resampling_jax,
+    quadrature_jax,
+)
 import s2fft.healpix_ffts as hp
 from s2fft.jax_transforms.otf_recursions import *
 

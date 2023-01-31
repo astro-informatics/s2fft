@@ -5,7 +5,7 @@ import numpy as np
 import jax.numpy as jnp
 
 from s2fft import samples, resampling
-from s2fft.general_precompute import resampling_jax
+from s2fft import resampling_jax
 import s2fft.healpix_ffts as hp
 from functools import partial
 from warnings import warn

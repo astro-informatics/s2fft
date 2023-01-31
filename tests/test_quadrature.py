@@ -7,9 +7,6 @@ import s2fft as s2f
 @pytest.mark.parametrize("sampling", ["mw", "mwss"])
 def test_quadrature_mw_weights(flm_generator, L: int, sampling: str):
 
-    # TODO: move this and potentially do better
-    # np.random.seed(2)
-
     spin = 0
 
     q = s2f.quadrature.quad_weights(L, sampling, spin)

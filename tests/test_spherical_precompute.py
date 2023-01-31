@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 import s2fft
-from s2fft.general_precompute.spin_spherical import inverse, forward
-from s2fft.general_precompute.construct import spin_spherical_kernel
+from s2fft.precompute_transform.spin_spherical import inverse, forward
+from s2fft.precompute_transform.construct import spin_spherical_kernel
 
 L_to_test = [6, 7, 8]
 spin_to_test = [-2, -1, 0, 1, 2]

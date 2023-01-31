@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 import s2fft
-from s2fft.general_precompute.wigner import inverse, forward
-from s2fft.general_precompute.construct import wigner_kernel
+from s2fft.precompute_transform.wigner import inverse, forward
+from s2fft.precompute_transform.construct import wigner_kernel
 
 
 L_to_test = [8, 10]

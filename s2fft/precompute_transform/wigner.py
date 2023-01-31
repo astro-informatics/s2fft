@@ -8,7 +8,7 @@ import jax.numpy as jnp
 from s2fft import resampling
 import s2fft.wigner.samples as w_samples
 import s2fft.healpix_ffts as hp
-from s2fft.general_precompute import resampling_jax
+from s2fft import resampling_jax
 from functools import partial
 
 
