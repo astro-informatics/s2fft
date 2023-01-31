@@ -439,8 +439,9 @@ def ring_phase_shift_hp(
         forward (bool, optional): Whether to provide forward or inverse shift.
             Defaults to False.
 
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
+            Defaults to False.
 
     Returns:
         np.ndarray: Vector of phase shifts with shape :math:`[2L-1]`.

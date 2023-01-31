@@ -58,27 +58,18 @@ def generate_flmn(
     reality: bool = False,
 ) -> np.ndarray:
     r"""Generate a 3D set of random Wigner coefficients.
-
     Note:
         Real signals are explicitly produced from conjugate symmetry.
-
     Args:
         rng (Generator): Random number generator.
-
         L (int): Harmonic band-limit.
-
         N (int, optional): Number of Fourier coefficients for tangent plane rotations
             (i.e. directionality). Defaults to 1.
-
         L_lower (int, optional): Harmonic lower bound. Defaults to 0.
-
         spin (int, optional): Harmonic spin. Defaults to 0.
-
         reality (bool, optional): Reality of signal. Defaults to False.
-
     Returns:
         np.ndarray: Random set of Wigner coefficients.
-
     """
     flmn = np.zeros(wigner_samples.flmn_shape(L, N), dtype=np.complex128)
 
@@ -87,22 +78,27 @@ def generate_flmn(
         for el in range(max(L_lower, abs(n)), L):
 
             if reality:
-                flmn[el, 0 + L - 1, N - 1 + n] = rng.uniform()
+                flmn[N - 1 + n, el, 0 + L - 1] = rng.uniform()
+                flmn[N - 1 - n, el, 0 + L - 1] = (-1) ** n * flmn[
+                    N - 1 + n,
+                    el,
+                    0 + L - 1,
+                ]
             else:
-                flmn[el, 0 + L - 1, N - 1 + n] = (
+                flmn[N - 1 + n, el, 0 + L - 1] = (
                     rng.uniform() + 1j * rng.uniform()
                 )
 
             for m in range(1, el + 1):
-                flmn[el, m + L - 1, N - 1 + n] = (
+                flmn[N - 1 + n, el, m + L - 1] = (
                     rng.uniform() + 1j * rng.uniform()
                 )
                 if reality:
-                    flmn[el, -m + L - 1, N - 1 + n] = (-1) ** m * np.conj(
-                        flmn[el, m + L - 1, N - 1 + n]
+                    flmn[N - 1 - n, el, -m + L - 1] = (-1) ** (m + n) * np.conj(
+                        flmn[N - 1 + n, el, m + L - 1]
                     )
                 else:
-                    flmn[el, -m + L - 1, N - 1 + n] = (
+                    flmn[N - 1 + n, el, -m + L - 1] = (
                         rng.uniform() + 1j * rng.uniform()
                     )
 

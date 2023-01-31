@@ -2,9 +2,11 @@ import numpy as np
 from s2fft import samples
 
 
-def generate_precomputes(L: int, spin: int, sampling: str = "mw") -> np.ndarray:
+def generate_precomputes(
+    L: int, spin: int, sampling: str = "mw", nside: int = None
+) -> np.ndarray:
     mm = -spin
-    beta = samples.thetas(L, sampling)
+    beta = samples.thetas(L, sampling, nside)
     ntheta = len(beta)  # Number of theta samples
     el = np.arange(L)
     nel = len(el)  # Number of harmonic modes.

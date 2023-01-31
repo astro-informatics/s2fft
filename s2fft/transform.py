@@ -97,7 +97,6 @@ def _inverse(
     """
     assert flm.shape == samples.flm_shape(L)
     assert L > 0
-    assert 0 <= np.abs(spin) < L
     assert 0 <= L_lower < L
 
     if reality and spin != 0:
@@ -215,7 +214,6 @@ def _forward(
     """
     assert f.shape == samples.f_shape(L, sampling, nside)
     assert L > 0
-    assert 0 <= np.abs(spin) < L
     assert 0 <= L_lower < L
 
     if reality and spin != 0:
@@ -500,7 +498,7 @@ def _compute_inverse_sov_fft(
                 ftm[t, m + L - 1 + m_offset] += val
 
     if sampling.lower() == "healpix":
-        f = hp.healpix_ifft(ftm, L, nside, reality)
+        f = hp.healpix_ifft(ftm, L, nside, "numpy", reality)
     else:
         if reality:
             f = fft.irfft(
@@ -581,7 +579,7 @@ def _compute_inverse_sov_fft_vectorized(
 
     ftm *= (-1) ** (spin)
     if sampling.lower() == "healpix":
-        f = hp.healpix_ifft(ftm, L, nside, reality)
+        f = hp.healpix_ifft(ftm, L, nside, "numpy", reality)
     else:
         if reality:
             f = fft.irfft(
@@ -840,7 +838,7 @@ def _compute_forward_sov_fft(
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     if sampling.lower() == "healpix":
-        ftm = hp.healpix_fft(f, L, nside, reality)
+        ftm = hp.healpix_fft(f, L, nside, "numpy", reality)
     else:
         if reality:
             ftm_temp = fft.rfft(
@@ -960,7 +958,7 @@ def _compute_forward_sov_fft_vectorized(
         m_conj = (-1) ** (np.arange(1, L) % 2)
 
     if sampling.lower() == "healpix":
-        ftm = hp.healpix_fft(f, L, nside, reality)
+        ftm = hp.healpix_fft(f, L, nside, "numpy", reality)
     else:
         if reality:
             t = fft.rfft(

@@ -17,6 +17,7 @@ def latitudinal_step(
     beta: np.ndarray,
     L: int,
     spin: int,
+    nside: int,
     sampling: str = "mw",
     reality: bool = False,
     precomps=None,
@@ -24,15 +25,13 @@ def latitudinal_step(
 
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
-    el = np.arange(L)
-    nel = len(el)  # Number of harmonic modes.
-    ftm = np.zeros(samples.ftm_shape(L, sampling), dtype=np.complex128)
+    ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
 
     # Indexing boundaries
     lims = [0, -1]
 
     if precomps is None:
-        precomps = generate_precomputes(L, -mm, sampling)
+        precomps = generate_precomputes(L, -mm, sampling, nside)
     lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
 
     for i in range(2):
@@ -42,7 +41,7 @@ def latitudinal_step(
             lind = L - 1
             sind = lims[i]
             sgn = (-1) ** (i)
-            dl_iter = np.ones((2, ntheta, nel), dtype=np.float64)
+            dl_iter = np.ones((2, ntheta, L), dtype=np.float64)
 
             dl_iter[1, :, lind:] = np.einsum(
                 "l,tl->tl",
@@ -68,10 +67,10 @@ def latitudinal_step(
                 axis=-1,
             )
 
-            dl_entry = np.zeros((ntheta, nel), dtype=np.float64)
+            dl_entry = np.zeros((ntheta, L), dtype=np.float64)
             for m in range(2, L):
                 index = indices >= L - m - 1
-                lamb[i, :, np.arange(nel)] += cs
+                lamb[i, :, np.arange(L)] += cs
 
                 dl_entry = np.where(
                     index,
@@ -100,12 +99,13 @@ def latitudinal_step(
     return ftm
 
 
-@partial(jit, static_argnums=(2, 3, 4, 5))
+@partial(jit, static_argnums=(2, 3, 4, 5, 6))
 def latitudinal_step_jax(
     flm: jnp.ndarray,
     beta: jnp.ndarray,
     L: int,
     spin: int,
+    nside: int,
     sampling: str = "mw",
     reality: bool = False,
     precomps=None,
@@ -113,15 +113,13 @@ def latitudinal_step_jax(
 
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
-    el = jnp.arange(L)
-    nel = len(el)  # Number of harmonic modes.
-    ftm = jnp.zeros(samples.ftm_shape(L, sampling), dtype=jnp.complex128)
+    ftm = jnp.zeros(samples.ftm_shape(L, sampling, nside), dtype=jnp.complex128)
 
     # Indexing boundaries
     lims = [0, -1]
 
     if precomps is None:
-        precomps = generate_precomputes(L, -mm, sampling)
+        precomps = generate_precomputes(L, -mm, sampling, nside)
     lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
 
     for i in range(2):
@@ -131,7 +129,7 @@ def latitudinal_step_jax(
             lind = L - 1
             sind = lims[i]
             sgn = (-1) ** (i)
-            dl_iter = jnp.ones((2, ntheta, nel), dtype=jnp.float64)
+            dl_iter = jnp.ones((2, ntheta, L), dtype=jnp.float64)
 
             dl_iter = dl_iter.at[1, :, lind:].set(
                 jnp.einsum(
@@ -163,13 +161,13 @@ def latitudinal_step_jax(
                     axis=-1,
                 )
             )
-            dl_entry = jnp.zeros((ntheta, nel), dtype=jnp.float64)
+            dl_entry = jnp.zeros((ntheta, L), dtype=jnp.float64)
 
             def pm_recursion_step(m, args):
                 ftm, dl_entry, dl_iter, lamb, lrenorm = args
 
                 index = indices >= L - m - 1
-                lamb = lamb.at[i, :, jnp.arange(nel)].add(cs)
+                lamb = lamb.at[i, :, jnp.arange(L)].add(cs)
 
                 dl_entry = jnp.where(
                     index,
