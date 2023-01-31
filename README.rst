@@ -13,7 +13,7 @@
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
 
-|logo| Accelerated and differentiable spin-spherical harmonic and Wigner transforms with JAX
+|logo| Accelerated and differentiable spherical transforms with JAX
 =================================================================================================================
 
 .. |logo| raw:: html
