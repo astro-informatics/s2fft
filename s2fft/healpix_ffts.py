@@ -2,9 +2,8 @@ from jax import jit, config
 
 config.update("jax_enable_x64", True)
 import numpy as np
-import s2fft.samples as samples
-
 import jax.numpy as jnp
+import s2fft.samples as samples
 from functools import partial
 
 
@@ -42,7 +41,8 @@ def spectral_folding(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
 
 def spectral_folding_jax(fm: jnp.ndarray, nphi: int, L: int) -> jnp.ndarray:
     """Folds higher frequency Fourier coefficients back onto lower frequency
-    coefficients, i.e. aliasing high frequencies.
+    coefficients, i.e. aliasing high frequencies. JAX specific implementation of
+    :func:`~spectral_folding`.
 
     Args:
         fm (jnp.ndarray): Slice of Fourier coefficients corresponding to ring at latitute t.
@@ -101,18 +101,18 @@ def spectral_periodic_extension(
     return fm_full
 
 
-def spectral_periodic_extension_jax(fm, L):
+def spectral_periodic_extension_jax(fm: jnp.ndarray, L: int) -> jnp.ndarray:
     """Extends lower frequency Fourier coefficients onto higher frequency
-    coefficients, i.e. imposed periodicity in Fourier space. Based on `spectral_periodic_extension`,
-    modified to be JIT-compilable.
+    coefficients, i.e. imposed periodicity in Fourier space. Based on
+    :func:`~spectral_periodic_extension`, modified to be JIT-compilable.
 
     Args:
-        fm (np.ndarray): Slice of Fourier coefficients corresponding to ring at latitute t.
+        fm (jnp.ndarray): Slice of Fourier coefficients corresponding to ring at latitute t.
 
         L (int): Harmonic band-limit.
 
     Returns:
-        np.ndarray: Higher resolution set of periodic Fourier coefficients.
+        jnp.ndarray: Higher resolution set of periodic Fourier coefficients.
     """
     nphi = fm.shape[0]
     return jnp.concatenate(
@@ -142,7 +142,7 @@ def healpix_fft(
         nside (int): HEALPix Nside resolution parameter.
 
         method (str, optional): Evaluation method in {"numpy", "jax"}.
-            Defaults to "jax".
+            Defaults to "numpy".
 
         reality (bool): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
@@ -211,7 +211,8 @@ def healpix_fft_jax(
     """
     Healpix FFT JAX implementation using jax.numpy/numpy stack
     Computes the Forward Fast Fourier Transform with spectral back-projection
-    in the polar regions to manually enforce Fourier periodicity.
+    in the polar regions to manually enforce Fourier periodicity. JAX specific
+    implementation of :func:`~healpix_fft_numpy`.
 
     Args:
         f (jnp.ndarray): HEALPix pixel-space array.
@@ -265,7 +266,7 @@ def healpix_ifft(
         nside (int): HEALPix Nside resolution parameter.
 
         method (str, optional): Evaluation method in {"numpy", "jax"}.
-            Defaults to "jax".
+            Defaults to "numpy".
 
         reality (bool): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
@@ -332,7 +333,8 @@ def healpix_ifft_jax(
     ftm: jnp.ndarray, L: int, nside: int, reality: bool
 ) -> jnp.ndarray:
     """Computes the Inverse Fast Fourier Transform with spectral folding in the polar
-    regions to mitigate aliasing, using JAX.
+    regions to mitigate aliasing, using JAX. JAX specific implementation of
+    :func:`~healpix_ifft_numpy`.
 
     Args:
         ftm (jnp.ndarray): Array of Fourier coefficients for all latitudes.
@@ -376,6 +378,17 @@ def healpix_ifft_jax(
 
 
 def p2phi_rings(t: np.ndarray, nside: int) -> np.ndarray:
+    r"""Convert index to :math:`\phi` angle for HEALPix for all :math:`\theta` rings.
+    Vectorised implementation of :func:`~samples.p2phi_ring`.
+
+    Args:
+        t (np.ndarrray): vector of :math:`\theta` ring indicies, i.e. [0,1,...,ntheta-1]
+
+        nside (int): HEALPix Nside resolution parameter.
+
+    Returns:
+        np.ndarray: :math:`\phi` offset for each ring index.
+    """
     shift = 1 / 2
     tt = np.zeros_like(t)
     tt = np.where(
@@ -392,6 +405,17 @@ def p2phi_rings(t: np.ndarray, nside: int) -> np.ndarray:
 
 @partial(jit, static_argnums=(1))
 def p2phi_rings_jax(t: jnp.ndarray, nside: int) -> jnp.ndarray:
+    r"""Convert index to :math:`\phi` angle for HEALPix for all :math:`\theta` rings.
+    JAX implementation of :func:`~p2phi_rings`.
+
+    Args:
+        t (jnp.ndarrray): vector of :math:`\theta` ring indicies, i.e. [0,1,...,ntheta-1]
+
+        nside (int): HEALPix Nside resolution parameter.
+
+    Returns:
+        jnp.ndarray: :math:`\phi` offset for each ring index.
+    """
     shift = 1 / 2
     tt = jnp.zeros_like(t)
     tt = jnp.where(
@@ -409,6 +433,23 @@ def p2phi_rings_jax(t: jnp.ndarray, nside: int) -> jnp.ndarray:
 def ring_phase_shifts_hp(
     L: int, nside: int, forward: bool = False, reality: bool = False
 ) -> np.ndarray:
+    r"""Generates a phase shift vector for HEALPix for all :math:`\theta` rings.
+
+    Args:
+        L (int, optional): Harmonic band-limit.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+        forward (bool, optional): Whether to provide forward or inverse shift.
+            Defaults to False.
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+            Defaults to False.
+
+    Returns:
+        np.ndarray: Vector of phase shifts with shape :math:`[n_{\theta}, 2L-1]`.
+    """
     t = np.arange(samples.ntheta(L, "healpix", nside))
     phi_offsets = p2phi_rings(t, nside)
     sign = -1 if forward else 1
@@ -421,6 +462,24 @@ def ring_phase_shifts_hp(
 def ring_phase_shifts_hp_jax(
     L: int, nside: int, forward: bool = False, reality: bool = False
 ) -> jnp.ndarray:
+    r"""Generates a phase shift vector for HEALPix for all :math:`\theta` rings. JAX
+    implementation of :func:`~ring_phase_shifts_hp`.
+
+    Args:
+        L (int, optional): Harmonic band-limit.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+        forward (bool, optional): Whether to provide forward or inverse shift.
+            Defaults to False.
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+            Defaults to False.
+
+    Returns:
+        jnp.ndarray: Vector of phase shifts with shape :math:`[n_{\theta}, 2L-1]`.
+    """
     t = jnp.arange(samples.ntheta(L, "healpix", nside))
     phi_offsets = p2phi_rings_jax(t, nside)
     sign = -1 if forward else 1

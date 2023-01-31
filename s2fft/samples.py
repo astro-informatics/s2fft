@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Tuple
 
 
 def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
@@ -134,14 +135,16 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
     return 1
 
 
-def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> int:
+def ftm_shape(
+    L: int, sampling: str = "mw", nside: int = None
+) -> Tuple[int, int]:
     r"""stuff and things
 
     Args:
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.
 
@@ -149,7 +152,8 @@ def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> int:
         ValueError: Unknown sampling scheme.
 
     Returns:
-        int:
+        Tuple[int,int]: Shape of ftm array, i.e. :math:`[n_{\theta}, n_{\phi}]`. Note
+        that here "healpix" defaults to :math:`2L = 4nside` phi samples for ftm.
     """
 
     if sampling.lower() in ["mwss", "healpix"]:
@@ -452,8 +456,10 @@ def ring_phase_shift_hp(
     return np.exp(sign * 1j * np.arange(m_start_ind, L) * phi_offset)
 
 
-def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> tuple:
-    """Shape of spherical signal.
+def f_shape(
+    L: int = None, sampling: str = "mw", nside: int = None
+) -> Tuple[int]:
+    r"""Shape of spherical signal.
 
     Args:
         L (int, optional): Harmonic band-limit.
@@ -465,7 +471,8 @@ def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> tuple:
             if sampling="healpix".  Defaults to None.
 
     Returns:
-        tuple: Sampling array shape.
+        Tuple[int]: Pixel-space array dimensions with shape :math:`[n_{\theta}, n_{\phi}]`.
+        Note that "healpix" is instead indexed by a 1D array, with standard conventions.
     """
 
     if sampling.lower() != "healpix" and L is None:
@@ -487,14 +494,14 @@ def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> tuple:
         return ntheta(L, sampling), nphi_equiang(L, sampling)
 
 
-def flm_shape(L: int) -> tuple:
-    """Standard shape of harmonic coefficients.
+def flm_shape(L: int) -> Tuple[int, int]:
+    r"""Standard shape of harmonic coefficients.
 
     Args:
         L (int, optional): Harmonic band-limit.
 
     Returns:
-        tuple: Sampling array shape.
+        Tuple[int]: Sampling array shape, with indexing :math:`[\ell, m]`.
     """
 
     return L, 2 * L - 1
@@ -629,8 +636,8 @@ def hp_getidx(L: int, el: int, m: int) -> int:
     r"""Compute HEALPix harmonic index.
 
     Warning:
-        Note that the harmonic band-limit `L` differs to the HEALPix `lmax` convention,
-        where `L = lmax + 1`.
+        Note that the harmonic band-limit `L` differs to the HEALPix :math`\ell_{\text{max}}` convention,
+        where :math:`L = \ell_{\text{max}} + 1`.
 
     Args:
         L (int): Harmonic band-limit.
@@ -872,8 +879,8 @@ def lm2lm_hp(flm: np.ndarray, L: int) -> np.ndarray:
         Returns harmonic coefficients of an explicitly real signal.
 
     Warning:
-        Note that the harmonic band-limit `L` differs to the HEALPix `lmax` convention,
-        where `L = lmax + 1`.
+        Note that the harmonic band-limit `L` differs to the HEALPix :math`\ell_{\text{max}}`
+        convention, where :math:`L = \ell_{\text{max}} + 1`.
 
     Args:
         flm (np.ndarray): 1D indexed harmonic coefficients.

@@ -28,6 +28,36 @@ def inverse(
     reality: bool = False,
     precomps=None,
 ) -> np.ndarray:
+    r"""Wrapper for the inverse spin-spherical harmonic transform.
+
+    Args:
+        flm (np.ndarray): Spherical harmonic coefficients.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+            of length :math:`L^2`, which is a minimal memory overhead.
+
+    Raises:
+        ValueError: Transform method not recognised.
+
+    Returns:
+        np.ndarray: Signal on the sphere.
+    """
     if method == "numpy":
         return inverse_numpy(flm, L, spin, nside, sampling, reality, precomps)
     elif method == "jax":
@@ -47,7 +77,37 @@ def inverse_numpy(
     reality: bool = False,
     precomps=None,
 ) -> np.ndarray:
+    r"""Compute the inverse spin-spherical harmonic transform (numpy).
 
+    Uses separation of variables and exploits the Price & McEwen recursion for accelerated
+    and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
+    function is theoretically :math:`\mathcal{O}(L^2)`.
+
+    Args:
+        flm (np.ndarray): Spherical harmonic coefficients.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+            of length :math:`L^2`, which is a minimal memory overhead.
+
+    Returns:
+        np.ndarray: Signal on the sphere.
+    """
     # Define latitudinal sample positions and Fourier offsets
     thetas = samples.thetas(L, sampling, nside)
     m_offset = 1 if sampling.lower() in ["mwss", "healpix"] else 0
@@ -111,7 +171,38 @@ def inverse_jax(
     reality: bool = False,
     precomps=None,
 ) -> jnp.ndarray:
+    r"""Compute the inverse spin-spherical harmonic transform (JAX).
 
+    Uses separation of variables and exploits the Price & McEwen recursion for accelerated
+    and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
+    function is theoretically :math:`\mathcal{O}(L^2)`. This is a JAX implementation of
+    :func:`~inverse_numpy`.
+
+    Args:
+        flm (jnp.ndarray): Spherical harmonic coefficients.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
+            of length :math:`L^2`, which is a minimal memory overhead.
+
+    Returns:
+        jnp.ndarray: Signal on the sphere.
+    """
     # Define latitudinal sample positions and Fourier offsets
     thetas = samples.thetas(L, sampling, nside)
     m_offset = 1 if sampling.lower() in ["mwss", "healpix"] else 0
@@ -180,6 +271,36 @@ def forward(
     reality: bool = False,
     precomps=None,
 ) -> np.ndarray:
+    r"""Wrapper for the forward spin-spherical harmonic transform.
+
+    Args:
+        f (np.ndarray): Signal on the sphere.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+            of length :math:`L^2`, which is a minimal memory overhead.
+
+    Raises:
+        ValueError: Transform method not recognised.
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients.
+    """
     if method == "numpy":
         return forward_numpy(f, L, spin, nside, sampling, reality, precomps)
     elif method == "jax":
@@ -199,6 +320,37 @@ def forward_numpy(
     reality: bool = False,
     precomps=None,
 ) -> np.ndarray:
+    r"""Compute the forward spin-spherical harmonic transform (JAX).
+
+    Uses separation of variables and exploits the Price & McEwen recursion for accelerated
+    and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
+    function is theoretically :math:`\mathcal{O}(L^2)`.
+
+    Args:
+        f (np.ndarray): Signal on the sphere
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+            of length :math:`L^2`, which is a minimal memory overhead.
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients
+    """
     # Resample mw onto mwss and double resolution of both
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -280,6 +432,38 @@ def forward_jax(
     reality: bool = False,
     precomps=None,
 ) -> jnp.ndarray:
+    r"""Compute the forward spin-spherical harmonic transform (JAX).
+
+    Uses separation of variables and exploits the Price & McEwen recursion for accelerated
+    and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
+    function is theoretically :math:`\mathcal{O}(L^2)`. This is a JAX implementation of
+    :func:`~forward_numpy`.
+
+    Args:
+        f (jnp.ndarray): Signal on the sphere
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
+            of length :math:`L^2`, which is a minimal memory overhead.
+
+    Returns:
+        jnp.ndarray: Spherical harmonic coefficients
+    """
     # Resample mw onto mwss and double resolution of both
     if sampling.lower() == "mw":
         f = resampling_jax.mw_to_mwss(f, L, spin)

@@ -26,7 +26,7 @@ def inverse(
     :math:`SO(3)`.
 
     Args:
-        flm (np.ndarray): Wigner coefficients with shape :math:`[L, 2L-1, N]`.
+        flm (np.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
 
         L (int): Harmonic band-limit.
 
@@ -47,13 +47,13 @@ def inverse(
             if sampling="healpix".
 
     Returns:
-        np.ndarray:  Signal on the on :math:`SO(3)` with shape :math:`[n_{\beta},
-        n_{\alpha}, n_{\gamma}]`, where :math:`n_\xi` denotes the number of samples for
+        np.ndarray:  Signal on the on :math:`SO(3)` with shape :math:`[n_{\gamma},
+        n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the number of samples for
         angle :math:`\xi`.
 
     Note:
-        Importantly, the convention adopted for storage of f is :math:`[\beta, \alpha,
-        \gamma]`, for Euler angles :math:`(\alpha, \beta, \gamma)` following the
+        Importantly, the convention adopted for storage of f is :math:`[\gamma, \beta,
+        \alpha]`, for Euler angles :math:`(\alpha, \beta, \gamma)` following the
         :math:`zyz` Euler convention, in order to simplify indexing for internal use.
         For a given :math:`\gamma` we thus recover a signal on the sphere indexed by
         :math:`[\theta, \phi]`, i.e. we associate :math:`\beta` with :math:`\theta` and
@@ -82,7 +82,7 @@ def inverse_transform(
     :math:`SO(3)`.
 
     Args:
-        flmn (np.ndarray): Wigner coefficients with shape :math:`[L, 2L-1, N]`.
+        flmn (np.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
 
         kernel (np.ndarray): Wigner-d kernel.
 
@@ -155,7 +155,7 @@ def inverse_transform_jax(
     :math:`SO(3)`.
 
     Args:
-        flmn (jnp.ndarray): Wigner coefficients with shape :math:`[L, 2L-1, N]`.
+        flmn (jnp.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
 
         kernel (jnp.ndarray): Wigner-d kernel.
 
@@ -242,7 +242,7 @@ def forward(
 
     Args:
         f (np.ndarray): Signal on the on :math:`SO(3)` with shape
-            :math:`[n_{\beta}, n_{\alpha}, n_{\gamma}]`, where :math:`n_\xi` denotes the
+            :math:`[n_{\gamma}, n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the
             number of samples for angle :math:`\xi`.
 
         L (int): Harmonic band-limit.
@@ -267,8 +267,8 @@ def forward(
         np.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
 
     Note:
-        Importantly, the convention adopted for storage of f is :math:`[\beta, \alpha,
-        \gamma]`, for Euler angles :math:`(\alpha, \beta, \gamma)` following the
+        Importantly, the convention adopted for storage of f is :math:`[\gamma, \beta,
+        \alpha]`, for Euler angles :math:`(\alpha, \beta, \gamma)` following the
         :math:`zyz` Euler convention, in order to simplify indexing for internal use.
         For a given :math:`\gamma` we thus recover a signal on the sphere indexed by
         :math:`[\theta, \phi]`, i.e. we associate :math:`\beta` with :math:`\theta` and
@@ -291,8 +291,8 @@ def forward_transform(
     reality: bool,
     nside: int,
 ) -> np.ndarray:
-    r"""Compute the forward spherical harmonic transform via precompute (vectorized
-    implementation).
+    r"""Compute the forward Wigner transform, i.e. Fourier transform on
+    :math:`SO(3)`.
 
     Args:
         f (np.ndarray): Signal on the sphere.
@@ -313,7 +313,7 @@ def forward_transform(
             if sampling="healpix".
 
     Returns:
-        np.ndarray: Pixel-space coefficients.
+        np.ndarray: Wigner space coefficients.
     """
     n_start_ind = N - 1 if reality else 0
 
@@ -376,8 +376,8 @@ def forward_transform_jax(
     reality: bool,
     nside: int,
 ) -> jnp.ndarray:
-    r"""Compute the forward spherical harmonic transform via precompute (vectorized
-    implementation).
+    r"""Compute the forward Wigner transform, i.e. Fourier transform on
+    :math:`SO(3)`.
 
     Args:
         f (jnp.ndarray): Signal on the sphere.
@@ -398,7 +398,7 @@ def forward_transform_jax(
             if sampling="healpix".
 
     Returns:
-        jnp.ndarray: Pixel-space coefficients.
+        jnp.ndarray: Wigner space coefficients.
     """
     n_start_ind = N - 1 if reality else 0
 

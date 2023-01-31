@@ -9,16 +9,40 @@ from jax import jit
 from functools import partial
 
 from s2fft import samples
+from typing import List
 
 
 def generate_precomputes(
     L: int,
-    spin: int,
+    spin: int = 0,
     sampling: str = "mw",
     nside: int = None,
     forward: bool = False,
-) -> np.ndarray:
+) -> List[np.ndarray]:
+    r"""Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
+    In practice one could compute these on-the-fly but the memory overhead is
+    negligible and well worth the acceleration.
 
+    Args:
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        forward (bool, optional): Whether to provide forward or inverse shift.
+            Defaults to False.
+
+    Returns:
+        List[np.ndarray]: List of precomputed coefficient arrays.
+
+    Note:
+        TODO: this function should be optimised.
+    """
     mm = -spin
 
     # Correct for mw to mwss conversion
@@ -30,7 +54,6 @@ def generate_precomputes(
 
     ntheta = len(beta)  # Number of theta samples
     el = np.arange(L)
-    nel = len(el)  # Number of harmonic modes.
 
     # Trigonometric constant adopted throughout
     c = np.cos(beta)
@@ -45,9 +68,9 @@ def generate_precomputes(
     half_slices = [el + mm + 1, el - mm + 1]
 
     # Vectors with indexing -L < m < L adopted throughout
-    cpi = np.zeros((L + 1, nel), dtype=np.float64)
-    cp2 = np.zeros((L + 1, nel), dtype=np.float64)
-    log_first_row = np.zeros((2 * L + 1, ntheta, nel), dtype=np.float64)
+    cpi = np.zeros((L + 1, L), dtype=np.float64)
+    cp2 = np.zeros((L + 1, L), dtype=np.float64)
+    log_first_row = np.zeros((2 * L + 1, ntheta, L), dtype=np.float64)
 
     # Populate vectors for first row
     log_first_row[0] = np.einsum("l,t->tl", 2.0 * el, np.log(np.abs(c2)))
@@ -65,9 +88,9 @@ def generate_precomputes(
         cpi[m - 1] = 2.0 / np.sqrt(m * (2 * el + 1 - m))
         cp2[m - 1] = cpi[m - 1] / cpi[m - 2]
 
-    for k in range(nel):
-        cpi[:, k] = np.roll(cpi[:, k], (nel - k - 1), axis=-1)
-        cp2[:, k] = np.roll(cp2[:, k], (nel - k - 1), axis=-1)
+    for k in range(L):
+        cpi[:, k] = np.roll(cpi[:, k], (L - k - 1), axis=-1)
+        cp2[:, k] = np.roll(cp2[:, k], (L - k - 1), axis=-1)
     # Then evaluate the negative half row and reflect using
     # Wigner-d symmetry relation.
 
@@ -77,13 +100,13 @@ def generate_precomputes(
     vsign = np.einsum("m,l->ml", msign, lsign)
     vsign[: L - 1] *= (-1) ** abs(mm + 1 + L)
 
-    lrenorm = np.zeros((2, ntheta, nel), dtype=np.float64)
-    lamb = np.zeros((2, ntheta, nel), np.float64)
+    lrenorm = np.zeros((2, ntheta, L), dtype=np.float64)
+    lamb = np.zeros((2, ntheta, L), np.float64)
     for i in range(2):
         for j in range(ntheta):
             lamb[i, j] = ((el + 1) * omc[j] - half_slices[i] + c[j]) / s[j]
-            for k in range(nel):
-                lamb[i, j, k] -= (nel - k - 1) * cs[j]
+            for k in range(L):
+                lamb[i, j, k] -= (L - k - 1) * cs[j]
                 lrenorm[i, j, k] = log_first_row[half_slices[i][k] - 1, j, k]
 
     indices = np.repeat(np.expand_dims(np.arange(L), 0), ntheta, axis=0)
@@ -94,15 +117,46 @@ def generate_precomputes(
 def compute_all_slices(
     beta: np.ndarray, L: int, spin: int, precomps=None
 ) -> np.ndarray:
-    mm = -spin
-    ntheta = len(beta)  # Number of theta samples
-    el = np.arange(L)
-    nel = len(el)  # Number of harmonic modes.
+    r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
+    of the complete Wigner-d matrix for all sampled polar angles
+    :math:`\beta` and all :math:`\ell` using Price & McEwen recursion.
 
-    # Indexing boundaries
+    The Wigner-d slice for all :math:`\ell` (`el`) and :math:`\beta` is
+    computed recursively over :math:`m` labelled 'm' at a specific
+    :math:`m^{\prime}`. The Price & McEwen recursion is analytically correct
+    from :math:`-\ell < m < \ell` however numerically it can become unstable for
+    :math:`m > 0`. To avoid this we compute :math:`d_{m,
+    m^{\prime}}^{\ell}(\beta)` for negative :math:`m` and then evaluate
+    :math:`d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m,
+    m^{\prime}}^{\ell}(\beta)` which we can again evaluate using the same recursion.
+
+    On-the-fly renormalisation is implemented to avoid potential over/under-flows,
+    within any given iteration of the recursion the iterants are :math:`\sim \mathcal{O}(1)`.
+
+    The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
+    :math:`-L < m < L` by `dl[L - 1 - m, \beta, \ell]`. This implementation has
+    computational scaling :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L`
+    operations.
+
+    Args:
+        beta (np.ndarray): Array of polar angles in radians.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        precomps (List[np.ndarray]): Precomputed recursion coefficients with memory overhead
+            :math:`\mathcal{O}(L^2)`, which is minimal.
+
+    Returns:
+        np.ndarray: Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
+    """
+    # Indexing boundaries and constants
+    mm = -spin
+    ntheta = len(beta)
     lims = [0, -1]
 
-    dl_test = np.zeros((2 * L - 1, ntheta, nel), dtype=np.float64)
+    dl_test = np.zeros((2 * L - 1, ntheta, L), dtype=np.float64)
     if precomps is None:
         lrenorm, lamb, vsign, cpi, cp2, cs, indices = generate_precomputes(
             beta, L, mm
@@ -114,7 +168,7 @@ def compute_all_slices(
         lind = L - 1
         sind = lims[i]
         sgn = (-1) ** (i)
-        dl_iter = np.ones((2, ntheta, nel), dtype=np.float64)
+        dl_iter = np.ones((2, ntheta, L), dtype=np.float64)
 
         dl_iter[1, :, lind:] = np.einsum(
             "l,tl->tl",
@@ -133,7 +187,7 @@ def compute_all_slices(
             * np.exp(lrenorm[i, :, lind - 1 :])
         )
 
-        dl_entry = np.zeros((ntheta, nel), dtype=np.float64)
+        dl_entry = np.zeros((ntheta, L), dtype=np.float64)
         for m in range(2, L):
             index = indices >= L - m - 1
             lamb[i, :, np.arange(L)] += cs
@@ -165,15 +219,46 @@ def compute_all_slices(
 def compute_all_slices_jax(
     beta: jnp.ndarray, L: int, spin: int, precomps=None
 ) -> jnp.ndarray:
+    r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
+    of the complete Wigner-d matrix for all sampled polar angles
+    :math:`\beta` and all :math:`\ell` using Price & McEwen recursion.
+
+    The Wigner-d slice for all :math:`\ell` (`el`) and :math:`\beta` is
+    computed recursively over :math:`m` labelled 'm' at a specific
+    :math:`m^{\prime}`. The Price & McEwen recursion is analytically correct
+    from :math:`-\ell < m < \ell` however numerically it can become unstable for
+    :math:`m > 0`. To avoid this we compute :math:`d_{m,
+    m^{\prime}}^{\ell}(\beta)` for negative :math:`m` and then evaluate
+    :math:`d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m,
+    m^{\prime}}^{\ell}(\beta)` which we can again evaluate using the same recursion.
+
+    On-the-fly renormalisation is implemented to avoid potential over/under-flows,
+    within any given iteration of the recursion the iterants are :math:`\sim \mathcal{O}(1)`.
+
+    The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
+    :math:`-L < m < L` by `dl[L - 1 - m, \beta, \ell]`. This implementation has
+    computational scaling :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L`
+    operations.
+
+    Args:
+        beta (jnp.ndarray): Array of polar angles in radians.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        precomps (List[np.ndarray]): Precomputed recursion coefficients with memory overhead
+            :math:`\mathcal{O}(L^2)`, which is minimal.
+
+    Returns:
+        jnp.ndarray: Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
+    """
+    # Indexing boundaries and constants
     mm = -spin
     ntheta = len(beta)
-    el = jnp.arange(L)
-    nel = len(el)
-
-    # Indexing boundaries
     lims = [0, -1]
 
-    dl_test = jnp.zeros((2 * L - 1, ntheta, nel), dtype=jnp.float64)
+    dl_test = jnp.zeros((2 * L - 1, ntheta, L), dtype=jnp.float64)
     if precomps is None:
         lrenorm, lamb, vsign, cpi, cp2, cs, indices = generate_precomputes(
             beta, L, mm
@@ -185,7 +270,7 @@ def compute_all_slices_jax(
         lind = L - 1
         sind = lims[i]
         sgn = (-1) ** (i)
-        dl_iter = jnp.ones((2, ntheta, nel), dtype=jnp.float64)
+        dl_iter = jnp.ones((2, ntheta, L), dtype=jnp.float64)
 
         dl_iter = dl_iter.at[1, :, lind:].set(
             jnp.einsum(
@@ -207,7 +292,7 @@ def compute_all_slices_jax(
             * jnp.exp(lrenorm[i, :, lind - 1 :])
         )
 
-        dl_entry = jnp.zeros((ntheta, nel), dtype=jnp.float64)
+        dl_entry = jnp.zeros((ntheta, L), dtype=jnp.float64)
 
         def pm_recursion_step(m, args):
             dl_test, dl_entry, dl_iter, lamb, lrenorm = args

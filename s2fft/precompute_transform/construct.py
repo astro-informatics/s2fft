@@ -14,6 +14,31 @@ def spin_spherical_kernel(
     nside: int = None,
     forward: bool = False,
 ):
+    r"""Precompute the wigner-d kernel for spin-spherical transform. This can be
+    drastically faster but comes at a :math:`\mathcal{O}(L^3)` memory overhead, making
+    it infeasible for :math:`L\geq 512`.
+
+    Args:
+        L (int): Harmonic band-limit.
+
+        spin (int): Harmonic spin.
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+            Defaults to False.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}. Defaults to "mw".
+
+        nside (int): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".
+
+        forward (bool, optional): Whether to provide forward or inverse shift.
+            Defaults to False.
+
+    Returns:
+        np.ndarray: Transform kernel for spin-spherical harmonic transform.
+    """
     if reality and spin != 0:
         reality = False
         warn(
@@ -59,6 +84,31 @@ def wigner_kernel(
     nside: int = None,
     forward: bool = False,
 ):
+    r"""Precompute the wigner-d kernels required for a Wigner transform. This can be
+    drastically faster but comes at a :math:`\mathcal{O}(NL^3)` memory overhead, making
+    it infeasible for :math:`L \geq 512`.
+
+    Args:
+        L (int): Harmonic band-limit.
+
+        N (int): Directional band-limit.
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+            Defaults to False.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}. Defaults to "mw".
+
+        nside (int): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".
+
+        forward (bool, optional): Whether to provide forward or inverse shift.
+            Defaults to False.
+
+    Returns:
+        np.ndarray: Transform kernel for Wigner transform.
+    """
     n_start_ind = N - 1 if reality else 0
     n_dim = N if reality else 2 * N - 1
 

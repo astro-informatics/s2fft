@@ -16,15 +16,15 @@ def inverse(
     :math:`SO(3)`.
 
     Note:
-        Importantly, the convention adopted for storage of f is :math:`[\beta, \alpha,
-        \gamma]`, for Euler angles :math:`(\alpha, \beta, \gamma)` following the
+        Importantly, the convention adopted for storage of f is :math:`[\gamma, \beta,
+        \alpha]`, for Euler angles :math:`(\alpha, \beta, \gamma)` following the
         :math:`zyz` Euler convention, in order to simplify indexing for internal use.
         For a given :math:`\gamma` we thus recover a signal on the sphere indexed by
         :math:`[\theta, \phi]`, i.e. we associate :math:`\beta` with :math:`\theta` and
         :math:`\alpha` with :math:`\phi`.
 
     Args:
-        flmn (np.ndarray): Wigner coefficients with shape :math:`[L, 2L-1, 2N-1]`.
+        flmn (np.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
 
         L (int): Harmonic bandlimit.
 
@@ -46,8 +46,8 @@ def inverse(
         ValueError: Sampling scheme not currently supported.
 
     Returns:
-        np.ndarray:  Signal on the on :math:`SO(3)` with shape :math:`[n_{\beta},
-        n_{\alpha}, n_{\gamma}]`, where :math:`n_\xi` denotes the number of samples for
+        np.ndarray:  Signal on the on :math:`SO(3)` with shape :math:`[n_{\gamma},
+        n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the number of samples for
         angle :math:`\xi`.
     """
     assert flmn.shape == s2fft.wigner.samples.flmn_shape(L, N)
@@ -96,8 +96,8 @@ def forward(
     :math:`SO(3)`.
 
     Note:
-        Importantly, the convention adopted for storage of f is :math:`[\beta, \alpha,
-        \gamma]`, for Euler angles :math:`(\alpha, \beta, \gamma)` following the
+        Importantly, the convention adopted for storage of f is :math:`[\gamma, \beta,
+        \alpha]`, for Euler angles :math:`(\alpha, \beta, \gamma)` following the
         :math:`zyz` Euler convention, in order to simplify indexing for internal use.
         For a given :math:`\gamma` we thus recover a signal on the sphere indexed by
         :math:`[\theta, \phi]`, i.e. we associate :math:`\beta` with :math:`\theta` and
@@ -105,7 +105,7 @@ def forward(
 
     Args:
         f (np.ndarray): Signal on the on :math:`SO(3)` with shape
-            :math:`[n_{\beta}, n_{\alpha}, n_{\gamma}]`, where :math:`n_\xi` denotes the
+            :math:`[n_{\gamma}, n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the
             number of samples for angle :math:`\xi`.
 
         L (int): Harmonic bandlimit.
@@ -128,7 +128,7 @@ def forward(
         ValueError: Sampling scheme not currently supported.
 
     Returns:
-        np.ndarray: Wigner coefficients `flmn` with shape :math:`[L, 2L-1, 2N-1]`.
+        np.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
     """
     assert f.shape == s2fft.wigner.samples.f_shape(L, N, sampling, nside)
 

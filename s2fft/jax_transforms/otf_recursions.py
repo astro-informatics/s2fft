@@ -7,7 +7,7 @@ import jax.numpy as jnp
 import jax.lax as lax
 from jax import jit
 from functools import partial
-
+from typing import List
 from s2fft import samples
 from s2fft.wigner.price_mcewen import generate_precomputes
 
@@ -22,9 +22,44 @@ def inverse_latitudinal_step(
     reality: bool = False,
     precomps=None,
 ) -> np.ndarray:
+    r"""Evaluate the wigner-d recursion inverse latitundinal step over :math:`\theta`.
+    This approach is a heavily engineerd version of the Price & McEwen recursion found in
+    :func:`~s2fft.wigner.price_mcewen`, which has at most of :math:`\mathcal{O}(L^2)`
+    memory footprint.
 
-    mm = -spin  # switch to match convention
-    ntheta = len(beta)  # Number of theta samples
+    This latitundinal :math:`\theta` step for scalar fields reduces to the associated
+    Legendre transform, however our transform supports arbitrary spin :math:`s < L`. By
+    construction the Price & McEwen approach recurses over m solely, hence though one must
+    recurse :math:`\sim L` times, all :math:`\theta, \ell` entries can be computed
+    simultaneously; facilitating GPU/TPU acceleration.
+
+    Args:
+        flm (np.ndarray): Spherical harmonic coefficients.
+
+        beta (np.ndarray): Array of polar angles in radians.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+            of length :math:`L^2`, which is a minimal memory overhead.
+
+    Returns:
+        np.ndarray: Coefficients ftm with indexing :math:`[\theta, m]`.
+    """
+    mm = -spin
+    ntheta = len(beta)
     ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
 
     # Indexing boundaries
@@ -49,7 +84,7 @@ def inverse_latitudinal_step(
                 dl_iter[0, :, lind:] * lamb[i, :, lind:],
             )
 
-            # Sum into transform vector
+            # Sum into transform vector 0th component
             ftm[:, sind + m_offset] = np.nansum(
                 dl_iter[0, :, lind:]
                 * vsign[sind, lind:]
@@ -58,7 +93,7 @@ def inverse_latitudinal_step(
                 axis=-1,
             )
 
-            # Sum into transform vector
+            # Sum into transform vector 1st component
             ftm[:, sind + sgn + m_offset] = np.nansum(
                 dl_iter[1, :, lind - 1 :]
                 * vsign[sind + sgn, lind - 1 :]
@@ -80,7 +115,7 @@ def inverse_latitudinal_step(
                 )
                 dl_entry[:, -(m + 1)] = 1
 
-                # Sum into transform vector
+                # Sum into transform vector nth component
                 ftm[:, sind + sgn * m + m_offset] = np.nansum(
                     dl_entry
                     * vsign[sind + sgn * m]
@@ -110,6 +145,42 @@ def inverse_latitudinal_step_jax(
     reality: bool = False,
     precomps=None,
 ) -> jnp.ndarray:
+    r"""Evaluate the wigner-d recursion inverse latitundinal step over :math:`\theta`.
+    This approach is a heavily engineerd version of the Price & McEwen recursion found in
+    :func:`~s2fft.wigner.price_mcewen`, which has at most of :math:`\mathcal{O}(L^2)`
+    memory footprint. This is a JAX implementation of :func:`~inverse_latitudinal_step`.
+
+    This latitundinal :math:`\theta` step for scalar fields reduces to the associated
+    Legendre transform, however our transform supports arbitrary spin :math:`s < L`. By
+    construction the Price & McEwen approach recurses over m solely, hence though one must
+    recurse :math:`\sim L` times, all :math:`\theta, \ell` entries can be computed
+    simultaneously; facilitating GPU/TPU acceleration.
+
+    Args:
+        flm (jnp.ndarray): Spherical harmonic coefficients.
+
+        beta (jnp.ndarray): Array of polar angles in radians.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
+            of length :math:`L^2`, which is a minimal memory overhead.
+
+    Returns:
+        jnp.ndarray: Coefficients ftm with indexing :math:`[\theta, m]`.
+    """
 
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
@@ -140,7 +211,7 @@ def inverse_latitudinal_step_jax(
                 )
             )
 
-            # Sum into transform vector
+            # Sum into transform vector 0th component
             ftm = ftm.at[:, sind + m_offset].set(
                 jnp.nansum(
                     dl_iter[0, :, lind:]
@@ -151,7 +222,7 @@ def inverse_latitudinal_step_jax(
                 )
             )
 
-            # Sum into transform vector
+            # Sum into transform vector 1st component
             ftm = ftm.at[:, sind + sgn + m_offset].set(
                 jnp.nansum(
                     dl_iter[1, :, lind - 1 :]
@@ -184,7 +255,7 @@ def inverse_latitudinal_step_jax(
                 )
                 dl_entry = dl_entry.at[:, -(m + 1)].set(1)
 
-                # Sum into transform vector
+                # Sum into transform vector nth component
                 ftm = ftm.at[:, sind + sgn * m + m_offset].set(
                     jnp.nansum(
                         dl_entry
@@ -225,7 +296,42 @@ def forward_latitudinal_step(
     reality: bool = False,
     precomps=None,
 ) -> np.ndarray:
+    r"""Evaluate the wigner-d recursion forward latitundinal step over :math:`\theta`.
+    This approach is a heavily engineerd version of the Price & McEwen recursion found in
+    :func:`~s2fft.wigner.price_mcewen`, which has at most of :math:`\mathcal{O}(L^2)`
+    memory footprint.
 
+    This latitundinal :math:`\theta` step for scalar fields reduces to the associated
+    Legendre transform, however our transform supports arbitrary spin :math:`s < L`. By
+    construction the Price & McEwen approach recurses over m solely, hence though one must
+    recurse :math:`\sim L` times, all :math:`\theta, \ell` entries can be computed
+    simultaneously; facilitating GPU/TPU acceleration.
+
+    Args:
+        ftm (np.ndarray): Intermediate coefficients with indexing :math:`[\theta, m]`.
+
+        beta (np.ndarray): Array of polar angles in radians.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+            of length :math:`L^2`, which is a minimal memory overhead.
+
+    Returns:
+        np.ndarray: Spherical harmonic coefficients.
+    """
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
@@ -251,7 +357,7 @@ def forward_latitudinal_step(
                 dl_iter[0, :, lind:] * lamb[i, :, lind:],
             )
 
-            # Sum into transform vector
+            # Sum into transform vector 0th component
             flm[lind:, sind] = np.nansum(
                 np.einsum(
                     "tl, t->tl",
@@ -263,7 +369,7 @@ def forward_latitudinal_step(
                 axis=-2,
             )
 
-            # Sum into transform vector
+            # Sum into transform vector 1st component
             flm[lind - 1 :, sind + sgn] = np.nansum(
                 np.einsum(
                     "tl, t->tl",
@@ -288,6 +394,7 @@ def forward_latitudinal_step(
                 )
                 dl_entry[:, -(m + 1)] = 1
 
+                # Sum into transform vector nth component
                 flm[:, sind + sgn * m] = np.nansum(
                     np.einsum(
                         "tl, t->tl",
@@ -318,6 +425,42 @@ def forward_latitudinal_step_jax(
     reality: bool = False,
     precomps=None,
 ) -> jnp.ndarray:
+    r"""Evaluate the wigner-d recursion forward latitundinal step over :math:`\theta`.
+    This approach is a heavily engineerd version of the Price & McEwen recursion found in
+    :func:`~s2fft.wigner.price_mcewen`, which has at most of :math:`\mathcal{O}(L^2)`
+    memory footprint. This is a JAX implementation of :func:`~forward_latitudinal_step`.
+
+    This latitundinal :math:`\theta` step for scalar fields reduces to the associated
+    Legendre transform, however our transform supports arbitrary spin :math:`s < L`. By
+    construction the Price & McEwen approach recurses over m solely, hence though one must
+    recurse :math:`\sim L` times, all :math:`\theta, \ell` entries can be computed
+    simultaneously; facilitating GPU/TPU acceleration.
+
+    Args:
+        ftm (jnp.ndarray): Intermediate coefficients with indexing :math:`[\theta, m]`.
+
+        beta (jnp.ndarray): Array of polar angles in radians.
+
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
+            of length :math:`L^2`, which is a minimal memory overhead.
+
+    Returns:
+        jnp.ndarray: Spherical harmonic coefficients.
+    """
 
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
@@ -348,7 +491,7 @@ def forward_latitudinal_step_jax(
                 )
             )
 
-            # Sum into transform vector
+            # Sum into transform vector 0th component
             flm = flm.at[lind:, sind].set(
                 jnp.nansum(
                     jnp.einsum(
@@ -363,7 +506,7 @@ def forward_latitudinal_step_jax(
                 )
             )
 
-            # Sum into transform vector
+            # Sum into transform vector 1st component
             flm = flm.at[lind - 1 :, sind + sgn].set(
                 jnp.nansum(
                     jnp.einsum(
@@ -400,7 +543,7 @@ def forward_latitudinal_step_jax(
                 )
                 dl_entry = dl_entry.at[:, -(m + 1)].set(1)
 
-                # Sum into transform vector
+                # Sum into transform vector nth component
                 flm = flm.at[:, sind + sgn * m].set(
                     jnp.nansum(
                         jnp.einsum(

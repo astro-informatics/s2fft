@@ -54,7 +54,6 @@ def generate_flmn(
     L: int,
     N: int = 1,
     L_lower: int = 0,
-    spin: int = 0,
     reality: bool = False,
 ) -> np.ndarray:
     r"""Generate a 3D set of random Wigner coefficients.
@@ -62,13 +61,18 @@ def generate_flmn(
         Real signals are explicitly produced from conjugate symmetry.
     Args:
         rng (Generator): Random number generator.
+
         L (int): Harmonic band-limit.
+
         N (int, optional): Number of Fourier coefficients for tangent plane rotations
             (i.e. directionality). Defaults to 1.
+
         L_lower (int, optional): Harmonic lower bound. Defaults to 0.
-        spin (int, optional): Harmonic spin. Defaults to 0.
+
         reality (bool, optional): Reality of signal. Defaults to False.
+
     Returns:
+
         np.ndarray: Random set of Wigner coefficients.
     """
     flmn = np.zeros(wigner_samples.flmn_shape(L, N), dtype=np.complex128)
