@@ -39,7 +39,8 @@ and appropriate quadrature weights. As such we support
 `McEwen-Wiaux <https://arxiv.org/abs/1110.6298>`_,  and `HEALPix <https://healpix.jpl.nasa.gov>`_ 
 in addition to various other discretisations of the sphere.
 
-.. note::
+
+   **NOTE: **
    By construction ``S2FFT`` is straightforward to install, provides support 
    for spin-spherical harmonic and Wigner transforms (over both real and complex signals), 
    with straightforward extensions to adjoint transformations where needed, and comes 
