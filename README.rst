@@ -44,7 +44,8 @@ in addition to various other discretisations of the sphere.
     By construction ``S2FFT`` is straightforward to install, provides support 
     for spin-spherical harmonic and Wigner transforms (over both real and complex signals), 
     with straightforward extensions to adjoint transformations where needed, and comes 
-    with various different optimisations depending on available compute and/or memory.
+    with various different optimisations from which one may select depending on available 
+    resources and desired resolution.
 
 
 Installation
