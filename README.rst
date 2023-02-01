@@ -18,7 +18,7 @@
 
 .. |logo| raw:: html
 
-   <img src="./docs/assets/sax_logo.png" align="left" height="102" width="117">
+   <img src="./docs/assets/sax_logo.png" align="left" height="85" width="98">
 
 A JAX package for Generalised Fast Fourier Transforms (GFFTs) on the sphere and rotation 
 group, which is differentiable, and deployable on modern hardware accelerators (GPU & TPUs). 
