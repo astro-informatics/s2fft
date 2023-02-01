@@ -74,7 +74,7 @@ Contributors
 The development of ``S2FFT`` is one aspect of the ``SAX`` collaborative project between 
 the Mullard Space Science Laboratory (MSSL) and Advanced Research Computing (ARC), which aims 
 to develop accelerated and differentiable spherical transforms to enable ongoing research 
-into next-generation informatics techniques on :math:`\mathbb{S}^2` and SO(3).
+into next-generation informatics techniques on the 2-sphere and rotation group.
 Both academic groups are based at University College London (UCL) and this software was, in part, 
 funded by a UCL-ARC Open Source Software Sustainability grant. The development group includes: 
 `Matthew A. Price <https://cosmomatt.github.io/>`_ (MSSL, PI), 
