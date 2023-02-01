@@ -32,12 +32,13 @@ Overview
 ``S2FFT`` is a software package which provides support for Generalised Fast Fourier Transforms 
 on the sphere and the rotation group. Leveraging the highly engineered Price-McEwen 
 Wigner-d recursions our transforms exhibit a highly parallelisable algorithmic structure, 
-and are numerically stable beyond :math:`L > 20,000`. Moreover, these JAX transforms are 
-not only automatically differentiable and deployable on accelerators (GPU & TPUs), but they 
-are also sampling agnostic; all that is required are latitudinal samples on the sphere 
-and appropriate quadrature weights. As such we support 
-`McEwen-Wiaux <https://arxiv.org/abs/1110.6298>`_,  and `HEALPix <https://healpix.jpl.nasa.gov>`_ 
-in addition to various other discretisations of the sphere.
+and are theoretically indefinitely numerically stable; certainly far beyond :math:`L > 20,000` although 
+64bit floating point errors will begin to accumulate eventually. Moreover, these JAX transforms 
+are not only automatically differentiable and deployable on accelerators (GPU & TPUs), but they 
+are also sampling agnostic; all that is required are latitudinal samples on the sphere and 
+appropriate quadrature weights. As such we support `McEwen-Wiaux <https://arxiv.org/abs/1110.6298>`_,  
+and `HEALPix <https://healpix.jpl.nasa.gov>`_ in addition to various other discretisations 
+of the sphere.
 
     **NOTE:**
     By construction ``S2FFT`` is straightforward to install, provides support 
