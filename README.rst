@@ -21,7 +21,10 @@
    <img src="./docs/assets/sax_logo.png" align="left" height="85" width="98">
 
 A JAX package for Generalised Fast Fourier Transforms (GFFTs) on the sphere and rotation 
-group, which is differentiable, and deployable on modern hardware accelerators (GPU & TPUs).
+group, which is differentiable, and deployable on modern hardware accelerators (GPU & TPUs). 
+S2FFT is a core module from the SAX package, which includes extensions of these transforms 
+to differentiable directional spin-wavelets on the 2-sphere `McEwen et al 2015 <https://arxiv.org/abs/1509.06749>`_ 
+and 3-ball `Price & McEwen 2021 <https://arxiv.org/abs/2105.05518>`_.
 
 Overview
 ---------
