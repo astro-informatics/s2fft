@@ -49,9 +49,6 @@ in addition to various other discretisations of the sphere.
 
 Installation
 ------------
-
-Source 
-
 The Python dependencies for the ``S2FFT`` package are listed in the file 
 ``requirements/requirements-core.txt`` and will be automatically installed into the 
 active python environment by `pip` when running
@@ -67,7 +64,9 @@ installation was successful by running
 
     pytest tests/         # for pytest
     tox -e py38           # for tox 
-    
+
+Alternately, one may install ``S2FFT`` directly from `PyPi` although this does not 
+facilitate local running of unit tests.
 
 Contributors
 --------------
