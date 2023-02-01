@@ -20,10 +20,30 @@
 
    <img src="./docs/assets/sax_logo.png" align="left" height="85" width="98">
 
-A description of the overall software package.
+A JAX package for Generalised Fast Fourier Transforms (GFFTs) on the sphere and rotation 
+group, which is differentiable, and deployable on modern hardware accelerators (GPU & TPUs).
+
+Overview
+---------
+``S2FFT`` is a software package which provides support for Generalised Fast Fourier Transforms 
+on the sphere and the rotation group. Leveraging the highly engineered Price-McEwen 
+Wigner-d recursions our transforms exhibit a highly parallelisable algorithmic structure, 
+and are numerically stable beyond :math:`L > 20,000`. Moreover, these JAX transforms are 
+not only automatically differentiable and deployable on accelerators (GPU & TPUs), but they 
+are also sampling agnostic; all that is required are latitudinal samples on the sphere 
+and appropriate quadrature weights. As such we support 
+`McEwen-Wiaux <https://arxiv.org/abs/1110.6298>`_,  and `HEALPix <https://healpix.jpl.nasa.gov>`_ 
+in addition to various other discretisations of the sphere.
+
+.. note::
+   By construction ``S2FFT`` is straightforward to install, provides support 
+   for spin-spherical harmonic and Wigner transforms (over both real and complex signals), 
+   with straightforward extensions to adjoint transformations where needed, and comes 
+   with various different optimisations depending on available compute and/or memory.
+
 
 Installation
-============
+------------
 
 The Python dependencies for the ``S2FFT`` package are listed in the file ``requirements/requirements-core.txt`` and can be installed 
 into the active Python environment using `pip` by running
@@ -44,7 +64,7 @@ from the root directory of the repository.
 
 
 Tests
-=====
+-----
 
 To run the tests the additional dependencies in the file ``requirements/requirements-test.txt`` will also need to be installed in the active environment.
 
@@ -62,7 +82,7 @@ from the root directory of the repository, or if ``tox`` is installed then it ca
     
 
 Documentation
-=============
+--------------
 
 To build the documentation the additional dependencies in the file ``requirements/requirements-docs.txt`` will also need to be installed in the active environment. 
 
@@ -90,7 +110,7 @@ from the root directory of the repository.
 
 
 Interface
-=========
+---------
 
 Temporary notes on interface to be updated.
 
@@ -106,7 +126,7 @@ Temporary notes on interface to be updated.
 
 
 Attribution
-===========
+-----------
 A BibTeX entry for ``S2FFT`` is:
 
 .. code-block:: 
@@ -120,7 +140,7 @@ A BibTeX entry for ``S2FFT`` is:
      }
 
 License
-=======
+-------
 
 ``S2FFT`` is released under the MIT license (see 
 `LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
@@ -128,6 +148,6 @@ License
 .. code-block::
 
      S2FFT
-     Copyright (C) 2022 Author names & contributors
+     Copyright (C) 2023 Author names & contributors
 
      This program is released under the MIT license (see `LICENSE.txt`).
