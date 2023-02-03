@@ -12,6 +12,7 @@ from s2fft import samples
 from typing import List
 
 
+
 def generate_precomputes(
     L: int,
     spin: int = 0,
