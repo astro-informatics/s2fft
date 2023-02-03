@@ -12,7 +12,6 @@ from s2fft import samples
 from typing import List
 
 
-
 def generate_precomputes(
     L: int,
     spin: int = 0,
@@ -113,6 +112,45 @@ def generate_precomputes(
     indices = np.repeat(np.expand_dims(np.arange(L), 0), ntheta, axis=0)
 
     return [lrenorm, lamb, vsign, cpi, cp2, cs, indices]
+
+
+def generate_precomputes_wigner(
+    L: int,
+    N: int,
+    sampling: str = "mw",
+    nside: int = None,
+    forward: bool = False,
+) -> List[List[np.ndarray]]:
+    r"""Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
+    In practice one could compute these on-the-fly but the memory overhead is
+    negligible and well worth the acceleration. This is a wrapped extension of
+    :func:`~generate_precomputes` for the case of multiple spins, i.e. the Wigner
+    transform over SO(3).
+
+    Args:
+        L (int): Harmonic band-limit.
+
+        N (int): Azimuthal bandlimit
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        forward (bool, optional): Whether to provide forward or inverse shift.
+            Defaults to False.
+
+    Returns:
+        List[List[np.ndarray]]: 2N-1 length List of Lists of precomputed coefficient arrays.
+
+    Note:
+        TODO: this function should be optimised.
+    """
+    precomps = []
+    for n in range(-N + 1, N):
+        precomps.append(generate_precomputes(L, -n, sampling, nside, forward))
+    return precomps
 
 
 def compute_all_slices(

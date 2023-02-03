@@ -7,7 +7,7 @@ import numpy as np
 import healpy as hp
 
 from s2fft import samples
-from s2fft.jax_transforms import transform
+from s2fft.jax_transforms import spin_spherical
 from s2fft.wigner.price_mcewen import generate_precomputes
 
 L_to_test = [6, 7, 8]
@@ -16,6 +16,7 @@ nside_to_test = [2, 4, 8]
 sampling_to_test = ["mw", "mwss", "dh"]
 method_to_test = ["numpy", "jax"]
 reality_to_test = [False, True]
+multiple_gpus = [False, True]
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -23,6 +24,7 @@ reality_to_test = [False, True]
 @pytest.mark.parametrize("sampling", sampling_to_test)
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("spmd", multiple_gpus)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_inverse(
     flm_generator,
@@ -31,9 +33,12 @@ def test_transform_inverse(
     sampling: str,
     method: str,
     reality: bool,
+    spmd: bool,
 ):
     if reality and spin != 0:
         pytest.skip("Reality only valid for scalar fields (spin=0).")
+    if spmd and method != "jax":
+        pytest.skip("GPU distribution only valid for JAX.")
 
     flm = flm_generator(L=L, L_lower=0, spin=spin, reality=reality)
     f_check = ssht.inverse(
@@ -45,7 +50,7 @@ def test_transform_inverse(
     )
 
     precomps = generate_precomputes(L, spin, sampling)
-    f = transform.inverse(
+    f = spin_spherical.inverse(
         flm,
         L,
         spin,
@@ -53,6 +58,7 @@ def test_transform_inverse(
         method=method,
         reality=reality,
         precomps=precomps,
+        spmd=spmd,
     )
     np.testing.assert_allclose(f, f_check, atol=1e-14)
 
@@ -60,12 +66,14 @@ def test_transform_inverse(
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("spmd", multiple_gpus)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_inverse_healpix(
     flm_generator,
     nside: int,
     method: str,
     reality: bool,
+    spmd: bool,
 ):
     sampling = "healpix"
     L = 2 * nside
@@ -74,7 +82,7 @@ def test_transform_inverse_healpix(
     f_check = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
 
     precomps = generate_precomputes(L, 0, sampling, nside)
-    f = transform.inverse(
+    f = spin_spherical.inverse(
         flm,
         L,
         spin=0,
@@ -83,6 +91,7 @@ def test_transform_inverse_healpix(
         method=method,
         reality=reality,
         precomps=precomps,
+        spmd=spmd,
     )
 
     np.testing.assert_allclose(np.real(f), np.real(f_check), atol=1e-14)
@@ -93,6 +102,7 @@ def test_transform_inverse_healpix(
 @pytest.mark.parametrize("sampling", sampling_to_test)
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("spmd", multiple_gpus)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_forward(
     flm_generator,
@@ -101,9 +111,12 @@ def test_transform_forward(
     sampling: str,
     method: str,
     reality: bool,
+    spmd: bool,
 ):
     if reality and spin != 0:
         pytest.skip("Reality only valid for scalar fields (spin=0).")
+    if spmd and method != "jax":
+        pytest.skip("GPU distribution only valid for JAX.")
 
     flm = flm_generator(L=L, spin=spin, reality=reality)
 
@@ -116,7 +129,7 @@ def test_transform_forward(
     )
 
     precomps = generate_precomputes(L, spin, sampling, None, True)
-    flm_check = transform.forward(
+    flm_check = spin_spherical.forward(
         f,
         L,
         spin,
@@ -124,6 +137,7 @@ def test_transform_forward(
         method=method,
         reality=reality,
         precomps=precomps,
+        spmd=spmd,
     )
 
     np.testing.assert_allclose(flm, flm_check, atol=1e-14)
@@ -132,12 +146,14 @@ def test_transform_forward(
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("spmd", multiple_gpus)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_forward_healpix(
     flm_generator,
     nside: int,
     method: str,
     reality: bool,
+    spmd: bool,
 ):
     sampling = "healpix"
     L = 2 * nside
@@ -146,7 +162,7 @@ def test_transform_forward_healpix(
     f = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
 
     precomps = generate_precomputes(L, 0, sampling, nside, True)
-    flm_check = transform.forward(
+    flm_check = spin_spherical.forward(
         f,
         L,
         spin=0,
@@ -155,6 +171,7 @@ def test_transform_forward_healpix(
         method=method,
         reality=reality,
         precomps=precomps,
+        spmd=spmd,
     )
     flm_check = samples.flm_2d_to_hp(flm_check, L)
 
