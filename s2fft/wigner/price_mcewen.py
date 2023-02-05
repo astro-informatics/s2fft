@@ -39,10 +39,13 @@ def generate_precomputes(
 
     Returns:
         List[np.ndarray]: List of precomputed coefficient arrays.
+
+    Note:
+        TODO: this function should be optimised.
     """
     mm = -spin
 
-        # Correct for mw to mwss conversion
+    # Correct for mw to mwss conversion
     if forward and sampling.lower() in ["mw", "mwss"]:
         sampling = "mwss"
         beta = samples.thetas(2 * L, "mwss")[1:-1]
@@ -67,18 +70,27 @@ def generate_precomputes(
     # Vectors with indexing -L < m < L adopted throughout
     cpi = np.zeros((L + 1, L), dtype=np.float64)
     cp2 = np.zeros((L + 1, L), dtype=np.float64)
+    log_first_row = np.zeros((2 * L + 1, ntheta, L), dtype=np.float64)
+
+    # Populate vectors for first row
+    log_first_row[0] = np.einsum("l,t->tl", 2.0 * el, np.log(np.abs(c2)))
+
+    for i in range(2, L + abs(mm) + 2):
+        ratio = (2 * el + 2 - i) / (i - 1)
+        for j in range(ntheta):
+            log_first_row[i - 1, j] = (
+                log_first_row[i - 2, j] + np.log(ratio) / 2 + lt[j]
+            )
 
     # Initialising coefficients cp(m)= cplus(l-m).
-    cpi[0] += 2.0 / np.sqrt(2 * el)
-
-    for m in range(2,L+1):
+    cpi[0] = 2.0 / np.sqrt(2 * el)
+    for m in range(2, L + 1):
         cpi[m - 1] = 2.0 / np.sqrt(m * (2 * el + 1 - m))
         cp2[m - 1] = cpi[m - 1] / cpi[m - 2]
 
-    for m in range(L):
-        cpi[:, m] = np.roll(cpi[:, m], (L - m - 1), axis=-1)
-        cp2[:, m] = np.roll(cp2[:, m], (L - m - 1), axis=-1)
-
+    for k in range(L):
+        cpi[:, k] = np.roll(cpi[:, k], (L - k - 1), axis=-1)
+        cp2[:, k] = np.roll(cp2[:, k], (L - k - 1), axis=-1)
     # Then evaluate the negative half row and reflect using
     # Wigner-d symmetry relation.
 
@@ -88,35 +100,14 @@ def generate_precomputes(
     vsign = np.einsum("m,l->ml", msign, lsign)
     vsign[: L - 1] *= (-1) ** abs(mm + 1 + L)
 
-    # Populate vectors for first ro
     lrenorm = np.zeros((2, ntheta, L), dtype=np.float64)
-    log_first_row_iter = np.einsum("l,t->tl", 2.0 * el, np.log(np.abs(c2)))
-
-    ratio_update = np.arange(L + abs(mm) + 2) 
-    ratio = np.repeat(np.expand_dims(2 * el + 2, -1), L + abs(mm) + 2, axis=-1)
-    ratio -= ratio_update
-    ratio = ratio/(ratio_update - 1)
-    ratio = np.log(np.swapaxes(ratio, 0, 1)) / 2
-
-    for i in range(2, L + abs(mm) + 2):
-        log_first_row_iter += ratio[i]
-        log_first_row_iter = np.swapaxes(log_first_row_iter, 0, 1)
-        log_first_row_iter += lt
-        log_first_row_iter = np.swapaxes(log_first_row_iter, 0, 1)
-        for ind in range(2):
-            lrenorm[ind] = np.where(i == half_slices[ind], log_first_row_iter, lrenorm[ind])
-
-    # Recursion update parameters
     lamb = np.zeros((2, ntheta, L), np.float64)
     for i in range(2):
-        temp = np.einsum("t, l->tl", omc, el + 1)
-        temp -= half_slices[i]
-        temp = np.swapaxes(temp, 0, 1)
-        temp += c
-        temp /= s
-        lamb[i] += np.swapaxes(temp, 0, 1)
-        temp = np.einsum("t,l->tl", cs, L - el - 1)
-        lamb[i] -= temp
+        for j in range(ntheta):
+            lamb[i, j] = ((el + 1) * omc[j] - half_slices[i] + c[j]) / s[j]
+            for k in range(L):
+                lamb[i, j, k] -= (L - k - 1) * cs[j]
+                lrenorm[i, j, k] = log_first_row[half_slices[i][k] - 1, j, k]
 
     indices = np.repeat(np.expand_dims(np.arange(L), 0), ntheta, axis=0)
 
@@ -131,27 +122,6 @@ def generate_precomputes_jax(
     nside: int = None,
     forward: bool = False,
 ) -> List[jnp.ndarray]:
-    r"""Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
-    In practice one could compute these on-the-fly but the memory overhead is
-    negligible and well worth the acceleration. JAX implementation of :func:`~generate_precomputes`.
-
-    Args:
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        forward (bool, optional): Whether to provide forward or inverse shift.
-            Defaults to False.
-
-    Returns:
-        List[np.ndarray]: List of precomputed coefficient arrays.
-    """
     mm = -spin
 
     # Correct for mw to mwss conversion
@@ -220,6 +190,10 @@ def generate_precomputes_jax(
     ratio /= ratio_update - 1
     ratio = jnp.log(jnp.swapaxes(ratio, 0, 1)) / 2
 
+    for ind in range(2):
+        lrenorm = lrenorm.at[ind].set(
+            jnp.where(1 == half_slices[ind], log_first_row_iter, lrenorm[ind])
+        )
     def renorm_m_loop(i, args):
         log_first_row_iter, lrenorm = args
         log_first_row_iter += ratio[i]
@@ -282,46 +256,15 @@ def generate_precomputes_wigner(
 
     Returns:
         List[List[np.ndarray]]: 2N-1 length List of Lists of precomputed coefficient arrays.
+
+    Note:
+        TODO: this function should be optimised.
     """
     precomps = []
     for n in range(-N + 1, N):
         precomps.append(generate_precomputes(L, -n, sampling, nside, forward))
     return precomps
 
-def generate_precomputes_wigner_jax(
-    L: int,
-    N: int,
-    sampling: str = "mw",
-    nside: int = None,
-    forward: bool = False,
-) -> List[List[jnp.ndarray]]:
-    r"""Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
-    In practice one could compute these on-the-fly but the memory overhead is
-    negligible and well worth the acceleration. This is a wrapped extension of
-    :func:`~generate_precomputes` for the case of multiple spins, i.e. the Wigner
-    transform over SO(3). JAX implementation of :func:`~generate_precomputes_wigner`.
-
-    Args:
-        L (int): Harmonic band-limit.
-
-        N (int): Azimuthal bandlimit
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        forward (bool, optional): Whether to provide forward or inverse shift.
-            Defaults to False.
-
-    Returns:
-        List[List[np.ndarray]]: 2N-1 length List of Lists of precomputed coefficient arrays.
-    """
-    precomps = []
-    for n in range(-N + 1, N):
-        precomps.append(generate_precomputes_jax(L, -n, sampling, nside, forward))
-    return precomps
 
 def compute_all_slices(
     beta: np.ndarray, L: int, spin: int, precomps=None
@@ -538,14 +481,19 @@ if __name__ == "__main__":
 
     warnings.simplefilter("ignore")
     L = 4
-    spin = 0
+    spin = -2
     sampling = "mw"
 
     precomps_pre = generate_precomputes(L, spin, sampling)
-    precomps_post = generate_precomputes_numpy(L, spin, sampling)
+    precomps_post = generate_precomputes_jax(L, spin, sampling)
 
     for i in range(len(precomps_pre)):
         print(i)
         a = precomps_pre[i]
         b = precomps_post[i]
+        # if i == 0:
+        #     for ind in range(2):
+        #         for t in range(L):
+        #             for l in range(L):
+        #                 print(ind, t, l, a[ind, t, l], b[ind, t, l], abs(a[ind, t, l]-b[ind, t, l]))
         np.testing.assert_allclose(precomps_pre[i], precomps_post[i])
