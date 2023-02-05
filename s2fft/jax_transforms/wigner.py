@@ -1,10 +1,9 @@
-from jax import config
+from jax import jit, config
 
 config.update("jax_enable_x64", True)
 
 import numpy as np
 import jax.numpy as jnp
-from jax import jit
 from functools import partial
 from typing import List
 from s2fft.wigner import samples

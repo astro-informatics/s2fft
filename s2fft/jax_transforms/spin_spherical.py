@@ -1,10 +1,9 @@
-from jax import config
+from jax import jit, config
 
 config.update("jax_enable_x64", True)
 
 import numpy as np
 import jax.numpy as jnp
-from jax import jit
 from functools import partial
 from typing import List
 from s2fft import (
@@ -15,7 +14,7 @@ from s2fft import (
     quadrature_jax,
 )
 import s2fft.healpix_ffts as hp
-from s2fft.jax_transforms.otf_recursions import *
+from s2fft.jax_transforms import otf_recursions as otf
 
 
 def inverse(
@@ -133,7 +132,7 @@ def inverse_numpy(
     )
 
     # Perform latitudinal wigner-d recursions
-    ftm = inverse_latitudinal_step(
+    ftm = otf.inverse_latitudinal_step(
         flm, thetas, L, spin, nside, sampling, reality, precomps
     )
 
@@ -242,7 +241,7 @@ def inverse_jax(
     )
 
     # Perform latitudinal wigner-d recursions
-    ftm = inverse_latitudinal_step_jax(
+    ftm = otf.inverse_latitudinal_step_jax(
         flm, thetas, L, spin, nside, sampling, reality, precomps, spmd
     )
 
@@ -428,11 +427,11 @@ def forward_numpy(
 
     # Perform latitudinal wigner-d recursions
     if sampling.lower() == "mwss":
-        flm = forward_latitudinal_step(
+        flm = otf.forward_latitudinal_step(
             ftm[1:-1], thetas[1:-1], L, spin, nside, sampling, reality, precomps
         )
     else:
-        flm = forward_latitudinal_step(
+        flm = otf.forward_latitudinal_step(
             ftm, thetas, L, spin, nside, sampling, reality, precomps
         )
     # Enforce spin condition explicitly
@@ -552,7 +551,7 @@ def forward_jax(
 
     # Perform latitudinal wigner-d recursions
     if sampling.lower() == "mwss":
-        flm = forward_latitudinal_step_jax(
+        flm = otf.forward_latitudinal_step_jax(
             ftm[1:-1],
             thetas[1:-1],
             L,
@@ -564,7 +563,7 @@ def forward_jax(
             spmd,
         )
     else:
-        flm = forward_latitudinal_step_jax(
+        flm = otf.forward_latitudinal_step_jax(
             ftm, thetas, L, spin, nside, sampling, reality, precomps
         )
     # Enforce spin condition explicitly

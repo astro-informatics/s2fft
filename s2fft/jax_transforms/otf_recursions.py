@@ -117,10 +117,10 @@ def inverse_latitudinal_step(
 
                 # Sum into transform vector nth component
                 ftm[:, sind + sgn * m + m_offset] = np.nansum(
-                    dl_entry
-                    * vsign[sind + sgn * m]
-                    * np.exp(lrenorm[i])
-                    * flm[:, sind + sgn * m],
+                    dl_entry[:,abs(spin):]
+                    * vsign[sind + sgn * m,abs(spin):]
+                    * np.exp(lrenorm[i,:,abs(spin):])
+                    * flm[abs(spin):, sind + sgn * m],
                     axis=-1,
                 )
 
