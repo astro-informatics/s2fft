@@ -1,4 +1,4 @@
-from jax import jit, config
+from jax import jit, config, pmap, local_device_count
 
 config.update("jax_enable_x64", True)
 
@@ -262,7 +262,7 @@ def inverse_jax(
                 reality if n == 0 else False,
                 precomps[n - n_start_ind],
                 spmd,
-                L_lower=L_lower,
+                L_lower,
             )
         )
 

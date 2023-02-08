@@ -1,4 +1,4 @@
-from jax import config
+from jax import config, local_device_count
 
 config.update("jax_enable_x64", True)
 
