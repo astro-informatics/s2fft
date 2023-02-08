@@ -27,6 +27,7 @@ def inverse(
     reality: bool = False,
     precomps: List = None,
     spmd: bool = False,
+    L_lower: int = 0,
 ) -> np.ndarray:
     r"""Wrapper for the inverse spin-spherical harmonic transform.
 
@@ -56,6 +57,9 @@ def inverse(
             only maps over all available devices, and is only valid for JAX implementations.
             Defaults to False.
 
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
     Raises:
         ValueError: Transform method not recognised.
 
@@ -70,10 +74,12 @@ def inverse(
         recover acceleration by the number of devices.
     """
     if method == "numpy":
-        return inverse_numpy(flm, L, spin, nside, sampling, reality, precomps)
+        return inverse_numpy(
+            flm, L, spin, nside, sampling, reality, precomps, L_lower
+        )
     elif method == "jax":
         return inverse_jax(
-            flm, L, spin, nside, sampling, reality, precomps, spmd
+            flm, L, spin, nside, sampling, reality, precomps, spmd, L_lower
         )
     else:
         raise ValueError(
@@ -89,6 +95,7 @@ def inverse_numpy(
     sampling: str = "mw",
     reality: bool = False,
     precomps: List = None,
+    L_lower: int = 0,
 ) -> np.ndarray:
     r"""Compute the inverse spin-spherical harmonic transform (numpy).
 
@@ -118,6 +125,9 @@ def inverse_numpy(
         precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
 
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
     Returns:
         np.ndarray: Signal on the sphere.
     """
@@ -126,26 +136,27 @@ def inverse_numpy(
     m_offset = 1 if sampling.lower() in ["mwss", "healpix"] else 0
     m_start_ind = L - 1 if reality else 0
 
+    L0 = max(abs(spin), L_lower)
     # Apply harmonic normalisation
-    flm = np.einsum(
-        "lm,l->lm", flm, np.sqrt((2 * np.arange(L) + 1) / (4 * np.pi))
+    flm[L0:] = np.einsum(
+        "lm,l->lm", flm[L0:], np.sqrt((2 * np.arange(L0, L) + 1) / (4 * np.pi))
     )
 
     # Perform latitudinal wigner-d recursions
     ftm = otf.inverse_latitudinal_step(
-        flm, thetas, L, spin, nside, sampling, reality, precomps
+        flm, thetas, L, spin, nside, sampling, reality, precomps, L0
     )
 
     # Remove south pole singularity
     if sampling.lower() in ["mw", "mwss"]:
         ftm[-1] = 0
         ftm[-1, L - 1 + spin + m_offset] = np.nansum(
-            (-1) ** abs(np.arange(L) - spin) * flm[:, L - 1 + spin]
+            (-1) ** abs(np.arange(L0, L) - spin) * flm[L0:, L - 1 + spin]
         )
     # Remove north pole singularity
     if sampling.lower() == "mwss":
         ftm[0] = 0
-        ftm[0, L - 1 - spin + m_offset] = jnp.nansum(flm[:, L - 1 - spin])
+        ftm[0, L - 1 - spin + m_offset] = jnp.nansum(flm[L0:, L - 1 - spin])
 
     # Correct healpix theta row offsets
     if sampling.lower() == "healpix":
@@ -174,7 +185,7 @@ def inverse_numpy(
             )
 
 
-@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7))
+@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7, 8))
 def inverse_jax(
     flm: jnp.ndarray,
     L: int,
@@ -184,6 +195,7 @@ def inverse_jax(
     reality: bool = False,
     precomps: List = None,
     spmd: bool = False,
+    L_lower: int = 0,
 ) -> jnp.ndarray:
     r"""Compute the inverse spin-spherical harmonic transform (JAX).
 
@@ -217,6 +229,9 @@ def inverse_jax(
         spmd (bool, optional): Whether to map compute over multiple devices. Currently this
             only maps over all available devices. Defaults to False.
 
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
     Returns:
         jnp.ndarray: Signal on the sphere.
 
@@ -232,31 +247,37 @@ def inverse_jax(
     m_offset = 1 if sampling.lower() in ["mwss", "healpix"] else 0
     m_start_ind = L - 1 if reality else 0
 
+    L0 = max(abs(spin), L_lower)
+
     # Apply harmonic normalisation
-    flm = jnp.einsum(
-        "lm,l->lm",
-        flm,
-        jnp.sqrt((2 * jnp.arange(L) + 1) / (4 * jnp.pi)),
-        optimize=True,
+    flm = flm.at[L0:].set(
+        jnp.einsum(
+            "lm,l->lm",
+            flm[L0:],
+            jnp.sqrt((2 * jnp.arange(L0, L) + 1) / (4 * jnp.pi)),
+            optimize=True,
+        )
     )
 
     # Perform latitudinal wigner-d recursions
     ftm = otf.inverse_latitudinal_step_jax(
-        flm, thetas, L, spin, nside, sampling, reality, precomps, spmd
+        flm, thetas, L, spin, nside, sampling, reality, precomps, spmd, L0
     )
 
     # Remove south pole singularity
     if sampling.lower() in ["mw", "mwss"]:
         ftm = ftm.at[-1].set(0)
         ftm = ftm.at[-1, L - 1 + spin + m_offset].set(
-            jnp.nansum((-1) ** abs(jnp.arange(L) - spin) * flm[:, L - 1 + spin])
+            jnp.nansum(
+                (-1) ** abs(jnp.arange(L0, L) - spin) * flm[L0:, L - 1 + spin]
+            )
         )
 
     # Remove north pole singularity
     if sampling.lower() == "mwss":
         ftm = ftm.at[0].set(0)
         ftm = ftm.at[0, L - 1 - spin + m_offset].set(
-            jnp.nansum(flm[:, L - 1 - spin])
+            jnp.nansum(flm[L0:, L - 1 - spin])
         )
 
     # Correct healpix theta row offsets
@@ -271,7 +292,7 @@ def inverse_jax(
             jnp.flip(jnp.conj(ftm[:, L - 1 + m_offset + 1 :]), axis=-1)
         )
     if sampling.lower() == "healpix":
-        return hp.healpix_ifft(ftm, L, nside, "jax", reality)
+        return hp.healpix_ifft(ftm, L, nside, "jax")
     else:
         ftm = jnp.conj(jnp.fft.ifftshift(ftm, axes=1))
         f = jnp.conj(jnp.fft.fft(ftm, axis=1, norm="backward"))
@@ -288,6 +309,7 @@ def forward(
     reality: bool = False,
     precomps: List = None,
     spmd: bool = False,
+    L_lower: int = 0,
 ) -> np.ndarray:
     r"""Wrapper for the forward spin-spherical harmonic transform.
 
@@ -317,6 +339,9 @@ def forward(
             only maps over all available devices, and is only valid for JAX implementations.
             Defaults to False.
 
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
     Raises:
         ValueError: Transform method not recognised.
 
@@ -331,9 +356,13 @@ def forward(
         recover acceleration by the number of devices.
     """
     if method == "numpy":
-        return forward_numpy(f, L, spin, nside, sampling, reality, precomps)
+        return forward_numpy(
+            f, L, spin, nside, sampling, reality, precomps, L_lower
+        )
     elif method == "jax":
-        return forward_jax(f, L, spin, nside, sampling, reality, precomps, spmd)
+        return forward_jax(
+            f, L, spin, nside, sampling, reality, precomps, spmd, L_lower
+        )
     else:
         raise ValueError(
             f"Implementation {method} not recognised. Should be either numpy or jax."
@@ -348,6 +377,7 @@ def forward_numpy(
     sampling: str = "mw",
     reality: bool = False,
     precomps: List = None,
+    L_lower: int = 0,
 ) -> np.ndarray:
     r"""Compute the forward spin-spherical harmonic transform (JAX).
 
@@ -377,6 +407,9 @@ def forward_numpy(
         precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
 
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
     Returns:
         np.ndarray: Spherical harmonic coefficients
     """
@@ -389,6 +422,8 @@ def forward_numpy(
         thetas = samples.thetas(2 * L, sampling)
     else:
         thetas = samples.thetas(L, sampling, nside)
+
+    L0 = max(abs(spin), L_lower)
 
     # Define latitudinal sample positions and Fourier offsets
     weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
@@ -421,25 +456,33 @@ def forward_numpy(
     # Perform latitudinal wigner-d recursions
     if sampling.lower() == "mwss":
         flm = otf.forward_latitudinal_step(
-            ftm[1:-1], thetas[1:-1], L, spin, nside, sampling, reality, precomps
+            ftm[1:-1],
+            thetas[1:-1],
+            L,
+            spin,
+            nside,
+            sampling,
+            reality,
+            precomps,
+            L0,
         )
     else:
         flm = otf.forward_latitudinal_step(
-            ftm, thetas, L, spin, nside, sampling, reality, precomps
+            ftm, thetas, L, spin, nside, sampling, reality, precomps, L0
         )
     # Enforce spin condition explicitly
-    flm[: abs(spin)] = 0.0
+    flm[:L0] = 0.0
 
     # Include both pole singularities explicitly
     if sampling.lower() == "mwss":
-        flm[abs(spin) :, L - 1 + spin] += (-1) ** abs(
-            np.arange(abs(spin), L) - spin
-        ) * ftm[-1, L - 1 + spin + m_offset]
-        flm[abs(spin) :, L - 1 - spin] += ftm[0, L - 1 - spin + m_offset]
+        flm[L0:, L - 1 + spin] += (-1) ** abs(np.arange(L0, L) - spin) * ftm[
+            -1, L - 1 + spin + m_offset
+        ]
+        flm[L0:, L - 1 - spin] += ftm[0, L - 1 - spin + m_offset]
 
     # Apply harmonic normalisation
-    flm = np.einsum(
-        "lm,l->lm", flm, np.sqrt((2 * np.arange(L) + 1) / (4 * np.pi))
+    flm[L0:] = np.einsum(
+        "lm,l->lm", flm[L0:], np.sqrt((2 * np.arange(L0, L) + 1) / (4 * np.pi))
     )
 
     # Mirror to complete hermitian conjugate
@@ -451,7 +494,7 @@ def forward_numpy(
     return flm * (-1) ** spin
 
 
-@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7))
+@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7, 8))
 def forward_jax(
     f: jnp.ndarray,
     L: int,
@@ -461,6 +504,7 @@ def forward_jax(
     reality: bool = False,
     precomps: List = None,
     spmd: bool = False,
+    L_lower: int = 0,
 ) -> jnp.ndarray:
     r"""Compute the forward spin-spherical harmonic transform (JAX).
 
@@ -494,6 +538,9 @@ def forward_jax(
         spmd (bool, optional): Whether to map compute over multiple devices. Currently this
             only maps over all available devices. Defaults to False.
 
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
     Returns:
         jnp.ndarray: Spherical harmonic coefficients
 
@@ -513,6 +560,8 @@ def forward_jax(
         thetas = samples.thetas(2 * L, sampling)
     else:
         thetas = samples.thetas(L, sampling, nside)
+
+    L0 = max(abs(spin), L_lower)
 
     # Define latitudinal sample positions and Fourier offsets
     weights = quadrature_jax.quad_weights_transform(L, sampling, nside)
@@ -554,30 +603,31 @@ def forward_jax(
             reality,
             precomps,
             spmd,
+            L0,
         )
     else:
         flm = otf.forward_latitudinal_step_jax(
-            ftm, thetas, L, spin, nside, sampling, reality, precomps
+            ftm, thetas, L, spin, nside, sampling, reality, precomps, spmd, L0
         )
     # Enforce spin condition explicitly
-    flm = flm.at[: abs(spin)].set(0.0)
+    flm = flm.at[:L0].set(0.0)
 
     # Include both pole singularities explicitly
     if sampling.lower() == "mwss":
-        flm = flm.at[abs(spin) :, L - 1 + spin].add(
-            (-1) ** abs(jnp.arange(abs(spin), L) - spin)
+        flm = flm.at[L0:, L - 1 + spin].add(
+            (-1) ** abs(jnp.arange(L0, L) - spin)
             * ftm[-1, L - 1 + spin + m_offset]
         )
-        flm = flm.at[abs(spin) :, L - 1 - spin].add(
-            ftm[0, L - 1 - spin + m_offset]
-        )
+        flm = flm.at[L0:, L - 1 - spin].add(ftm[0, L - 1 - spin + m_offset])
 
     # Apply harmonic normalisation
-    flm = jnp.einsum(
-        "lm,l->lm",
-        flm,
-        jnp.sqrt((2 * jnp.arange(L) + 1) / (4 * jnp.pi)),
-        optimize=True,
+    flm = flm.at[L0:].set(
+        jnp.einsum(
+            "lm,l->lm",
+            flm[L0:],
+            jnp.sqrt((2 * jnp.arange(L0, L) + 1) / (4 * jnp.pi)),
+            optimize=True,
+        )
     )
 
     # Hermitian conjugate symmetry

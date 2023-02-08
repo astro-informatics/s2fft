@@ -18,6 +18,7 @@ def generate_precomputes(
     sampling: str = "mw",
     nside: int = None,
     forward: bool = False,
+    L_lower: int = 0,
 ) -> List[np.ndarray]:
     r"""Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
     In practice one could compute these on-the-fly but the memory overhead is
@@ -37,6 +38,9 @@ def generate_precomputes(
         forward (bool, optional): Whether to provide forward or inverse shift.
             Defaults to False.
 
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
     Returns:
         List[np.ndarray]: List of precomputed coefficient arrays.
 
@@ -44,6 +48,7 @@ def generate_precomputes(
         TODO: this function should be optimised.
     """
     mm = -spin
+    L0 = max(abs(spin), L_lower)
 
     # Correct for mw to mwss conversion
     if forward and sampling.lower() in ["mw", "mwss"]:
@@ -53,7 +58,7 @@ def generate_precomputes(
         beta = samples.thetas(L, sampling, nside)
 
     ntheta = len(beta)  # Number of theta samples
-    el = np.arange(L)
+    el = np.arange(L0, L)
 
     # Trigonometric constant adopted throughout
     c = np.cos(beta)
@@ -68,9 +73,9 @@ def generate_precomputes(
     half_slices = [el + mm + 1, el - mm + 1]
 
     # Vectors with indexing -L < m < L adopted throughout
-    cpi = np.zeros((L + 1, L), dtype=np.float64)
-    cp2 = np.zeros((L + 1, L), dtype=np.float64)
-    log_first_row = np.zeros((2 * L + 1, ntheta, L), dtype=np.float64)
+    cpi = np.zeros((L + 1, L - L0), dtype=np.float64)
+    cp2 = np.zeros((L + 1, L - L0), dtype=np.float64)
+    log_first_row = np.zeros((2 * L + 1, ntheta, L - L0), dtype=np.float64)
 
     # Populate vectors for first row
     log_first_row[0] = np.einsum("l,t->tl", 2.0 * el, np.log(np.abs(c2)))
@@ -88,9 +93,9 @@ def generate_precomputes(
         cpi[m - 1] = 2.0 / np.sqrt(m * (2 * el + 1 - m))
         cp2[m - 1] = cpi[m - 1] / cpi[m - 2]
 
-    for k in range(L):
-        cpi[:, k] = np.roll(cpi[:, k], (L - k - 1), axis=-1)
-        cp2[:, k] = np.roll(cp2[:, k], (L - k - 1), axis=-1)
+    for k in range(L0, L):
+        cpi[:, k - L0] = np.roll(cpi[:, k - L0], (L - k - 1), axis=-1)
+        cp2[:, k - L0] = np.roll(cp2[:, k - L0], (L - k - 1), axis=-1)
     # Then evaluate the negative half row and reflect using
     # Wigner-d symmetry relation.
 
@@ -100,29 +105,59 @@ def generate_precomputes(
     vsign = np.einsum("m,l->ml", msign, lsign)
     vsign[: L - 1] *= (-1) ** abs(mm + 1 + L)
 
-    lrenorm = np.zeros((2, ntheta, L), dtype=np.float64)
-    lamb = np.zeros((2, ntheta, L), np.float64)
+    lrenorm = np.zeros((2, ntheta, L - L0), dtype=np.float64)
+    lamb = np.zeros((2, ntheta, L - L0), np.float64)
     for i in range(2):
         for j in range(ntheta):
             lamb[i, j] = ((el + 1) * omc[j] - half_slices[i] + c[j]) / s[j]
-            for k in range(L):
-                lamb[i, j, k] -= (L - k - 1) * cs[j]
-                lrenorm[i, j, k] = log_first_row[half_slices[i][k] - 1, j, k]
+            for k in range(L0, L):
+                lamb[i, j, k - L0] -= (L - k - 1) * cs[j]
+                lrenorm[i, j, k - L0] = log_first_row[
+                    half_slices[i][k - L0] - 1, j, k - L0
+                ]
 
-    indices = np.repeat(np.expand_dims(np.arange(L), 0), ntheta, axis=0)
+    indices = np.repeat(np.expand_dims(np.arange(L0, L), 0), ntheta, axis=0)
 
     return [lrenorm, lamb, vsign, cpi, cp2, cs, indices]
 
 
-@partial(jit, static_argnums=(0, 1, 2, 3, 4))
+@partial(jit, static_argnums=(0, 1, 2, 3, 4, 5))
 def generate_precomputes_jax(
     L: int,
     spin: int = 0,
     sampling: str = "mw",
     nside: int = None,
     forward: bool = False,
+    L_lower: int = 0,
 ) -> List[jnp.ndarray]:
+    r"""Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
+    In practice one could compute these on-the-fly but the memory overhead is
+    negligible and well worth the acceleration. JAX implementation of
+    :func:`~generate_precomputes`.
+
+    Args:
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        forward (bool, optional): Whether to provide forward or inverse shift.
+            Defaults to False.
+
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
+    Returns:
+        List[jnp.ndarray]: List of precomputed coefficient arrays.
+    """
     mm = -spin
+
+    L0 = max(abs(spin), L_lower)
 
     # Correct for mw to mwss conversion
     if forward and sampling.lower() in ["mw", "mwss"]:
@@ -132,7 +167,7 @@ def generate_precomputes_jax(
         beta = samples.thetas(L, sampling, nside)
 
     ntheta = len(beta)  # Number of theta samples
-    el = jnp.arange(L)
+    el = jnp.arange(L0, L)
 
     # Trigonometric constant adopted throughout
     c = jnp.cos(beta)
@@ -147,8 +182,8 @@ def generate_precomputes_jax(
     half_slices = [el + mm + 1, el - mm + 1]
 
     # Vectors with indexing -L < m < L adopted throughout
-    cpi = jnp.zeros((L + 1, L), dtype=jnp.float64)
-    cp2 = jnp.zeros((L + 1, L), dtype=jnp.float64)
+    cpi = jnp.zeros((L + 1, L - L0), dtype=jnp.float64)
+    cp2 = jnp.zeros((L + 1, L - L0), dtype=jnp.float64)
 
     # Initialising coefficients cp(m)= cplus(l-m).
     cpi = cpi.at[0].add(2.0 / jnp.sqrt(2 * el))
@@ -163,11 +198,15 @@ def generate_precomputes_jax(
 
     def cpi_cp2_roll_loop(m, args):
         cpi, cp2 = args
-        cpi = cpi.at[:, m].set(jnp.roll(cpi[:, m], (L - m - 1), axis=-1))
-        cp2 = cp2.at[:, m].set(jnp.roll(cp2[:, m], (L - m - 1), axis=-1))
+        cpi = cpi.at[:, m - L_lower].set(
+            jnp.roll(cpi[:, m - L0], (L - m - 1), axis=-1)
+        )
+        cp2 = cp2.at[:, m - L_lower].set(
+            jnp.roll(cp2[:, m - L0], (L - m - 1), axis=-1)
+        )
         return cpi, cp2
 
-    cpi, cp2 = lax.fori_loop(0, L, cpi_cp2_roll_loop, (cpi, cp2))
+    cpi, cp2 = lax.fori_loop(L0, L, cpi_cp2_roll_loop, (cpi, cp2))
 
     # Then evaluate the negative half row and reflect using
     # Wigner-d symmetry relation.
@@ -179,13 +218,15 @@ def generate_precomputes_jax(
     vsign = vsign.at[: L - 1].multiply((-1) ** abs(mm + 1 + L))
 
     # Populate vectors for first ro
-    lrenorm = jnp.zeros((2, ntheta, L), dtype=jnp.float64)
+    lrenorm = jnp.zeros((2, ntheta, L - L0), dtype=jnp.float64)
     log_first_row_iter = jnp.einsum(
         "l,t->tl", 2.0 * el, jnp.log(jnp.abs(c2)), optimize=True
     )
 
     ratio_update = jnp.arange(L + abs(mm) + 2)
-    ratio = jnp.repeat(jnp.expand_dims(2 * el + 2, -1), L + abs(mm) + 2, axis=-1)
+    ratio = jnp.repeat(
+        jnp.expand_dims(2 * el + 2, -1), L + abs(mm) + 2, axis=-1
+    )
     ratio -= ratio_update
     ratio /= ratio_update - 1
     ratio = jnp.log(jnp.swapaxes(ratio, 0, 1)) / 2
@@ -194,6 +235,7 @@ def generate_precomputes_jax(
         lrenorm = lrenorm.at[ind].set(
             jnp.where(1 == half_slices[ind], log_first_row_iter, lrenorm[ind])
         )
+
     def renorm_m_loop(i, args):
         log_first_row_iter, lrenorm = args
         log_first_row_iter += ratio[i]
@@ -202,7 +244,9 @@ def generate_precomputes_jax(
         log_first_row_iter = jnp.swapaxes(log_first_row_iter, 0, 1)
         for ind in range(2):
             lrenorm = lrenorm.at[ind].set(
-                jnp.where(i == half_slices[ind], log_first_row_iter, lrenorm[ind])
+                jnp.where(
+                    i == half_slices[ind], log_first_row_iter, lrenorm[ind]
+                )
             )
         return log_first_row_iter, lrenorm
 
@@ -211,7 +255,7 @@ def generate_precomputes_jax(
     )
 
     # Recursion update parameters
-    lamb = jnp.zeros((2, ntheta, L), jnp.float64)
+    lamb = jnp.zeros((2, ntheta, L - L0), jnp.float64)
     for i in range(2):
         temp = jnp.einsum("t, l->tl", omc, el + 1, optimize=True)
         temp -= half_slices[i]
@@ -222,7 +266,7 @@ def generate_precomputes_jax(
         temp = jnp.einsum("t,l->tl", cs, L - el - 1, optimize=True)
         lamb = lamb.at[i].add(-temp)
 
-    indices = jnp.repeat(jnp.expand_dims(jnp.arange(L), 0), ntheta, axis=0)
+    indices = jnp.repeat(jnp.expand_dims(jnp.arange(L0, L), 0), ntheta, axis=0)
 
     return [lrenorm, lamb, vsign, cpi, cp2, cs, indices]
 
@@ -233,6 +277,8 @@ def generate_precomputes_wigner(
     sampling: str = "mw",
     nside: int = None,
     forward: bool = False,
+    reality: bool = False,
+    L_lower: int = 0,
 ) -> List[List[np.ndarray]]:
     r"""Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
     In practice one could compute these on-the-fly but the memory overhead is
@@ -254,6 +300,13 @@ def generate_precomputes_wigner(
         forward (bool, optional): Whether to provide forward or inverse shift.
             Defaults to False.
 
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
     Returns:
         List[List[np.ndarray]]: 2N-1 length List of Lists of precomputed coefficient arrays.
 
@@ -261,8 +314,59 @@ def generate_precomputes_wigner(
         TODO: this function should be optimised.
     """
     precomps = []
-    for n in range(-N + 1, N):
-        precomps.append(generate_precomputes(L, -n, sampling, nside, forward))
+    n_start_ind = 0 if reality else -N + 1
+    for n in range(n_start_ind, N):
+        precomps.append(
+            generate_precomputes(L, -n, sampling, nside, forward, L_lower)
+        )
+    return precomps
+
+
+def generate_precomputes_wigner_jax(
+    L: int,
+    N: int,
+    sampling: str = "mw",
+    nside: int = None,
+    forward: bool = False,
+    reality: bool = False,
+    L_lower: int = 0,
+) -> List[List[jnp.ndarray]]:
+    r"""Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
+    In practice one could compute these on-the-fly but the memory overhead is
+    negligible and well worth the acceleration. This is a wrapped extension of
+    :func:`~generate_precomputes` for the case of multiple spins, i.e. the Wigner
+    transform over SO(3). JAX implementation of :func:`~generate_precomputes_wigner`.
+
+    Args:
+        L (int): Harmonic band-limit.
+
+        N (int): Azimuthal bandlimit
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+
+        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".  Defaults to None.
+
+        forward (bool, optional): Whether to provide forward or inverse shift.
+            Defaults to False.
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
+    Returns:
+        List[List[jnp.ndarray]]: 2N-1 length List of Lists of precomputed coefficient arrays.
+    """
+    precomps = []
+    n_start_ind = 0 if reality else -N + 1
+    for n in range(n_start_ind, N):
+        precomps.append(
+            generate_precomputes_jax(L, -n, sampling, nside, forward, L_lower)
+        )
     return precomps
 
 
@@ -310,7 +414,9 @@ def compute_all_slices(
 
     dl_test = np.zeros((2 * L - 1, ntheta, L), dtype=np.float64)
     if precomps is None:
-        lrenorm, lamb, vsign, cpi, cp2, cs, indices = generate_precomputes(beta, L, mm)
+        lrenorm, lamb, vsign, cpi, cp2, cs, indices = generate_precomputes(
+            beta, L, mm
+        )
     else:
         lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
 
@@ -327,7 +433,9 @@ def compute_all_slices(
         )
 
         dl_test[sind, :, lind:] = (
-            dl_iter[0, :, lind:] * vsign[sind, lind:] * np.exp(lrenorm[i, :, lind:])
+            dl_iter[0, :, lind:]
+            * vsign[sind, lind:]
+            * np.exp(lrenorm[i, :, lind:])
         )
         dl_test[sind + sgn, :, lind - 1 :] = (
             dl_iter[1, :, lind - 1 :]
@@ -408,7 +516,9 @@ def compute_all_slices_jax(
 
     dl_test = jnp.zeros((2 * L - 1, ntheta, L), dtype=jnp.float64)
     if precomps is None:
-        lrenorm, lamb, vsign, cpi, cp2, cs, indices = generate_precomputes(beta, L, mm)
+        lrenorm, lamb, vsign, cpi, cp2, cs, indices = generate_precomputes(
+            beta, L, mm
+        )
     else:
         lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
 
@@ -427,7 +537,9 @@ def compute_all_slices_jax(
         )
 
         dl_test = dl_test.at[sind, :, lind:].set(
-            dl_iter[0, :, lind:] * vsign[sind, lind:] * jnp.exp(lrenorm[i, :, lind:])
+            dl_iter[0, :, lind:]
+            * vsign[sind, lind:]
+            * jnp.exp(lrenorm[i, :, lind:])
         )
 
         dl_test = dl_test.at[sind + sgn, :, lind - 1 :].set(
@@ -461,9 +573,15 @@ def compute_all_slices_jax(
             bigi = 1.0 / abs(dl_entry)
             lbig = jnp.log(abs(dl_entry))
 
-            dl_iter = dl_iter.at[0].set(jnp.where(index, bigi * dl_iter[1], dl_iter[0]))
-            dl_iter = dl_iter.at[1].set(jnp.where(index, bigi * dl_entry, dl_iter[1]))
-            lrenorm = lrenorm.at[i].set(jnp.where(index, lrenorm[i] + lbig, lrenorm[i]))
+            dl_iter = dl_iter.at[0].set(
+                jnp.where(index, bigi * dl_iter[1], dl_iter[0])
+            )
+            dl_iter = dl_iter.at[1].set(
+                jnp.where(index, bigi * dl_entry, dl_iter[1])
+            )
+            lrenorm = lrenorm.at[i].set(
+                jnp.where(index, lrenorm[i] + lbig, lrenorm[i])
+            )
             return dl_test, dl_entry, dl_iter, lamb, lrenorm
 
         dl_test, dl_entry, dl_iter, lamb, lrenorm = lax.fori_loop(

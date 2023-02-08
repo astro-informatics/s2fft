@@ -20,6 +20,7 @@ def inverse(
     reality: bool = False,
     precomps: List = None,
     spmd: bool = False,
+    L_lower: int = 0,
 ) -> np.ndarray:
     r"""Wrapper for the inverse Wigner transform, i.e. inverse Fourier transform on
     :math:`SO(3)`.
@@ -57,6 +58,9 @@ def inverse(
             only maps over all available devices, and is only valid for JAX implementations.
             Defaults to False.
 
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
     Raises:
         ValueError: Transform method not recognised.
 
@@ -73,9 +77,13 @@ def inverse(
         recover acceleration by the number of devices.
     """
     if method == "numpy":
-        return inverse_numpy(flmn, L, N, nside, sampling, reality, precomps)
+        return inverse_numpy(
+            flmn, L, N, nside, sampling, reality, precomps, L_lower
+        )
     elif method == "jax":
-        return inverse_jax(flmn, L, N, nside, sampling, reality, precomps, spmd)
+        return inverse_jax(
+            flmn, L, N, nside, sampling, reality, precomps, spmd, L_lower
+        )
     else:
         raise ValueError(
             f"Implementation {method} not recognised. Should be either numpy or jax."
@@ -90,6 +98,7 @@ def inverse_numpy(
     sampling: str = "mw",
     reality: bool = False,
     precomps: List = None,
+    L_lower: int = 0,
 ) -> np.ndarray:
     r"""Compute the inverse Wigner transform (numpy).
 
@@ -126,26 +135,31 @@ def inverse_numpy(
         precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
 
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
     Returns:
         np.ndarray: Signal on the sphere.
     """
     fban = np.zeros(samples.f_shape(L, N, sampling, nside), dtype=np.complex128)
 
-    flmn_scaled = np.einsum(
+    flmn[:, L_lower:] = np.einsum(
         "...nlm,...l->...nlm",
-        flmn,
-        np.sqrt((2 * np.arange(L) + 1) / (16 * np.pi**3)),
+        flmn[:, L_lower:],
+        np.sqrt((2 * np.arange(L_lower, L) + 1) / (16 * np.pi**3)),
     )
 
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
         fban[N - 1 + n] = (-1) ** n * spin_spherical.inverse_numpy(
-            flmn_scaled[N - 1 + n],
+            flmn[N - 1 + n],
             L,
             -n,
             nside,
-            sampling=sampling,
-            precomps=precomps[N - 1 + n],
+            sampling,
+            reality if n == 0 else False,
+            precomps[n - n_start_ind],
+            L_lower,
         )
 
     ax = -2 if sampling.lower() == "healpix" else -3
@@ -159,7 +173,7 @@ def inverse_numpy(
     return f
 
 
-@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7))
+@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7, 8))
 def inverse_jax(
     flmn: np.ndarray,
     L: int,
@@ -169,6 +183,7 @@ def inverse_jax(
     reality: bool = False,
     precomps: List = None,
     spmd: bool = False,
+    L_lower: int = 0,
 ) -> jnp.ndarray:
     r"""Compute the inverse Wigner transform (numpy).
 
@@ -208,6 +223,9 @@ def inverse_jax(
         spmd (bool, optional): Whether to map compute over multiple devices. Currently this
             only maps over all available devices. Defaults to False.
 
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
     Returns:
         jnp.ndarray: Signal on the sphere.
 
@@ -222,11 +240,13 @@ def inverse_jax(
         samples.f_shape(L, N, sampling, nside), dtype=jnp.complex128
     )
 
-    flmn = jnp.einsum(
-        "...nlm,...l->...nlm",
-        flmn,
-        jnp.sqrt((2 * jnp.arange(L) + 1) / (16 * jnp.pi**3)),
-        optimize=True,
+    flmn = flmn.at[:, L_lower:].set(
+        jnp.einsum(
+            "...nlm,...l->...nlm",
+            flmn[:, L_lower:],
+            jnp.sqrt((2 * jnp.arange(L_lower, L) + 1) / (16 * jnp.pi**3)),
+            optimize=True,
+        )
     )
 
     n_start_ind = 0 if reality else -N + 1
@@ -238,18 +258,19 @@ def inverse_jax(
                 L,
                 -n,
                 nside,
-                sampling=sampling,
-                precomps=precomps[N - 1 + n],
-                spmd=spmd,
+                sampling,
+                reality if n == 0 else False,
+                precomps[n - n_start_ind],
+                spmd,
+                L_lower=L_lower,
             )
         )
 
-    ax = -2 if sampling.lower() == "healpix" else -3
     if reality:
-        f = jnp.fft.irfft(fban[N - 1 :], 2 * N - 1, axis=ax, norm="forward")
-    else:
-        fban = jnp.conj(jnp.fft.ifftshift(fban, axes=ax))
-        f = jnp.conj(jnp.fft.fft(fban, axis=ax, norm="backward"))
+        fban = fban.at[: N - 1].set(jnp.flip(jnp.conj(fban[N:]), axis=0))
+    ax = -2 if sampling.lower() == "healpix" else -3
+    fban = jnp.conj(jnp.fft.ifftshift(fban, axes=ax))
+    f = jnp.conj(jnp.fft.fft(fban, axis=ax, norm="backward"))
 
     return f
 
@@ -264,6 +285,7 @@ def forward(
     reality: bool = False,
     precomps: List = None,
     spmd: bool = False,
+    L_lower: int = 0,
 ) -> np.ndarray:
     r"""Wrapper for the forward Wigner transform, i.e. Fourier transform on
     :math:`SO(3)`.
@@ -303,6 +325,9 @@ def forward(
             only maps over all available devices, and is only valid for JAX implementations.
             Defaults to False.
 
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
     Raises:
         ValueError: Transform method not recognised.
 
@@ -317,9 +342,13 @@ def forward(
         recover acceleration by the number of devices.
     """
     if method == "numpy":
-        return forward_numpy(f, L, N, nside, sampling, reality, precomps)
+        return forward_numpy(
+            f, L, N, nside, sampling, reality, precomps, L_lower
+        )
     elif method == "jax":
-        return forward_jax(f, L, N, nside, sampling, reality, precomps, spmd)
+        return forward_jax(
+            f, L, N, nside, sampling, reality, precomps, spmd, L_lower
+        )
     else:
         raise ValueError(
             f"Implementation {method} not recognised. Should be either numpy or jax."
@@ -334,6 +363,7 @@ def forward_numpy(
     sampling: str = "mw",
     reality: bool = False,
     precomps: List = None,
+    L_lower: int = 0,
 ) -> np.ndarray:
     r"""Compute the forward Wigner transform (numpy).
 
@@ -372,6 +402,9 @@ def forward_numpy(
         precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
 
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
     Returns:
         np.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
     """
@@ -396,19 +429,23 @@ def forward_numpy(
             -n,
             nside,
             sampling,
-            precomps=precomps[N - 1 + n],
+            reality if n == 0 else False,
+            precomps[n - n_start_ind],
+            L_lower,
         )
         if reality and n != 0:
             flmn[N - 1 - n] = np.conj(
                 np.flip(flmn[N - 1 + n] * sgn * (-1) ** n, axis=-1)
             )
-
-    return np.einsum(
-        "...nlm,...l->...nlm", flmn, np.sqrt(4 * np.pi / (2 * np.arange(L) + 1))
+    flmn[:, L_lower:] = np.einsum(
+        "...nlm,...l->...nlm",
+        flmn[:, L_lower:],
+        np.sqrt(4 * np.pi / (2 * np.arange(L_lower, L) + 1)),
     )
+    return flmn
 
 
-@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7))
+@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7, 8))
 def forward_jax(
     f: jnp.ndarray,
     L: int,
@@ -418,6 +455,7 @@ def forward_jax(
     reality: bool = False,
     precomps: List = None,
     spmd: bool = False,
+    L_lower: int = 0,
 ) -> jnp.ndarray:
     r"""Compute the forward Wigner transform (JAX).
 
@@ -460,6 +498,9 @@ def forward_jax(
             only maps over all available devices, and is only valid for JAX implementations.
             Defaults to False.
 
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
     Returns:
         jnp.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
     """
@@ -488,8 +529,10 @@ def forward_jax(
                 -n,
                 nside,
                 sampling,
-                precomps=precomps[N - 1 + n],
-                spmd=spmd,
+                reality if n == 0 else False,
+                precomps[n - n_start_ind],
+                spmd,
+                L_lower,
             )
         )
         if reality and n != 0:
@@ -497,9 +540,12 @@ def forward_jax(
                 jnp.conj(jnp.flip(flmn[N - 1 + n] * sgn * (-1) ** n, axis=-1))
             )
 
-    return jnp.einsum(
-        "...nlm,...l->...nlm",
-        flmn,
-        jnp.sqrt(4 * jnp.pi / (2 * jnp.arange(L) + 1)),
-        optimize=True,
+    flmn = flmn.at[:, L_lower:].set(
+        jnp.einsum(
+            "...nlm,...l->...nlm",
+            flmn[:, L_lower:],
+            jnp.sqrt(4 * jnp.pi / (2 * jnp.arange(L_lower, L) + 1)),
+            optimize=True,
+        )
     )
+    return flmn

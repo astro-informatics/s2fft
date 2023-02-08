@@ -12,6 +12,7 @@ from s2fft.wigner.price_mcewen import generate_precomputes_wigner
 
 L_to_test = [6, 8]
 N_to_test = [2, 4]
+L_lower_to_test = [0, 2, 4]
 sampling_to_test = ["mw", "mwss", "dh"]
 method_to_test = ["numpy", "jax"]
 reality_to_test = [False, True]
@@ -20,6 +21,7 @@ multiple_gpus = [False, True]
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
+@pytest.mark.parametrize("L_lower", L_lower_to_test)
 @pytest.mark.parametrize("sampling", sampling_to_test)
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
@@ -29,6 +31,7 @@ def test_inverse_wigner_transform(
     flmn_generator,
     L: int,
     N: int,
+    L_lower: int,
     sampling: str,
     method: str,
     reality: bool,
@@ -37,12 +40,14 @@ def test_inverse_wigner_transform(
     if spmd and method != "jax":
         pytest.skip("GPU distribution only valid for JAX.")
 
-    flmn = flmn_generator(L=L, N=N, reality=reality)
-    f_check = transform.inverse(flmn, L, N, 0, sampling, reality)
+    flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
+    f_check = transform.inverse(flmn, L, N, L_lower, sampling, reality)
 
-    wprecomps = generate_precomputes_wigner(L, N, sampling, None, False)
+    precomps = generate_precomputes_wigner(
+        L, N, sampling, None, False, reality, L_lower
+    )
     f = wigner.inverse(
-        flmn, L, N, None, sampling, method, reality, wprecomps, spmd
+        flmn, L, N, None, sampling, method, reality, precomps, spmd, L_lower
     )
 
     np.testing.assert_allclose(f, f_check, atol=1e-14)
@@ -50,6 +55,7 @@ def test_inverse_wigner_transform(
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
+@pytest.mark.parametrize("L_lower", L_lower_to_test)
 @pytest.mark.parametrize("sampling", sampling_to_test)
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
@@ -59,6 +65,7 @@ def test_forward_wigner_transform(
     flmn_generator,
     L: int,
     N: int,
+    L_lower: int,
     sampling: str,
     method: str,
     reality: bool,
@@ -67,12 +74,14 @@ def test_forward_wigner_transform(
     if spmd and method != "jax":
         pytest.skip("GPU distribution only valid for JAX.")
 
-    flmn = flmn_generator(L=L, N=N, reality=reality)
-    f = transform.inverse(flmn, L, N, 0, sampling, reality)
+    flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
+    f = transform.inverse(flmn, L, N, L_lower, sampling, reality)
 
-    wprecomps = generate_precomputes_wigner(L, N, sampling, None, True)
+    precomps = generate_precomputes_wigner(
+        L, N, sampling, None, True, reality, L_lower
+    )
     flmn_check = wigner.forward(
-        f, L, N, None, sampling, method, reality, wprecomps, spmd
+        f, L, N, None, sampling, method, reality, precomps, spmd, L_lower
     )
 
     np.testing.assert_allclose(flmn, flmn_check, atol=1e-14)

@@ -180,9 +180,7 @@ def inverse_transform_jax(
     ftm *= (-1) ** spin
     if reality:
         ftm = ftm.at[:, m_offset : m_start_ind + m_offset].set(
-            jnp.flip(
-                jnp.conj(ftm[:, m_start_ind + m_offset + 1 :]), axis=-1
-            )
+            jnp.flip(jnp.conj(ftm[:, m_start_ind + m_offset + 1 :]), axis=-1)
         )
 
     if sampling.lower() == "healpix":
