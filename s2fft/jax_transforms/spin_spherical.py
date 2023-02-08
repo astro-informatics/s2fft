@@ -266,23 +266,16 @@ def inverse_jax(
 
     # Perform longitundal Fast Fourier Transforms
     ftm *= (-1) ** spin
+    if reality:
+        ftm = ftm.at[:, m_offset : L - 1 + m_offset].set(
+            jnp.flip(jnp.conj(ftm[:, L - 1 + m_offset + 1 :]), axis=-1)
+        )
     if sampling.lower() == "healpix":
-        if reality:
-            ftm = ftm.at[:, m_offset : L - 1 + m_offset].set(
-                jnp.flip(jnp.conj(ftm[:, L - 1 + m_offset + 1 :]), axis=-1)
-            )
         return hp.healpix_ifft(ftm, L, nside, "jax", reality)
     else:
-        if reality:
-            return jnp.fft.irfft(
-                ftm[:, L - 1 + m_offset :],
-                samples.nphi_equiang(L, sampling),
-                axis=1,
-                norm="forward",
-            )
-        else:
-            ftm = jnp.conj(jnp.fft.ifftshift(ftm, axes=1))
-            return jnp.conj(jnp.fft.fft(ftm, axis=1, norm="backward"))
+        ftm = jnp.conj(jnp.fft.ifftshift(ftm, axes=1))
+        f = jnp.conj(jnp.fft.fft(ftm, axis=1, norm="backward"))
+        return jnp.real(f) if reality else f
 
 
 def forward(

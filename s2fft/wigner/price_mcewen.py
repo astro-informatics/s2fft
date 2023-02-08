@@ -470,30 +470,3 @@ def compute_all_slices_jax(
             2, L, pm_recursion_step, (dl_test, dl_entry, dl_iter, lamb, lrenorm)
         )
     return dl_test
-
-
-if __name__ == "__main__":
-    import os
-
-    # os.environ['CUDA_VISIBLE_DEVICES'] = ""
-    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
-    import warnings
-
-    warnings.simplefilter("ignore")
-    L = 4
-    spin = -2
-    sampling = "mw"
-
-    precomps_pre = generate_precomputes(L, spin, sampling)
-    precomps_post = generate_precomputes_jax(L, spin, sampling)
-
-    for i in range(len(precomps_pre)):
-        print(i)
-        a = precomps_pre[i]
-        b = precomps_post[i]
-        # if i == 0:
-        #     for ind in range(2):
-        #         for t in range(L):
-        #             for l in range(L):
-        #                 print(ind, t, l, a[ind, t, l], b[ind, t, l], abs(a[ind, t, l]-b[ind, t, l]))
-        np.testing.assert_allclose(precomps_pre[i], precomps_post[i])

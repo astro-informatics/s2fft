@@ -195,6 +195,7 @@ def inverse_latitudinal_step_jax(
 
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
+    el = jnp.arange(L)
     ftm = jnp.zeros(samples.ftm_shape(L, sampling, nside), dtype=jnp.complex128)
 
     # Indexing boundaries
@@ -249,7 +250,7 @@ def inverse_latitudinal_step_jax(
                 ftm, dl_entry, dl_iter, lamb, lrenorm, cs, indices = args
 
                 index = indices >= L - m - 1
-                lamb = lamb.at[i, :, jnp.arange(L)].add(cs)
+                lamb = lamb.at[i, :, el].add(cs)
 
                 dl_entry = jnp.where(
                     index,

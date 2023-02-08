@@ -178,28 +178,20 @@ def inverse_transform_jax(
         )
     )
     ftm *= (-1) ** spin
+    if reality:
+        ftm = ftm.at[:, m_offset : m_start_ind + m_offset].set(
+            jnp.flip(
+                jnp.conj(ftm[:, m_start_ind + m_offset + 1 :]), axis=-1
+            )
+        )
 
     if sampling.lower() == "healpix":
-        if reality:
-            ftm = ftm.at[:, m_offset : m_start_ind + m_offset].set(
-                jnp.flip(
-                    jnp.conj(ftm[:, m_start_ind + m_offset + 1 :]), axis=-1
-                )
-            )
         f = hp.healpix_ifft(ftm, L, nside, "jax", reality)
 
     else:
-        if reality:
-            f = jnp.fft.irfft(
-                ftm[:, L - 1 + m_offset :],
-                samples.nphi_equiang(L, sampling),
-                axis=-1,
-                norm="forward",
-            )
-        else:
-            f = jnp.conj(jnp.fft.ifftshift(ftm, axes=-1))
-            f = jnp.conj(jnp.fft.fft(f, axis=-1, norm="backward"))
-    return f
+        f = jnp.conj(jnp.fft.ifftshift(ftm, axes=-1))
+        f = jnp.conj(jnp.fft.fft(f, axis=-1, norm="backward"))
+    return jnp.real(f) if reality else f
 
 
 def forward(
