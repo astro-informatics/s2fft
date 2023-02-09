@@ -293,7 +293,7 @@ def inverse_latitudinal_step_jax(
             dl_entry = jnp.zeros((ntheta, L), dtype=jnp.float64)
 
             def pm_recursion_step(m, args):
-                ftm, dl_entry, dl_iter, lrenorm, indices = args
+                ftm, dl_entry, dl_iter, lrenorm, indices, omc, c, s = args
                 index = indices >= L - m - 1
 
                 lamb = (
@@ -343,18 +343,27 @@ def inverse_latitudinal_step_jax(
                 lrenorm = lrenorm.at[i].set(
                     jnp.where(index, lrenorm[i] + lbig, lrenorm[i])
                 )
-                return ftm, dl_entry, dl_iter, lrenorm, indices
+                return ftm, dl_entry, dl_iter, lrenorm, indices, omc, c, s
 
             if spmd:
 
                 def eval_recursion_step(
-                    ftm, dl_entry, dl_iter, lrenorm, indices
+                    ftm, dl_entry, dl_iter, lrenorm, indices, omc, c, s
                 ):
-                    (ftm, dl_entry, dl_iter, lrenorm, indices) = lax.fori_loop(
+                    (
+                        ftm,
+                        dl_entry,
+                        dl_iter,
+                        lrenorm,
+                        indices,
+                        omc,
+                        c,
+                        s,
+                    ) = lax.fori_loop(
                         2,
                         L - 1 + i,
                         pm_recursion_step,
-                        (ftm, dl_entry, dl_iter, lrenorm, indices),
+                        (ftm, dl_entry, dl_iter, lrenorm, indices, omc, c, s),
                     )
                     return ftm
 
@@ -362,20 +371,36 @@ def inverse_latitudinal_step_jax(
                 ndevices = local_device_count()
                 opsdevice = int(ntheta / ndevices)
 
-                ftm = pmap(eval_recursion_step, in_axes=(0, 0, 1, 1, 0))(
+                ftm = pmap(
+                    eval_recursion_step, in_axes=(0, 0, 1, 1, 0, 0, 0, 0)
+                )(
                     ftm.reshape(ndevices, opsdevice, ftm.shape[-1]),
                     dl_entry.reshape(ndevices, opsdevice, L),
                     dl_iter.reshape(2, ndevices, opsdevice, L - L_lower),
                     lrenorm.reshape(2, ndevices, opsdevice, L - L_lower),
                     indices.reshape(ndevices, opsdevice, L - L_lower),
-                ).reshape(ntheta, ftm.shape[-1])
+                    omc.reshape(ndevices, opsdevice),
+                    c.reshape(ndevices, opsdevice),
+                    s.reshape(ndevices, opsdevice),
+                ).reshape(
+                    ntheta, ftm.shape[-1]
+                )
 
             else:
-                ftm, dl_entry, dl_iter, lrenorm, indices = lax.fori_loop(
+                (
+                    ftm,
+                    dl_entry,
+                    dl_iter,
+                    lrenorm,
+                    indices,
+                    omc,
+                    c,
+                    s,
+                ) = lax.fori_loop(
                     2,
                     L - 1 + i,
                     pm_recursion_step,
-                    (ftm, dl_entry, dl_iter, lrenorm, indices),
+                    (ftm, dl_entry, dl_iter, lrenorm, indices, omc, c, s),
                 )
     return ftm
 
