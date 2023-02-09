@@ -65,13 +65,20 @@ def inverse_latitudinal_step(
     mm = -spin
     ntheta = len(beta)
     ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
+    el = np.arange(L_lower, L)
+
+    # Trigonometric constant adopted throughout
+    c = np.cos(beta)
+    s = np.sin(beta)
+    omc = 1.0 - c
 
     # Indexing boundaries
     lims = [0, -1]
+    half_slices = [el + mm + 1, el - mm + 1]
 
     if precomps is None:
         precomps = generate_precomputes(L, -mm, sampling, nside, L_lower)
-    lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
+    lrenorm, vsign, cpi, cp2, indices = precomps
 
     for i in range(2):
         if not (reality and i == 0):
@@ -82,10 +89,17 @@ def inverse_latitudinal_step(
             sgn = (-1) ** (i)
             dl_iter = np.ones((2, ntheta, L - L_lower), dtype=np.float64)
 
+            lamb = (
+                np.einsum("l,t->tl", el + 1, omc)
+                + np.einsum("l,t->tl", 2 - L + el, c)
+                - half_slices[i]
+            )
+            lamb = np.einsum("tl,t->tl", lamb, 1 / s)
+
             dl_iter[1, :, lind:] = np.einsum(
                 "l,tl->tl",
                 cpi[0, lind:],
-                dl_iter[0, :, lind:] * lamb[i, :, lind:],
+                dl_iter[0, :, lind:] * lamb[:, lind:],
             )
 
             # Sum into transform vector 0th component
@@ -109,11 +123,18 @@ def inverse_latitudinal_step(
             dl_entry = np.zeros((ntheta, L), dtype=np.float64)
             for m in range(2, L - 1 + i):
                 index = indices >= L - m - 1
-                lamb[i, :, np.arange(L - L_lower)] += cs
+                # lamb[i, :, np.arange(L - L_lower)] += cs
+
+                lamb = (
+                    np.einsum("l,t->tl", el + 1, omc)
+                    + np.einsum("l,t->tl", m - L + el + 1, c)
+                    - half_slices[i]
+                )
+                lamb = np.einsum("tl,t->tl", lamb, 1 / s)
 
                 dl_entry[:, L_lower:] = np.where(
                     index,
-                    np.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i])
+                    np.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb)
                     - np.einsum("l,tl->tl", cp2[m - 1], dl_iter[0]),
                     dl_entry[:, L_lower:],
                 )
@@ -205,17 +226,23 @@ def inverse_latitudinal_step_jax(
 
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
-    el = jnp.arange(L - L_lower)
     ftm = jnp.zeros(samples.ftm_shape(L, sampling, nside), dtype=jnp.complex128)
+    el = jnp.arange(L_lower, L)
+
+    # Trigonometric constant adopted throughout
+    c = jnp.cos(beta)
+    s = jnp.sin(beta)
+    omc = 1.0 - c
 
     # Indexing boundaries
     lims = [0, -1]
+    half_slices = [el + mm + 1, el - mm + 1]
 
     if precomps is None:
         precomps = generate_precomputes(
             L, -mm, sampling, nside, L_lower=L_lower
         )
-    lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
+    lrenorm, vsign, cpi, cp2, indices = precomps
 
     for i in range(2):
         if not (reality and i == 0):
@@ -226,11 +253,18 @@ def inverse_latitudinal_step_jax(
             sgn = (-1) ** (i)
             dl_iter = jnp.ones((2, ntheta, L - L_lower), dtype=jnp.float64)
 
+            lamb = (
+                jnp.einsum("l,t->tl", el + 1, omc, optimize=True)
+                + jnp.einsum("l,t->tl", 2 - L + el, c, optimize=True)
+                - half_slices[i]
+            )
+            lamb = jnp.einsum("tl,t->tl", lamb, 1 / s, optimize=True)
+
             dl_iter = dl_iter.at[1, :, lind:].set(
                 jnp.einsum(
                     "l,tl->tl",
                     cpi[0, lind:],
-                    dl_iter[0, :, lind:] * lamb[i, :, lind:],
+                    dl_iter[0, :, lind:] * lamb[:, lind:],
                     optimize=True,
                 )
             )
@@ -259,10 +293,15 @@ def inverse_latitudinal_step_jax(
             dl_entry = jnp.zeros((ntheta, L), dtype=jnp.float64)
 
             def pm_recursion_step(m, args):
-                ftm, dl_entry, dl_iter, lamb, lrenorm, cs, indices = args
-
+                ftm, dl_entry, dl_iter, lrenorm, indices = args
                 index = indices >= L - m - 1
-                lamb = lamb.at[i, :, el].add(cs)
+
+                lamb = (
+                    jnp.einsum("l,t->tl", el + 1, omc, optimize=True)
+                    + jnp.einsum("l,t->tl", m - L + el + 1, c, optimize=True)
+                    - half_slices[i]
+                )
+                lamb = jnp.einsum("tl,t->tl", lamb, 1 / s, optimize=True)
 
                 dl_entry = dl_entry.at[:, L_lower:].set(
                     jnp.where(
@@ -270,7 +309,7 @@ def inverse_latitudinal_step_jax(
                         jnp.einsum(
                             "l,tl->tl",
                             cpi[m - 1],
-                            dl_iter[1] * lamb[i],
+                            dl_iter[1] * lamb,
                             optimize=True,
                         )
                         - jnp.einsum(
@@ -304,26 +343,18 @@ def inverse_latitudinal_step_jax(
                 lrenorm = lrenorm.at[i].set(
                     jnp.where(index, lrenorm[i] + lbig, lrenorm[i])
                 )
-                return ftm, dl_entry, dl_iter, lamb, lrenorm, cs, indices
+                return ftm, dl_entry, dl_iter, lrenorm, indices
 
             if spmd:
 
                 def eval_recursion_step(
-                    ftm, dl_entry, dl_iter, lamb, lrenorm, cs, indices
+                    ftm, dl_entry, dl_iter, lrenorm, indices
                 ):
-                    (
-                        ftm,
-                        dl_entry,
-                        dl_iter,
-                        lamb,
-                        lrenorm,
-                        cs,
-                        indices,
-                    ) = lax.fori_loop(
+                    (ftm, dl_entry, dl_iter, lrenorm, indices) = lax.fori_loop(
                         2,
                         L - 1 + i,
                         pm_recursion_step,
-                        (ftm, dl_entry, dl_iter, lamb, lrenorm, cs, indices),
+                        (ftm, dl_entry, dl_iter, lrenorm, indices),
                     )
                     return ftm
 
@@ -331,30 +362,20 @@ def inverse_latitudinal_step_jax(
                 ndevices = local_device_count()
                 opsdevice = int(ntheta / ndevices)
 
-                ftm = pmap(eval_recursion_step, in_axes=(0, 0, 1, 1, 1, 0, 0))(
+                ftm = pmap(eval_recursion_step, in_axes=(0, 0, 1, 1, 0))(
                     ftm.reshape(ndevices, opsdevice, ftm.shape[-1]),
                     dl_entry.reshape(ndevices, opsdevice, L),
                     dl_iter.reshape(2, ndevices, opsdevice, L - L_lower),
-                    lamb.reshape(2, ndevices, opsdevice, L - L_lower),
                     lrenorm.reshape(2, ndevices, opsdevice, L - L_lower),
-                    cs.reshape(ndevices, opsdevice),
                     indices.reshape(ndevices, opsdevice, L - L_lower),
                 ).reshape(ntheta, ftm.shape[-1])
 
             else:
-                (
-                    ftm,
-                    dl_entry,
-                    dl_iter,
-                    lamb,
-                    lrenorm,
-                    cs,
-                    indices,
-                ) = lax.fori_loop(
+                ftm, dl_entry, dl_iter, lrenorm, indices = lax.fori_loop(
                     2,
                     L - 1 + i,
                     pm_recursion_step,
-                    (ftm, dl_entry, dl_iter, lamb, lrenorm, cs, indices),
+                    (ftm, dl_entry, dl_iter, lrenorm, indices),
                 )
     return ftm
 
@@ -412,13 +433,20 @@ def forward_latitudinal_step(
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
+    el = np.arange(L_lower, L)
+
+    # Trigonometric constant adopted throughout
+    c = np.cos(beta)
+    s = np.sin(beta)
+    omc = 1.0 - c
 
     # Indexing boundaries
     lims = [0, -1]
+    half_slices = [el + mm + 1, el - mm + 1]
 
     if precomps is None:
         precomps = generate_precomputes(L, -mm, sampling, nside, True, L_lower)
-    lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
+    lrenorm, vsign, cpi, cp2, indices = precomps
 
     for i in range(2):
         if not (reality and i == 0):
@@ -428,10 +456,18 @@ def forward_latitudinal_step(
             sind = lims[i]
             sgn = (-1) ** (i)
             dl_iter = np.ones((2, ntheta, L - L_lower), dtype=np.float64)
+
+            lamb = (
+                np.einsum("l,t->tl", el + 1, omc)
+                + np.einsum("l,t->tl", 2 - L + el, c)
+                - half_slices[i]
+            )
+            lamb = np.einsum("tl,t->tl", lamb, 1 / s)
+
             dl_iter[1, :, lind:] = np.einsum(
                 "l,tl->tl",
                 cpi[0, lind:],
-                dl_iter[0, :, lind:] * lamb[i, :, lind:],
+                dl_iter[0, :, lind:] * lamb[:, lind:],
             )
 
             # Sum into transform vector 0th component
@@ -461,11 +497,16 @@ def forward_latitudinal_step(
             dl_entry = np.zeros((ntheta, L), dtype=np.float64)
             for m in range(2, L - 1 + i):
                 index = indices >= L - m - 1
-                lamb[i, :, np.arange(L - L_lower)] += cs
+                lamb = (
+                    np.einsum("l,t->tl", el + 1, omc)
+                    + np.einsum("l,t->tl", m - L + el + 1, c)
+                    - half_slices[i]
+                )
+                lamb = np.einsum("tl,t->tl", lamb, 1 / s)
 
                 dl_entry[:, L_lower:] = np.where(
                     index,
-                    np.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i])
+                    np.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb)
                     - np.einsum("l,tl->tl", cp2[m - 1], dl_iter[0]),
                     dl_entry[:, L_lower:],
                 )
@@ -561,13 +602,20 @@ def forward_latitudinal_step_jax(
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
     flm = jnp.zeros(samples.flm_shape(L), dtype=jnp.complex128)
+    el = jnp.arange(L_lower, L)
+
+    # Trigonometric constant adopted throughout
+    c = jnp.cos(beta)
+    s = jnp.sin(beta)
+    omc = 1.0 - c
 
     # Indexing boundaries
     lims = [0, -1]
+    half_slices = [el + mm + 1, el - mm + 1]
 
     if precomps is None:
         precomps = generate_precomputes(L, -mm, sampling, nside, True, L_lower)
-    lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
+    lrenorm, vsign, cpi, cp2, indices = precomps
 
     for i in range(2):
         if not (reality and i == 0):
@@ -578,11 +626,18 @@ def forward_latitudinal_step_jax(
             sgn = (-1) ** (i)
             dl_iter = jnp.ones((2, ntheta, L - L_lower), dtype=jnp.float64)
 
+            lamb = (
+                jnp.einsum("l,t->tl", el + 1, omc, optimize=True)
+                + jnp.einsum("l,t->tl", 2 - L + el, c, optimize=True)
+                - half_slices[i]
+            )
+            lamb = jnp.einsum("tl,t->tl", lamb, 1 / s, optimize=True)
+
             dl_iter = dl_iter.at[1, :, lind:].set(
                 jnp.einsum(
                     "l,tl->tl",
                     cpi[0, lind:],
-                    dl_iter[0, :, lind:] * lamb[i, :, lind:],
+                    dl_iter[0, :, lind:] * lamb[:, lind:],
                     optimize=True,
                 )
             )
@@ -623,25 +678,25 @@ def forward_latitudinal_step_jax(
                     flm,
                     dl_entry,
                     dl_iter,
-                    lamb,
                     lrenorm,
                     cpi,
                     cp2,
                     vsign,
                     indices,
-                    opsdevice,
                 ) = args
 
                 index = indices >= L - m - 1
-                lamb = lamb.at[i, :, opsdevice].add(cs)
+                lamb = (
+                    jnp.einsum("l,t->tl", el + 1, omc, optimize=True)
+                    + jnp.einsum("l,t->tl", m - L + el + 1, c, optimize=True)
+                    - half_slices[i]
+                )
+                lamb = jnp.einsum("tl,t->tl", lamb, 1 / s, optimize=True)
 
                 dl_entry = jnp.where(
                     index,
                     jnp.einsum(
-                        "l,tl->tl",
-                        cpi[m - 1],
-                        dl_iter[1] * lamb[i],
-                        optimize=True,
+                        "l,tl->tl", cpi[m - 1], dl_iter[1] * lamb, optimize=True
                     )
                     - jnp.einsum(
                         "l,tl->tl", cp2[m - 1], dl_iter[0], optimize=True
@@ -681,40 +736,27 @@ def forward_latitudinal_step_jax(
                     flm,
                     dl_entry,
                     dl_iter,
-                    lamb,
                     lrenorm,
                     cpi,
                     cp2,
                     vsign,
                     indices,
-                    opsdevice,
                 )
 
             if spmd:
 
                 def eval_recursion_step(
-                    flm,
-                    dl_entry,
-                    dl_iter,
-                    lamb,
-                    lrenorm,
-                    cpi,
-                    cp2,
-                    vsign,
-                    indices,
-                    opsdevice,
+                    flm, dl_entry, dl_iter, lrenorm, cpi, cp2, vsign, indices
                 ):
                     (
                         flm,
                         dl_entry,
                         dl_iter,
-                        lamb,
                         lrenorm,
                         cpi,
                         cp2,
                         vsign,
                         indices,
-                        opsdevice,
                     ) = lax.fori_loop(
                         2,
                         L - 1 + i,
@@ -723,13 +765,11 @@ def forward_latitudinal_step_jax(
                             flm,
                             dl_entry,
                             dl_iter,
-                            lamb,
                             lrenorm,
                             cpi,
                             cp2,
                             vsign,
                             indices,
-                            opsdevice,
                         ),
                     )
                     return flm
@@ -741,25 +781,22 @@ def forward_latitudinal_step_jax(
                 flm = flm.at[L_lower:].set(
                     pmap(
                         eval_recursion_step,
-                        in_axes=(0, 1, 2, 2, 2, 1, 1, 1, 1, None),
+                        in_axes=(0, 1, 2, 2, 1, 1, 1, 1),
                     )(
                         flm[L_lower:].reshape(ndevices, opsdevice, 2 * L - 1),
                         dl_entry.reshape(ntheta, ndevices, opsdevice),
                         dl_iter.reshape(2, ntheta, ndevices, opsdevice),
-                        lamb.reshape(2, ntheta, ndevices, opsdevice),
                         lrenorm.reshape(2, ntheta, ndevices, opsdevice),
                         cpi.reshape(L + 1, ndevices, opsdevice),
                         cp2.reshape(L + 1, ndevices, opsdevice),
                         vsign.reshape(2 * L - 1, ndevices, opsdevice),
                         indices.reshape(ntheta, ndevices, opsdevice),
-                        jnp.arange(opsdevice),
                     ).reshape(
                         L - L_lower, 2 * L - 1
                     )
                 )
 
             else:
-                opsdevice = jnp.arange(L - L_lower)
                 flm = flm.at[L_lower:].set(
                     lax.fori_loop(
                         2,
@@ -769,13 +806,11 @@ def forward_latitudinal_step_jax(
                             flm[L_lower:],
                             dl_entry,
                             dl_iter,
-                            lamb,
                             lrenorm,
                             cpi,
                             cp2,
                             vsign,
                             indices,
-                            opsdevice,
                         ),
                     )[0]
                 )

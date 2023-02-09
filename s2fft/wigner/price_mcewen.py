@@ -49,7 +49,6 @@ def generate_precomputes(
     """
     mm = -spin
     L0 = max(abs(spin), L_lower)
-
     # Correct for mw to mwss conversion
     if forward and sampling.lower() in ["mw", "mwss"]:
         sampling = "mwss"
@@ -109,16 +108,15 @@ def generate_precomputes(
     lamb = np.zeros((2, ntheta, L - L0), np.float64)
     for i in range(2):
         for j in range(ntheta):
-            lamb[i, j] = ((el + 1) * omc[j] - half_slices[i] + c[j]) / s[j]
+            # lamb[i, j] = ((el + 1) * omc[j] - half_slices[i] + c[j])
             for k in range(L0, L):
-                lamb[i, j, k - L0] -= (L - k - 1) * cs[j]
+                lamb[i, j, k - L0] -= (L - k - 1) * c[j]
                 lrenorm[i, j, k - L0] = log_first_row[
                     half_slices[i][k - L0] - 1, j, k - L0
                 ]
 
     indices = np.repeat(np.expand_dims(np.arange(L0, L), 0), ntheta, axis=0)
-
-    return [lrenorm, lamb, vsign, cpi, cp2, cs, indices]
+    return [lrenorm, vsign, cpi, cp2, indices]
 
 
 @partial(jit, static_argnums=(0, 1, 2, 3, 4, 5))
@@ -198,10 +196,10 @@ def generate_precomputes_jax(
 
     def cpi_cp2_roll_loop(m, args):
         cpi, cp2 = args
-        cpi = cpi.at[:, m - L_lower].set(
+        cpi = cpi.at[:, m - L0].set(
             jnp.roll(cpi[:, m - L0], (L - m - 1), axis=-1)
         )
-        cp2 = cp2.at[:, m - L_lower].set(
+        cp2 = cp2.at[:, m - L0].set(
             jnp.roll(cp2[:, m - L0], (L - m - 1), axis=-1)
         )
         return cpi, cp2
@@ -411,25 +409,41 @@ def compute_all_slices(
     mm = -spin
     ntheta = len(beta)
     lims = [0, -1]
+    el = np.arange(L)
+
+    # Trigonometric constant adopted throughout
+    c = np.cos(beta)
+    s = np.sin(beta)
+    omc = 1.0 - c
+
+    # Indexing boundaries
+    half_slices = [el + mm + 1, el - mm + 1]
 
     dl_test = np.zeros((2 * L - 1, ntheta, L), dtype=np.float64)
     if precomps is None:
-        lrenorm, lamb, vsign, cpi, cp2, cs, indices = generate_precomputes(
+        lrenorm, offset, vsign, cpi, cp2, cs, indices = generate_precomputes(
             beta, L, mm
         )
     else:
-        lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
+        lrenorm, offset, vsign, cpi, cp2, cs, indices = precomps
 
+    lamb = np.zeros((ntheta, L), np.float64)
     for i in range(2):
         lind = L - 1
         sind = lims[i]
         sgn = (-1) ** (i)
         dl_iter = np.ones((2, ntheta, L), dtype=np.float64)
 
+        lamb = (
+            np.einsum("l,t->tl", el + 1, omc)
+            + np.einsum("l,t->tl", 2 - L + el, c)
+            - half_slices[i]
+        )
+        lamb = np.einsum("tl,t->tl", lamb, 1 / s)
         dl_iter[1, :, lind:] = np.einsum(
             "l,tl->tl",
             cpi[0, lind:],
-            dl_iter[0, :, lind:] * lamb[i, :, lind:],
+            dl_iter[0, :, lind:] * lamb[:, lind:],
         )
 
         dl_test[sind, :, lind:] = (
@@ -446,10 +460,17 @@ def compute_all_slices(
         dl_entry = np.zeros((ntheta, L), dtype=np.float64)
         for m in range(2, L):
             index = indices >= L - m - 1
-            lamb[i, :, np.arange(L)] += cs
+
+            lamb = (
+                np.einsum("l,t->tl", el + 1, omc)
+                + np.einsum("l,t->tl", m - L + el + 1, c)
+                - half_slices[i]
+            )
+            lamb = np.einsum("tl,t->tl", lamb, 1 / s)
+
             dl_entry = np.where(
                 index,
-                np.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i])
+                np.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb)
                 - np.einsum("l,tl->tl", cp2[m - 1], dl_iter[0]),
                 dl_entry,
             )
