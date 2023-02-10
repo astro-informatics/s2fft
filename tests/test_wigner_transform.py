@@ -8,7 +8,10 @@ import healpy as hp
 from s2fft import samples
 from s2fft.jax_transforms import wigner
 from s2fft.wigner import transform
-from s2fft.wigner.price_mcewen import generate_precomputes_wigner
+from s2fft.wigner.price_mcewen import (
+    generate_precomputes_wigner,
+    generate_precomputes_wigner_jax,
+)
 
 L_to_test = [6, 8]
 N_to_test = [2, 4]
@@ -43,9 +46,14 @@ def test_inverse_wigner_transform(
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     f_check = transform.inverse(flmn, L, N, L_lower, sampling, reality)
 
-    precomps = generate_precomputes_wigner(
-        L, N, sampling, None, False, reality, L_lower
-    )
+    if method.lower() == "jax":
+        precomps = generate_precomputes_wigner_jax(
+            L, N, sampling, None, False, reality, L_lower
+        )
+    else:
+        precomps = generate_precomputes_wigner(
+            L, N, sampling, None, False, reality, L_lower
+        )
     f = wigner.inverse(
         flmn, L, N, None, sampling, method, reality, precomps, spmd, L_lower
     )
@@ -77,9 +85,14 @@ def test_forward_wigner_transform(
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     f = transform.inverse(flmn, L, N, L_lower, sampling, reality)
 
-    precomps = generate_precomputes_wigner(
-        L, N, sampling, None, True, reality, L_lower
-    )
+    if method.lower() == "jax":
+        precomps = generate_precomputes_wigner_jax(
+            L, N, sampling, None, True, reality, L_lower
+        )
+    else:
+        precomps = generate_precomputes_wigner(
+            L, N, sampling, None, True, reality, L_lower
+        )
     flmn_check = wigner.forward(
         f, L, N, None, sampling, method, reality, precomps, spmd, L_lower
     )

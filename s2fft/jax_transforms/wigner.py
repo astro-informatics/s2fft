@@ -4,6 +4,7 @@ config.update("jax_enable_x64", True)
 
 import numpy as np
 import jax.numpy as jnp
+import jax.lax as lax
 from functools import partial
 from typing import List
 from s2fft.wigner import samples
@@ -250,27 +251,82 @@ def inverse_jax(
     )
 
     n_start_ind = 0 if reality else -N + 1
-    for n in range(n_start_ind, N):
-        fban = fban.at[N - 1 + n].add(
-            (-1) ** n
+    spins = jnp.arange(n_start_ind, N)
+
+    def spin_spherical_loop(n, args):
+        fban, flmn, lrenorm, vsign, spins = args
+        fban = fban.at[n].add(
+            (-1) ** spins[n]
             * spin_spherical.inverse_jax(
-                flmn[N - 1 + n],
+                flmn[n],
                 L,
-                -n,
+                -spins[n],
                 nside,
                 sampling,
-                reality if n == 0 else False,
-                precomps[n - n_start_ind],
-                spmd,
+                False,
+                [
+                    lrenorm[n],
+                    vsign[n],
+                    precomps[2][0],
+                    precomps[3][0],
+                    precomps[4][0],
+                ],
+                False,
                 L_lower,
             )
+        )
+        return fban, flmn, lrenorm, vsign, spins
+
+    if spmd:
+
+        # TODO: Generalise this to optional device counts.
+        ndevices = local_device_count()
+        opsdevice = (
+            int(N / ndevices) if reality else int((2 * N - 1) / ndevices)
+        )
+
+        def eval_spin_spherical_loop(fban, flmn, lrenorm, vsign, spins):
+            return lax.fori_loop(
+                0,
+                opsdevice,
+                spin_spherical_loop,
+                (fban, flmn, lrenorm, vsign, spins),
+            )[0]
+
+        # Reshape inputs
+        spmd_shape = (ndevices, opsdevice)
+        lrenorm = precomps[0].reshape(spmd_shape + precomps[0].shape[1:])
+        vsign = precomps[1].reshape(spmd_shape + precomps[1].shape[1:])
+        vin = flmn[N - 1 + n_start_ind :].reshape(spmd_shape + flmn.shape[1:])
+        vout = fban[N - 1 + n_start_ind :].reshape(spmd_shape + fban.shape[1:])
+        spins = spins.reshape(spmd_shape)
+
+        fban = fban.at[N - 1 + n_start_ind :].add(
+            pmap(eval_spin_spherical_loop, in_axes=(0, 0, 0, 0, 0))(
+                vout, vin, lrenorm, vsign, spins
+            ).reshape((ndevices * opsdevice,) + fban.shape[1:])
+        )
+    else:
+        opsdevice = N if reality else 2 * N - 1
+        fban = fban.at[N - 1 + n_start_ind :].add(
+            lax.fori_loop(
+                0,
+                opsdevice,
+                spin_spherical_loop,
+                (
+                    fban[N - 1 + n_start_ind :],
+                    flmn[N - 1 + n_start_ind :],
+                    precomps[0],
+                    precomps[1],
+                    spins,
+                ),
+            )[0]
         )
 
     if reality:
         fban = fban.at[: N - 1].set(jnp.flip(jnp.conj(fban[N:]), axis=0))
-    ax = -2 if sampling.lower() == "healpix" else -3
-    fban = jnp.conj(jnp.fft.ifftshift(fban, axes=ax))
-    f = jnp.conj(jnp.fft.fft(fban, axis=ax, norm="backward"))
+    fban = jnp.conj(jnp.fft.ifftshift(fban, axes=0))
+    f = jnp.conj(jnp.fft.fft(fban, axis=0, norm="backward"))
 
     return f
 
@@ -506,13 +562,10 @@ def forward_jax(
     """
     flmn = jnp.zeros(samples.flmn_shape(L, N), dtype=jnp.complex128)
 
-    ax = -2 if sampling.lower() == "healpix" else -3
     if reality:
-        fban = jnp.fft.rfft(jnp.real(f), axis=ax, norm="backward")
+        fban = jnp.fft.rfft(jnp.real(f), axis=0, norm="backward")
     else:
-        fban = jnp.fft.fftshift(
-            jnp.fft.fft(f, axis=ax, norm="backward"), axes=ax
-        )
+        fban = jnp.fft.fftshift(jnp.fft.fft(f, axis=0, norm="backward"), axes=0)
 
     fban *= 2 * jnp.pi / (2 * N - 1)
 
@@ -520,23 +573,81 @@ def forward_jax(
         sgn = (-1) ** abs(jnp.arange(-L + 1, L))
 
     n_start_ind = 0 if reality else -N + 1
-    for n in range(n_start_ind, N):
-        flmn = flmn.at[N - 1 + n].add(
-            (-1) ** n
+    spins = jnp.arange(n_start_ind, N)
+
+    def spin_spherical_loop(n, args):
+        flmn, fban, lrenorm, vsign, spins = args
+        flmn = flmn.at[n].add(
+            (-1) ** spins[n]
             * spin_spherical.forward_jax(
-                fban[n - n_start_ind],
+                fban[n],
                 L,
-                -n,
+                -spins[n],
                 nside,
                 sampling,
-                reality if n == 0 else False,
-                precomps[n - n_start_ind],
-                spmd,
+                False,
+                [
+                    lrenorm[n],
+                    vsign[n],
+                    precomps[2][0],
+                    precomps[3][0],
+                    precomps[4][0],
+                ],
+                False,
                 L_lower,
             )
         )
+        return flmn, fban, lrenorm, vsign, spins
+
+    if spmd:
+        # TODO: Generalise this to optional device counts.
+        ndevices = local_device_count()
+        opsdevice = (
+            int(N / ndevices) if reality else int((2 * N - 1) / ndevices)
+        )
+
+        def eval_spin_spherical_loop(fban, flmn, lrenorm, vsign, spins):
+            return lax.fori_loop(
+                0,
+                opsdevice,
+                spin_spherical_loop,
+                (fban, flmn, lrenorm, vsign, spins),
+            )[0]
+
+        # Reshape inputs
+        spmd_shape = (ndevices, opsdevice)
+        lrenorm = precomps[0].reshape(spmd_shape + precomps[0].shape[1:])
+        vsign = precomps[1].reshape(spmd_shape + precomps[1].shape[1:])
+        fban = fban.reshape(spmd_shape + fban.shape[1:])
+        vout = flmn[N - 1 + n_start_ind :].reshape(spmd_shape + flmn.shape[1:])
+        spins = spins.reshape(spmd_shape)
+
+        flmn = flmn.at[N - 1 + n_start_ind :].add(
+            pmap(eval_spin_spherical_loop, in_axes=(0, 0, 0, 0, 0))(
+                vout, fban, lrenorm, vsign, spins
+            ).reshape((ndevices * opsdevice,) + flmn.shape[1:])
+        )
+    else:
+        opsdevice = N if reality else 2 * N - 1
+        flmn = flmn.at[N - 1 + n_start_ind :].add(
+            lax.fori_loop(
+                0,
+                opsdevice,
+                spin_spherical_loop,
+                (
+                    flmn[N - 1 + n_start_ind :],
+                    fban,
+                    precomps[0],
+                    precomps[1],
+                    spins,
+                ),
+            )[0]
+        )
+
+    # Fill out Wigner coefficients steerability of real signals
+    for n in range(n_start_ind, N):
         if reality and n != 0:
-            flmn = flmn.at[N - 1 - n].add(
+            flmn = flmn.at[N - 1 - n].set(
                 jnp.conj(jnp.flip(flmn[N - 1 + n] * sgn * (-1) ** n, axis=-1))
             )
 

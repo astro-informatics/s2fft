@@ -161,7 +161,7 @@ def inverse_latitudinal_step(
     return ftm
 
 
-@partial(jit, static_argnums=(2, 3, 4, 5, 6, 8, 9))
+@partial(jit, static_argnums=(2, 4, 5, 6, 8, 9))
 def inverse_latitudinal_step_jax(
     flm: jnp.ndarray,
     beta: jnp.ndarray,
@@ -561,7 +561,7 @@ def forward_latitudinal_step(
     return flm
 
 
-@partial(jit, static_argnums=(2, 3, 4, 5, 6, 8, 9))
+@partial(jit, static_argnums=(2, 4, 5, 6, 8, 9))
 def forward_latitudinal_step_jax(
     ftm: jnp.ndarray,
     beta: jnp.ndarray,

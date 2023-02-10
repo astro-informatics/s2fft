@@ -48,7 +48,7 @@ def generate_precomputes(
         TODO: this function should be optimised.
     """
     mm = -spin
-    L0 = max(abs(spin), L_lower)
+    L0 = L_lower
     # Correct for mw to mwss conversion
     if forward and sampling.lower() in ["mw", "mwss"]:
         sampling = "mwss"
@@ -147,7 +147,7 @@ def generate_precomputes_jax(
         List[jnp.ndarray]: List of precomputed coefficient arrays.
     """
     mm = -spin
-    L0 = max(abs(spin), L_lower)
+    L0 = L_lower
     # Correct for mw to mwss conversion
     if forward and sampling.lower() in ["mw", "mwss"]:
         sampling = "mwss"
@@ -295,6 +295,7 @@ def generate_precomputes_wigner(
     return precomps
 
 
+@partial(jit, static_argnums=(0, 1, 2, 3, 4, 5, 6))
 def generate_precomputes_wigner_jax(
     L: int,
     N: int,
@@ -334,13 +335,32 @@ def generate_precomputes_wigner_jax(
     Returns:
         List[List[jnp.ndarray]]: 2N-1 length List of Lists of precomputed coefficient arrays.
     """
-    precomps = []
+    lrenorm = []
+    vsign = []
+    cpi = []
+    cp2 = []
+    indices = []
+    captured_repeats = False
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
-        precomps.append(
-            generate_precomputes_jax(L, -n, sampling, nside, forward, L_lower)
+        precomps = generate_precomputes_jax(
+            L, -n, sampling, nside, forward, L_lower
         )
-    return precomps
+        lrenorm.append(precomps[0])
+        vsign.append(precomps[1])
+        if not captured_repeats:
+            cpi.append(precomps[2])
+            cp2.append(precomps[3])
+            indices.append(precomps[4])
+            captured_repeats = True
+
+    return [
+        jnp.asarray(lrenorm),
+        jnp.asarray(vsign),
+        jnp.asarray(cpi),
+        jnp.asarray(cp2),
+        jnp.asarray(indices),
+    ]
 
 
 def compute_all_slices(

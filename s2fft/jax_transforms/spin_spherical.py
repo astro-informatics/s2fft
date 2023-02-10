@@ -135,8 +135,8 @@ def inverse_numpy(
     thetas = samples.thetas(L, sampling, nside)
     m_offset = 1 if sampling.lower() in ["mwss", "healpix"] else 0
     m_start_ind = L - 1 if reality else 0
+    L0 = L_lower
 
-    L0 = max(abs(spin), L_lower)
     # Apply harmonic normalisation
     flm[L0:] = np.einsum(
         "lm,l->lm", flm[L0:], np.sqrt((2 * np.arange(L0, L) + 1) / (4 * np.pi))
@@ -185,7 +185,7 @@ def inverse_numpy(
             )
 
 
-@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7, 8))
+@partial(jit, static_argnums=(1, 3, 4, 5, 7, 8))
 def inverse_jax(
     flm: jnp.ndarray,
     L: int,
@@ -246,8 +246,7 @@ def inverse_jax(
     thetas = samples.thetas(L, sampling, nside)
     m_offset = 1 if sampling.lower() in ["mwss", "healpix"] else 0
     m_start_ind = L - 1 if reality else 0
-
-    L0 = max(abs(spin), L_lower)
+    L0 = L_lower
 
     # Apply harmonic normalisation
     flm = flm.at[L0:].set(
@@ -423,12 +422,11 @@ def forward_numpy(
     else:
         thetas = samples.thetas(L, sampling, nside)
 
-    L0 = max(abs(spin), L_lower)
-
     # Define latitudinal sample positions and Fourier offsets
     weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     m_start_ind = L - 1 if reality else 0
+    L0 = L_lower
 
     # Perform longitundal Fast Fourier Transforms
     if sampling.lower() == "healpix":
@@ -470,8 +468,6 @@ def forward_numpy(
         flm = otf.forward_latitudinal_step(
             ftm, thetas, L, spin, nside, sampling, reality, precomps, L0
         )
-    # Enforce spin condition explicitly
-    flm[:L0] = 0.0
 
     # Include both pole singularities explicitly
     if sampling.lower() == "mwss":
@@ -491,10 +487,14 @@ def forward_numpy(
         flm[..., :m_start_ind] = np.flip(
             m_conj * np.conj(flm[..., m_start_ind + 1 :]), axis=-1
         )
+
+    # Enforce spin condition explicitly
+    flm[: max(abs(spin), L_lower)] = 0.0
+
     return flm * (-1) ** spin
 
 
-@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7, 8))
+@partial(jit, static_argnums=(1, 3, 4, 5, 7, 8))
 def forward_jax(
     f: jnp.ndarray,
     L: int,
@@ -561,12 +561,11 @@ def forward_jax(
     else:
         thetas = samples.thetas(L, sampling, nside)
 
-    L0 = max(abs(spin), L_lower)
-
     # Define latitudinal sample positions and Fourier offsets
     weights = quadrature_jax.quad_weights_transform(L, sampling, nside)
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     m_start_ind = L - 1 if reality else 0
+    L0 = L_lower
 
     # Perform longitundal Fast Fourier Transforms
     if sampling.lower() == "healpix":
@@ -609,8 +608,6 @@ def forward_jax(
         flm = otf.forward_latitudinal_step_jax(
             ftm, thetas, L, spin, nside, sampling, reality, precomps, spmd, L0
         )
-    # Enforce spin condition explicitly
-    flm = flm.at[:L0].set(0.0)
 
     # Include both pole singularities explicitly
     if sampling.lower() == "mwss":
@@ -639,4 +636,10 @@ def forward_jax(
                 axis=-1,
             )
         )
+
+    # Enforce spin condition explicitly.
+    # TODO: There must be a better way of doing this...
+    indices = jnp.repeat(jnp.expand_dims(jnp.arange(L), -1), 2 * L - 1, axis=-1)
+    flm = jnp.where(indices < abs(spin), jnp.zeros_like(flm), flm[..., :])
+
     return flm * (-1) ** spin

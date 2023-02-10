@@ -144,7 +144,6 @@ def test_transform_forward(
         spmd=spmd,
         L_lower=L_lower,
     )
-
     np.testing.assert_allclose(flm, flm_check, atol=1e-14)
 
 
