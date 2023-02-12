@@ -98,6 +98,8 @@ the results for McEwen-Wiaux sampling for the spin-spherical harmonic (left) and
 Wigner transform for azimuthal bandlimit N = 5 (right).
 
 +---------------------+---------------+---------------+----------+
+| L                   | Wall-Time (s)   Acceleration  | Error    |
++---------------------+---------------+---------------+----------+
 | L                   | Wall-Time (s) | Acceleration  | Error    |
 +---------------------+---------------+---------------+----------+
 | 64                  | 0.0036        | 0.88          | 1.81E-15 |
