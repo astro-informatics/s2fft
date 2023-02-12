@@ -183,21 +183,10 @@ article is correctly referenced. A BibTeX entry for this reference may look like
 .. code-block:: 
 
      @article{price:2023:sax, 
-        author = {Price, Matthew A and McEwen, Jason D and Graham, Matthew and Miñano-González, Sofía and Gopinathan, Devaraj},
-         title = {"Name pending"},
+        author = {Price, Matthew A and McEwen, Jason D},
+         title = {'TBA'},
        journal = {ArXiv},
         eprint = {arXiv:0000.00000},
           year = {2023}
      }
-License
--------
-
-``S2FFT`` is released under the MIT license (see 
-`LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
-
-.. code-block::
-
-     S2FFT
-     Copyright (C) 2023 Author names & contributors
-
-     This program is released under the MIT license (see `LICENSE.txt`).
+     
