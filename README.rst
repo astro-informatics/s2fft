@@ -28,8 +28,6 @@ to accelerated, differentiable, and directional spin-wavelets, ``S2WAV`` on both
 `Price & McEwen 2021 <https://arxiv.org/abs/2105.05518>`_.
 
 
-.. image:: ./docs/assets/figures/schematic.png
-
 Overview
 ---------
 ``S2FFT`` is a software package which provides support for Generalised Fast Fourier Transforms 
