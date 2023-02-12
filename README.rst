@@ -13,7 +13,7 @@
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
 
-|logo| Accelerated and differentiable spherical transforms with JAX
+|logo| Differentiable and accelerated spherical transforms with JAX
 =================================================================================================================
 
 .. |logo| raw:: html
@@ -26,6 +26,9 @@ group, which is differentiable, and deployable on modern hardware accelerators (
 to accelerated, differentiable, and directional spin-wavelets, ``S2WAV`` on both the 2-sphere 
 `McEwen et al 2015 <https://arxiv.org/abs/1509.06749>`_ and 3-ball 
 `Price & McEwen 2021 <https://arxiv.org/abs/2105.05518>`_.
+
+
+.. image:: ./docs/assets/figures/schematic.png
 
 Overview
 ---------
@@ -47,9 +50,26 @@ in addition to various other discretisations of the sphere.
     with various different optimisations from which one may select depending on available 
     resources and desired angular resolution L.
 
+.. image:: ./docs/assets/figures/mwss_sampling_16.png
+   :width: 258
+   :target: https://arxiv.org/abs/1110.6298
 
-Installation
-------------
+.. image:: ./docs/assets/figures/healpix_sampling_16.png
+   :width: 258
+   :target: https://arxiv.org/abs/astro-ph/0409513
+
+.. image:: ./docs/assets/figures/dh_sampling_16.png
+   :width: 258
+   :target: https://www.sciencedirect.com/science/article/pii/S0196885884710086
+
+Sampling patterns for McEwen-Wiaux, HEALPix, and Driscoll-Healy respectively, note that of 
+the three HEALPix does not provide a sampling theorem, and therefore provides only 
+approximate transforms. However, HEALPix does provide equal-area pixels which is a 
+very nice trait when dealing with e.g. per-pixel noise covariances in a scientific 
+setting.
+
+Installation :rocket:
+------------------------
 The Python dependencies for the ``S2FFT`` package are listed in the file 
 ``requirements/requirements-core.txt`` and will be automatically installed into the 
 active python environment by `pip` when running
@@ -69,8 +89,40 @@ installation was successful by running
 Alternately, one may install ``S2FFT`` directly from `PyPi` although this does not 
 facilitate local running of unit tests.
 
-Contributors
---------------
+Benchmarking :hourglass_flowing_sand:
+-------------------------------------
+We benchmarked the spin-spherical harmonic and Wigner transforms provided by this package 
+against their contemporaries, in a variety of settings. We consider both complex signals 
+(solid lines) and real signals (dashed lines) wherein hermitian symmetry halves memory 
+overhead and wall-time. We further consider single-program multiple-data (SPMD) deployment 
+of ``S2FFT``, wherein the compute is distributed across multiple GPUs. Below are 
+the results for McEwen-Wiaux sampling for the spin-spherical harmonic (left) and 
+Wigner transform for azimuthal bandlimit N = 5 (right).
+
+.. image:: ./docs/assets/figures/spin_spherical_mw.pdf
+   :width: 387
+
+.. image:: ./docs/assets/figures/wigner_mw.pdf
+   :width: 387
+
+    **NOTE:**
+    The silver and gold stars represent projections for deployment of ``S2FFT`` over 
+    many nodes of a GPU cluster with 100,1000 GPUs respectively. Due to the trivially 
+    parallel design of our internal Wigner-d recursions each harmonic mode and or 
+    latitudinal sample may be processed entirely independently. Moreover, for our Wigner 
+    transforms each azimuthal mode is also trivially parallelised.
+
+These benchmarks are entirely independent from spin number, however some packages have 
+highly optimised (so called 'semi-naive') transforms for scalar spherical harmonic transforms 
+which may be extended to spin-signals, and therefore Wigner transforms, by repeated applications 
+of spin-raising and spin-lowering operators. This process increases their computation time 
+linearly in spin-number, and therefore benchmarking in these settings are highly situation 
+dependant. In the scalar case (spin = 0), and for a single GPU, we recover very similar 
+compute times, whilst for larger spins the improvement roughly grows to that displayed 
+above. 
+
+Contributors :hammer:
+------------------------
 The development of ``S2FFT`` is one aspect of the ``SAX`` collaborative project between 
 the Mullard Space Science Laboratory (MSSL) and Advanced Research Computing (ARC), which aims 
 to develop accelerated and differentiable spherical transforms to enable ongoing research 
@@ -108,7 +160,8 @@ pictured below left to right.
    :width: 155
    :target: https://www.linkedin.com/in/devaraj-g/?originalSubdomain=uk
 
-
+We strongly encourage constributions from any developers that are interested; a simple 
+example would be adding support for more spherical sampling patterns!
 
 Attribution
 --------------
