@@ -97,18 +97,6 @@ of ``S2FFT``, wherein the compute is distributed across multiple GPUs. Below are
 the results for McEwen-Wiaux sampling for the spin-spherical harmonic (left) and 
 Wigner transform for azimuthal bandlimit N = 5 (right).
 
-    **NOTE:**
-    The silver and gold stars represent projections for deployment of ``S2FFT`` over 
-    many nodes of a GPU cluster with 100,1000 GPUs respectively. Due to the trivially 
-    parallel design of our internal Wigner-d recursions each harmonic mode and or 
-    latitudinal sample may be processed entirely independently. Moreover, for our Wigner 
-    transforms each azimuthal mode is also trivially parallelised.
-
-.. image:: ./docs/assets/figures/wigner_mw.png
-   :width: 250
-   
-.. image:: ./docs/assets/figures/spin_spherical_mw.png
-   :width: 250
 
 These benchmarks are entirely independent from spin number, however some packages have 
 highly optimised (so called 'semi-naive') transforms for scalar spherical harmonic transforms 
