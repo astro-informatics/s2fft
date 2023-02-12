@@ -98,10 +98,10 @@ the results for McEwen-Wiaux sampling for the spin-spherical harmonic (left) and
 Wigner transform for azimuthal bandlimit N = 5 (right).
 
 .. image:: ./docs/assets/figures/spin_spherical_mw.png
-   :width: 387
+   :width: 300
 
 .. image:: ./docs/assets/figures/wigner_mw.png
-   :width: 387
+   :width: 300
 
     **NOTE:**
     The silver and gold stars represent projections for deployment of ``S2FFT`` over 
