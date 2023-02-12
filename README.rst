@@ -34,11 +34,19 @@ Overview :zap:
 on the sphere and the rotation group. Leveraging the highly engineered Price-McEwen 
 Wigner-d recursions our transforms exhibit a highly parallelisable algorithmic structure, 
 and are theoretically indefinitely numerically stable; certainly far beyond :math:`L > 20,000` although 
-64bit floating point errors will begin to accumulate eventually. Moreover, these JAX transforms 
-are not only automatically differentiable and deployable on accelerators (GPU & TPUs), but they 
-are also sampling agnostic; all that is required are latitudinal samples on the sphere and 
-appropriate quadrature weights. As such we support `McEwen-Wiaux <https://arxiv.org/abs/1110.6298>`_, 
-`HEALPix <https://healpix.jpl.nasa.gov>`_, and `Driscoll-Healy <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_ 
+64bit floating point errors will begin to accumulate eventually. 
+
+.. image:: ./docs/assets/figures/schematic.png
+   :width: 300
+
+.. image:: ./docs/assets/figures/schematic_part2.png
+   :width: 300
+
+Moreover, these JAX transforms are not only automatically differentiable and deployable on 
+accelerators (GPU & TPUs), but they are also sampling agnostic; all that is required are 
+latitudinal samples on the sphere and appropriate quadrature weights. As such we support 
+`McEwen-Wiaux <https://arxiv.org/abs/1110.6298>`_, `HEALPix <https://healpix.jpl.nasa.gov>`_, 
+and `Driscoll-Healy <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_ 
 in addition to various other discretisations of the sphere.
 
     **NOTE:**
