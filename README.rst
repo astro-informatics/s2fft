@@ -97,9 +97,9 @@ of ``S2FFT``, wherein the compute is distributed across multiple GPUs. Below are
 the results for McEwen-Wiaux sampling for the spin-spherical harmonic (left) and 
 Wigner transform for azimuthal bandlimit N = 5 (right).
 
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
++======+===========+===========+==========+===========+==========+==========+=========+
 |      | S2FFT Recursive Algorithm        | S2FFT Precompute Algorithm                |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
++======+===========+===========+==========+===========+==========+==========+=========+
 | L    | Wall-Time | Speed-up  | Error    | Wall-Time | Speed-up | Error    | Memory  |
 +------+-----------+-----------+----------+-----------+----------+----------+---------+
 | 64   | 3.6 ms    | 0.88      | 1.81E-15 | 52.4 μs   | 60.5     | 1.67E-15 | 4.2 MB  |
