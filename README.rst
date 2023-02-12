@@ -37,10 +37,10 @@ and are theoretically indefinitely numerically stable; certainly far beyond :mat
 64bit floating point errors will begin to accumulate eventually. 
 
 .. image:: ./docs/assets/figures/Wigner_d.png
-   :width: 300
+   :width: 250
 
 .. image:: ./docs/assets/figures/Price_mcewen.png
-   :width: 300
+   :width: 250
 
 Moreover, these JAX transforms are not only automatically differentiable and deployable on 
 accelerators (GPU & TPUs), but they are also sampling agnostic; all that is required are 
