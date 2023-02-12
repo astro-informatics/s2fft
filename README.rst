@@ -97,6 +97,11 @@ of ``S2FFT``, wherein the compute is distributed across multiple GPUs. Below are
 the results for McEwen-Wiaux sampling for the spin-spherical harmonic (left) and 
 Wigner transform for azimuthal bandlimit N = 5 (right).
 
+|   |   |   |   |   |
+|---|---|---|---|---|
+|   |   |   |   |   |
+|   |   |   |   |   |
+|   |   |   |   |   |
 
 These benchmarks are entirely independent from spin number, however some packages have 
 highly optimised (so called 'semi-naive') transforms for scalar spherical harmonic transforms 
