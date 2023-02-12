@@ -104,11 +104,11 @@ Wigner transform for azimuthal bandlimit N = 5 (right).
     latitudinal sample may be processed entirely independently. Moreover, for our Wigner 
     transforms each azimuthal mode is also trivially parallelised.
 
-.. image:: ./docs/assets/figures/spin_spherical_mw.png
-   :width: 300
-
 .. image:: ./docs/assets/figures/wigner_mw.png
-   :width: 300
+   :width: 250
+   
+.. image:: ./docs/assets/figures/spin_spherical_mw.png
+   :width: 250
 
 These benchmarks are entirely independent from spin number, however some packages have 
 highly optimised (so called 'semi-naive') transforms for scalar spherical harmonic transforms 
