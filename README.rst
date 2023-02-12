@@ -63,8 +63,8 @@ in addition to various other discretisations of the sphere.
    :target: https://www.sciencedirect.com/science/article/pii/S0196885884710086
 
 Sampling patterns for McEwen-Wiaux, HEALPix, and Driscoll-Healy respectively, note that of 
-the three HEALPix does not provide a sampling theorem, and therefore provides only 
-approximate transforms. However, HEALPix does provide equal-area pixels which is a 
+the three HEALPix does not provide a sampling theorem, and therefore exhibits approximate 
+transforms. However, HEALPix does provide equal-area pixels which is a 
 very nice trait when dealing with e.g. per-pixel noise covariances in a scientific 
 setting.
 
