@@ -23,17 +23,17 @@
 This directory contains further sub-directories that handle a variety of different 
 *modus operandi* for ``S2FFT``. 
 
-In base transforms we have basic python implementations 
+**In base transforms:** we have basic python implementations 
 of classic spherical harmonic and wigner transforms, which should demonstrate how 
 accelerated algorithms emerge from inefficient nested python loops. 
 
-In precompute transforms we provide both numpy and JAX implementations of the spherical 
+**In precompute transforms:** we provide both numpy and JAX implementations of the spherical 
 harmonic and Wigner transforms, where we split the long/latitudinal components by separation 
 of variables, resulting in a simple Fast Fourier Transform in longitude with complexity 
 O(L^2Log(2L)) and a more complex O(L^3) operation in latitude. For the precompute method 
 we precompute all kernels associated with this latitudinal transform, which then reduces 
 to an extremely fast ``jnp.einsum`` but becomes extremely memory inefficient O(L^3).
 
-In transforms we provide the core ``S2FFT`` functions which evaluate the latitudinal step 
+**In transforms:** we provide the core ``S2FFT`` functions which evaluate the latitudinal step 
 recursively on-the-fly with at most O(L^2) memory overhead. These transforms come both 
 in standard numpy and JAX varients, but of course we highly recommend JAX.
