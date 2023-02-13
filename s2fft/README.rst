@@ -18,7 +18,7 @@
 
 .. |logo| raw:: html
 
-   <img src="./docs/assets/sax_logo.png" align="left" height="85" width="98">
+   <img src="../docs/assets/sax_logo.png" align="left" height="85" width="98">
 
 This directory contains further sub-directories that handle a variety of different 
 *modus operandi* for ``S2FFT``. 
