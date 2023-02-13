@@ -139,40 +139,9 @@ the Mullard Space Science Laboratory (MSSL) and Advanced Research Computing (ARC
 to develop accelerated and differentiable spherical transforms to enable ongoing research 
 into next-generation informatics techniques on the 2-sphere and rotation group.
 Both academic groups are based at University College London (UCL) and this software was, in part, 
-funded by a UCL-ARC Open Source Software Sustainability grant. The development group includes: 
-`Matthew A. Price <https://cosmomatt.github.io/>`_ (MSSL, PI), 
-`Jason D. McEwen <http://www.jasonmcewen.org/>`_ (MSSL, Alan Turing Institute), 
-`Matthew Graham <https://matt-graham.github.io>`_ (ARC),
-`Sofía Miñano <https://www.linkedin.com/in/sofiaminano/?originalSubdomain=uk>`_ (ARC),
-`Devaraj Gopinathan <https://www.linkedin.com/in/devaraj-g/?originalSubdomain=uk>`_ (ARC), 
-pictured below left to right.
-
-.. image:: ./docs/assets/authors/price.jpeg
-   :width: 155
-   :target: https://cosmomatt.github.io/
-
-
-.. image:: ./docs/assets/authors/mcewen.jpeg
-   :width: 155
-   :target: http://www.jasonmcewen.org/
-
-
-.. image:: ./docs/assets/authors/graham.jpeg
-   :width: 155
-   :target: https://matt-graham.github.io
-
-
-.. image:: ./docs/assets/authors/minano.jpeg
-   :width: 155
-   :target: https://www.linkedin.com/in/sofiaminano/?originalSubdomain=uk
-
-
-.. image:: ./docs/assets/authors/gopinathan.jpeg
-   :width: 155
-   :target: https://www.linkedin.com/in/devaraj-g/?originalSubdomain=uk
-
-We strongly encourage constributions from any developers that are interested; a simple 
-example would be adding support for more spherical sampling patterns!
+funded by a UCL-ARC Open Source Software Sustainability grant. We strongly encourage 
+constributions from any developers that are interested; a simple example would be adding 
+support for more spherical sampling patterns!
 
 Attribution :pen:
 ------------------
