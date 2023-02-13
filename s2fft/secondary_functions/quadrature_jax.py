@@ -1,13 +1,18 @@
-import numpy as np
-import numpy.fft as fft
-import s2fft.samples as samples
+from jax import jit, config
+
+config.update("jax_enable_x64", True)
+from functools import partial
+from s2fft.sampling import s2_samples as samples
+import jax.numpy as jnp
 
 
+@partial(jit, static_argnums=(0, 1, 2))
 def quad_weights_transform(
-    L: int, sampling: str = "mwss", spin: int = 0, nside: int = 0
-) -> np.ndarray:
+    L: int, sampling: str = "mwss", nside: int = 0
+) -> jnp.ndarray:
     r"""Compute quadrature weights for :math:`\theta` and :math:`\phi`
-    integration *to use in transform* for various sampling schemes.
+    integration *to use in transform* for various sampling schemes. JAX implementation of
+    :func:`~s2fft.quadrature.quad_weights_transform`.
 
     Quadrature weights to use in transform for MWSS correspond to quadrature weights
     are twice the base resolution, i.e. 2 * L.
@@ -18,8 +23,6 @@ def quad_weights_transform(
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mwss", "dh", "healpix}.  Defaults to "mwss".
 
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
@@ -27,13 +30,13 @@ def quad_weights_transform(
         ValueError: Invalid sampling scheme.
 
     Returns:
-        np.ndarray: Quadrature weights *to use in transform* for sampling scheme for
+        jnp.ndarray: Quadrature weights *to use in transform* for sampling scheme for
         each :math:`\theta` (weights are identical as :math:`\phi` varies for given
         :math:`\theta`).
     """
 
     if sampling.lower() == "mwss":
-        return quad_weights_mwss_theta_only(2 * L, spin=0) * 2 * np.pi / (2 * L)
+        return quad_weights_mwss_theta_only(2 * L) * 2 * jnp.pi / (2 * L)
 
     elif sampling.lower() == "dh":
         return quad_weights_dh(L)
@@ -45,11 +48,13 @@ def quad_weights_transform(
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
 
+@partial(jit, static_argnums=(0, 1, 2))
 def quad_weights(
-    L: int = None, sampling: str = "mw", spin: int = 0, nside: int = None
-) -> np.ndarray:
+    L: int = None, sampling: str = "mw", nside: int = None
+) -> jnp.ndarray:
     r"""Compute quadrature weights for :math:`\theta` and :math:`\phi`
-    integration for various sampling schemes.
+    integration for various sampling schemes. JAX implementation of
+    :func:`~s2fft.quadrature.quad_weights`.
 
     Args:
         L (int, optional): Harmonic band-limit.  Required if sampling not healpix.
@@ -67,15 +72,15 @@ def quad_weights(
         ValueError: Invalid sampling scheme.
 
     Returns:
-        np.ndarray: Quadrature weights for sampling scheme for each :math:`\theta`
+        jnp.ndarray: Quadrature weights for sampling scheme for each :math:`\theta`
         (weights are identical as :math:`\phi` varies for given :math:`\theta`).
     """
 
     if sampling.lower() == "mw":
-        return quad_weights_mw(L, spin)
+        return quad_weights_mw(L)
 
     elif sampling.lower() == "mwss":
-        return quad_weights_mwss(L, spin)
+        return quad_weights_mwss(L)
 
     elif sampling.lower() == "dh":
         return quad_weights_dh(L)
@@ -87,9 +92,10 @@ def quad_weights(
         raise ValueError(f"Sampling scheme sampling={sampling} not implemented")
 
 
-def quad_weights_hp(nside: int) -> np.ndarray:
+@partial(jit, static_argnums=(0))
+def quad_weights_hp(nside: int) -> jnp.ndarray:
     r"""Compute HEALPix quadrature weights for :math:`\theta` and :math:`\phi`
-    integration.
+    integration. JAX implementation of :func:`s2fft.quadrature.quad_weights_hp`.
 
     Note:
         HEALPix weights are identical for all pixels.  Nevertheless, an array of
@@ -100,37 +106,35 @@ def quad_weights_hp(nside: int) -> np.ndarray:
         nside (int): HEALPix Nside resolution parameter.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta` (all weights in array are
+        jnp.ndarray: Weights computed for each :math:`\theta` (all weights in array are
         identical).
     """
-
     npix = 12 * nside**2
     rings = samples.ntheta(sampling="healpix", nside=nside)
-    hp_weights = np.zeros(rings, dtype=np.float64)
-    hp_weights[:] = 4 * np.pi / npix
-
-    return hp_weights
+    return jnp.ones(rings, dtype=jnp.float64) * 4 * jnp.pi / npix
 
 
-def quad_weights_dh(L: int) -> np.ndarray:
+@partial(jit, static_argnums=(0))
+def quad_weights_dh(L: int) -> jnp.ndarray:
     r"""Compute DH quadrature weights for :math:`\theta` and :math:`\phi` integration.
+    JAX implementation of :func:`s2fft.quadrature.quad_weights_dh`.
 
     Args:
         L (int): Harmonic band-limit.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        jnp.ndarray: Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
     """
-
     q = quad_weight_dh_theta_only(samples.thetas(L, sampling="dh"), L)
 
-    return q * 2 * np.pi / (2 * L - 1)
+    return q * 2 * jnp.pi / (2 * L - 1)
 
 
+@partial(jit, static_argnums=(1))
 def quad_weight_dh_theta_only(theta: float, L: int) -> float:
     r"""Compute DH quadrature weight for :math:`\theta` integration (only), for given
-    :math:`\theta`.
+    :math:`\theta`. JAX implementation of :func:`s2fft.quadrature.quad_weights_dh_theta_only`.
 
     Args:
         theta (float): :math:`\theta` angle for which to compute weight.
@@ -140,18 +144,19 @@ def quad_weight_dh_theta_only(theta: float, L: int) -> float:
     Returns:
         float: Weight computed for each :math:`\theta`.
     """
-
     w = 0.0
     for k in range(0, L):
-        w += np.sin((2 * k + 1) * theta) / (2 * k + 1)
+        w += jnp.sin((2 * k + 1) * theta) / (2 * k + 1)
 
-    w *= 2 / L * np.sin(theta)
+    w *= 2 / L * jnp.sin(theta)
 
     return w
 
 
-def quad_weights_mw(L: int, spin: int = 0) -> np.ndarray:
+@partial(jit, static_argnums=(0))
+def quad_weights_mw(L: int) -> jnp.ndarray:
     r"""Compute MW quadrature weights for :math:`\theta` and :math:`\phi` integration.
+    JAX implementation of :func:`s2fft.quadrature.quad_weights_mw`.
 
     Args:
         L (int): Harmonic band-limit.
@@ -159,15 +164,16 @@ def quad_weights_mw(L: int, spin: int = 0) -> np.ndarray:
         spin (int, optional): Harmonic spin. Defaults to 0.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        jnp.ndarray: Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
     """
+    return quad_weights_mw_theta_only(L) * 2 * jnp.pi / (2 * L - 1)
 
-    return quad_weights_mw_theta_only(L, spin) * 2 * np.pi / (2 * L - 1)
 
-
-def quad_weights_mwss(L: int, spin: int = 0) -> np.ndarray:
+@partial(jit, static_argnums=(0))
+def quad_weights_mwss(L: int) -> jnp.ndarray:
     r"""Compute MWSS quadrature weights for :math:`\theta` and :math:`\phi` integration.
+    JAX implementation of :func:`s2fft.quadrature.quad_weights_mwss`.
 
     Args:
         L (int): Harmonic band-limit.
@@ -175,15 +181,16 @@ def quad_weights_mwss(L: int, spin: int = 0) -> np.ndarray:
         spin (int, optional): Harmonic spin. Defaults to 0.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        jnp.ndarray: Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
     """
+    return quad_weights_mwss_theta_only(L) * 2 * jnp.pi / (2 * L)
 
-    return quad_weights_mwss_theta_only(L, spin) * 2 * np.pi / (2 * L)
 
-
-def quad_weights_mwss_theta_only(L: int, spin: int = 0) -> np.ndarray:
+@partial(jit, static_argnums=(0))
+def quad_weights_mwss_theta_only(L: int) -> jnp.ndarray:
     r"""Compute MWSS quadrature weights for :math:`\theta` integration (only).
+    JAX implementation of :func:`s2fft.quadrature.quad_weights_mwss_theta_only`.
 
     Args:
         L (int): Harmonic band-limit.
@@ -193,23 +200,22 @@ def quad_weights_mwss_theta_only(L: int, spin: int = 0) -> np.ndarray:
     Returns:
         np.ndarray: Weights computed for each :math:`\theta`.
     """
+    w = jnp.zeros(2 * L, dtype=jnp.complex128)
 
-    w = np.zeros(2 * L, dtype=np.complex128)
-    # Extra negative m, so logically -el-1 <= m <= el.
     for i in range(-(L - 1) + 1, L + 1):
-        w[i + L - 1] = mw_weights(i - 1)
+        w = w.at[i + L - 1].set(mw_weights(i - 1))
 
-    wr = np.real(fft.fft(fft.ifftshift(w), norm="backward")) / (2 * L)
-
+    wr = jnp.real(jnp.fft.fft(jnp.fft.ifftshift(w), norm="backward")) / (2 * L)
     q = wr[: L + 1]
-
-    q[1:L] = q[1:L] + (-1) ** spin * wr[-1:L:-1]
+    q = q.at[1:L].add(wr[-1:L:-1])
 
     return q
 
 
-def quad_weights_mw_theta_only(L: int, spin: int = 0) -> np.ndarray:
+@partial(jit, static_argnums=(0))
+def quad_weights_mw_theta_only(L: int) -> jnp.ndarray:
     r"""Compute MW quadrature weights for :math:`\theta` integration (only).
+    JAX implementation of :func:`s2fft.quadrature.quad_weights_mw_theta_only`.
 
     Args:
         L (int): Harmonic band-limit.
@@ -219,20 +225,21 @@ def quad_weights_mw_theta_only(L: int, spin: int = 0) -> np.ndarray:
     Returns:
         np.ndarray: Weights computed for each :math:`\theta`.
     """
-
-    w = np.zeros(2 * L - 1, dtype=np.complex128)
+    w = jnp.zeros(2 * L - 1, dtype=jnp.complex128)
     for i in range(-(L - 1), L):
-        w[i + L - 1] = mw_weights(i)
+        w = w.at[i + L - 1].set(mw_weights(i))
 
-    w *= np.exp(-1j * np.arange(-(L - 1), L) * np.pi / (2 * L - 1))
-    wr = np.real(fft.fft(fft.ifftshift(w), norm="backward")) / (2 * L - 1)
+    w *= jnp.exp(-1j * jnp.arange(-(L - 1), L) * jnp.pi / (2 * L - 1))
+    wr = jnp.real(jnp.fft.fft(jnp.fft.ifftshift(w), norm="backward")) / (
+        2 * L - 1
+    )
     q = wr[:L]
-
-    q[: L - 1] = q[: L - 1] + (-1) ** spin * wr[-1 : L - 1 : -1]
+    q = q.at[: L - 1].add(wr[-1 : L - 1 : -1])
 
     return q
 
 
+@partial(jit, static_argnums=(0))
 def mw_weights(m: int) -> float:
     r"""Compute MW weights given as a function of index m.
 
@@ -250,12 +257,11 @@ def mw_weights(m: int) -> float:
     Returns:
         float: MW weight.
     """
-
     if m == 1:
-        return 1j * np.pi / 2
+        return 1j * jnp.pi / 2
 
     elif m == -1:
-        return -1j * np.pi / 2
+        return -1j * jnp.pi / 2
 
     elif m % 2 == 0:
         return 2 / (1 - m**2)

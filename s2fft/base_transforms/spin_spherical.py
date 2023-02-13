@@ -1,11 +1,9 @@
 import numpy as np
-import numpy.fft as fft
 from warnings import warn
-import s2fft.samples as samples
-import s2fft.quadrature as quadrature
-import s2fft.resampling as resampling
-import s2fft.wigner as wigner
-import s2fft.healpix_ffts as hp
+from s2fft.sampling import s2_samples as samples
+from s2fft.secondary_functions import quadrature, resampling
+from s2fft.secondary_functions import healpix_ffts as hp
+from s2fft import recursions
 
 
 def inverse(
@@ -19,7 +17,7 @@ def inverse(
 ) -> np.ndarray:
     r"""Compute inverse spherical harmonic transform.
 
-    Uses a vectorised separation of variables method with FFT.
+    Uses a vectorised separation of variables method with np.fft.
 
     Args:
         flm (np.ndarray): Spherical harmonic coefficients.
@@ -136,7 +134,7 @@ def forward(
 ) -> np.ndarray:
     r"""Compute forward spherical harmonic transform.
 
-    Uses a vectorised separation of variables method with FFT.
+    Uses a vectorised separation of variables method with np.fft.
 
     Args:
         f (np.ndarray): Signal on the sphere.
@@ -305,7 +303,7 @@ def _compute_inverse_direct(
 
         for el in range(max(L_lower, abs(spin)), L):
 
-            dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
+            dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -384,7 +382,7 @@ def _compute_inverse_sov(
     ftm = np.zeros((len(thetas), 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
         for el in range(max(L_lower, abs(spin)), L):
-            dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
+            dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
             m_start_ind = 0 if reality else -el
@@ -470,7 +468,7 @@ def _compute_inverse_sov_fft(
 
         for el in range(max(L_lower, abs(spin)), L):
 
-            dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
+            dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -501,14 +499,16 @@ def _compute_inverse_sov_fft(
         f = hp.healpix_ifft(ftm, L, nside, "numpy", reality)
     else:
         if reality:
-            f = fft.irfft(
+            f = np.fft.irfft(
                 ftm[:, L - 1 + m_offset :],
                 samples.nphi_equiang(L, sampling),
                 axis=1,
                 norm="forward",
             )
         else:
-            f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+            f = np.fft.ifft(
+                np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward"
+            )
 
     return f
 
@@ -563,7 +563,7 @@ def _compute_inverse_sov_fft_vectorized(
 
         for el in range(max(L_lower, abs(spin)), L):
 
-            dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
+            dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
             m_start_ind = L - 1 if reality else 0
             val = (
@@ -582,14 +582,16 @@ def _compute_inverse_sov_fft_vectorized(
         f = hp.healpix_ifft(ftm, L, nside, "numpy", reality)
     else:
         if reality:
-            f = fft.irfft(
+            f = np.fft.irfft(
                 ftm[:, L - 1 + m_offset :],
                 samples.nphi_equiang(L, sampling),
                 axis=1,
                 norm="forward",
             )
         else:
-            f = fft.ifft(fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
+            f = np.fft.ifft(
+                np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward"
+            )
 
     return f
 
@@ -645,7 +647,7 @@ def _compute_forward_direct(
 
         for el in range(max(L_lower, abs(spin)), L):
 
-            dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
+            dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -756,7 +758,7 @@ def _compute_forward_sov(
 
         for el in range(max(L_lower, abs(spin)), L):
 
-            dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
+            dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -841,7 +843,7 @@ def _compute_forward_sov_fft(
         ftm = hp.healpix_fft(f, L, nside, "numpy", reality)
     else:
         if reality:
-            ftm_temp = fft.rfft(
+            ftm_temp = np.fft.rfft(
                 np.real(f),
                 axis=1,
                 norm="backward",
@@ -850,7 +852,9 @@ def _compute_forward_sov_fft(
                 ftm_temp = ftm_temp[:, :-1]
             ftm[:, L - 1 + m_offset :] = ftm_temp
         else:
-            ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
+            ftm = np.fft.fftshift(
+                np.fft.fft(f, axis=1, norm="backward"), axes=1
+            )
 
     for t, theta in enumerate(thetas):
 
@@ -862,7 +866,7 @@ def _compute_forward_sov_fft(
 
         for el in range(max(L_lower, abs(spin)), L):
 
-            dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
+            dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
@@ -961,7 +965,7 @@ def _compute_forward_sov_fft_vectorized(
         ftm = hp.healpix_fft(f, L, nside, "numpy", reality)
     else:
         if reality:
-            t = fft.rfft(
+            t = np.fft.rfft(
                 np.real(f),
                 axis=1,
                 norm="backward",
@@ -970,7 +974,9 @@ def _compute_forward_sov_fft_vectorized(
                 t = t[:, :-1]
             ftm[:, L - 1 + m_offset :] = t
         else:
-            ftm = fft.fftshift(fft.fft(f, axis=1, norm="backward"), axes=1)
+            ftm = np.fft.fftshift(
+                np.fft.fft(f, axis=1, norm="backward"), axes=1
+            )
 
     for t, theta in enumerate(thetas):
 
@@ -982,7 +988,7 @@ def _compute_forward_sov_fft_vectorized(
 
         for el in range(max(L_lower, abs(spin)), L):
 
-            dl = wigner.turok.compute_slice(theta, el, L, -spin, reality)
+            dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 

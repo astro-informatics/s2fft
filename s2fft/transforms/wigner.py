@@ -7,9 +7,8 @@ import jax.numpy as jnp
 import jax.lax as lax
 from functools import partial
 from typing import List
-from s2fft.wigner import samples
-from s2fft.jax_transforms import spin_spherical
-
+from s2fft.sampling import so3_samples as samples
+from s2fft.transforms import spin_spherical
 
 def inverse(
     flmn: np.ndarray,

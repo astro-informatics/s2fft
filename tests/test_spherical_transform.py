@@ -6,9 +6,9 @@ import pyssht as ssht
 import numpy as np
 import healpy as hp
 
-from s2fft import samples
-from s2fft.jax_transforms import spin_spherical
-from s2fft.wigner.price_mcewen import generate_precomputes
+from s2fft.sampling import s2_samples as samples
+from s2fft.transforms import spin_spherical
+from s2fft.recursions.price_mcewen import generate_precomputes
 
 L_to_test = [6, 7, 8]
 L_lower_to_test = [0, 1, 2]

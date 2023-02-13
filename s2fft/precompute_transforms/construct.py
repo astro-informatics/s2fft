@@ -2,7 +2,9 @@ from jax import config
 
 config.update("jax_enable_x64", True)
 import numpy as np
-from s2fft import wigner, samples, quadrature
+from s2fft.sampling import s2_samples as samples
+from s2fft.secondary_functions import quadrature
+from s2fft import recursions
 from warnings import warn
 
 
@@ -57,7 +59,7 @@ def spin_spherical_kernel(
     dl = np.zeros((len(thetas), L, m_dim), dtype=np.float64)
     for t, theta in enumerate(thetas):
         for el in range(abs(spin), L):
-            dl[t, el] = wigner.turok.compute_slice(
+            dl[t, el] = recursions.turok.compute_slice(
                 theta, el, L, -spin, reality
             )[m_start_ind:]
             dl[t, el] *= np.sqrt((2 * el + 1) / (4 * np.pi))
@@ -123,7 +125,7 @@ def wigner_kernel(
         for t, theta in enumerate(thetas):
             for el in range(abs(n), L):
                 ind = n if reality else N - 1 + n
-                dl[ind, t, el] = wigner.turok.compute_slice(
+                dl[ind, t, el] = recursions.turok.compute_slice(
                     theta, el, L, n, False
                 )
 

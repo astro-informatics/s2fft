@@ -1,6 +1,6 @@
 import numpy as np
-import s2fft.samples as samples
-import s2fft.wigner.samples as wigner_samples
+from s2fft.sampling import s2_samples as samples
+from s2fft.sampling import so3_samples as wigner_samples
 
 
 def generate_flm(

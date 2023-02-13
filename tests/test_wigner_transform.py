@@ -3,12 +3,10 @@ from jax import config
 config.update("jax_enable_x64", True)
 import pytest
 import numpy as np
-import healpy as hp
 
-from s2fft import samples
-from s2fft.jax_transforms import wigner
-from s2fft.wigner import transform
-from s2fft.wigner.price_mcewen import (
+from s2fft.transforms import wigner
+from s2fft.base_transforms import wigner as base_wigner
+from s2fft.recursions.price_mcewen import (
     generate_precomputes_wigner,
     generate_precomputes_wigner_jax,
 )
@@ -44,7 +42,7 @@ def test_inverse_wigner_transform(
         pytest.skip("GPU distribution only valid for JAX.")
 
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
-    f_check = transform.inverse(flmn, L, N, L_lower, sampling, reality)
+    f_check = base_wigner.inverse(flmn, L, N, L_lower, sampling, reality)
 
     if method.lower() == "jax":
         precomps = generate_precomputes_wigner_jax(
@@ -83,7 +81,7 @@ def test_forward_wigner_transform(
         pytest.skip("GPU distribution only valid for JAX.")
 
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
-    f = transform.inverse(flmn, L, N, L_lower, sampling, reality)
+    f = base_wigner.inverse(flmn, L, N, L_lower, sampling, reality)
 
     if method.lower() == "jax":
         precomps = generate_precomputes_wigner_jax(

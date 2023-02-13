@@ -8,7 +8,7 @@ import jax.lax as lax
 from jax import jit
 from functools import partial
 
-from s2fft import samples
+from s2fft.sampling import s2_samples as samples
 from typing import List
 
 

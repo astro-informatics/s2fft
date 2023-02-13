@@ -1,5 +1,5 @@
 import numpy as np
-from s2fft import samples
+from s2fft.sampling import s2_samples as samples
 from typing import Tuple
 
 

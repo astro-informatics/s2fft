@@ -6,15 +6,15 @@ import numpy as np
 import jax.numpy as jnp
 from functools import partial
 from typing import List
-from s2fft import (
-    samples,
+from s2fft.sampling import s2_samples as samples
+from s2fft.secondary_functions import (
     resampling,
     quadrature,
     resampling_jax,
     quadrature_jax,
 )
-import s2fft.healpix_ffts as hp
-from s2fft.jax_transforms import otf_recursions as otf
+from s2fft.secondary_functions import healpix_ffts as hp
+from s2fft.transforms import otf_recursions as otf
 
 
 def inverse(

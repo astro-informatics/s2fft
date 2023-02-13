@@ -5,10 +5,9 @@ config.update("jax_enable_x64", True)
 import numpy as np
 import jax.numpy as jnp
 
-from s2fft import resampling
-import s2fft.wigner.samples as w_samples
-import s2fft.healpix_ffts as hp
-from s2fft import resampling_jax
+from s2fft.secondary_functions import resampling, resampling_jax
+from s2fft.secondary_functions import healpix_ffts as hp
+from s2fft.sampling import so3_samples as samples
 from functools import partial
 
 
@@ -106,7 +105,7 @@ def inverse_transform(
     n_start_ind = N - 1 if reality else 0
 
     fnab = np.zeros(
-        w_samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128
+        samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128
     )
     fnab[n_start_ind:, :, m_offset:] = np.einsum(
         "...ntlm, ...nlm -> ...ntm", kernel, flmn[n_start_ind:, :, :]
@@ -114,7 +113,7 @@ def inverse_transform(
 
     if sampling.lower() in "healpix":
         f = np.zeros(
-            w_samples.f_shape(L, N, sampling, nside), dtype=np.complex128
+            samples.f_shape(L, N, sampling, nside), dtype=np.complex128
         )
         for n in range(n_start_ind - N + 1, N):
             ind = N - 1 + n
@@ -179,7 +178,7 @@ def inverse_transform_jax(
     n_start_ind = N - 1 if reality else 0
 
     fnab = jnp.zeros(
-        w_samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex128
+        samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex128
     )
     fnab = fnab.at[n_start_ind:, :, m_offset:].set(
         jnp.einsum(
@@ -192,7 +191,7 @@ def inverse_transform_jax(
 
     if sampling.lower() in "healpix":
         f = jnp.zeros(
-            w_samples.f_shape(L, N, sampling, nside), dtype=jnp.complex128
+            samples.f_shape(L, N, sampling, nside), dtype=jnp.complex128
         )
         for n in range(n_start_ind - N + 1, N):
             ind = N - 1 + n
@@ -335,7 +334,7 @@ def forward_transform(
 
     if sampling.lower() in "healpix":
         temp = np.zeros(
-            w_samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128
+            samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128
         )
         for n in range(n_start_ind - N + 1, N):
             ind = n if reality else N - 1 + n
@@ -346,7 +345,7 @@ def forward_transform(
         fban = np.fft.fft(fban, axis=-1, norm="backward")
         fban = np.fft.fftshift(fban, axes=-1)[:, :, m_offset:]
 
-    flmn = np.zeros(w_samples.flmn_shape(L, N), dtype=np.complex128)
+    flmn = np.zeros(samples.flmn_shape(L, N), dtype=np.complex128)
     flmn[n_start_ind:] = np.einsum("...ntlm, ...ntm -> ...nlm", kernel, fban)
     if reality:
         flmn[:n_start_ind] = np.conj(
@@ -422,7 +421,7 @@ def forward_transform_jax(
 
     if sampling.lower() in "healpix":
         temp = jnp.zeros(
-            w_samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex128
+            samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex128
         )
         for n in range(n_start_ind - N + 1, N):
             ind = n if reality else N - 1 + n
@@ -435,7 +434,7 @@ def forward_transform_jax(
         fban = jnp.fft.fft(fban, axis=-1, norm="backward")
         fban = jnp.fft.fftshift(fban, axes=-1)[:, :, m_offset:]
 
-    flmn = jnp.zeros(w_samples.flmn_shape(L, N), dtype=jnp.complex128)
+    flmn = jnp.zeros(samples.flmn_shape(L, N), dtype=jnp.complex128)
     flmn = flmn.at[n_start_ind:].set(
         jnp.einsum("...ntlm, ...ntm -> ...nlm", kernel, fban, optimize=True)
     )

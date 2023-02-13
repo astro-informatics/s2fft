@@ -1,8 +1,9 @@
 import pytest
 import numpy as np
 import s2fft
-from s2fft.precompute_transform.spin_spherical import inverse, forward
-from s2fft.precompute_transform.construct import spin_spherical_kernel
+from s2fft.precompute_transforms.spin_spherical import inverse, forward
+from s2fft.precompute_transforms.construct import spin_spherical_kernel
+from s2fft.base_transforms import spin_spherical as base
 
 L_to_test = [6, 7, 8]
 spin_to_test = [-2, -1, 0, 1, 2]
@@ -27,7 +28,7 @@ def test_transform_inverse(
     method: str,
 ):
     flm = flm_generator(L=L, spin=spin, reality=reality)
-    f_check = s2fft.transform.inverse(flm, L, spin, sampling, reality=reality)
+    f_check = base.inverse(flm, L, spin, sampling, reality=reality)
 
     kernel = spin_spherical_kernel(
         L,
@@ -56,7 +57,7 @@ def test_transform_inverse_healpix(
     sampling = "healpix"
     L = ratio * nside
     flm = flm_generator(L=L, reality=True)
-    f_check = s2fft.transform.inverse(flm, L, 0, sampling, nside, reality)
+    f_check = base.inverse(flm, L, 0, sampling, nside, reality)
 
     kernel = spin_spherical_kernel(
         L, 0, reality, sampling, nside=nside, forward=False
@@ -81,8 +82,8 @@ def test_transform_forward(
 ):
     flm = flm_generator(L=L, spin=spin, reality=reality)
 
-    f = s2fft.transform.inverse(flm, L, spin, sampling, reality=reality)
-    flm_check = s2fft.transform.forward(f, L, spin, sampling, reality=reality)
+    f = base.inverse(flm, L, spin, sampling, reality=reality)
+    flm_check = base.forward(f, L, spin, sampling, reality=reality)
 
     kernel = spin_spherical_kernel(
         L, spin, reality, sampling, nside=None, forward=True
@@ -108,8 +109,8 @@ def test_transform_forward_healpix(
     sampling = "healpix"
     L = ratio * nside
     flm = flm_generator(L=L, reality=True)
-    f = s2fft.transform.inverse(flm, L, 0, sampling, nside, reality)
-    flm_check = s2fft.transform.forward(f, L, 0, sampling, nside, reality)
+    f = base.inverse(flm, L, 0, sampling, nside, reality)
+    flm_check = base.forward(f, L, 0, sampling, nside, reality)
 
     kernel = spin_spherical_kernel(
         L, 0, reality, sampling, nside=nside, forward=True

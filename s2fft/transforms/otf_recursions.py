@@ -8,8 +8,11 @@ import jax.lax as lax
 from jax import jit, pmap, local_device_count
 from functools import partial
 from typing import List
-from s2fft import samples
-from s2fft.wigner.price_mcewen import generate_precomputes
+from s2fft.sampling import s2_samples as samples
+from s2fft.recursions.price_mcewen import (
+    generate_precomputes,
+    generate_precomputes_jax,
+)
 
 
 def inverse_latitudinal_step(
@@ -239,8 +242,8 @@ def inverse_latitudinal_step_jax(
     half_slices = [el + mm + 1, el - mm + 1]
 
     if precomps is None:
-        precomps = generate_precomputes(
-            L, -mm, sampling, nside, L_lower=L_lower
+        precomps = generate_precomputes_jax(
+            L, -mm, sampling, nside, sL_lower=L_lower
         )
     lrenorm, vsign, cpi, cp2, indices = precomps
 
@@ -639,7 +642,9 @@ def forward_latitudinal_step_jax(
     half_slices = [el + mm + 1, el - mm + 1]
 
     if precomps is None:
-        precomps = generate_precomputes(L, -mm, sampling, nside, True, L_lower)
+        precomps = generate_precomputes_jax(
+            L, -mm, sampling, nside, True, L_lower
+        )
     lrenorm, vsign, cpi, cp2, indices = precomps
 
     for i in range(2):

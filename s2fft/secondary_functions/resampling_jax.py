@@ -2,7 +2,7 @@ from jax import jit, config
 
 config.update("jax_enable_x64", True)
 import jax.numpy as jnp
-import s2fft.samples as samples
+from s2fft.sampling import s2_samples as samples
 from functools import partial
 
 

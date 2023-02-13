@@ -1,7 +1,8 @@
 import pytest
 import so3
 import numpy as np
-import s2fft as s2f
+from s2fft.sampling import so3_samples as samples
+from s2fft.base_transforms import wigner
 
 
 L_to_test = [8, 16]
@@ -35,11 +36,11 @@ def test_inverse_wigner_transform(
     )
 
     flmn_3D = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
-    flmn_1D = s2f.wigner.samples.flmn_3d_to_1d(flmn_3D, L, N)
+    flmn_1D = samples.flmn_3d_to_1d(flmn_3D, L, N)
 
     f_check = so3.inverse(flmn_1D, params)
 
-    f = s2f.wigner.transform.inverse(flmn_3D, L, N, L_lower, sampling, reality)
+    f = wigner.inverse(flmn_3D, L, N, L_lower, sampling, reality)
     f = f.flatten("C")
 
     np.testing.assert_allclose(f, f_check, atol=1e-14)
@@ -67,19 +68,17 @@ def test_forward_wigner_transform(
     )
 
     flmn_3D = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
-    flmn_1D = s2f.wigner.samples.flmn_3d_to_1d(flmn_3D, L, N)
+    flmn_1D = samples.flmn_3d_to_1d(flmn_3D, L, N)
 
     f_1D = so3.inverse(flmn_1D, params)
     f_3D = f_1D.reshape(
-        s2f.wigner.samples._ngamma(N),
-        s2f.wigner.samples._nbeta(L, sampling),
-        s2f.wigner.samples._nalpha(L, sampling),
+        samples._ngamma(N),
+        samples._nbeta(L, sampling),
+        samples._nalpha(L, sampling),
     )
 
-    flmn_check = s2f.wigner.samples.flmn_1d_to_3d(
-        so3.forward(f_1D, params), L, N
-    )
-    flmn = s2f.wigner.transform.forward(f_3D, L, N, L_lower, sampling, reality)
+    flmn_check = samples.flmn_1d_to_3d(so3.forward(f_1D, params), L, N)
+    flmn = wigner.forward(f_3D, L, N, L_lower, sampling, reality)
 
     np.testing.assert_allclose(flmn, flmn_check, atol=1e-14)
 
@@ -98,11 +97,7 @@ def test_round_trip_wigner_transform(
     reality: bool,
 ):
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
-    f = s2f.wigner.transform.inverse(
-        flmn, L, N, L_lower, sampling, reality=reality
-    )
-    flmn_check = s2f.wigner.transform.forward(
-        f, L, N, L_lower, sampling, reality=reality
-    )
+    f = wigner.inverse(flmn, L, N, L_lower, sampling, reality=reality)
+    flmn_check = wigner.forward(f, L, N, L_lower, sampling, reality=reality)
 
     np.testing.assert_allclose(flmn, flmn_check, atol=1e-14)

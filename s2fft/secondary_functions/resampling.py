@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.fft as fft
-import s2fft.samples as samples
+from s2fft.sampling import s2_samples as samples
 
 
 def periodic_extension(

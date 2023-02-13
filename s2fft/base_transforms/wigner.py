@@ -1,6 +1,6 @@
 import numpy as np
-import numpy.fft as fft
-import s2fft
+from s2fft.sampling import so3_samples as samples
+from s2fft.base_transforms import spin_spherical
 
 
 def inverse(
@@ -50,11 +50,9 @@ def inverse(
         n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the number of samples for
         angle :math:`\xi`.
     """
-    assert flmn.shape == s2fft.wigner.samples.flmn_shape(L, N)
+    assert flmn.shape == samples.flmn_shape(L, N)
 
-    fban = np.zeros(
-        s2fft.wigner.samples.f_shape(L, N, sampling, nside), dtype=np.complex128
-    )
+    fban = np.zeros(samples.f_shape(L, N, sampling, nside), dtype=np.complex128)
 
     flmn_scaled = np.einsum(
         "...nlm,...l->...nlm",
@@ -64,7 +62,7 @@ def inverse(
 
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
-        fban[N - 1 + n] = (-1) ** n * s2fft.transform.inverse(
+        fban[N - 1 + n] = (-1) ** n * spin_spherical.inverse(
             flmn_scaled[N - 1 + n],
             L,
             spin=-n,
@@ -76,9 +74,11 @@ def inverse(
 
     ax = -2 if sampling.lower() == "healpix" else -3
     if reality:
-        f = fft.irfft(fban[N - 1 :], 2 * N - 1, axis=ax, norm="forward")
+        f = np.fft.irfft(fban[N - 1 :], 2 * N - 1, axis=ax, norm="forward")
     else:
-        f = fft.ifft(fft.ifftshift(fban, axes=ax), axis=ax, norm="forward")
+        f = np.fft.ifft(
+            np.fft.ifftshift(fban, axes=ax), axis=ax, norm="forward"
+        )
 
     return f
 
@@ -130,15 +130,15 @@ def forward(
     Returns:
         np.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
     """
-    assert f.shape == s2fft.wigner.samples.f_shape(L, N, sampling, nside)
+    assert f.shape == samples.f_shape(L, N, sampling, nside)
 
-    flmn = np.zeros(s2fft.wigner.samples.flmn_shape(L, N), dtype=np.complex128)
+    flmn = np.zeros(samples.flmn_shape(L, N), dtype=np.complex128)
 
     ax = -2 if sampling.lower() == "healpix" else -3
     if reality:
-        fban = fft.rfft(np.real(f), axis=ax, norm="backward")
+        fban = np.fft.rfft(np.real(f), axis=ax, norm="backward")
     else:
-        fban = fft.fftshift(fft.fft(f, axis=ax, norm="backward"), axes=ax)
+        fban = np.fft.fftshift(np.fft.fft(f, axis=ax, norm="backward"), axes=ax)
 
     fban *= 2 * np.pi / (2 * N - 1)
 
@@ -147,7 +147,7 @@ def forward(
 
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
-        flmn[N - 1 + n] = (-1) ** n * s2fft.transform.forward(
+        flmn[N - 1 + n] = (-1) ** n * spin_spherical.forward(
             fban[n - n_start_ind],
             L,
             spin=-n,
