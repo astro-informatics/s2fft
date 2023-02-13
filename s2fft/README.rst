@@ -37,3 +37,6 @@ to an extremely fast ``jnp.einsum`` but becomes extremely memory inefficient O(L
 **In transforms:** we provide the core ``S2FFT`` functions which evaluate the latitudinal step 
 recursively on-the-fly with at most O(L^2) memory overhead. These transforms come both 
 in standard numpy and JAX varients, but of course we highly recommend JAX.
+
+
+.. image:: ../docs/assets/figures/software_overview.png
