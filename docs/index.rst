@@ -157,10 +157,10 @@ article is correctly referenced. A BibTeX entry for this reference may look like
 
 .. toctree::
    :hidden:
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Interactive Tutorials
    
-   tutorials/example_notebook.nblink
+   tutorials/index
 
 .. toctree::
    :hidden:

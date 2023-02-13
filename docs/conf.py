@@ -139,10 +139,10 @@ html_theme_options = {
 }
 
 html_sidebars = {
-    "tutorials/*": [
-        "indices.html",
-        "navbar-nav.html",
-    ],
+    # "tutorials/*": [
+    #     "indices.html",
+    #     "navbar-nav.html",
+    # ],
     "user_guide/*": [
         "indices.html",
         "navbar-nav.html",
