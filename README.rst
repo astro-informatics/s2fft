@@ -174,8 +174,8 @@ pictured below left to right.
 We strongly encourage constributions from any developers that are interested; a simple 
 example would be adding support for more spherical sampling patterns!
 
-Attribution
---------------
+Attribution :pen:
+------------------
 We provide this code under an MIT open-source licence with the hope that it will be of use 
 to a wider community. Should this code be used in any way, we kindly request that the follow 
 article is correctly referenced. A BibTeX entry for this reference may look like:
