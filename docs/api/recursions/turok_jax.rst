@@ -3,5 +3,5 @@
 **************************
 Turok & Bucher JAX
 **************************
-.. automodule:: s2fft.wigner.turok_jax
+.. automodule:: s2fft.recursions.turok_jax
    :members: 

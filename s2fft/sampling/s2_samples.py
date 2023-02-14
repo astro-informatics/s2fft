@@ -138,7 +138,7 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
 def ftm_shape(
     L: int, sampling: str = "mw", nside: int = None
 ) -> Tuple[int, int]:
-    r"""stuff and things
+    r"""Shape of intermediate array, before/after latitudinal step.
 
     Args:
         L (int): Harmonic band-limit.
@@ -508,7 +508,7 @@ def flm_shape(L: int) -> Tuple[int, int]:
 
 
 def elm2ind(el: int, m: int) -> int:
-    """Convert from spherical harmonic 2D indexing of :math:`(\ell,m)` to 1D index.
+    r"""Convert from spherical harmonic 2D indexing of :math:`(\ell,m)` to 1D index.
 
     1D index is defined by `el**2 + el + m`.
 
@@ -528,7 +528,7 @@ def elm2ind(el: int, m: int) -> int:
 
 
 def ind2elm(ind: int) -> tuple:
-    """Convert from 1D spherical harmonic index to 2D index of :math:`(\ell,m)`.
+    r"""Convert from 1D spherical harmonic index to 2D index of :math:`(\ell,m)`.
 
     Warning:
         Note that 1D storage of spherical harmonic coefficients is *not* the default.

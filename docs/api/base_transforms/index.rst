@@ -3,14 +3,34 @@
 **************************
 Reference Transforms
 **************************
-Automatically generated documentation for ``S2FFT`` APIs. All functionality is accessible through a pip installation of the ``S2FFT`` package.
+
+.. list-table:: Spherical harmonic transforms.
+   :widths: 25 25
+   :header-rows: 1
+
+   * - Function Name
+     - Description
+   * - :func:`~inverse`
+     - Wrapper function around various versions of classic inverse spherical harmonic transforms.
+   * - :func:`~forward` 
+     - Wrapper function around various versions of classic forward spherical harmonic transforms.
+
+
+.. list-table:: Wigner transforms.
+   :widths: 25 25
+   :header-rows: 1
+
+   * - Function Name
+     - Description
+   * - :func:`~inverse`
+     - Classic algorithm for forward Wigner transform.
+   * - :func:`~forward`
+     - Classic algorithm for inverse Wigner transform.
 
 .. toctree::
+   :hidden:
    :maxdepth: 3
-   :caption: Reference Transforms
+   :caption: Base Transforms
 
    spin_spherical_transform
-   spherical_samples
-
    wigner_transform
-   wigner_samples

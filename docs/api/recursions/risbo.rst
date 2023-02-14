@@ -3,5 +3,5 @@
 **************************
 Risbo
 **************************
-.. automodule:: s2fft.wigner.risbo
+.. automodule:: s2fft.recursions.risbo
    :members: 

@@ -3,5 +3,5 @@
 **************************
 constructor
 **************************
-.. automodule:: s2fft.precompute_transform.construct
+.. automodule:: s2fft.precompute_transforms.construct
    :members: 

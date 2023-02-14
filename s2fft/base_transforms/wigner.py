@@ -1,6 +1,6 @@
 import numpy as np
 from s2fft.sampling import so3_samples as samples
-from s2fft.base_transforms import spin_spherical
+from s2fft.base_transforms import spherical
 
 
 def inverse(
@@ -62,7 +62,7 @@ def inverse(
 
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
-        fban[N - 1 + n] = (-1) ** n * spin_spherical.inverse(
+        fban[N - 1 + n] = (-1) ** n * spherical.inverse(
             flmn_scaled[N - 1 + n],
             L,
             spin=-n,
@@ -147,7 +147,7 @@ def forward(
 
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
-        flmn[N - 1 + n] = (-1) ** n * spin_spherical.forward(
+        flmn[N - 1 + n] = (-1) ** n * spherical.forward(
             fban[n - n_start_ind],
             L,
             spin=-n,

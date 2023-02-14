@@ -3,5 +3,5 @@
 **************************
 Price & McEwen
 **************************
-.. automodule:: s2fft.wigner.price_mcewen
+.. automodule:: s2fft.recursions.price_mcewen
    :members: 

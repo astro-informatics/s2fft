@@ -1,2 +1,2 @@
-from . import spin_spherical
+from . import spherical
 from . import wigner

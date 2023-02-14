@@ -3,5 +3,5 @@
 **************************
 Turok & Bucher
 **************************
-.. automodule:: s2fft.wigner.turok
+.. automodule:: s2fft.recursions.turok
    :members: 

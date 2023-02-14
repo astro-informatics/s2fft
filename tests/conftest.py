@@ -39,17 +39,18 @@ def flm_generator(rng):
     # Import s2fft (and indirectly numpy) locally to avoid
     # `RuntimeWarning: numpy.ndarray size changed` when importing at module level
     import s2fft as s2f
+    from s2fft.utils import signal_generator
 
-    return partial(s2f.utils.generate_flm, rng)
+    return partial(signal_generator.generate_flm, rng)
 
 
 @pytest.fixture
 def flmn_generator(rng):
     # Import s2fft (and indirectly numpy) locally to avoid
     # `RuntimeWarning: numpy.ndarray size changed` when importing at module level
-    import s2fft as s2f
+    from s2fft.utils import signal_generator
 
-    return partial(s2f.utils.generate_flmn, rng)
+    return partial(signal_generator.generate_flmn, rng)
 
 
 @pytest.fixture

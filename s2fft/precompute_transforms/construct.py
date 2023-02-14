@@ -3,7 +3,7 @@ from jax import config
 config.update("jax_enable_x64", True)
 import numpy as np
 from s2fft.sampling import s2_samples as samples
-from s2fft.secondary_functions import quadrature
+from s2fft.utils import quadrature
 from s2fft import recursions
 from warnings import warn
 

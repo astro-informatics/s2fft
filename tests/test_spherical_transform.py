@@ -7,7 +7,7 @@ import numpy as np
 import healpy as hp
 
 from s2fft.sampling import s2_samples as samples
-from s2fft.transforms import spin_spherical
+from s2fft.transforms import spherical
 from s2fft.recursions.price_mcewen import generate_precomputes
 
 L_to_test = [6, 7, 8]
@@ -53,7 +53,7 @@ def test_transform_inverse(
     )
 
     precomps = generate_precomputes(L, spin, sampling, L_lower=L_lower)
-    f = spin_spherical.inverse(
+    f = spherical.inverse(
         flm,
         L,
         spin,
@@ -84,7 +84,7 @@ def test_transform_inverse_healpix(
     f_check = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
 
     precomps = generate_precomputes(L, 0, sampling, nside, False)
-    f = spin_spherical.inverse(
+    f = spherical.inverse(
         flm,
         L,
         spin=0,
@@ -133,7 +133,7 @@ def test_transform_forward(
     )
 
     precomps = generate_precomputes(L, spin, sampling, None, True, L_lower)
-    flm_check = spin_spherical.forward(
+    flm_check = spherical.forward(
         f,
         L,
         spin,
@@ -164,7 +164,7 @@ def test_transform_forward_healpix(
     f = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
 
     precomps = generate_precomputes(L, 0, sampling, nside, True)
-    flm_check = spin_spherical.forward(
+    flm_check = spherical.forward(
         f,
         L,
         spin=0,

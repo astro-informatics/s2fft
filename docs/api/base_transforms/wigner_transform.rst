@@ -1,7 +1,7 @@
 :html_theme.sidebar_secondary.remove:
 
 **************************
-Wigner transform
+Wigner Transform
 **************************
-.. automodule:: s2fft.wigner.transform
+.. automodule:: s2fft.base_transforms.wigner
    :members: 

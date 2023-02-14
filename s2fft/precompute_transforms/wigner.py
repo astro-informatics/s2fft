@@ -5,8 +5,8 @@ config.update("jax_enable_x64", True)
 import numpy as np
 import jax.numpy as jnp
 
-from s2fft.secondary_functions import resampling, resampling_jax
-from s2fft.secondary_functions import healpix_ffts as hp
+from s2fft.utils import resampling, resampling_jax
+from s2fft.utils import healpix_ffts as hp
 from s2fft.sampling import so3_samples as samples
 from functools import partial
 

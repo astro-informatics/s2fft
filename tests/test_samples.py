@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
-from s2fft.sampling import s2_samples as samples
 import pyssht as ssht
 import healpy as hp
+from s2fft.sampling import s2_samples as samples
 
 
 nside_to_test = [32, 64, 128]

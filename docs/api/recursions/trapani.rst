@@ -3,5 +3,5 @@
 **************************
 Trapani
 **************************
-.. automodule:: s2fft.wigner.trapani
+.. automodule:: s2fft.recursions.trapani
    :members: 

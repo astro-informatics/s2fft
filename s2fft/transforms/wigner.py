@@ -8,7 +8,8 @@ import jax.lax as lax
 from functools import partial
 from typing import List
 from s2fft.sampling import so3_samples as samples
-from s2fft.transforms import spin_spherical
+from s2fft.transforms import spherical
+
 
 def inverse(
     flmn: np.ndarray,
@@ -151,7 +152,7 @@ def inverse_numpy(
 
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
-        fban[N - 1 + n] = (-1) ** n * spin_spherical.inverse_numpy(
+        fban[N - 1 + n] = (-1) ** n * spherical.inverse_numpy(
             flmn[N - 1 + n],
             L,
             -n,
@@ -252,11 +253,11 @@ def inverse_jax(
     n_start_ind = 0 if reality else -N + 1
     spins = jnp.arange(n_start_ind, N)
 
-    def spin_spherical_loop(n, args):
+    def spherical_loop(n, args):
         fban, flmn, lrenorm, vsign, spins = args
         fban = fban.at[n].add(
             (-1) ** spins[n]
-            * spin_spherical.inverse_jax(
+            * spherical.inverse_jax(
                 flmn[n],
                 L,
                 -spins[n],
@@ -284,11 +285,11 @@ def inverse_jax(
             int(N / ndevices) if reality else int((2 * N - 1) / ndevices)
         )
 
-        def eval_spin_spherical_loop(fban, flmn, lrenorm, vsign, spins):
+        def eval_spherical_loop(fban, flmn, lrenorm, vsign, spins):
             return lax.fori_loop(
                 0,
                 opsdevice,
-                spin_spherical_loop,
+                spherical_loop,
                 (fban, flmn, lrenorm, vsign, spins),
             )[0]
 
@@ -301,7 +302,7 @@ def inverse_jax(
         spins = spins.reshape(spmd_shape)
 
         fban = fban.at[N - 1 + n_start_ind :].add(
-            pmap(eval_spin_spherical_loop, in_axes=(0, 0, 0, 0, 0))(
+            pmap(eval_spherical_loop, in_axes=(0, 0, 0, 0, 0))(
                 vout, vin, lrenorm, vsign, spins
             ).reshape((ndevices * opsdevice,) + fban.shape[1:])
         )
@@ -311,7 +312,7 @@ def inverse_jax(
             lax.fori_loop(
                 0,
                 opsdevice,
-                spin_spherical_loop,
+                spherical_loop,
                 (
                     fban[N - 1 + n_start_ind :],
                     flmn[N - 1 + n_start_ind :],
@@ -478,7 +479,7 @@ def forward_numpy(
 
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
-        flmn[N - 1 + n] = (-1) ** n * spin_spherical.forward_numpy(
+        flmn[N - 1 + n] = (-1) ** n * spherical.forward_numpy(
             fban[n - n_start_ind],
             L,
             -n,
@@ -574,11 +575,11 @@ def forward_jax(
     n_start_ind = 0 if reality else -N + 1
     spins = jnp.arange(n_start_ind, N)
 
-    def spin_spherical_loop(n, args):
+    def spherical_loop(n, args):
         flmn, fban, lrenorm, vsign, spins = args
         flmn = flmn.at[n].add(
             (-1) ** spins[n]
-            * spin_spherical.forward_jax(
+            * spherical.forward_jax(
                 fban[n],
                 L,
                 -spins[n],
@@ -605,11 +606,11 @@ def forward_jax(
             int(N / ndevices) if reality else int((2 * N - 1) / ndevices)
         )
 
-        def eval_spin_spherical_loop(fban, flmn, lrenorm, vsign, spins):
+        def eval_spherical_loop(fban, flmn, lrenorm, vsign, spins):
             return lax.fori_loop(
                 0,
                 opsdevice,
-                spin_spherical_loop,
+                spherical_loop,
                 (fban, flmn, lrenorm, vsign, spins),
             )[0]
 
@@ -622,7 +623,7 @@ def forward_jax(
         spins = spins.reshape(spmd_shape)
 
         flmn = flmn.at[N - 1 + n_start_ind :].add(
-            pmap(eval_spin_spherical_loop, in_axes=(0, 0, 0, 0, 0))(
+            pmap(eval_spherical_loop, in_axes=(0, 0, 0, 0, 0))(
                 vout, fban, lrenorm, vsign, spins
             ).reshape((ndevices * opsdevice,) + flmn.shape[1:])
         )
@@ -632,7 +633,7 @@ def forward_jax(
             lax.fori_loop(
                 0,
                 opsdevice,
-                spin_spherical_loop,
+                spherical_loop,
                 (
                     flmn[N - 1 + n_start_ind :],
                     fban,

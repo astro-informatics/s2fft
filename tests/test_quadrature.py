@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 from s2fft.sampling import s2_samples as samples
-from s2fft.secondary_functions import quadrature
-from s2fft.base_transforms import spin_spherical
+from s2fft.utils import quadrature
+from s2fft.base_transforms import spherical
 
 
 @pytest.mark.parametrize("L", [5, 6])
@@ -15,7 +15,7 @@ def test_quadrature_mw_weights(flm_generator, L: int, sampling: str):
 
     flm = flm_generator(L, spin, reality=False)
 
-    f = spin_spherical.inverse(flm, L, spin, sampling)
+    f = spherical.inverse(flm, L, spin, sampling)
 
     integral = flm[0, 0 + L - 1] * np.sqrt(4 * np.pi)
     q = np.reshape(q, (-1, 1))

@@ -1,7 +1,7 @@
 :html_theme.sidebar_secondary.remove:
 
 **************************
-harmonic transform
+Spherical Harmonic Transform
 **************************
-.. automodule:: s2fft.precompute_transform.spin_spherical
+.. automodule:: s2fft.precompute_transforms.spherical
    :members: 
