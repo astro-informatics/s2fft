@@ -1,6 +1,7 @@
 import numpy as np
 from s2fft.sampling import s2_samples as samples
 from typing import Tuple
+import s2fft
 
 
 def f_shape(
@@ -42,6 +43,10 @@ def f_shape(
     elif sampling.lower() == "healpix":
 
         return _ngamma(N), 12 * nside**2
+
+    elif sampling.lower() == "healpix":
+
+        return 12 * nside**2, _ngamma(N)
 
     else:
 

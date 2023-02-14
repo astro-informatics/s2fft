@@ -55,7 +55,6 @@ def test_inverse_wigner_transform(
     f = wigner.inverse(
         flmn, L, N, None, sampling, method, reality, precomps, spmd, L_lower
     )
-
     np.testing.assert_allclose(f, f_check, atol=1e-14)
 
 
@@ -94,5 +93,4 @@ def test_forward_wigner_transform(
     flmn_check = wigner.forward(
         f, L, N, None, sampling, method, reality, precomps, spmd, L_lower
     )
-
     np.testing.assert_allclose(flmn, flmn_check, atol=1e-14)
