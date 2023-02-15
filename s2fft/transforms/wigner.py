@@ -7,8 +7,8 @@ import jax.numpy as jnp
 import jax.lax as lax
 from functools import partial
 from typing import List
+import s2fft
 from s2fft.sampling import so3_samples as samples
-from s2fft.transforms import spherical
 
 
 def inverse(
@@ -142,6 +142,10 @@ def inverse_numpy(
     Returns:
         np.ndarray: Signal on the sphere.
     """
+    if precomps is None:
+        precomps = s2fft.generate_precomputes_wigner(
+            L, N, sampling, nside, False, reality, L_lower
+        )
     fban = np.zeros(samples.f_shape(L, N, sampling, nside), dtype=np.complex128)
 
     flmn[:, L_lower:] = np.einsum(
@@ -152,7 +156,7 @@ def inverse_numpy(
 
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
-        fban[N - 1 + n] = (-1) ** n * spherical.inverse_numpy(
+        fban[N - 1 + n] = (-1) ** n * s2fft.inverse_numpy(
             flmn[N - 1 + n],
             L,
             -n,
@@ -237,6 +241,10 @@ def inverse_jax(
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
     """
+    if precomps is None:
+        precomps = s2fft.generate_precomputes_wigner_jax(
+            L, N, sampling, nside, False, reality, L_lower
+        )
     fban = jnp.zeros(
         samples.f_shape(L, N, sampling, nside), dtype=jnp.complex128
     )
@@ -257,7 +265,7 @@ def inverse_jax(
         fban, flmn, lrenorm, vsign, spins = args
         fban = fban.at[n].add(
             (-1) ** spins[n]
-            * spherical.inverse_jax(
+            * s2fft.inverse_jax(
                 flmn[n],
                 L,
                 -spins[n],
@@ -464,6 +472,10 @@ def forward_numpy(
     Returns:
         np.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
     """
+    if precomps is None:
+        precomps = s2fft.generate_precomputes_wigner(
+            L, N, sampling, nside, True, reality, L_lower
+        )
     flmn = np.zeros(samples.flmn_shape(L, N), dtype=np.complex128)
 
     ax = -2 if sampling.lower() == "healpix" else -3
@@ -479,7 +491,7 @@ def forward_numpy(
 
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
-        flmn[N - 1 + n] = (-1) ** n * spherical.forward_numpy(
+        flmn[N - 1 + n] = (-1) ** n * s2fft.forward_numpy(
             fban[n - n_start_ind],
             L,
             -n,
@@ -560,6 +572,10 @@ def forward_jax(
     Returns:
         jnp.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
     """
+    if precomps is None:
+        precomps = s2fft.generate_precomputes_wigner_jax(
+            L, N, sampling, nside, True, reality, L_lower
+        )
     flmn = jnp.zeros(samples.flmn_shape(L, N), dtype=jnp.complex128)
 
     if reality:
@@ -579,7 +595,7 @@ def forward_jax(
         flmn, fban, lrenorm, vsign, spins = args
         flmn = flmn.at[n].add(
             (-1) ** spins[n]
-            * spherical.forward_jax(
+            * s2fft.forward_jax(
                 fban[n],
                 L,
                 -spins[n],

@@ -20,7 +20,7 @@ from s2fft.transforms import otf_recursions as otf
 def inverse(
     flm: np.ndarray,
     L: int,
-    spin: int,
+    spin: int = 0,
     nside: int = None,
     sampling: str = "mw",
     method: str = "numpy",
@@ -90,7 +90,7 @@ def inverse(
 def inverse_numpy(
     flm: np.ndarray,
     L: int,
-    spin: int,
+    spin: int = 0,
     nside: int = None,
     sampling: str = "mw",
     reality: bool = False,
@@ -189,7 +189,7 @@ def inverse_numpy(
 def inverse_jax(
     flm: jnp.ndarray,
     L: int,
-    spin: int,
+    spin: int = 0,
     nside: int = None,
     sampling: str = "mw",
     reality: bool = False,
@@ -301,7 +301,7 @@ def inverse_jax(
 def forward(
     f: np.ndarray,
     L: int,
-    spin: int,
+    spin: int = 0,
     nside: int = None,
     sampling: str = "mw",
     method: str = "numpy",
@@ -371,7 +371,7 @@ def forward(
 def forward_numpy(
     f: np.ndarray,
     L: int,
-    spin: int,
+    spin: int = 0,
     nside: int = None,
     sampling: str = "mw",
     reality: bool = False,
@@ -498,7 +498,7 @@ def forward_numpy(
 def forward_jax(
     f: jnp.ndarray,
     L: int,
-    spin: int,
+    spin: int = 0,
     nside: int = None,
     sampling: str = "mw",
     reality: bool = False,
