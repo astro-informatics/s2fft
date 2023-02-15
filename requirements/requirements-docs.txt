@@ -8,6 +8,7 @@ sphinx-git==11.0.0
 sphinxcontrib-texfigure==0.1.3
 sphinx-copybutton
 sphinxemoji
+sphinx_rtd_theme
 # Notebooks
 ipython==7.16.1
 jupyter==1.0.0
