@@ -126,13 +126,12 @@ the case for many other methods that scale linearly with spin.
 
 Contributors :hammer:
 ------------------------
-The development of ``S2FFT`` is one aspect of the ``SAX`` collaborative project between 
-the Mullard Space Science Laboratory (MSSL) and Advanced Research Computing (ARC), which aims 
-to develop accelerated and differentiable spherical transforms to enable ongoing research 
-into next-generation informatics techniques on the 2-sphere and rotation group.
-Both academic groups are based at University College London (UCL) and this software was, in part, 
-funded by a UCL-ARC Open Source Software Sustainability grant. We strongly encourage 
-constributions from any developers that are interested; a simple example would be adding 
+
+``S2FFT`` has been developed at UCL, predominantly by Matt Price and Jason McEwen, with
+support from UCL's Advanced Research Computing (ARC) Centre.  The software was, in part,
+funded by a UCL-ARC Open Source Software Sustainability grant. 
+
+We strongly encourage contributions from any interested developers; a simple example would be adding 
 support for more spherical sampling patterns!
 
 Attribution :books:
