@@ -39,7 +39,7 @@ that are stable to high angular resolution :math:`L`.  The diagram below illustr
 
 .. image:: ./docs/assets/figures/schematic.png
 
-Sampling :globe_with_meridians:
+Sampling :earth_africa:
 -----------------------------------
 
 The structure of the algorithms implemented in ``S2FFT`` can support any isolattitude sampling scheme.  A number of sampling schemes are currently supported.
