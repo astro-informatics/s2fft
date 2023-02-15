@@ -5,3 +5,9 @@ pyyaml
 pyssht
 jaxlib==0.3.10
 jax==0.3.13
+
+# Packages required for plotting functionality
+pyvista
+trame
+ipykernel
+ipywidgets

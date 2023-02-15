@@ -1,110 +1,96 @@
+from jax import config
+
+config.update("jax_enable_x64", True)
 import pytest
-from s2fft.samples import nphi_equiang
-import so3
 import numpy as np
-import s2fft as s2f
 
+from s2fft.transforms import wigner
+from s2fft.base_transforms import wigner as base_wigner
+from s2fft.recursions.price_mcewen import (
+    generate_precomputes_wigner,
+    generate_precomputes_wigner_jax,
+)
 
-L_to_test = [8, 16]
-N_to_test = [2, 4, 6]
+L_to_test = [6, 8]
+N_to_test = [2, 4]
 L_lower_to_test = [0, 2, 4]
-sampling_schemes_so3 = ["mw", "mwss"]
-sampling_schemes = ["mw", "mwss", "dh"]
+sampling_to_test = ["mw", "mwss", "dh"]
+method_to_test = ["numpy", "jax"]
 reality_to_test = [False, True]
+multiple_gpus = [False, True]
 
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
-@pytest.mark.parametrize("sampling", sampling_schemes_so3)
+@pytest.mark.parametrize("sampling", sampling_to_test)
+@pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("spmd", multiple_gpus)
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_inverse_wigner_transform(
     flmn_generator,
-    s2fft_to_so3_sampling,
     L: int,
     N: int,
     L_lower: int,
     sampling: str,
+    method: str,
     reality: bool,
+    spmd: bool,
 ):
-    params = so3.create_parameter_dict(
-        L=L,
-        N=N,
-        L0=L_lower,
-        sampling_scheme_str=s2fft_to_so3_sampling(sampling),
-        reality=False,
+    if spmd and method != "jax":
+        pytest.skip("GPU distribution only valid for JAX.")
+
+    flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
+    f_check = base_wigner.inverse(flmn, L, N, L_lower, sampling, reality)
+
+    if method.lower() == "jax":
+        precomps = generate_precomputes_wigner_jax(
+            L, N, sampling, None, False, reality, L_lower
+        )
+    else:
+        precomps = generate_precomputes_wigner(
+            L, N, sampling, None, False, reality, L_lower
+        )
+    f = wigner.inverse(
+        flmn, L, N, None, sampling, method, reality, precomps, spmd, L_lower
     )
-
-    flmn_3D = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
-    flmn_1D = s2f.wigner.samples.flmn_3d_to_1d(flmn_3D, L, N)
-
-    f_check = so3.inverse(flmn_1D, params)
-
-    f = s2f.wigner.transform.inverse(flmn_3D, L, N, L_lower, sampling, reality)
-    f = np.moveaxis(f, -1, 0).flatten("C")
-
     np.testing.assert_allclose(f, f_check, atol=1e-14)
 
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
-@pytest.mark.parametrize("sampling", sampling_schemes_so3)
+@pytest.mark.parametrize("sampling", sampling_to_test)
+@pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("spmd", multiple_gpus)
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_forward_wigner_transform(
     flmn_generator,
-    s2fft_to_so3_sampling,
     L: int,
     N: int,
     L_lower: int,
     sampling: str,
+    method: str,
     reality: bool,
+    spmd: bool,
 ):
-    params = so3.create_parameter_dict(
-        L=L,
-        N=N,
-        L0=L_lower,
-        sampling_scheme_str=s2fft_to_so3_sampling(sampling),
-    )
+    if spmd and method != "jax":
+        pytest.skip("GPU distribution only valid for JAX.")
 
-    flmn_3D = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
-    flmn_1D = s2f.wigner.samples.flmn_3d_to_1d(flmn_3D, L, N)
-
-    f_1D = so3.inverse(flmn_1D, params)
-    f_3D = f_1D.reshape(
-        s2f.wigner.samples._ngamma(N),
-        s2f.wigner.samples._nbeta(L, sampling),
-        s2f.wigner.samples._nalpha(L, sampling),
-    )
-    f_3D = np.moveaxis(f_3D, 0, -1)
-
-    flmn_check = s2f.wigner.samples.flmn_1d_to_3d(
-        so3.forward(f_1D, params), L, N
-    )
-    flmn = s2f.wigner.transform.forward(f_3D, L, N, L_lower, sampling, reality)
-
-    np.testing.assert_allclose(flmn, flmn_check, atol=1e-14)
-
-
-@pytest.mark.parametrize("L", L_to_test)
-@pytest.mark.parametrize("N", N_to_test)
-@pytest.mark.parametrize("L_lower", L_lower_to_test)
-@pytest.mark.parametrize("sampling", sampling_schemes)
-@pytest.mark.parametrize("reality", reality_to_test)
-def test_round_trip_wigner_transform(
-    flmn_generator,
-    L: int,
-    N: int,
-    L_lower: int,
-    sampling: str,
-    reality: bool,
-):
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
-    f = s2f.wigner.transform.inverse(
-        flmn, L, N, L_lower, sampling, reality=reality
-    )
-    flmn_check = s2f.wigner.transform.forward(
-        f, L, N, L_lower, sampling, reality=reality
-    )
+    f = base_wigner.inverse(flmn, L, N, L_lower, sampling, reality)
 
+    if method.lower() == "jax":
+        precomps = generate_precomputes_wigner_jax(
+            L, N, sampling, None, True, reality, L_lower
+        )
+    else:
+        precomps = generate_precomputes_wigner(
+            L, N, sampling, None, True, reality, L_lower
+        )
+    flmn_check = wigner.forward(
+        f, L, N, None, sampling, method, reality, precomps, spmd, L_lower
+    )
     np.testing.assert_allclose(flmn, flmn_check, atol=1e-14)

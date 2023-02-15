@@ -1,21 +1,22 @@
+:html_theme.sidebar_secondary.remove:
+
 **************************
-Namespaces
+API
 **************************
-Automatically generated documentation for **<Project-name>** APIs. All functionality is accessible through a pip installation of the **<Project-name>** package.
+Automatically generated documentation for ``S2FFT`` APIs. All functionality is accessible 
+through a pip installation of the ``S2FFT`` package. Below is an overview of the 
+directory structure for the software.
 
-.. automodule:: s2fft.logs
-   :members: 
-   
-.. tabs:: 
-	
-	.. tab:: Logs
+.. image:: ../assets/figures/software_overview.png
 
-		.. include:: logs.rst
-	
-	.. tab:: Trapani
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+   :caption: Namespaces
 
-		.. include:: trapani.rst
-		
-	.. tab:: other
-
-	.. tab:: apis
+   transforms/index
+   precompute_transforms/index
+   base_transforms/index
+   sampling/index
+   recursions/index
+   utility/index

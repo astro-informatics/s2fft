@@ -1,21 +1,158 @@
-/* Change code blocks font and bump up font size slightly (normally 12px)*/
-.rst-content pre.literal-block, .rst-content div[class^="highlight"] pre, .rst-content .linenodiv pre {
-	font-family: 'Nunito', monospace !important;
-	font-size: 14px !important;
-	white-space: pre-wrap;
+/* Make article content grow/shrink */
+.bd-content {
+    flex-grow: 10;
+    max-width: 5000px;
 }
 
-/* Change code descriptions and literal blocks (inline code via ``) to match the normal font size being used in the sphinx_RTD_theme text  (normally 14px)*/
-.rst-content dl:not(.docutils) tt.descname,.rst-content dl:not(.docutils) tt.descclassname,.rst-content dl:not(.docutils) tt.descname,.rst-content dl:not(.docutils) code.descname,.rst-content dl:not(.docutils) tt.descclassname,.rst-content dl:not(.docutils) code.descclassname, code.docutils {
-	font-family: 'Nunito', monospace !important;
-	font-size: 16px !important;
+.bd-sidebar-primary {
+    flex-grow: 1;
+    max-width: 270px;
 }
 
-/* Change default max width from 800px to better suit max 150 line width in */
-.wy-nav-content {
-max-width: 2000px !important;
+.bd-sidebar-secondary {
+    flex-grow: 1;
+    max-width: 180px;
 }
 
-.wy-side-nav-search .wy-dropdown > a img.logo, .wy-side-nav-search > a img.logo {
-    width: 150px;
+i.fa-youtube:before {
+    color: #FF0000;
+}
+
+ul.nav.bd-sidenav {
+    margin-right: 20px;
+}
+
+div#navbar-menu {
+    padding-left: 10px;
+}
+
+input#search-input {
+    border-radius: 10px;
+}
+
+/* nav#bd-docs-nav a.current {
+    background-color: rgb(197, 197, 197);
+    border-radius: 0px;
+} */
+
+.toctree-l1 {
+    font-weight: 400;
+}
+
+.toctree-l3 {
+    font-weight: 400;
+}
+
+.toctree-l4 {
+    font-weight: 400;
+}
+
+/* .bd-sidenav {
+     font-family: "Roboto Mono" !important;
+ } */
+
+a {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+nav .toctree-l1>ul {
+    /* border-left: 2px solid lightgray; */
+    margin-left: 20px;
+    padding-left: 0px !important;
+}
+
+nav .toctree-l2>ul {
+    /* border-left: 2px dashed lightgray; */
+    margin-left: 20px;
+    padding-left: 0px !important;
+}
+
+nav .toctree-l3>ul {
+    /* border-left: 2px dotted lightgray; */
+    margin-left: 20px;
+    padding-left: 0px !important;
+}
+
+.toctree-l3>ul>li>a {
+    line-height: 125% !important;
+}
+
+.bd-sidenav a {
+    padding-left: 0px !important;
+}
+
+.sd-tab-content>.toctree-wrapper>ul {
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+section#examples>div>ul>li.toctree-l1>a {
+    font-size: 150%;
+    font-weight: 500;
+    border-bottom: solid 1px lightgray;
+    width: 100%;
+    float: left;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    margin-top: 15px;
+}
+
+section#examples li.toctree-l2>a {
+    font-size: 1em !important;
+}
+
+.sd-tab-content li.toctree-l1>a {
+    font-size: 1em !important;
+}
+
+.sd-tab-content a {
+    font-size: 1em !important;
+}
+
+img#banner {
+    float: left;
+    opacity: 1;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    height: 85px;
+    border-radius: 10px;
+}
+
+img#montage {
+    /* float: left; */
+    opacity: 1;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 800px;
+    border-radius: 10px;
+}
+
+/* img.logo__image {
+     background-color: white; 
+     border-radius: 10px;
+ } */
+
+/* So that there's no redundant Tutorials/Reference heading in the tabbed section */
+section:not(#generators) li.toctree-l1>a,
+section:not(#filters) li.toctree-l1>a,
+section:not(#metrics) li.toctree-l1>a,
+section:not(#networks) li.toctree-l1>a,
+section:not(#simulations) li.toctree-l1>a,
+section:not(#tools) li.toctree-l1>a,
+section:not(#visualization) li.toctree-l1>a {
+    display: none;
+}
+
+section#examples li.toctree-l1>a {
+    display: flex !important;
+}
+
+/* So that Tutorials/Reference are not clickable in the sidebar */
+li.toctree-l2.has-children>a {
+    pointer-events: none;
 }
