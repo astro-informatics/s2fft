@@ -48,20 +48,7 @@ The equiangular sampling schemes of `McEwen & Wiaux (2012) <https://arxiv.org/ab
 
 The popular `HEALPix <https://healpix.jpl.nasa.gov>`_ sampling scheme (`Gorski et al. 2005 <https://arxiv.org/abs/astro-ph/0409513>`_) is also supported.  The HEALPix sampling does not exhibit a sampling theorem and so the corresponding harmonic transforms do not achieve machine precision but exhibit some error.  However, the HEALPix sampling provides pixels of equal areas, which has many practical advantages.
     
-.. image:: ./docs/assets/figures/mwss_sampling_16.png
-   :width: 258
-   :target: https://arxiv.org/abs/1110.6298   
-
-.. image:: ./docs/assets/figures/dh_sampling_16.png
-   :width: 258
-   :target: https://www.sciencedirect.com/science/article/pii/S0196885884710086
-
-.. image:: ./docs/assets/figures/healpix_sampling_16.png
-   :width: 258
-   :target: https://arxiv.org/abs/astro-ph/0409513
-
-TODO: add captions to above
-
+.. image:: ./docs/assets/figures/spherical_sampling.png
 
 Installation :computer:
 ------------------------
