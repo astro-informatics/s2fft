@@ -1,4 +1,0 @@
-pyvista
-trame
-ipykernel
-ipywidgets
