@@ -20,55 +20,49 @@
 
    <img src="./docs/assets/sax_logo.png" align="left" height="85" width="98">
 
-A JAX package for Generalised Fast Fourier Transforms (GFFTs) on the sphere and rotation 
-group, which is differentiable, and deployable on modern hardware accelerators (GPU & TPUs). 
-``S2FFT`` is a core module from the ``SAX`` package, which includes extensions of these transforms 
-to accelerated, differentiable spin-wavelets, ``S2WAV`` on both the 2-sphere 
-`McEwen et al 2015 <https://arxiv.org/abs/1509.06749>`_ and 3-ball 
-`Price & McEwen 2021 <https://arxiv.org/abs/2105.05518>`_.
+``S2FFT`` is a JAX package for computing Fourier transforms on the sphere
+:math:`\mathbb{S}^2` and rotation group :math:`\text{SO(3)}`.  It leverages autodiff to
+provide differentiable transforms, which are also deployable on modern hardware accelerators
+(e.g. GPUs and TPUs). 
 
+More specifically, ``S2FFT`` provides support for spin spherical harmonic and Wigner
+transforms (for both real and complex signals), with support for adjoint transformations
+where needed, and comes with different optimisations (precompute or not) that one
+may select depending on available resources and desired angular resolution :math:`L`.
 
-Overview :zap:
---------------
-``S2FFT`` is a software package which provides support for Generalised Fast Fourier Transforms 
-on the sphere and the rotation group. Leveraging the highly engineered Price-McEwen 
-Wigner-d recursions our transforms exhibit a highly parallelisable algorithmic structure, 
-and are theoretically indefinitely numerically stable; certainly far beyond :math:`L > 20,000` although 
-64bit floating point errors will begin to accumulate eventually. 
+Algorithms :zap:
+----------------
+
+``S2FFT`` leverages new algorithmic structures that can he highly parallelised and
+distributed, and so map very well onto the architecture of hardware accelerators (i.e.
+GPUs and TPUs).  In particular, these algorithms are based on new Wigner-d recursions
+that are stable to high angular resolution :math:`L`.  The diagram below illustrates the recursions (for further details see Price & McEwen 2023).
 
 .. image:: ./docs/assets/figures/schematic.png
 
-Moreover, these JAX transforms are not only automatically differentiable and deployable on 
-accelerators (GPU & TPUs), but they are also sampling agnostic; all that is required are 
-latitudinal samples on the sphere and appropriate quadrature weights. As such we support 
-`McEwen-Wiaux <https://arxiv.org/abs/1110.6298>`_, `HEALPix <https://healpix.jpl.nasa.gov>`_, 
-and `Driscoll-Healy <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_ 
-in addition to various other discretisations of the sphere.
+Sampling :zap:
+--------------
 
-    **NOTE:**
-    By construction ``S2FFT`` is straightforward to install, provides support 
-    for spin-spherical harmonic and Wigner transforms (over both real and complex signals), 
-    with straightforward extensions to adjoint transformations where needed, and comes 
-    with various different optimisations from which one may select depending on available 
-    resources and desired angular resolution L.
+The structure of the algorithms implemented in ``S2FFT`` can support any isolattitude sampling scheme.  A number of sampling schemes are currently supported.
 
+The equiangular sampling schemes of `McEwen & Wiaux (2012) <https://arxiv.org/abs/1110.6298>`_ and `Driscoll & Healy (1995) <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_ are supported, which exhibit associated sampling theorems and so harmonic transforms can be computed to machine precision.  Note that the McEwen & Wiaux sampling theorem reduces the Nyquist rate on the sphere by a factor of two compared to the Driscoll & Healy approach, halving the number of spherical samples required. 
+
+The popular `HEALPix <https://healpix.jpl.nasa.gov>`_ sampling scheme (`Gorski et al. 2005 <https://arxiv.org/abs/astro-ph/0409513>`_) is also supported.  The HEALPix sampling does not exhibit a sampling theorem and so the corresponding harmonic transforms do not achieve machine precision but exhibit some error.  However, the HEALPix sampling provides pixels of equal areas, which has many practical advantages.
+    
 .. image:: ./docs/assets/figures/mwss_sampling_16.png
    :width: 258
-   :target: https://arxiv.org/abs/1110.6298
-
-.. image:: ./docs/assets/figures/healpix_sampling_16.png
-   :width: 258
-   :target: https://arxiv.org/abs/astro-ph/0409513
+   :target: https://arxiv.org/abs/1110.6298   
 
 .. image:: ./docs/assets/figures/dh_sampling_16.png
    :width: 258
    :target: https://www.sciencedirect.com/science/article/pii/S0196885884710086
 
-Sampling patterns for McEwen-Wiaux, HEALPix, and Driscoll-Healy respectively, note that of 
-the three HEALPix does not provide a sampling theorem, and therefore exhibits approximate 
-transforms. However, HEALPix does provide equal-area pixels which is a 
-very nice trait when dealing with e.g. per-pixel noise covariances in a scientific 
-setting.
+.. image:: ./docs/assets/figures/healpix_sampling_16.png
+   :width: 258
+   :target: https://arxiv.org/abs/astro-ph/0409513
+
+TODO: add captions to above
+
 
 Installation :rocket:
 ------------------------
@@ -88,8 +82,20 @@ installation was successful by running
     pytest tests/         # for pytest
     tox -e py38           # for tox 
 
-Alternately, one may install ``S2FFT`` directly from `PyPi` although this does not 
-facilitate local running of unit tests.
+In the very near future one will be able to install ``S2FFT`` directly from `PyPi` by ``pip install s2fft`` but this is not yet supported.
+
+Usage :rocket:
+--------------
+
+TODO: add very basic usage example
+
+.. code-block:: python
+    
+    import s2fft
+
+    flm = s2fft. 
+    s2fft.forward
+
 
 Benchmarking :hourglass_flowing_sand:
 -------------------------------------
