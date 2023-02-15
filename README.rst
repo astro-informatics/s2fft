@@ -36,7 +36,7 @@ Algorithms :zap:
 ``S2FFT`` leverages new algorithmic structures that can he highly parallelised and
 distributed, and so map very well onto the architecture of hardware accelerators (i.e.
 GPUs and TPUs).  In particular, these algorithms are based on new Wigner-d recursions
-that are stable to high angular resolution :math:`L`.  The diagram below illustrates the recursions (for further details see Price & McEwen 2023).
+that are stable to high angular resolution :math:`L`.  The diagram below illustrates the recursions (for further details see Price & McEwen, in prep.).
 
 .. image:: ./docs/assets/figures/schematic.png
 
@@ -75,45 +75,31 @@ In the very near future one will be able to install ``S2FFT`` directly from `PyP
 
 Usage :rocket:
 --------------
-To import and apply the ``S2FFT`` apis is as simple as doing the following 
+To import and use ``S2FFT``  is as simple follows: 
 
 +-------------------------------------------------------+------------------------------------------------------------+
-|for a spin signal on the sphere                        |for a signal on the rotation group                          |
+|For a signal on the sphere                             |For a signal on the rotation group                          |
 |                                                       |                                                            |
 |.. code-block:: Python                                 |.. code-block:: Python                                      |
 |                                                       |                                                            |
 |   # Compute harmonic coefficients                     |   # Compute Wigner coefficients                            |
-|   flm = s2fft.forward_jax(f, L, spin)                 |   flmn = s2fft.wigner.forward_jax(f, L, N)                 |
+|   flm = s2fft.forward_jax(f, L)                       |   flmn = s2fft.wigner.forward_jax(f, L, N)                 |
 |                                                       |                                                            |
 |   # Map back to pixel-space signal                    |   # Map back to pixel-space signal                         |
-|   f = s2fft.inverse_jax(flm, L, spin)                 |   f = s2fft.wigner.inverse_jax(flmn, L, N)                 |
+|   f = s2fft.inverse_jax(flm, L)                       |   f = s2fft.wigner.inverse_jax(flmn, L, N)                 |
 +-------------------------------------------------------+------------------------------------------------------------+
-
-For repeated application of the transforms, however, it is beneficial to precompute some small constant matrices that 
-are used within every transform. To do this simply run 
-
-.. code-block:: Python
-
-    import s2fft 
-
-    precomputes_sphere = s2fft.generate_precomputes_jax(L, spin)
-    precomputes_wigner = s2fft.generate_precomputes_wigner_jax(L, N)
-
-which are then passed as `precomps` to the transforms. For signals bandlimited below 
-L~1024 we also include a (memory inefficient, but very fast) full precompute mode where 
-the wigner-d kernels are precomputed *a priori* and replace the latitudinal (expensive) 
-step with a simple JAX einsum.
 
 
 Benchmarking :hourglass_flowing_sand:
 -------------------------------------
-We benchmarked the spin-spherical harmonic and Wigner transforms provided by this package 
-against their contemporaries, in a variety of settings. We consider both complex signals 
-(solid lines) and real signals (dashed lines) wherein hermitian symmetry halves memory 
-overhead and wall-time. We further consider single-program multiple-data (SPMD) deployment 
-of ``S2FFT``, wherein the compute is distributed across multiple GPUs. Below are 
-the results for McEwen-Wiaux sampling for the recursion (left) and precompute (right) 
-based spin-spherical harmonic transforms.
+We benchmarked the spherical harmonic and Wigner transforms implemented in ``S2FFT``
+against the C implementations in the `SSHT <https://github.com/astro-informatics/ssht>`_
+pacakge. 
+
+A brief summary is shown in the table below for the recursion (left) and precompute
+(right) algorithms, with ``S2FFT`` running on GPUs (for further details see Price &
+McEwen, in prep.).  Note that our compute time is agnostic to spin number (which is not
+the case for many other methods that scale linearly with spin.
 
 +------+-----------+-----------+----------+-----------+----------+----------+---------+
 |      |       Recursive Algorithm        |       Precompute Algorithm                |
@@ -137,14 +123,6 @@ based spin-spherical harmonic transforms.
 | 8192 | 82 s      | 110.8     | 2.14E-13 | N/A       | N/A      | N/A      | N/A     |
 +------+-----------+-----------+----------+-----------+----------+----------+---------+
 
-These benchmarks are entirely independent from spin number, however some packages have 
-highly optimised (so called 'semi-naive') transforms for scalar spherical harmonic transforms 
-which may be extended to spin-signals, and therefore Wigner transforms, by repeated applications 
-of spin-raising and spin-lowering operators. This process increases their computation time 
-linearly in spin-number, and therefore benchmarking in these settings are highly situation 
-dependant. In the scalar case (spin = 0), and for a single GPU, we recover very similar 
-compute times, whilst for larger spins the improvement roughly grows to that displayed 
-above. 
 
 Contributors :hammer:
 ------------------------
