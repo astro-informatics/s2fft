@@ -143,11 +143,39 @@ article is correctly referenced. A BibTeX entry for this reference may look like
 
 .. code-block:: 
 
-     @article{price:2023:sax, 
+     @article{price:s2fft, 
         author = {Price, Matthew A and McEwen, Jason D},
          title = {'TBA'},
        journal = {ArXiv},
         eprint = {arXiv:0000.00000},
           year = {2023}
      }
-     
+
+You might also like to consider citing our related papers on which this code builds:
+
+.. code-block:: 
+
+    @article{mcewen:fssht,
+        AUTHOR      = "Jason D. McEwen and Yves Wiaux",
+        TITLE       = "A novel sampling theorem on the sphere",
+        JOURNAL     = "IEEE Trans. Sig. Proc.",
+        volume      = "59",
+        number      = "12",
+        pages       = "5876--5887",
+        YEAR        = "2011",
+        eprint      = "arXiv:1110.6298",
+        doi         = {10.1109/TSP.2011.2166394}
+    }
+
+    @article{mcewen:so3,
+        AUTHOR      = "J. D. McEwen and M.~B{\"u}ttner and B.~Leistedt and H.~V.~Peiris and Y.~Wiaux",
+        TITLE       = "A novel sampling theorem on the rotation group",
+        JOURNAL     = "IEEE Sig. Proc. Let.",
+        YEAR        = "2015",
+        volume      = "22",
+        number      = "12",
+        pages       = "2425--2429",
+        eprint      = "arXiv:1508.03101",
+        doi         = "10.1109/LSP.2015.2490676"    
+    }
+   
