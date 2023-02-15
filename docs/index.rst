@@ -1,115 +1,100 @@
 Differentiable and accelerated spherical transforms
 ===================================================
 
-``S2FFT`` is a software package which provides support for Generalised Fast Fourier Transforms 
-on the sphere and the rotation group. Leveraging the highly engineered Price-McEwen 
-Wigner-d recursions our transforms exhibit a highly parallelisable algorithmic structure, 
-and are theoretically indefinitely numerically stable; certainly far beyond :math:`L > 20,000` although 
-64bit floating point errors will begin to accumulate eventually. 
+``S2FFT`` is a JAX package for computing Fourier transforms on the sphere and rotation 
+group.  It leverages autodiff to provide differentiable transforms, which are also 
+deployable on modern hardware accelerators (e.g. GPUs and TPUs), and can be mapped 
+across multiple accelerators.
+
+More specifically, ``S2FFT`` provides support for spin spherical harmonic and Wigner
+transforms (for both real and complex signals), with support for adjoint transformations
+where needed, and comes with different optimisations (precompute or not) that one
+may select depending on available resources and desired angular resolution :math:`L`.
+
+Algorithms |:zap:|
+-------------------
+
+``S2FFT`` leverages new algorithmic structures that can he highly parallelised and
+distributed, and so map very well onto the architecture of hardware accelerators (i.e.
+GPUs and TPUs).  In particular, these algorithms are based on new Wigner-d recursions
+that are stable to high angular resolution :math:`L`.  The diagram below illustrates the recursions (for further details see Price & McEwen 2023).
 
 .. image:: ./assets/figures/schematic.png
 
-Moreover, these JAX transforms are not only automatically differentiable and deployable on 
-accelerators (GPU & TPUs), but they are also sampling agnostic; all that is required are 
-latitudinal samples on the sphere and appropriate quadrature weights. As such we support 
-`McEwen-Wiaux <https://arxiv.org/abs/1110.6298>`_, `HEALPix <https://healpix.jpl.nasa.gov>`_, 
-and `Driscoll-Healy <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_ 
-in addition to various other discretisations of the sphere.
+Sampling |:earth_africa:|
+-----------------------------------
 
-    **NOTE:**
-    By construction ``S2FFT`` is straightforward to install, provides support 
-    for spin-spherical harmonic and Wigner transforms (over both real and complex signals), 
-    with straightforward extensions to adjoint transformations where needed, and comes 
-    with various different optimisations from which one may select depending on available 
-    resources and desired angular resolution L.
+The structure of the algorithms implemented in ``S2FFT`` can support any isolattitude sampling scheme.  A number of sampling schemes are currently supported.
 
-.. image:: ./assets/figures/mwss_sampling_16.png
-   :width: 258
-   :target: https://arxiv.org/abs/1110.6298
+The equiangular sampling schemes of `McEwen & Wiaux (2012) <https://arxiv.org/abs/1110.6298>`_ and `Driscoll & Healy (1995) <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_ are supported, which exhibit associated sampling theorems and so harmonic transforms can be computed to machine precision.  Note that the McEwen & Wiaux sampling theorem reduces the Nyquist rate on the sphere by a factor of two compared to the Driscoll & Healy approach, halving the number of spherical samples required. 
 
-.. image:: ./assets/figures/healpix_sampling_16.png
-   :width: 258
-   :target: https://arxiv.org/abs/astro-ph/0409513
-
-.. image:: ./assets/figures/dh_sampling_16.png
-   :width: 258
-   :target: https://www.sciencedirect.com/science/article/pii/S0196885884710086
-
-Sampling patterns for McEwen-Wiaux, HEALPix, and Driscoll-Healy respectively, note that of 
-the three HEALPix does not provide a sampling theorem, and therefore exhibits approximate 
-transforms. However, HEALPix does provide equal-area pixels which is a 
-very nice trait when dealing with e.g. per-pixel noise covariances in a scientific 
-setting.
-
-Benchmarking |:hourglass_flowing_sand:|
-----------------------------------------
-We benchmarked the spin-spherical harmonic and Wigner transforms provided by this package 
-against their contemporaries, in a variety of settings. We consider both complex signals 
-(solid lines) and real signals (dashed lines) wherein hermitian symmetry halves memory 
-overhead and wall-time. We further consider single-program multiple-data (SPMD) deployment 
-of ``S2FFT``, wherein the compute is distributed across multiple GPUs. Below are 
-the results for McEwen-Wiaux sampling for the recursion (left) and precompute (right) 
-based spin-spherical harmonic transforms.
-
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-|      |       Recursive Algorithm        |       Precompute Algorithm                |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| L    | Wall-Time | Speed-up  | Error    | Wall-Time | Speed-up | Error    | Memory  |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 64   | 3.6 ms    | 0.88      | 1.81E-15 | 52.4 μs   | 60.5     | 1.67E-15 | 4.2 MB  |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 128  | 7.26 ms   | 1.80      | 3.32E-15 | 162 μs    | 80.5     | 3.64E-15 | 33 MB   |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 256  | 17.3 ms   | 6.32      | 6.66E-15 | 669 μs    | 163      | 6.74E-15 | 268 MB  |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 512  | 58.3 ms   | 11.4      | 1.43E-14 | 3.6 ms    | 184      | 1.37E-14 | 2.14 GB |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 1024 | 194 ms    | 32.9      | 2.69E-14 | 32.6 ms   | 195      | 2.47E-14 | 17.1 GB |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 2048 | 1.44 s    | 49.7      | 5.17E-14 | N/A       | N/A      | N/A      | N/A     |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 4096 | 8.48 s    | 133.9     | 1.06E-13 | N/A       | N/A      | N/A      | N/A     |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 8192 | 82 s      | 110.8     | 2.14E-13 | N/A       | N/A      | N/A      | N/A     |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-
-These benchmarks are entirely independent from spin number, however some packages have 
-highly optimised (so called 'semi-naive') transforms for scalar spherical harmonic transforms 
-which may be extended to spin-signals, and therefore Wigner transforms, by repeated applications 
-of spin-raising and spin-lowering operators. This process increases their computation time 
-linearly in spin-number, and therefore benchmarking in these settings are highly situation 
-dependant. In the scalar case (spin = 0), and for a single GPU, we recover very similar 
-compute times, whilst for larger spins the improvement roughly grows to that displayed 
-above. 
+The popular `HEALPix <https://healpix.jpl.nasa.gov>`_ sampling scheme (`Gorski et al. 2005 <https://arxiv.org/abs/astro-ph/0409513>`_) is also supported.  The HEALPix sampling does not exhibit a sampling theorem and so the corresponding harmonic transforms do not achieve machine precision but exhibit some error.  However, the HEALPix sampling provides pixels of equal areas, which has many practical advantages.
+    
+.. image:: ./assets/figures/spherical_sampling.png
+   :width: 700
+   :align: center
 
 Contributors |:hammer:|
------------------------
-The development of ``S2FFT`` is one aspect of the ``SAX`` collaborative project between 
-the Mullard Space Science Laboratory (MSSL) and Advanced Research Computing (ARC), which aims 
-to develop accelerated and differentiable spherical transforms to enable ongoing research 
-into next-generation informatics techniques on :math:`\mathbb{S}^2` and SO(3).
-Both academic groups are based at University College London (UCL) and this software was, in part, 
-funded by a UCL-ARC Open Source Software Sustainability grant. We strongly encourage 
-constributions from any developers that are interested; a simple example would be adding 
+------------------------
+``S2FFT`` has been developed at UCL, predominantly by Matt Price and Jason McEwen, with
+support from UCL's Advanced Research Computing (ARC) Centre.  The software was, in part,
+funded by a UCL-ARC Open Source Software Sustainability grant. 
+
+We strongly encourage contributions from any interested developers; a simple example would be adding 
 support for more spherical sampling patterns!
 
-Attribution |:pen:|
---------------------
-
+Attribution |:books:|
+------------------
 We provide this code under an MIT open-source licence with the hope that it will be of use 
 to a wider community. Should this code be used in any way, we kindly request that the follow 
 article is correctly referenced. A BibTeX entry for this reference may look like:
 
 .. code-block:: 
 
-     @article{price:2023:sax, 
-        author = {Price, Matthew A and McEwen, Jason D},
-         title = {'TBA'},
-       journal = {ArXiv},
-        eprint = {arXiv:0000.00000},
-          year = {2023}
+     @article{price:s2fft, 
+        AUTHOR      = "Matthew A. Price and Jason D. McEwen",
+        TITLE       = "TBA",
+        EPRINT      = "arXiv:0000.00000",
+        YEAR        = "2023"
      }
 
+You might also like to consider citing our related papers on which this code builds:
+
+.. code-block:: 
+
+    @article{mcewen:fssht,
+        AUTHOR      = "Jason D. McEwen and Yves Wiaux",
+        TITLE       = "A novel sampling theorem on the sphere",
+        JOURNAL     = "IEEE Trans. Sig. Proc.",
+        VOLUME      = "59",
+        NUMBER      = "12",
+        PAGES       = "5876--5887",
+        YEAR        = "2011",
+        EPRINT      = "arXiv:1110.6298",
+        DOI         = "10.1109/TSP.2011.2166394"
+    }
+
+.. code-block::
+   
+    @article{mcewen:so3,
+        AUTHOR      = "Jason D. McEwen and Martin B{\"u}ttner and Boris ~Leistedt and Hiranya V. Peiris and Yves Wiaux",
+        TITLE       = "A novel sampling theorem on the rotation group",
+        JOURNAL     = "IEEE Sig. Proc. Let.",
+        YEAR        = "2015",
+        VOLUME      = "22",
+        NUMBER      = "12",
+        PAGES       = "2425--2429",
+        EPRINT      = "arXiv:1508.03101",
+        DOI         = "10.1109/LSP.2015.2490676"    
+    }
+
+License
+-------
+
+Copyright 2023 Matthew Price, Jason McEwen and contributors.
+
+``S2FFT`` is free software made available under the MIT License. For details see
+the LICENSE file.
 
 .. bibliography:: 
     :notcited:

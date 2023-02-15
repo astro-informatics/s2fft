@@ -23,7 +23,7 @@
 ``S2FFT`` is a JAX package for computing Fourier transforms on the sphere and rotation 
 group.  It leverages autodiff to provide differentiable transforms, which are also 
 deployable on modern hardware accelerators (e.g. GPUs and TPUs), and can be mapped 
-across multiple accelerators.
+across multiple accel bv erators.
 
 More specifically, ``S2FFT`` provides support for spin spherical harmonic and Wigner
 transforms (for both real and complex signals), with support for adjoint transformations
@@ -71,7 +71,10 @@ installation was successful by running
     pytest tests/         # for pytest
     tox -e py38           # for tox 
 
-In the very near future one will be able to install ``S2FFT`` directly from `PyPi` by ``pip install s2fft`` but this is not yet supported.
+In the very near future one will be able to install ``S2FFT`` directly from `PyPi` by 
+``pip install s2fft`` but this is not yet supported. Note that to run ``JAX`` on 
+NVIDIA GPUs you will need to following the 
+`guide <https://github.com/google/jax#installation>`_ outlined by Google.
 
 Usage :rocket:
 --------------
@@ -143,11 +146,10 @@ article is correctly referenced. A BibTeX entry for this reference may look like
 .. code-block:: 
 
      @article{price:s2fft, 
-        author = {Price, Matthew A and McEwen, Jason D},
-         title = {'TBA'},
-       journal = {ArXiv},
-        eprint = {arXiv:0000.00000},
-          year = {2023}
+        AUTHOR      = "Matthew A. Price and Jason D. McEwen",
+        TITLE       = "TBA",
+        EPRINT      = "arXiv:0000.00000",
+        YEAR        = "2023"
      }
 
 You might also like to consider citing our related papers on which this code builds:
@@ -158,23 +160,33 @@ You might also like to consider citing our related papers on which this code bui
         AUTHOR      = "Jason D. McEwen and Yves Wiaux",
         TITLE       = "A novel sampling theorem on the sphere",
         JOURNAL     = "IEEE Trans. Sig. Proc.",
-        volume      = "59",
-        number      = "12",
-        pages       = "5876--5887",
+        VOLUME      = "59",
+        NUMBER      = "12",
+        PAGES       = "5876--5887",
         YEAR        = "2011",
-        eprint      = "arXiv:1110.6298",
-        doi         = {10.1109/TSP.2011.2166394}
+        EPRINT      = "arXiv:1110.6298",
+        DOI         = "10.1109/TSP.2011.2166394"
     }
 
+.. code-block::
+
     @article{mcewen:so3,
-        AUTHOR      = "J. D. McEwen and M.~B{\"u}ttner and B.~Leistedt and H.~V.~Peiris and Y.~Wiaux",
+        AUTHOR      = "Jason D. McEwen and Martin B{\"u}ttner and Boris ~Leistedt and Hiranya V. Peiris and Yves Wiaux",
         TITLE       = "A novel sampling theorem on the rotation group",
         JOURNAL     = "IEEE Sig. Proc. Let.",
         YEAR        = "2015",
-        volume      = "22",
-        number      = "12",
-        pages       = "2425--2429",
-        eprint      = "arXiv:1508.03101",
-        doi         = "10.1109/LSP.2015.2490676"    
+        VOLUME      = "22",
+        NUMBER      = "12",
+        PAGES       = "2425--2429",
+        EPRINT      = "arXiv:1508.03101",
+        DOI         = "10.1109/LSP.2015.2490676"    
     }
+
+License
+-------
+
+Copyright 2023 Matthew Price, Jason McEwen and contributors.
+
+``S2FFT`` is free software made available under the MIT License. For details see
+the LICENSE file.
    
