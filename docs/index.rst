@@ -88,8 +88,8 @@ You might also like to consider citing our related papers on which this code bui
         DOI         = "10.1109/LSP.2015.2490676"    
     }
 
-License
--------
+License |:memo:|
+----------------
 
 Copyright 2023 Matthew Price, Jason McEwen and contributors.
 
