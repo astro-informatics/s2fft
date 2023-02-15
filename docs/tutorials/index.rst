@@ -1,4 +1,4 @@
-:html_theme.sidebar_secondary.remove:
+ls:html_theme.sidebar_secondary.remove:
 
 **************************
 Notebooks
@@ -35,7 +35,7 @@ pacakge.
 A brief summary is shown in the table below for the recursion (left) and precompute
 (right) algorithms, with ``S2FFT`` running on GPUs (for further details see Price &
 McEwen, in prep.).  Note that our compute time is agnostic to spin number (which is not
-the case for many other methods that scale linearly with spin.
+the case for many other methods that scale linearly with spin).
 
 +------+-----------+-----------+----------+-----------+----------+----------+---------+
 |      |       Recursive Algorithm        |       Precompute Algorithm                |

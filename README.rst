@@ -23,7 +23,7 @@
 ``S2FFT`` is a JAX package for computing Fourier transforms on the sphere and rotation 
 group.  It leverages autodiff to provide differentiable transforms, which are also 
 deployable on modern hardware accelerators (e.g. GPUs and TPUs), and can be mapped 
-across multiple accel bv erators.
+across multiple accelerators.
 
 More specifically, ``S2FFT`` provides support for spin spherical harmonic and Wigner
 transforms (for both real and complex signals), with support for adjoint transformations
@@ -73,7 +73,7 @@ installation was successful by running
 
 In the very near future one will be able to install ``S2FFT`` directly from `PyPi` by 
 ``pip install s2fft`` but this is not yet supported. Note that to run ``JAX`` on 
-NVIDIA GPUs you will need to following the 
+NVIDIA GPUs you will need to follow the 
 `guide <https://github.com/google/jax#installation>`_ outlined by Google.
 
 Usage :rocket:
@@ -102,7 +102,7 @@ pacakge.
 A brief summary is shown in the table below for the recursion (left) and precompute
 (right) algorithms, with ``S2FFT`` running on GPUs (for further details see Price &
 McEwen, in prep.).  Note that our compute time is agnostic to spin number (which is not
-the case for many other methods that scale linearly with spin.
+the case for many other methods that scale linearly with spin).
 
 +------+-----------+-----------+----------+-----------+----------+----------+---------+
 |      |       Recursive Algorithm        |       Precompute Algorithm                |
@@ -140,7 +140,7 @@ support for more spherical sampling patterns!
 Attribution :books:
 ------------------
 We provide this code under an MIT open-source licence with the hope that it will be of use 
-to a wider community. Should this code be used in any way, we kindly request that the follow 
+to a wider community. Should this code be used in any way, we kindly request that the following 
 article is correctly referenced. A BibTeX entry for this reference may look like:
 
 .. code-block:: 
