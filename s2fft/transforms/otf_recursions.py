@@ -243,7 +243,7 @@ def inverse_latitudinal_step_jax(
 
     if precomps is None:
         precomps = generate_precomputes_jax(
-            L, -mm, sampling, nside, sL_lower=L_lower
+            L, -mm, sampling, nside, L_lower=L_lower
         )
     lrenorm, vsign, cpi, cp2, indices = precomps
 

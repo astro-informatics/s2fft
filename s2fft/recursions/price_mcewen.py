@@ -11,6 +11,10 @@ from functools import partial
 from s2fft.sampling import s2_samples as samples
 from typing import List
 
+import warnings
+
+warnings.filterwarnings("ignore")
+
 
 def generate_precomputes(
     L: int,
@@ -112,7 +116,7 @@ def generate_precomputes(
     return [lrenorm, vsign, cpi, cp2, indices]
 
 
-@partial(jit, static_argnums=(0, 1, 2, 3, 4, 5))
+@partial(jit, static_argnums=(0, 2, 3, 4, 5))
 def generate_precomputes_jax(
     L: int,
     spin: int = 0,
@@ -208,9 +212,13 @@ def generate_precomputes_jax(
         "l,t->tl", 2.0 * el, jnp.log(jnp.abs(c2)), optimize=True
     )
 
-    ratio_update = jnp.arange(L + abs(mm) + 2)
+    ratio_update = jnp.arange(2 * L - 1)
+    # ratio_update = jnp.arange(L + abs(mm) + 2)
     ratio = jnp.repeat(
-        jnp.expand_dims(2 * el + 2, -1), L + abs(mm) + 2, axis=-1
+        jnp.expand_dims(2 * el + 2, -1),
+        2 * L - 1,
+        axis=-1
+        # jnp.expand_dims(2 * el + 2, -1), L + abs(mm) + 2, axis=-1
     )
     ratio -= ratio_update
     ratio /= ratio_update - 1
