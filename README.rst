@@ -50,7 +50,7 @@ The popular `HEALPix <https://healpix.jpl.nasa.gov>`_ sampling scheme (`Gorski e
     
 .. raw:: html
 
-   <img src="./docs/assets/figures/spherical_sampling.png" align="center" width="500">
+   <p align="center"><img src="./docs/assets/figures/spherical_sampling.png" width="500"></p>
 
 Installation :computer:
 ------------------------
