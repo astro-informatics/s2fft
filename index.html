@@ -1,209 +1,556 @@
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>S2FFT: JAX accelerated spin-spherical harmonic transforms &mdash; ProjectName 0.0.1 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/custom_tabs.css" type="text/css" />
-      <link rel="stylesheet" href="_static/dark_mode_css/general.css" type="text/css" />
-      <link rel="stylesheet" href="_static/dark_mode_css/dark.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Differentiable and accelerated spherical transforms &#8212; S2FFT 0.0.1 documentation</title>
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script src="_static/dark_mode_js/default_light.js"></script>
-        <script src="_static/dark_mode_js/theme_switcher.js"></script>
-    <script src="_static/js/theme.js"></script>
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+<link href="_static/styles/bootstrap.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+
+  
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
+    <link rel="stylesheet" type="text/css" href="_static/css/custom_tabs.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/fontawesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/solid.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/brands.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94">
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94">
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Installation" href="user_guide/install.html" /> 
-</head>
-
-<body class="wy-body-for-nav"> 
-  <div class="wy-grid-for-nav">
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
-            <a href="#">
-            <img src="_static/placeholder_logo.png" class="logo" alt="Logo"/>
-          </a>
-              <div class="version">
-                0.0.1
-              </div>
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="user_guide/install.html">Installation</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Background</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="background/index.html">Some background information</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Interactive Tutorials</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/example_notebook.html">Notebook Template</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">API</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="api/trapani.html">s2fft.wigner.trapani</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/risbo.html">s2fft.wigner.risbo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/turok.html">s2fft.wigner.turok</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/turok_jax.html">s2fft.wigner.turok_jax</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/logs.html">s2fft.logs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/legendre_matrix.html">s2fft.precompute.construct_legendre_matrix</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/precompute_transforms.html">s2fft.precompute.transforms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/quadrature.html">s2fft.quadrature</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/resampling.html">s2fft.resampling</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/sampling.html">s2fft.samples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/transforms.html">s2fft.transform</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/wigner_samples.html">s2fft.wigner.samples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/wigner_transform.html">s2fft.wigner.transform</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/utils.html">s2fft.utils</a></li>
-</ul>
-
-        </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">ProjectName</a>
-      </nav>
-
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
-  <ul class="wy-breadcrumbs">
-      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
-      <li>S2FFT: JAX accelerated spin-spherical harmonic transforms</li>
-      <li class="wy-breadcrumbs-aside">
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
-      </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-             
+    <link rel="next" title="Installation" href="user_guide/install.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="docsearch:language" content="None">
+  </head>
   
-<style>
-/* CSS overrides for sphinx_rtd_theme */
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
 
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
 
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
+  
+  <input type="checkbox" class="sidebar-toggle" name="__primary" id="__primary">
+  <label class="overlay overlay-primary" for="__primary"></label>
 
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
+  
+  <input type="checkbox" class="sidebar-toggle" name="__secondary" id="__secondary">
+  <label class="overlay overlay-secondary" for="__secondary"></label>
 
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<p><a class="reference external" href="https://github.com/astro-informatics/s2fft"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-PyTemplate-brightgreen.svg?style=flat" /></a> <a class="reference external" href="https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml"><img alt="Build Status" src="https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main" /></a> <a class="reference external" href="https://astro-informatics.github.io/s2fft"><img alt="Docs" src="https://readthedocs.org/projects/ansicolortags/badge/?version=latest" /></a> <a class="reference external" href="https://codecov.io/gh/astro-informatics/s2fft"><img alt="CodeCov" src="https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE" /></a> <a class="reference external" href="https://opensource.org/licenses/MIT"><img alt="MIT Licence" src="https://img.shields.io/badge/License-MIT-yellow.svg" /></a> <a class="reference external" href="https://arxiv.org/abs/xxxx.xxxxx"><img alt="ArXiv" src="http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat" /></a></p>
-<div class="section" id="s2fft-jax-accelerated-spin-spherical-harmonic-transforms">
-<h1>S2FFT: JAX accelerated spin-spherical harmonic transforms<a class="headerlink" href="#s2fft-jax-accelerated-spin-spherical-harmonic-transforms" title="Permalink to this headline"></a></h1>
-<p>Add some basic discussion about <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> here.</p>
-</div>
-<div class="section" id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h1>
-<p>Add some basic installation instructions here.</p>
-</div>
-<div class="section" id="documentation">
-<h1>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline"></a></h1>
-<p>Link to the full documentation (when deployed).</p>
-</div>
-<div class="section" id="contributors">
-<h1>Contributors<a class="headerlink" href="#contributors" title="Permalink to this headline"></a></h1>
-<p>Author names &amp; Contributors</p>
-</div>
-<div class="section" id="attribution">
-<h1>Attribution<a class="headerlink" href="#attribution" title="Permalink to this headline"></a></h1>
-<p>A BibTeX entry for <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>@article{S2FFT,
-   author = {Author~List},
-    title = {&quot;A totally amazing name&quot;},
-  journal = {ArXiv},
-   eprint = {arXiv:0000.00000},
-     year = {what year is it?!}
-}
-</pre></div>
-</div>
-</div>
-<div class="section" id="license">
-<h1>License<a class="headerlink" href="#license" title="Permalink to this headline"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is released under the MIT license (see <a class="reference external" href="https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt">LICENSE.txt</a>).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>S2fft
-Copyright (C) 2022 Author names &amp; contributors
-
-This program is released under the MIT license (see `LICENSE.txt &lt;https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt&gt;`_).
-</pre></div>
-</div>
-<ul class="simple">
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-</ul>
-<div class="toctree-wrapper compound">
-</div>
-<div class="toctree-wrapper compound">
-</div>
-<div class="toctree-wrapper compound">
-</div>
-<div class="toctree-wrapper compound">
-</div>
-</div>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+      
+<form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+    </div>
+  </div><div class="bd-header-announcement container-fluid" id="header-announcement">
+    
 
 
-           </div>
-          </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="user_guide/install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+<div class="bd-header-announcement__content">s2fft is currently in an open alpha, please provide feedback on GitHub</div>
+
+  </div>
+
+  
+  <nav class="bd-header navbar navbar-expand-lg bd-navbar" id="navbar-main"><div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+      <span class="fa-solid fa-bars"></span>
+  </label>
+  <div id="navbar-start">
+    
+    
+  
+
+
+<a class="navbar-brand logo" href="#">
+
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <img src="_static/sax_logo.png" class="logo__image only-light" alt="Logo image">
+    <img src="_static/sax_logo.png" class="logo__image only-dark" alt="Logo image">
+  
+  
+</a>
+    
+  </div>
+
+  
+  <div class=" navbar-header-items">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <nav class="navbar-nav">
+    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
+        Site Navigation
+    </p>
+    <ul id="navbar-main-elements" class="navbar-nav">
+        
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="user_guide/install.html">
+                        Installation
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="tutorials/index.html">
+                        Notebooks
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="api/index.html">
+                        API
+                      </a>
+                    </li>
+                
+    </ul>
+</nav>
+      </div>
+      
     </div>
 
-  <hr/>
-
-  <div role="contentinfo">
-    <p>&#169; Copyright 2022, Author names.</p>
-  </div>
-
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
-
-</footer>
+    <div id="navbar-end">
+      
+        <div class="navbar-end-item navbar-persistent--container">
+          
+<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-toggle="tooltip">
+  <i class="fa-solid fa-magnifying-glass"></i>
+</button>
         </div>
+      
+      
+      <div class="navbar-end-item">
+        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+</button>
       </div>
-    </section>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/astro-informatics/s2fft/" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fa-brands fa-github fa-2x"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://app.codecov.io/gh/astro-informatics/s2fft" title="CodeCov" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><img src="_static/codecov.png" class="icon-link-image" alt="CodeCov"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://opensource.org/licenses/MIT" title="Licence" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><img src="_static/MIT_Licence.png" class="icon-link-image" alt="Licence"/></a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
   </div>
-  <script>
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script> 
 
-</body>
+
+  
+  
+    <div class="navbar-persistent--mobile">
+<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-toggle="tooltip">
+  <i class="fa-solid fa-magnifying-glass"></i>
+</button>
+    </div>
+  
+
+  
+  <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fa-solid fa-outdent"></span>
+  </label>
+  
+
+</div>
+  </nav>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+      
+      <div class="navbar-center-item">
+        <nav class="navbar-nav">
+    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
+        Site Navigation
+    </p>
+    <ul id="navbar-main-elements" class="navbar-nav">
+        
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="user_guide/install.html">
+                        Installation
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="tutorials/index.html">
+                        Notebooks
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="api/index.html">
+                        API
+                      </a>
+                    </li>
+                
+    </ul>
+</nav>
+      </div>
+      
+      </div>
+    
+
+    
+    
+    <div class="sidebar-header-items__end">
+      
+      <div class="navbar-end-item">
+        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+</button>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/astro-informatics/s2fft/" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fa-brands fa-github fa-2x"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://app.codecov.io/gh/astro-informatics/s2fft" title="CodeCov" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><img src="_static/codecov.png" class="icon-link-image" alt="CodeCov"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://opensource.org/licenses/MIT" title="Licence" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><img src="_static/MIT_Licence.png" class="icon-link-image" alt="Licence"/></a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
+    
+  </div>
+
+  
+
+  
+  <div class="sidebar-end-items sidebar-primary__section">
+    <div class="sidebar-end-items__item">
+    </div>
+  </div>
+
+  
+  <div id="rtd-footer-container"></div>
+
+      </div>
+      <main id="main-content" class="bd-main">
+        
+        
+        <div class="bd-content">
+          <div class="bd-article-container">
+            
+            <div class="bd-header-article">
+                
+            </div>
+            
+            
+            <article class="bd-article" role="main">
+              
+  <div class="section" id="differentiable-and-accelerated-spherical-transforms">
+<h1>Differentiable and accelerated spherical transforms<a class="headerlink" href="#differentiable-and-accelerated-spherical-transforms" title="Permalink to this headline"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is a JAX package for computing Fourier transforms on the sphere and rotation
+group.  It leverages autodiff to provide differentiable transforms, which are also
+deployable on modern hardware accelerators (e.g. GPUs and TPUs), and can be mapped
+across multiple accelerators.</p>
+<p>More specifically, <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> provides support for spin spherical harmonic and Wigner
+transforms (for both real and complex signals), with support for adjoint transformations
+where needed, and comes with different optimisations (precompute or not) that one
+may select depending on available resources and desired angular resolution <span class="math notranslate nohighlight">\(L\)</span>.</p>
+<div class="section" id="algorithms-zap">
+<h2>Algorithms ⚡<a class="headerlink" href="#algorithms-zap" title="Permalink to this headline"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> leverages new algorithmic structures that can he highly parallelised and
+distributed, and so map very well onto the architecture of hardware accelerators (i.e.
+GPUs and TPUs).  In particular, these algorithms are based on new Wigner-d recursions
+that are stable to high angular resolution <span class="math notranslate nohighlight">\(L\)</span>.  The diagram below illustrates the recursions (for further details see Price &amp; McEwen 2023).</p>
+<img alt="_images/schematic.png" src="_images/schematic.png" />
+</div>
+<div class="section" id="sampling-earth-africa">
+<h2>Sampling 🌍<a class="headerlink" href="#sampling-earth-africa" title="Permalink to this headline"></a></h2>
+<p>The structure of the algorithms implemented in <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> can support any isolattitude sampling scheme.  A number of sampling schemes are currently supported.</p>
+<p>The equiangular sampling schemes of <a class="reference external" href="https://arxiv.org/abs/1110.6298">McEwen &amp; Wiaux (2012)</a> and <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0196885884710086">Driscoll &amp; Healy (1995)</a> are supported, which exhibit associated sampling theorems and so harmonic transforms can be computed to machine precision.  Note that the McEwen &amp; Wiaux sampling theorem reduces the Nyquist rate on the sphere by a factor of two compared to the Driscoll &amp; Healy approach, halving the number of spherical samples required.</p>
+<p>The popular <a class="reference external" href="https://healpix.jpl.nasa.gov">HEALPix</a> sampling scheme (<a class="reference external" href="https://arxiv.org/abs/astro-ph/0409513">Gorski et al. 2005</a>) is also supported.  The HEALPix sampling does not exhibit a sampling theorem and so the corresponding harmonic transforms do not achieve machine precision but exhibit some error.  However, the HEALPix sampling provides pixels of equal areas, which has many practical advantages.</p>
+<a class="reference internal image-reference" href="_images/spherical_sampling.png"><img alt="_images/spherical_sampling.png" class="align-center" src="_images/spherical_sampling.png" style="width: 700px;" /></a>
+</div>
+<div class="section" id="contributors-hammer">
+<h2>Contributors 🔨<a class="headerlink" href="#contributors-hammer" title="Permalink to this headline"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> has been developed at UCL, predominantly by Matt Price and Jason McEwen, with
+support from UCL’s Advanced Research Computing (ARC) Centre.  The software was, in part,
+funded by a UCL-ARC Open Source Software Sustainability grant.</p>
+<p>We strongly encourage contributions from any interested developers; a simple example would be adding
+support for more spherical sampling patterns!</p>
+</div>
+<div class="section" id="attribution-books">
+<h2>Attribution 📚<a class="headerlink" href="#attribution-books" title="Permalink to this headline"></a></h2>
+<p>We provide this code under an MIT open-source licence with the hope that it will be of use
+to a wider community. Should this code be used in any way, we kindly request that the follow
+article is correctly referenced. A BibTeX entry for this reference may look like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">price</span><span class="p">:</span><span class="n">s2fft</span><span class="p">,</span>
+   <span class="n">AUTHOR</span>      <span class="o">=</span> <span class="s2">&quot;Matthew A. Price and Jason D. McEwen&quot;</span><span class="p">,</span>
+   <span class="n">TITLE</span>       <span class="o">=</span> <span class="s2">&quot;TBA&quot;</span><span class="p">,</span>
+   <span class="n">EPRINT</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:0000.00000&quot;</span><span class="p">,</span>
+   <span class="n">YEAR</span>        <span class="o">=</span> <span class="s2">&quot;2023&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>You might also like to consider citing our related papers on which this code builds:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">mcewen</span><span class="p">:</span><span class="n">fssht</span><span class="p">,</span>
+    <span class="n">AUTHOR</span>      <span class="o">=</span> <span class="s2">&quot;Jason D. McEwen and Yves Wiaux&quot;</span><span class="p">,</span>
+    <span class="n">TITLE</span>       <span class="o">=</span> <span class="s2">&quot;A novel sampling theorem on the sphere&quot;</span><span class="p">,</span>
+    <span class="n">JOURNAL</span>     <span class="o">=</span> <span class="s2">&quot;IEEE Trans. Sig. Proc.&quot;</span><span class="p">,</span>
+    <span class="n">VOLUME</span>      <span class="o">=</span> <span class="s2">&quot;59&quot;</span><span class="p">,</span>
+    <span class="n">NUMBER</span>      <span class="o">=</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
+    <span class="n">PAGES</span>       <span class="o">=</span> <span class="s2">&quot;5876--5887&quot;</span><span class="p">,</span>
+    <span class="n">YEAR</span>        <span class="o">=</span> <span class="s2">&quot;2011&quot;</span><span class="p">,</span>
+    <span class="n">EPRINT</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:1110.6298&quot;</span><span class="p">,</span>
+    <span class="n">DOI</span>         <span class="o">=</span> <span class="s2">&quot;10.1109/TSP.2011.2166394&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">mcewen</span><span class="p">:</span><span class="n">so3</span><span class="p">,</span>
+    <span class="n">AUTHOR</span>      <span class="o">=</span> <span class="s2">&quot;Jason D. McEwen and Martin B{</span><span class="se">\&quot;</span><span class="s2">u}ttner and Boris ~Leistedt and Hiranya V. Peiris and Yves Wiaux&quot;</span><span class="p">,</span>
+    <span class="n">TITLE</span>       <span class="o">=</span> <span class="s2">&quot;A novel sampling theorem on the rotation group&quot;</span><span class="p">,</span>
+    <span class="n">JOURNAL</span>     <span class="o">=</span> <span class="s2">&quot;IEEE Sig. Proc. Let.&quot;</span><span class="p">,</span>
+    <span class="n">YEAR</span>        <span class="o">=</span> <span class="s2">&quot;2015&quot;</span><span class="p">,</span>
+    <span class="n">VOLUME</span>      <span class="o">=</span> <span class="s2">&quot;22&quot;</span><span class="p">,</span>
+    <span class="n">NUMBER</span>      <span class="o">=</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
+    <span class="n">PAGES</span>       <span class="o">=</span> <span class="s2">&quot;2425--2429&quot;</span><span class="p">,</span>
+    <span class="n">EPRINT</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:1508.03101&quot;</span><span class="p">,</span>
+    <span class="n">DOI</span>         <span class="o">=</span> <span class="s2">&quot;10.1109/LSP.2015.2490676&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="license-memo">
+<h2>License 📝<a class="headerlink" href="#license-memo" title="Permalink to this headline"></a></h2>
+<p>Copyright 2023 Matthew Price, Jason McEwen and contributors.</p>
+<p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is free software made available under the MIT License. For details see
+the LICENSE file.</p>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+            </article>
+            
+            
+            
+            <footer class="bd-footer-article">
+                <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+  <a class='right-next' id="next-link" href="user_guide/install.html" title="next page">
+  <div class="prev-next-info">
+      <p class="prev-next-subtitle">next</p>
+      <p class="prev-next-title">Installation</p>
+  </div>
+  <i class="fa-solid fa-angle-right"></i>
+  </a>
+</div>
+            </footer>
+            
+          </div>
+          
+          
+          
+            <div class="bd-sidebar-secondary bd-toc">
+              
+<div class="toc-item">
+  
+<div class="tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+</div>
+<nav id="bd-toc-nav" class="page-toc">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#algorithms-zap">
+   Algorithms ⚡
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#sampling-earth-africa">
+   Sampling 🌍
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#contributors-hammer">
+   Contributors 🔨
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#attribution-books">
+   Attribution 📚
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#license-memo">
+   License 📝
+  </a>
+  <ul class="visible nav section-nav flex-column">
+  </ul>
+ </li>
+</ul>
+
+</nav>
+</div>
+
+<div class="toc-item">
+  
+</div>
+
+<div class="toc-item">
+  
+<div class="tocsection sourcelink">
+    <a href="_sources/index.rst.txt">
+        <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+</div>
+
+</div>
+
+            </div>
+          
+          
+        </div>
+        <footer class="bd-footer-content">
+          <div class="bd-footer-content__inner">
+            
+          </div>
+        </footer>
+        
+      </main>
+    </div>
+  </div>
+
+  
+    
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94"></script>
+
+  <footer class="bd-footer"><div class="bd-footer__inner container">
+  
+  <div class="footer-item">
+    
+<p class="copyright">
+
+    &copy; Copyright 2023, Matthew Price and Jason McEwen.<br>
+
+</p>
+
+  </div>
+  
+</div>
+  </footer>
+  </body>
 </html>
