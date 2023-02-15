@@ -41,8 +41,8 @@ transforms. However, HEALPix does provide equal-area pixels which is a
 very nice trait when dealing with e.g. per-pixel noise covariances in a scientific 
 setting.
 
-Benchmarking 
-------------
+Benchmarking |:hourglass_flowing_sand:|
+----------------------------------------
 We benchmarked the spin-spherical harmonic and Wigner transforms provided by this package 
 against their contemporaries, in a variety of settings. We consider both complex signals 
 (solid lines) and real signals (dashed lines) wherein hermitian symmetry halves memory 
@@ -82,8 +82,8 @@ dependant. In the scalar case (spin = 0), and for a single GPU, we recover very 
 compute times, whilst for larger spins the improvement roughly grows to that displayed 
 above. 
 
-Contributors
---------------
+Contributors |:hammer:|
+-----------------------
 The development of ``S2FFT`` is one aspect of the ``SAX`` collaborative project between 
 the Mullard Space Science Laboratory (MSSL) and Advanced Research Computing (ARC), which aims 
 to develop accelerated and differentiable spherical transforms to enable ongoing research 
@@ -93,8 +93,8 @@ funded by a UCL-ARC Open Source Software Sustainability grant. We strongly encou
 constributions from any developers that are interested; a simple example would be adding 
 support for more spherical sampling patterns!
 
-Attribution
---------------
+Attribution |:pen:|
+--------------------
 
 We provide this code under an MIT open-source licence with the hope that it will be of use 
 to a wider community. Should this code be used in any way, we kindly request that the follow 

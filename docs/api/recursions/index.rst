@@ -10,17 +10,17 @@ Wigner-d recursions
 
    * - Function Name
      - Description
-   * - :func:`~compute_all_slices`
+   * - :func:`~s2fft.recursions.price_mcewen.compute_all_slices`
      - Computes all necessary slices of Wigner-d planes using Price-McEwen recursion (NumPy).
-   * - :func:`~compute_all_slices_jax`
+   * - :func:`~s2fft.recursions.price_mcewen.compute_all_slices_jax`
      - Computes all necessary slices of Wigner-d planes using Price-McEwen recursion (JAX).
-   * - :func:`~generate_precomputes`
+   * - :func:`~s2fft.recursions.price_mcewen.generate_precomputes`
      - Constructs list of :math:`\mathcal{O}(L^2)` precomputes to accelerate Price-McEwen recursion for spin-spherical harmonic transform (NumPy).
-   * - :func:`~generate_precomputes_jax`
+   * - :func:`~s2fft.recursions.price_mcewen.generate_precomputes_jax`
      - Constructs list of :math:`\mathcal{O}(L^2)` precomputes to accelerate Price-McEwen recursion for spin-spherical harmonic transform (JAX).
-   * - :func:`~generate_precomputes_wigner`
+   * - :func:`~s2fft.recursions.price_mcewen.generate_precomputes_wigner`
      - Constructs list of :math:`\mathcal{O}(NL^2)` precomputes to accelerate Price-McEwen recursion for Wigner transform (NumPy).
-   * - :func:`~generate_precomputes_wigner_jax`
+   * - :func:`~s2fft.recursions.price_mcewen.generate_precomputes_wigner_jax`
      - Constructs list of :math:`\mathcal{O}(NL^2)` precomputes to accelerate Price-McEwen recursion for Wigner transform (JAX).
 
 .. list-table:: Turok-Bucher recursion functions
@@ -29,19 +29,19 @@ Wigner-d recursions
 
    * - Function Name
      - Description
-   * - :func:`~compute_full`
+   * - :func:`~s2fft.recursions.turok.compute_full`
      - Compute the complete Wigner-d matrix at polar angle :math:`\beta` using Turok & Bucher recursion.
-   * - :func:`~compute_slice`
+   * - :func:`~s2fft.recursions.turok.compute_slice`
      - Compute a particular slice :math:`m^{\prime}`, denoted `mm`, of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok & Bucher recursion.
-   * - :func:`~compute_quarter_slice`
+   * - :func:`~s2fft.recursions.turok.compute_quarter_slice`
      - Compute a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated at :math:`\beta`.
-   * - :func:`~compute_quarter`
+   * - :func:`~s2fft.recursions.turok.compute_quarter`
      - Compute the left quarter triangle of the Wigner-d matrix via Turok & Bucher recursion.
-   * - :func:`~fill`
+   * - :func:`~s2fft.recursions.turok.fill`
      - Reflects Wigner-d quarter plane to complete full matrix by using symmetry properties of the Wigner-d matrices.
-   * - :func:`~compute_slice` (JAX)
+   * - :func:`~s2fft.recursions.turok_jax.compute_slice` (JAX)
      - Compute a particular slice :math:`m^{\prime}`, denoted `mm`, of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok & Bucher recursion (JAX).
-   * - :func:`~reindex` (JAX)
+   * - :func:`~s2fft.recursions.turok_jax.reindex` (JAX)
      - Reorders indexing of Wigner-d matrix, only necessary to maintain fixed length JAX arrays.
 
 .. list-table:: Trapani recursion functions
@@ -50,44 +50,44 @@ Wigner-d recursions
 
    * - Function Name
      - Description
-   * - :func:`~compute_eigth`
+   * - :func:`~s2fft.recursions.trapani.compute_eighth`
      - Compute Wigner-d at argument :math:`\pi/2` for eighth of plane using Trapani & Navaza recursion.
-   * - :func:`~compute_quarter_vectorized`
+   * - :func:`~s2fft.recursions.trapani.compute_quarter_vectorized`
      - Compute Wigner-d at argument :math:`\pi/2` for quarter of plane using Trapani & Navaza recursion (vector implementation).
-   * - :func:`~compute_quarter_jax`
+   * - :func:`~s2fft.recursions.trapani.compute_quarter_jax`
      - Compute Wigner-d at argument :math:`\pi/2` for quarter of plane using Trapani & Navaza recursion (JAX implementation).
-   * - :func:`~fill_eighth2quarter`
+   * - :func:`~s2fft.recursions.trapani.fill_eighth2quarter`
      - Fill in quarter of Wigner-d plane from eighth.
-   * - :func:`~fill_quarter2half`
+   * - :func:`~s2fft.recursions.trapani.fill_quarter2half`
      - Fill in half of Wigner-d plane from quarter.
-   * - :func:`~fill_quarter2half_vectorized`
+   * - :func:`~s2fft.recursions.trapani.fill_quarter2half_vectorized`
      - Fill in half of Wigner-d plane from quarter (vectorised implementation).
-   * - :func:`~fill_quarter2half_jax`
+   * - :func:`~s2fft.recursions.trapani.fill_quarter2half_jax`
      - Fill in half of Wigner-d plane from quarter (JAX implementation).
-   * - :func:`~fill_half2full`
+   * - :func:`~s2fft.recursions.trapani.fill_half2full`
      - Fill in full Wigner-d plane from half.
-   * - :func:`~fill_half2full_vectorized`
+   * - :func:`~s2fft.recursions.trapani.fill_half2full_vectorized`
      - Fill in full Wigner-d plane from half (vectorized implementation).
-   * - :func:`~fill_half2full_jax`
+   * - :func:`~s2fft.recursions.trapani.fill_half2full_jax`
      - Fill in full Wigner-d plane from half (JAX implementation).
-   * - :func:`~compute_full`
+   * - :func:`~s2fft.recursions.trapani.compute_full`
      - Compute Wigner-d at argument :math:`\pi/2` for full plane using Trapani & Navaza recursion (multiple implementations).
-   * - :func:`~compute_full_loop`
+   * - :func:`~s2fft.recursions.trapani.compute_full_loop`
      - Compute Wigner-d at argument :math:`\pi/2` for full plane using Trapani & Navaza recursion (loop-based implementation).
-   * - :func:`~compute_quarter`
+   * - :func:`~s2fft.recursions.trapani.compute_quarter`
      - Compute Wigner-d at argument :math:`\pi/2` for quarter plane using Trapani & Navaza recursion.
-   * - :func:`~compute_full_vectorized`
+   * - :func:`~s2fft.recursions.trapani.compute_full_vectorized`
      - Compute Wigner-d at argument :math:`\pi/2` for full plane using Trapani & Navaza recursion (vectorized implementation).
-   * - :func:`~compute_full_jax`
+   * - :func:`~s2fft.recursions.trapani.compute_full_jax`
      - Compute Wigner-d at argument :math:`\pi/2` for full plane using Trapani & Navaza recursion (JAX implementation).
 
-.. list-table:: Trapani recursion functions
+.. list-table:: Risbo recursion functions
    :widths: 25 25
    :header-rows: 1
 
    * - Function Name
      - Description
-   * - :func:`~compute_full`
+   * - :func:`~s2fft.recursions.risbo.compute_full`
      - Compute Wigner-d at argument :math:`\beta` for full plane using Risbo recursion.
 
 .. warning:: 

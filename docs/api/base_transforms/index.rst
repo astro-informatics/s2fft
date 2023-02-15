@@ -10,9 +10,9 @@ Reference Transforms
 
    * - Function Name
      - Description
-   * - :func:`~inverse`
+   * - :func:`~s2fft.base_transforms.spherical.inverse`
      - Wrapper function around various versions of classic inverse spherical harmonic transforms.
-   * - :func:`~forward` 
+   * - :func:`~s2fft.base_transforms.spherical.forward` 
      - Wrapper function around various versions of classic forward spherical harmonic transforms.
 
 
@@ -22,9 +22,9 @@ Reference Transforms
 
    * - Function Name
      - Description
-   * - :func:`~inverse`
+   * - :func:`~s2fft.base_transforms.wigner.inverse`
      - Classic algorithm for forward Wigner transform.
-   * - :func:`~forward`
+   * - :func:`~s2fft.base_transforms.wigner.forward`
      - Classic algorithm for inverse Wigner transform.
 
 .. toctree::

@@ -10,17 +10,17 @@ Precompute Functions
 
    * - Function Name
      - Description
-   * - :func:`~inverse`
+   * - :func:`~s2fft.precompute_transforms.spherical.inverse`
      - Wrapper function around NumPy/JAX inverse methods
-   * - :func:`~inverse_numpy` 
+   * - :func:`~s2fft.precompute_transforms.spherical.inverse_transform` 
      - Inverse spherical harmonic transform (NumPy)
-   * - :func:`~inverse_jax`
+   * - :func:`~s2fft.precompute_transforms.spherical.inverse_transform_jax`
      - Inverse spherical harmonic transform (JAX)
-   * - :func:`~forward` 
+   * - :func:`~s2fft.precompute_transforms.spherical.forward` 
      - Wrapper function around NumPy/JAX forward methods
-   * - :func:`~forward_numpy`
+   * - :func:`~s2fft.precompute_transforms.spherical.forward_transform`
      - Forward spherical harmonic transform (NumPy)
-   * - :func:`~forward_jax`
+   * - :func:`~s2fft.precompute_transforms.spherical.forward_transform_jax`
      - Forward spherical harmonic transform (JAX)
 
 .. list-table:: Wigner transforms.
@@ -29,17 +29,17 @@ Precompute Functions
 
    * - Function Name
      - Description
-   * - :func:`~inverse`
+   * - :func:`~s2fft.precompute_transforms.wigner.inverse`
      - Wrapper function around NumPy/JAX inverse methods
-   * - :func:`~inverse_numpy`
+   * - :func:`~s2fft.precompute_transforms.wigner.inverse_transform`
      - Inverse Wigner transform (NumPy)
-   * - :func:`~inverse_jax`
+   * - :func:`~s2fft.precompute_transforms.wigner.inverse_transform_jax`
      - Inverse Wigner transform (JAX)
-   * - :func:`~forward`
+   * - :func:`~s2fft.precompute_transforms.wigner.forward`
      - Wrapper function around NumPy/JAX forward methods
-   * - :func:`~forward_numpy`
+   * - :func:`~s2fft.precompute_transforms.wigner.forward_transform`
      - Forward Wigner transform (NumPy)
-   * - :func:`~forward_jax`
+   * - :func:`~s2fft.precompute_transforms.wigner.forward_transform_jax`
      - Forward Wigner transform (JAX)
 
 .. list-table:: Constructing Kernels for precompute transforms.
@@ -48,11 +48,11 @@ Precompute Functions
 
    * - Function Name
      - Description
-   * - :func:`~spin_spherical_kernel`
+   * - :func:`~s2fft.precompute_transforms.construct.spin_spherical_kernel`
      - Builds a kernel including quadrature weights and Wigner-D coefficients for spherical harmonic transform.
-   * - :func:`~wigner_kernel`
+   * - :func:`~s2fft.precompute_transforms.construct.wigner_kernel`
      - Builds a kernel including quadrature weights and Wigner-D coefficients for Wigner transform.
-   * - :func:`~healpix_phase_shifts`
+   * - :func:`~s2fft.precompute_transforms.construct.healpix_phase_shifts`
      - Builds a vector of corresponding phase shifts for each HEALPix latitudinal ring.
 
 .. toctree::

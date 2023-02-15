@@ -53,6 +53,7 @@ extensions = [
     "sphinx_git",
     "sphinxcontrib.texfigure",
     "sphinx.ext.autosectionlabel",
+    "sphinxemoji.sphinxemoji",
 ]
 
 nbsphinx_execute = "never"

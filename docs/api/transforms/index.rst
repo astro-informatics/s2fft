@@ -9,17 +9,17 @@ Transforms
 
    * - Function Name
      - Description
-   * - :func:`~s2fft.transform.spin_spherical.inverse`
+   * - :func:`~s2fft.transforms.spherical.inverse`
      - Wrapper function around NumPy/JAX inverse methods
-   * - :func:`~inverse_numpy`
+   * - :func:`~s2fft.transforms.spherical.inverse_numpy`
      - Inverse spherical harmonic transform (NumPy)
-   * - :func:`~inverse_jax`
+   * - :func:`~s2fft.transforms.spherical.inverse_jax`
      - Inverse spherical harmonic transform (JAX)
-   * - :func:`~forward`
+   * - :func:`~s2fft.transforms.spherical.forward`
      - Wrapper function around NumPy/JAX forward methods
-   * - :func:`~forward_numpy`
+   * - :func:`~s2fft.transforms.spherical.forward_numpy`
      - Forward spherical harmonic transform (NumPy)
-   * - :func:`~forward_jax`
+   * - :func:`~s2fft.transforms.spherical.forward_jax`
      - Forward spherical harmonic transform (JAX)
 
 .. list-table:: Wigner transforms.
@@ -28,17 +28,17 @@ Transforms
 
    * - Function Name
      - Description
-   * - :func:`~inverse`
+   * - :func:`~s2fft.transforms.wigner.inverse`
      - Wrapper function around NumPy/JAX inverse methods
-   * - :func:`~inverse_numpy`
+   * - :func:`~s2fft.transforms.wigner.inverse_numpy`
      - Inverse Wigner transform (NumPy)
-   * - :func:`~inverse_jax`
+   * - :func:`~s2fft.transforms.wigner.inverse_jax`
      - Inverse Wigner transform (JAX)
-   * - :func:`~forward`
+   * - :func:`~s2fft.transforms.wigner.forward`
      - Wrapper function around NumPy/JAX forward methods
-   * - :func:`~forward_numpy`
+   * - :func:`~s2fft.transforms.wigner.forward_numpy`
      - Forward Wigner transform (NumPy)
-   * - :func:`~forward_jax`
+   * - :func:`~s2fft.transforms.wigner.forward_jax`
      - Forward Wigner transform (JAX)
 
 .. list-table:: On-the-fly Price-McEwen recursions.
@@ -47,13 +47,13 @@ Transforms
 
    * - Function Name
      - Description
-   * - :func:`~inverse_latitudinal_step`
+   * - :func:`~s2fft.transforms.otf_recursions.inverse_latitudinal_step`
      - On-the-fly wigner-recursion for latitudinal portion of overall transform (NumPy)
-   * - :func:`~inverse_latitudinal_step_jax`
+   * - :func:`~s2fft.transforms.otf_recursions.inverse_latitudinal_step_jax`
      - On-the-fly wigner-recursion for latitudinal portion of overall transform (JAX)
-   * - :func:`~forward_latitudinal_step`
+   * - :func:`~s2fft.transforms.otf_recursions.forward_latitudinal_step`
      - On-the-fly wigner-recursion for latitudinal portion of overall transform (NumPy)
-   * - :func:`~forward_latitudinal_step_jax`
+   * - :func:`~s2fft.transforms.otf_recursions.forward_latitudinal_step_jax`
      - On-the-fly wigner-recursion for latitudinal portion of overall transform (JAX)
 
 .. toctree::
