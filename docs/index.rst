@@ -48,8 +48,8 @@ against their contemporaries, in a variety of settings. We consider both complex
 (solid lines) and real signals (dashed lines) wherein hermitian symmetry halves memory 
 overhead and wall-time. We further consider single-program multiple-data (SPMD) deployment 
 of ``S2FFT``, wherein the compute is distributed across multiple GPUs. Below are 
-the results for McEwen-Wiaux sampling for the spin-spherical harmonic (left) and 
-Wigner transform for azimuthal bandlimit N = 5 (right).
+the results for McEwen-Wiaux sampling for the recursion (left) and precompute (right) 
+based spin-spherical harmonic transforms.
 
 +------+-----------+-----------+----------+-----------+----------+----------+---------+
 |      |       Recursive Algorithm        |       Precompute Algorithm                |
