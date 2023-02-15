@@ -124,18 +124,18 @@ html_theme_options = {
             "icon": "fa-brands fa-github fa-2x",
             "type": "fontawesome",
         },
-        {
-            "name": "CodeCov",
-            "url": "https://app.codecov.io/gh/astro-informatics/s2fft",
-            "icon": "_static/codecov.png",
-            "type": "local",
-        },
-        {
-            "name": "Licence",
-            "url": "https://opensource.org/licenses/MIT",
-            "icon": "_static/MIT_Licence.png",
-            "type": "local",
-        },
+        # {
+        #     "name": "CodeCov",
+        #     "url": "https://app.codecov.io/gh/astro-informatics/s2fft",
+        #     "icon": "_static/codecov.png",
+        #     "type": "local",
+        # },
+        # {
+        #     "name": "Licence",
+        #     "url": "https://opensource.org/licenses/MIT",
+        #     "icon": "_static/MIT_Licence.png",
+        #     "type": "local",
+        # },
     ],
 }
 
