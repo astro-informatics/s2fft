@@ -20,10 +20,9 @@
 
    <img src="./docs/assets/sax_logo.png" align="left" height="85" width="98">
 
-``S2FFT`` is a JAX package for computing Fourier transforms on the sphere
-:math:`\mathbb{S}^2` and rotation group :math:`\text{SO(3)}`.  It leverages autodiff to
-provide differentiable transforms, which are also deployable on modern hardware accelerators
-(e.g. GPUs and TPUs). 
+``S2FFT`` is a JAX package for computing Fourier transforms on the sphere and rotation 
+group.  It leverages autodiff to provide differentiable transforms, which are also 
+deployable on modern hardware accelerators (e.g. GPUs and TPUs). 
 
 More specifically, ``S2FFT`` provides support for spin spherical harmonic and Wigner
 transforms (for both real and complex signals), with support for adjoint transformations
@@ -40,8 +39,8 @@ that are stable to high angular resolution :math:`L`.  The diagram below illustr
 
 .. image:: ./docs/assets/figures/schematic.png
 
-Sampling :zap:
---------------
+Sampling :globe_with_meridians:
+-----------------------------------
 
 The structure of the algorithms implemented in ``S2FFT`` can support any isolattitude sampling scheme.  A number of sampling schemes are currently supported.
 
@@ -64,7 +63,7 @@ The popular `HEALPix <https://healpix.jpl.nasa.gov>`_ sampling scheme (`Gorski e
 TODO: add captions to above
 
 
-Installation :rocket:
+Installation :computer:
 ------------------------
 The Python dependencies for the ``S2FFT`` package are listed in the file 
 ``requirements/requirements-core.txt`` and will be automatically installed into the 
@@ -149,7 +148,7 @@ funded by a UCL-ARC Open Source Software Sustainability grant. We strongly encou
 constributions from any developers that are interested; a simple example would be adding 
 support for more spherical sampling patterns!
 
-Attribution :pen:
+Attribution :books:
 ------------------
 We provide this code under an MIT open-source licence with the hope that it will be of use 
 to a wider community. Should this code be used in any way, we kindly request that the follow 
