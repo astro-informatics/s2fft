@@ -72,15 +72,34 @@ In the very near future one will be able to install ``S2FFT`` directly from `PyP
 
 Usage :rocket:
 --------------
+To import and apply the ``S2FFT`` apis is as simple as doing the following 
 
-TODO: add very basic usage example
++-------------------------------------------------------+------------------------------------------------------------+
+|for a spin signal on the sphere                        |for a signal on the rotation group                          |
+|                                                       |                                                            |
+|.. code-block:: Python                                 |.. code-block:: Python                                      |
+|                                                       |                                                            |
+|   # Compute harmonic coefficients                     |   # Compute Wigner coefficients                            |
+|   flm = s2fft.forward_jax(f, L, spin)                 |   flmn = s2fft.wigner.forward_jax(f, L, N)                 |
+|                                                       |                                                            |
+|   # Map back to pixel-space signal                    |   # Map back to pixel-space signal                         |
+|   f = s2fft.inverse_jax(flm, L, spin)                 |   f = s2fft.wigner.inverse_jax(flmn, L, N)                 |
++-------------------------------------------------------+------------------------------------------------------------+
 
-.. code-block:: python
-    
-    import s2fft
+For repeated application of the transforms, however, it is beneficial to precompute some small constant matrices that 
+are used within every transform. To do this simply run 
 
-    flm = s2fft. 
-    s2fft.forward
+.. code-block:: Python
+
+    import s2fft 
+
+    precomputes_sphere = s2fft.generate_precomputes_jax(L, spin)
+    precomputes_wigner = s2fft.generate_precomputes_wigner_jax(L, N)
+
+which are then passed as `precomps` to the transforms. For signals bandlimited below 
+L~1024 we also include a (memory inefficient, but very fast) full precompute mode where 
+the wigner-d kernels are precomputed *a priori* and replace the latitudinal (expensive) 
+step with a simple JAX einsum.
 
 
 Benchmarking :hourglass_flowing_sand:
