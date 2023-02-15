@@ -22,7 +22,7 @@
 
 ``S2FFT`` is a JAX package for computing Fourier transforms on the sphere and rotation 
 group.  It leverages autodiff to provide differentiable transforms, which are also 
-deployable on modern hardware accelerators (e.g. GPUs and TPUs), and can be distributed 
+deployable on modern hardware accelerators (e.g. GPUs and TPUs), and can be mapped 
 across multiple accelerators.
 
 More specifically, ``S2FFT`` provides support for spin spherical harmonic and Wigner
