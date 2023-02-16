@@ -357,8 +357,7 @@
 <h1>Differentiable and accelerated spherical transforms<a class="headerlink" href="#differentiable-and-accelerated-spherical-transforms" title="Permalink to this headline"></a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is a JAX package for computing Fourier transforms on the sphere and rotation
 group.  It leverages autodiff to provide differentiable transforms, which are also
-deployable on modern hardware accelerators (e.g. GPUs and TPUs), and can be mapped
-across multiple accelerators.</p>
+deployable on modern hardware accelerators (e.g. GPUs and TPUs).</p>
 <p>More specifically, <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> provides support for spin spherical harmonic and Wigner
 transforms (for both real and complex signals), with support for adjoint transformations
 where needed, and comes with different optimisations (precompute or not) that one
@@ -380,22 +379,21 @@ that are stable to high angular resolution <span class="math notranslate nohighl
 </div>
 <div class="section" id="contributors-hammer">
 <h2>Contributors 🔨<a class="headerlink" href="#contributors-hammer" title="Permalink to this headline"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> has been developed at UCL, predominantly by Matt Price and Jason McEwen, with
-support from UCL’s Advanced Research Computing (ARC) Centre.  The software was, in part,
-funded by a UCL-ARC Open Source Software Sustainability grant.</p>
-<p>We strongly encourage contributions from any interested developers; a simple example would be adding
+<p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> has been developed at UCL, predominantly by <a class="reference external" href="https://cosmomatt.github.io/">Matt Price</a> and <a class="reference external" href="http://www.jasonmcewen.org/">Jason McEwen</a>, with
+support from UCL’s Advanced Research Computing (ARC) Centre.  The software was
+funded in part by a UCL-ARC Open Source Software Sustainability grant.</p>
+<p>We encourage contributions from any interested developers. A simple first addition could be adding
 support for more spherical sampling patterns!</p>
 </div>
 <div class="section" id="attribution-books">
 <h2>Attribution 📚<a class="headerlink" href="#attribution-books" title="Permalink to this headline"></a></h2>
-<p>We provide this code under an MIT open-source licence with the hope that it will be of use
-to a wider community. Should this code be used in any way, we kindly request that the following
-article is correctly referenced. A BibTeX entry for this reference may look like:</p>
+<p>Should this code be used in any way, we kindly request that the following
+article is referenced. A BibTeX entry for this reference may look like:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">price</span><span class="p">:</span><span class="n">s2fft</span><span class="p">,</span>
    <span class="n">AUTHOR</span>      <span class="o">=</span> <span class="s2">&quot;Matthew A. Price and Jason D. McEwen&quot;</span><span class="p">,</span>
    <span class="n">TITLE</span>       <span class="o">=</span> <span class="s2">&quot;TBA&quot;</span><span class="p">,</span>
-   <span class="n">EPRINT</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:0000.00000&quot;</span><span class="p">,</span>
-   <span class="n">YEAR</span>        <span class="o">=</span> <span class="s2">&quot;2023&quot;</span>
+   <span class="n">YEAR</span>        <span class="o">=</span> <span class="s2">&quot;2023&quot;</span><span class="p">,</span>
+   <span class="n">EPRINT</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:0000.00000&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -404,10 +402,10 @@ article is correctly referenced. A BibTeX entry for this reference may look like
     <span class="n">AUTHOR</span>      <span class="o">=</span> <span class="s2">&quot;Jason D. McEwen and Yves Wiaux&quot;</span><span class="p">,</span>
     <span class="n">TITLE</span>       <span class="o">=</span> <span class="s2">&quot;A novel sampling theorem on the sphere&quot;</span><span class="p">,</span>
     <span class="n">JOURNAL</span>     <span class="o">=</span> <span class="s2">&quot;IEEE Trans. Sig. Proc.&quot;</span><span class="p">,</span>
+    <span class="n">YEAR</span>        <span class="o">=</span> <span class="s2">&quot;2011&quot;</span><span class="p">,</span>
     <span class="n">VOLUME</span>      <span class="o">=</span> <span class="s2">&quot;59&quot;</span><span class="p">,</span>
     <span class="n">NUMBER</span>      <span class="o">=</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
     <span class="n">PAGES</span>       <span class="o">=</span> <span class="s2">&quot;5876--5887&quot;</span><span class="p">,</span>
-    <span class="n">YEAR</span>        <span class="o">=</span> <span class="s2">&quot;2011&quot;</span><span class="p">,</span>
     <span class="n">EPRINT</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:1110.6298&quot;</span><span class="p">,</span>
     <span class="n">DOI</span>         <span class="o">=</span> <span class="s2">&quot;10.1109/TSP.2011.2166394&quot;</span>
 <span class="p">}</span>
@@ -429,6 +427,8 @@ article is correctly referenced. A BibTeX entry for this reference may look like
 </div>
 <div class="section" id="license-memo">
 <h2>License 📝<a class="headerlink" href="#license-memo" title="Permalink to this headline"></a></h2>
+<p>We provide this code under an MIT open-source licence with the hope that it will be of use
+to a wider community.</p>
 <p>Copyright 2023 Matthew Price, Jason McEwen and contributors.</p>
 <p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is free software made available under the MIT License. For details see
 the LICENSE file.</p>
