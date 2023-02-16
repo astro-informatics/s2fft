@@ -22,8 +22,7 @@
 
 ``S2FFT`` is a JAX package for computing Fourier transforms on the sphere and rotation 
 group.  It leverages autodiff to provide differentiable transforms, which are also 
-deployable on modern hardware accelerators (e.g. GPUs and TPUs), and can be mapped 
-across multiple accelerators.
+deployable on modern hardware accelerators (e.g. GPUs and TPUs).
 
 More specifically, ``S2FFT`` provides support for spin spherical harmonic and Wigner
 transforms (for both real and complex signals), with support for adjoint transformations
@@ -130,26 +129,26 @@ the case for many other methods that scale linearly with spin).
 Contributors :hammer:
 ------------------------
 
-``S2FFT`` has been developed at UCL, predominantly by Matt Price and Jason McEwen, with
-support from UCL's Advanced Research Computing (ARC) Centre.  The software was, in part,
-funded by a UCL-ARC Open Source Software Sustainability grant. 
+``S2FFT`` has been developed at UCL, predominantly by `Matt Price
+<https://cosmomatt.github.io/>`_ and `Jason McEwen <http://www.jasonmcewen.org/>`_, with
+support from UCL's Advanced Research Computing (ARC) Centre.  The software was
+funded in part by a UCL-ARC Open Source Software Sustainability grant. 
 
-We strongly encourage contributions from any interested developers; a simple example would be adding 
+We encourage contributions from any interested developers. A simple first addition could be adding 
 support for more spherical sampling patterns!
 
 Attribution :books:
 ------------------
-We provide this code under an MIT open-source licence with the hope that it will be of use 
-to a wider community. Should this code be used in any way, we kindly request that the following 
-article is correctly referenced. A BibTeX entry for this reference may look like:
+Should this code be used in any way, we kindly request that the following 
+article is referenced. A BibTeX entry for this reference may look like:
 
 .. code-block:: 
 
      @article{price:s2fft, 
         AUTHOR      = "Matthew A. Price and Jason D. McEwen",
         TITLE       = "TBA",
-        EPRINT      = "arXiv:0000.00000",
-        YEAR        = "2023"
+        YEAR        = "2023",
+        EPRINT      = "arXiv:0000.00000"        
      }
 
 You might also like to consider citing our related papers on which this code builds:
@@ -160,10 +159,10 @@ You might also like to consider citing our related papers on which this code bui
         AUTHOR      = "Jason D. McEwen and Yves Wiaux",
         TITLE       = "A novel sampling theorem on the sphere",
         JOURNAL     = "IEEE Trans. Sig. Proc.",
+        YEAR        = "2011",
         VOLUME      = "59",
         NUMBER      = "12",
-        PAGES       = "5876--5887",
-        YEAR        = "2011",
+        PAGES       = "5876--5887",        
         EPRINT      = "arXiv:1110.6298",
         DOI         = "10.1109/TSP.2011.2166394"
     }
@@ -184,6 +183,9 @@ You might also like to consider citing our related papers on which this code bui
 
 License :memo:
 ------------
+
+We provide this code under an MIT open-source licence with the hope that it will be of use 
+to a wider community. 
 
 Copyright 2023 Matthew Price, Jason McEwen and contributors.
 
