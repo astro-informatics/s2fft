@@ -1,6 +1,5 @@
-from jax import jit, config
+from jax import jit
 
-config.update("jax_enable_x64", True)
 from functools import partial
 from s2fft.sampling import s2_samples as samples
 import jax.numpy as jnp

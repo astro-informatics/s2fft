@@ -1,6 +1,4 @@
-from jax import jit, config
-
-config.update("jax_enable_x64", True)
+from jax import jit
 
 import numpy as np
 import jax.numpy as jnp
