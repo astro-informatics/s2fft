@@ -212,14 +212,8 @@ def generate_precomputes_jax(
         "l,t->tl", 2.0 * el, jnp.log(jnp.abs(c2)), optimize=True
     )
 
-    ratio_update = jnp.arange(2 * L - 1)
-    # ratio_update = jnp.arange(L + abs(mm) + 2)
-    ratio = jnp.repeat(
-        jnp.expand_dims(2 * el + 2, -1),
-        2 * L - 1,
-        axis=-1
-        # jnp.expand_dims(2 * el + 2, -1), L + abs(mm) + 2, axis=-1
-    )
+    ratio_update = jnp.arange(2 * L + 1)
+    ratio = jnp.repeat(jnp.expand_dims(2 * el + 2, -1), 2 * L + 1, axis=-1)
     ratio -= ratio_update
     ratio /= ratio_update - 1
     ratio = jnp.log(jnp.swapaxes(ratio, 0, 1)) / 2
