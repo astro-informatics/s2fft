@@ -241,6 +241,13 @@ def generate_precomputes_jax(
 
     indices = jnp.repeat(jnp.expand_dims(jnp.arange(L0, L), 0), ntheta, axis=0)
 
+    # Remove redundant nans:
+    # - forward pass these are not accessed, so are irrelevant.
+    # - backward pass the adjoint computation accumulates these nans into grads.
+    lrenorm = jnp.nan_to_num(lrenorm, nan=0.0, posinf=0.0, neginf=0.0)
+    cpi = jnp.nan_to_num(cpi, nan=0.0, posinf=0.0, neginf=0.0)
+    cp2 = jnp.nan_to_num(cp2, nan=0.0, posinf=0.0, neginf=0.0)
+
     return [lrenorm, vsign, cpi, cp2, indices]
 
 
