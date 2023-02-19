@@ -1,6 +1,4 @@
-from jax import config, local_device_count
-
-config.update("jax_enable_x64", True)
+from jax import local_device_count
 
 import numpy as np
 import jax.numpy as jnp
