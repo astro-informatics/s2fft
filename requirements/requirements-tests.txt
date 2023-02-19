@@ -1,6 +1,7 @@
 # Testing
 pytest 
 pytest-cov
+codecov
 
 #jax dependencies
 jaxlib

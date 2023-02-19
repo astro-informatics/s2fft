@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [3.9]
 
     steps:
     - name: Checkout Source
@@ -28,9 +28,11 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install tox
+        pip install -r requirements/requirements-tests.txt
+        pip install -r requirements/requirements-core.txt
+        pip install .
     
     - name: Run tests
       run: |
-        tox -e py38
-        tox -e codecov -- --token 298dc7ee-bb9f-4221-b31f-3576cc6cb702
+        pytest --cov-report term --cov=s2wav --cov-config=.coveragerc 
+        codecov --token 298dc7ee-bb9f-4221-b31f-3576cc6cb702
