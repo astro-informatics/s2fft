@@ -44,8 +44,6 @@
     <script src="../../_static/clipboard.min.js"></script>
     <script src="../../_static/copybutton.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Spherical Harmonic Transform" href="spin_spherical.html" />
@@ -406,92 +404,8 @@
             
             <article class="bd-article" role="main">
               
-  <div class="section" id="module-s2fft.precompute_transforms.construct">
-<span id="constructor"></span><h1>constructor<a class="headerlink" href="#module-s2fft.precompute_transforms.construct" title="Permalink to this headline"></a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.precompute_transforms.construct.healpix_phase_shifts">
-<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.construct.</span></span><span class="sig-name descname"><span class="pre">healpix_phase_shifts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.construct.healpix_phase_shifts" title="Permalink to this definition"></a></dt>
-<dd><p>Generates a phase shift vector for HEALPix for all <span class="math notranslate nohighlight">\(\theta\)</span> rings.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
-<li><p><strong>forward</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to provide forward or inverse shift.
-Defaults to False.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Vector of phase shifts with shape <span class="math notranslate nohighlight">\([thetas, 2L-1]\)</span>.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.precompute_transforms.construct.spin_spherical_kernel">
-<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.construct.</span></span><span class="sig-name descname"><span class="pre">spin_spherical_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.precompute_transforms.construct.spin_spherical_kernel" title="Permalink to this definition"></a></dt>
-<dd><p>Precompute the wigner-d kernel for spin-spherical transform. This can be
-drastically faster but comes at a <span class="math notranslate nohighlight">\(\mathcal{O}(L^3)\)</span> memory overhead, making
-it infeasible for <span class="math notranslate nohighlight">\(L\geq 512\)</span>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>spin</strong> (<em>int</em>) – Harmonic spin.</p></li>
-<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
-conjugate symmetry is exploited to reduce computational costs.
-Defaults to False.</p></li>
-<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
-{“mw”, “mwss”, “dh”, “healpix”}. Defaults to “mw”.</p></li>
-<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.  Only required
-if sampling=”healpix”.</p></li>
-<li><p><strong>forward</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to provide forward or inverse shift.
-Defaults to False.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Transform kernel for spin-spherical harmonic transform.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.precompute_transforms.construct.wigner_kernel">
-<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.construct.</span></span><span class="sig-name descname"><span class="pre">wigner_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#s2fft.precompute_transforms.construct.wigner_kernel" title="Permalink to this definition"></a></dt>
-<dd><p>Precompute the wigner-d kernels required for a Wigner transform. This can be
-drastically faster but comes at a <span class="math notranslate nohighlight">\(\mathcal{O}(NL^3)\)</span> memory overhead, making
-it infeasible for <span class="math notranslate nohighlight">\(L \geq 512\)</span>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>N</strong> (<em>int</em>) – Directional band-limit.</p></li>
-<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
-conjugate symmetry is exploited to reduce computational costs.
-Defaults to False.</p></li>
-<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
-{“mw”, “mwss”, “dh”, “healpix”}. Defaults to “mw”.</p></li>
-<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.  Only required
-if sampling=”healpix”.</p></li>
-<li><p><strong>forward</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to provide forward or inverse shift.
-Defaults to False.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Transform kernel for Wigner transform.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
+  <div class="section" id="constructor">
+<h1>constructor<a class="headerlink" href="#constructor" title="Permalink to this headline"></a></h1>
 </div>
 
 
