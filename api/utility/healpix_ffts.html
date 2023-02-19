@@ -44,6 +44,8 @@
     <script src="../../_static/clipboard.min.js"></script>
     <script src="../../_static/copybutton.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="utils" href="utils.html" />
@@ -404,8 +406,349 @@
             
             <article class="bd-article" role="main">
               
-  <div class="section" id="healpix-functions">
-<h1>healpix functions<a class="headerlink" href="#healpix-functions" title="Permalink to this headline"></a></h1>
+  <div class="section" id="module-s2fft.utils.healpix_ffts">
+<span id="healpix-functions"></span><h1>healpix functions<a class="headerlink" href="#module-s2fft.utils.healpix_ffts" title="Permalink to this headline"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.healpix_fft">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">healpix_fft</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'numpy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.healpix_fft" title="Permalink to this definition"></a></dt>
+<dd><p>Wrapper function for the Forward Fast Fourier Transform with spectral
+back-projection in the polar regions to manually enforce Fourier periodicity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>np.ndarray</em>) – HEALPix pixel-space array.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Evaluation method in {“numpy”, “jax”}.
+Defaults to “numpy”.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.
+Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Deployment method not in {“numpy”, “jax”}.</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Array of Fourier coefficients for all latitudes.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.healpix_fft_jax">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">healpix_fft_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">jax.Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.healpix_fft_jax" title="Permalink to this definition"></a></dt>
+<dd><p>Healpix FFT JAX implementation using jax.numpy/numpy stack
+Computes the Forward Fast Fourier Transform with spectral back-projection
+in the polar regions to manually enforce Fourier periodicity. JAX specific
+implementation of <a class="reference internal" href="#s2fft.utils.healpix_ffts.healpix_fft_numpy" title="s2fft.utils.healpix_ffts.healpix_fft_numpy"><code class="xref py py-func docutils literal notranslate"><span class="pre">healpix_fft_numpy()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>jnp.ndarray</em>) – HEALPix pixel-space array.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Array of Fourier coefficients for all latitudes.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.healpix_fft_numpy">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">healpix_fft_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.healpix_fft_numpy" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the Forward Fast Fourier Transform with spectral back-projection
+in the polar regions to manually enforce Fourier periodicity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>np.ndarray</em>) – HEALPix pixel-space array.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Array of Fourier coefficients for all latitudes.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.healpix_ifft">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">healpix_ifft</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ftm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'numpy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.healpix_ifft" title="Permalink to this definition"></a></dt>
+<dd><p>Wrapper function for the Inverse Fast Fourier Transform with spectral folding
+in the polar regions to mitigate aliasing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ftm</strong> (<em>np.ndarray</em>) – Array of Fourier coefficients for all latitudes.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Evaluation method in {“numpy”, “jax”}.
+Defaults to “numpy”.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.
+Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Deployment method not in {“numpy”, “jax”}.</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>HEALPix pixel-space array.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.healpix_ifft_jax">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">healpix_ifft_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ftm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">jax.Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.healpix_ifft_jax" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the Inverse Fast Fourier Transform with spectral folding in the polar
+regions to mitigate aliasing, using JAX. JAX specific implementation of
+<a class="reference internal" href="#s2fft.utils.healpix_ffts.healpix_ifft_numpy" title="s2fft.utils.healpix_ffts.healpix_ifft_numpy"><code class="xref py py-func docutils literal notranslate"><span class="pre">healpix_ifft_numpy()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ftm</strong> (<em>jnp.ndarray</em>) – Array of Fourier coefficients for all latitudes.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>HEALPix pixel-space array.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.healpix_ifft_numpy">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">healpix_ifft_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ftm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.healpix_ifft_numpy" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the Inverse Fast Fourier Transform with spectral folding in the polar
+regions to mitigate aliasing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ftm</strong> (<em>np.ndarray</em>) – Array of Fourier coefficients for all latitudes.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>HEALPix pixel-space array.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.p2phi_rings">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">p2phi_rings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.p2phi_rings" title="Permalink to this definition"></a></dt>
+<dd><p>Convert index to <span class="math notranslate nohighlight">\(\phi\)</span> angle for HEALPix for all <span class="math notranslate nohighlight">\(\theta\)</span> rings.
+Vectorised implementation of <code class="xref py py-func docutils literal notranslate"><span class="pre">p2phi_ring()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>np.ndarrray</em>) – vector of <span class="math notranslate nohighlight">\(\theta\)</span> ring indicies, i.e. [0,1,…,ntheta-1]</p></li>
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><span class="math notranslate nohighlight">\(\phi\)</span> offset for each ring index.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.p2phi_rings_jax">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">p2phi_rings_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">jax.Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.p2phi_rings_jax" title="Permalink to this definition"></a></dt>
+<dd><p>Convert index to <span class="math notranslate nohighlight">\(\phi\)</span> angle for HEALPix for all <span class="math notranslate nohighlight">\(\theta\)</span> rings.
+JAX implementation of <a class="reference internal" href="#s2fft.utils.healpix_ffts.p2phi_rings" title="s2fft.utils.healpix_ffts.p2phi_rings"><code class="xref py py-func docutils literal notranslate"><span class="pre">p2phi_rings()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>jnp.ndarrray</em>) – vector of <span class="math notranslate nohighlight">\(\theta\)</span> ring indicies, i.e. [0,1,…,ntheta-1]</p></li>
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><span class="math notranslate nohighlight">\(\phi\)</span> offset for each ring index.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.ring_phase_shifts_hp">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">ring_phase_shifts_hp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.ring_phase_shifts_hp" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a phase shift vector for HEALPix for all <span class="math notranslate nohighlight">\(\theta\)</span> rings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
+<li><p><strong>forward</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to provide forward or inverse shift.
+Defaults to False.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.
+Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Vector of phase shifts with shape <span class="math notranslate nohighlight">\([n_{\theta}, 2L-1]\)</span>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.ring_phase_shifts_hp_jax">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">ring_phase_shifts_hp_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.ring_phase_shifts_hp_jax" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a phase shift vector for HEALPix for all <span class="math notranslate nohighlight">\(\theta\)</span> rings. JAX
+implementation of <a class="reference internal" href="#s2fft.utils.healpix_ffts.ring_phase_shifts_hp" title="s2fft.utils.healpix_ffts.ring_phase_shifts_hp"><code class="xref py py-func docutils literal notranslate"><span class="pre">ring_phase_shifts_hp()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
+<li><p><strong>forward</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to provide forward or inverse shift.
+Defaults to False.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.
+Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Vector of phase shifts with shape <span class="math notranslate nohighlight">\([n_{\theta}, 2L-1]\)</span>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.spectral_folding">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">spectral_folding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nphi</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.spectral_folding" title="Permalink to this definition"></a></dt>
+<dd><p>Folds higher frequency Fourier coefficients back onto lower frequency
+coefficients, i.e. aliasing high frequencies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fm</strong> (<em>np.ndarray</em>) – Slice of Fourier coefficients corresponding to ring at latitute t.</p></li>
+<li><p><strong>nphi</strong> (<em>int</em>) – Total number of pixel space phi samples for latitude t.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Lower resolution set of aliased Fourier coefficients.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.spectral_folding_jax">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">spectral_folding_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">jax.Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nphi</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.spectral_folding_jax" title="Permalink to this definition"></a></dt>
+<dd><p>Folds higher frequency Fourier coefficients back onto lower frequency
+coefficients, i.e. aliasing high frequencies. JAX specific implementation of
+<a class="reference internal" href="#s2fft.utils.healpix_ffts.spectral_folding" title="s2fft.utils.healpix_ffts.spectral_folding"><code class="xref py py-func docutils literal notranslate"><span class="pre">spectral_folding()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fm</strong> (<em>jnp.ndarray</em>) – Slice of Fourier coefficients corresponding to ring at latitute t.</p></li>
+<li><p><strong>nphi</strong> (<em>int</em>) – Total number of pixel space phi samples for latitude t.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Lower resolution set of aliased Fourier coefficients.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.spectral_periodic_extension">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">spectral_periodic_extension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nphi</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.spectral_periodic_extension" title="Permalink to this definition"></a></dt>
+<dd><p>Extends lower frequency Fourier coefficients onto higher frequency
+coefficients, i.e. imposed periodicity in Fourier space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fm</strong> (<em>np.ndarray</em>) – Slice of Fourier coefficients corresponding to ring at latitute t.</p></li>
+<li><p><strong>nphi</strong> (<em>int</em>) – Total number of pixel space phi samples for latitude t.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Higher resolution set of periodic Fourier coefficients.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.spectral_periodic_extension_jax">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">spectral_periodic_extension_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">jax.Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.spectral_periodic_extension_jax" title="Permalink to this definition"></a></dt>
+<dd><p>Extends lower frequency Fourier coefficients onto higher frequency
+coefficients, i.e. imposed periodicity in Fourier space. Based on
+<a class="reference internal" href="#s2fft.utils.healpix_ffts.spectral_periodic_extension" title="s2fft.utils.healpix_ffts.spectral_periodic_extension"><code class="xref py py-func docutils literal notranslate"><span class="pre">spectral_periodic_extension()</span></code></a>, modified to be JIT-compilable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fm</strong> (<em>jnp.ndarray</em>) – Slice of Fourier coefficients corresponding to ring at latitute t.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Higher resolution set of periodic Fourier coefficients.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 

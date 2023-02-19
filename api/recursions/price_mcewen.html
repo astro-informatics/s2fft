@@ -44,6 +44,8 @@
     <script src="../../_static/clipboard.min.js"></script>
     <script src="../../_static/copybutton.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Risbo" href="risbo.html" />
@@ -404,8 +406,225 @@
             
             <article class="bd-article" role="main">
               
-  <div class="section" id="price-mcewen">
-<h1>Price &amp; McEwen<a class="headerlink" href="#price-mcewen" title="Permalink to this headline"></a></h1>
+  <div class="section" id="module-s2fft.recursions.price_mcewen">
+<span id="price-mcewen"></span><h1>Price &amp; McEwen<a class="headerlink" href="#module-s2fft.recursions.price_mcewen" title="Permalink to this headline"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.recursions.price_mcewen.compute_all_slices">
+<span class="sig-prename descclassname"><span class="pre">s2fft.recursions.price_mcewen.</span></span><span class="sig-name descname"><span class="pre">compute_all_slices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#s2fft.recursions.price_mcewen.compute_all_slices" title="Permalink to this definition"></a></dt>
+<dd><p>Compute a particular slice <span class="math notranslate nohighlight">\(m^{\prime}\)</span>, denoted <cite>mm</cite>,
+of the complete Wigner-d matrix for all sampled polar angles
+<span class="math notranslate nohighlight">\(\beta\)</span> and all <span class="math notranslate nohighlight">\(\ell\)</span> using Price &amp; McEwen recursion.</p>
+<p>The Wigner-d slice for all <span class="math notranslate nohighlight">\(\ell\)</span> (<cite>el</cite>) and <span class="math notranslate nohighlight">\(\beta\)</span> is
+computed recursively over <span class="math notranslate nohighlight">\(m\)</span> labelled ‘m’ at a specific
+<span class="math notranslate nohighlight">\(m^{\prime}\)</span>. The Price &amp; McEwen recursion is analytically correct
+from <span class="math notranslate nohighlight">\(-\ell &lt; m &lt; \ell\)</span> however numerically it can become unstable for
+<span class="math notranslate nohighlight">\(m &gt; 0\)</span>. To avoid this we compute <span class="math notranslate nohighlight">\(d_{m,
+m^{\prime}}^{\ell}(\beta)\)</span> for negative <span class="math notranslate nohighlight">\(m\)</span> and then evaluate
+<span class="math notranslate nohighlight">\(d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m,
+m^{\prime}}^{\ell}(\beta)\)</span> which we can again evaluate using the same recursion.</p>
+<p>On-the-fly renormalisation is implemented to avoid potential over/under-flows,
+within any given iteration of the recursion the iterants are <span class="math notranslate nohighlight">\(\sim \mathcal{O}(1)\)</span>.</p>
+<p>The Wigner-d slice <span class="math notranslate nohighlight">\(d^\ell_{m, m^{\prime}}(\beta)\)</span> is indexed for
+<span class="math notranslate nohighlight">\(-L &lt; m &lt; L\)</span> by <cite>dl[L - 1 - m, beta, ell]</cite>. This implementation has
+computational scaling <span class="math notranslate nohighlight">\(\mathcal{O}(L)\)</span> and typically requires <span class="math notranslate nohighlight">\(\sim 2L\)</span>
+operations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>beta</strong> (<em>np.ndarray</em>) – Array of polar angles in radians.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+<li><p><strong>precomps</strong> (<em>List</em><em>[</em><em>np.ndarray</em><em>]</em>) – Precomputed recursion coefficients with memory overhead
+<span class="math notranslate nohighlight">\(\mathcal{O}(L^2)\)</span>, which is minimal.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Wigner-d matrix mm slice of dimension <span class="math notranslate nohighlight">\([2L-1, n_{\theta}, n_{\ell}]\)</span>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.recursions.price_mcewen.compute_all_slices_jax">
+<span class="sig-prename descclassname"><span class="pre">s2fft.recursions.price_mcewen.</span></span><span class="sig-name descname"><span class="pre">compute_all_slices_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">jax.Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.recursions.price_mcewen.compute_all_slices_jax" title="Permalink to this definition"></a></dt>
+<dd><p>Compute a particular slice <span class="math notranslate nohighlight">\(m^{\prime}\)</span>, denoted <cite>mm</cite>,
+of the complete Wigner-d matrix for all sampled polar angles
+<span class="math notranslate nohighlight">\(\beta\)</span> and all <span class="math notranslate nohighlight">\(\ell\)</span> using Price &amp; McEwen recursion.</p>
+<p>The Wigner-d slice for all <span class="math notranslate nohighlight">\(\ell\)</span> (<cite>el</cite>) and <span class="math notranslate nohighlight">\(\beta\)</span> is
+computed recursively over <span class="math notranslate nohighlight">\(m\)</span> labelled ‘m’ at a specific
+<span class="math notranslate nohighlight">\(m^{\prime}\)</span>. The Price &amp; McEwen recursion is analytically correct
+from <span class="math notranslate nohighlight">\(-\ell &lt; m &lt; \ell\)</span> however numerically it can become unstable for
+<span class="math notranslate nohighlight">\(m &gt; 0\)</span>. To avoid this we compute <span class="math notranslate nohighlight">\(d_{m,
+m^{\prime}}^{\ell}(\beta)\)</span> for negative <span class="math notranslate nohighlight">\(m\)</span> and then evaluate
+<span class="math notranslate nohighlight">\(d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m,
+m^{\prime}}^{\ell}(\beta)\)</span> which we can again evaluate using the same recursion.</p>
+<p>On-the-fly renormalisation is implemented to avoid potential over/under-flows,
+within any given iteration of the recursion the iterants are <span class="math notranslate nohighlight">\(\sim \mathcal{O}(1)\)</span>.</p>
+<p>The Wigner-d slice <span class="math notranslate nohighlight">\(d^\ell_{m, m^{\prime}}(\beta)\)</span> is indexed for
+<span class="math notranslate nohighlight">\(-L &lt; m &lt; L\)</span> by <cite>dl[L - 1 - m, beta, ell]</cite>. This implementation has
+computational scaling <span class="math notranslate nohighlight">\(\mathcal{O}(L)\)</span> and typically requires <span class="math notranslate nohighlight">\(\sim 2L\)</span>
+operations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>beta</strong> (<em>jnp.ndarray</em>) – Array of polar angles in radians.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+<li><p><strong>precomps</strong> (<em>List</em><em>[</em><em>np.ndarray</em><em>]</em>) – Precomputed recursion coefficients with memory overhead
+<span class="math notranslate nohighlight">\(\mathcal{O}(L^2)\)</span>, which is minimal.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Wigner-d matrix mm slice of dimension <span class="math notranslate nohighlight">\([2L-1, n_{\theta}, n_{\ell}]\)</span>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.recursions.price_mcewen.generate_precomputes">
+<span class="sig-prename descclassname"><span class="pre">s2fft.recursions.price_mcewen.</span></span><span class="sig-name descname"><span class="pre">generate_precomputes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#s2fft.recursions.price_mcewen.generate_precomputes" title="Permalink to this definition"></a></dt>
+<dd><p>Compute recursion coefficients with <span class="math notranslate nohighlight">\(\mathcal{O}(L^2)\)</span> memory overhead.
+In practice one could compute these on-the-fly but the memory overhead is
+negligible and well worth the acceleration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “healpix”}.  Defaults to “mw”.</p></li>
+<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
+if sampling=”healpix”.  Defaults to None.</p></li>
+<li><p><strong>forward</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to provide forward or inverse shift.
+Defaults to False.</p></li>
+<li><p><strong>L_lower</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic lower-bound. Transform will only be computed
+for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt; \texttt{L}\)</span>. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of precomputed coefficient arrays.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[np.ndarray]</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>TODO: this function should be optimised.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.recursions.price_mcewen.generate_precomputes_jax">
+<span class="sig-prename descclassname"><span class="pre">s2fft.recursions.price_mcewen.</span></span><span class="sig-name descname"><span class="pre">generate_precomputes_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.Array</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#s2fft.recursions.price_mcewen.generate_precomputes_jax" title="Permalink to this definition"></a></dt>
+<dd><p>Compute recursion coefficients with <span class="math notranslate nohighlight">\(\mathcal{O}(L^2)\)</span> memory overhead.
+In practice one could compute these on-the-fly but the memory overhead is
+negligible and well worth the acceleration. JAX implementation of
+<a class="reference internal" href="#s2fft.recursions.price_mcewen.generate_precomputes" title="s2fft.recursions.price_mcewen.generate_precomputes"><code class="xref py py-func docutils literal notranslate"><span class="pre">generate_precomputes()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “healpix”}.  Defaults to “mw”.</p></li>
+<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
+if sampling=”healpix”.  Defaults to None.</p></li>
+<li><p><strong>forward</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to provide forward or inverse shift.
+Defaults to False.</p></li>
+<li><p><strong>L_lower</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic lower-bound. Transform will only be computed
+for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt; \texttt{L}\)</span>. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of precomputed coefficient arrays.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[jnp.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.recursions.price_mcewen.generate_precomputes_wigner">
+<span class="sig-prename descclassname"><span class="pre">s2fft.recursions.price_mcewen.</span></span><span class="sig-name descname"><span class="pre">generate_precomputes_wigner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#s2fft.recursions.price_mcewen.generate_precomputes_wigner" title="Permalink to this definition"></a></dt>
+<dd><p>Compute recursion coefficients with <span class="math notranslate nohighlight">\(\mathcal{O}(L^2)\)</span> memory overhead.
+In practice one could compute these on-the-fly but the memory overhead is
+negligible and well worth the acceleration. This is a wrapped extension of
+<a class="reference internal" href="#s2fft.recursions.price_mcewen.generate_precomputes" title="s2fft.recursions.price_mcewen.generate_precomputes"><code class="xref py py-func docutils literal notranslate"><span class="pre">generate_precomputes()</span></code></a> for the case of multiple spins, i.e. the Wigner
+transform over SO(3).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – Azimuthal bandlimit</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “healpix”}.  Defaults to “mw”.</p></li>
+<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
+if sampling=”healpix”.  Defaults to None.</p></li>
+<li><p><strong>forward</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to provide forward or inverse shift.
+Defaults to False.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.  Defaults to
+False.</p></li>
+<li><p><strong>L_lower</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic lower-bound. Transform will only be computed
+for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt; \texttt{L}\)</span>. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>2N-1 length List of Lists of precomputed coefficient arrays.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[List[np.ndarray]]</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>TODO: this function should be optimised.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.recursions.price_mcewen.generate_precomputes_wigner_jax">
+<span class="sig-prename descclassname"><span class="pre">s2fft.recursions.price_mcewen.</span></span><span class="sig-name descname"><span class="pre">generate_precomputes_wigner_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">jax.Array</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#s2fft.recursions.price_mcewen.generate_precomputes_wigner_jax" title="Permalink to this definition"></a></dt>
+<dd><p>Compute recursion coefficients with <span class="math notranslate nohighlight">\(\mathcal{O}(L^2)\)</span> memory overhead.
+In practice one could compute these on-the-fly but the memory overhead is
+negligible and well worth the acceleration. This is a wrapped extension of
+<a class="reference internal" href="#s2fft.recursions.price_mcewen.generate_precomputes" title="s2fft.recursions.price_mcewen.generate_precomputes"><code class="xref py py-func docutils literal notranslate"><span class="pre">generate_precomputes()</span></code></a> for the case of multiple spins, i.e. the Wigner
+transform over SO(3). JAX implementation of <a class="reference internal" href="#s2fft.recursions.price_mcewen.generate_precomputes_wigner" title="s2fft.recursions.price_mcewen.generate_precomputes_wigner"><code class="xref py py-func docutils literal notranslate"><span class="pre">generate_precomputes_wigner()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – Azimuthal bandlimit</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “healpix”}.  Defaults to “mw”.</p></li>
+<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
+if sampling=”healpix”.  Defaults to None.</p></li>
+<li><p><strong>forward</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to provide forward or inverse shift.
+Defaults to False.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.  Defaults to
+False.</p></li>
+<li><p><strong>L_lower</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic lower-bound. Transform will only be computed
+for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt; \texttt{L}\)</span>. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>2N-1 length List of Lists of precomputed coefficient arrays.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[List[jnp.ndarray]]</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 

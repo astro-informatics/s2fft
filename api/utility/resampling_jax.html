@@ -44,6 +44,8 @@
     <script src="../../_static/clipboard.min.js"></script>
     <script src="../../_static/copybutton.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="quadrature" href="quadrature.html" />
@@ -404,8 +406,242 @@
             
             <article class="bd-article" role="main">
               
-  <div class="section" id="resampling-jax">
-<h1>resampling_jax<a class="headerlink" href="#resampling-jax" title="Permalink to this headline"></a></h1>
+  <div class="section" id="module-s2fft.utils.resampling_jax">
+<span id="resampling-jax"></span><h1>resampling_jax<a class="headerlink" href="#module-s2fft.utils.resampling_jax" title="Permalink to this headline"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.resampling_jax.mw_to_mwss">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_jax.</span></span><span class="sig-name descname"><span class="pre">mw_to_mwss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_mw</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">jax.Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_jax.mw_to_mwss" title="Permalink to this definition"></a></dt>
+<dd><p>Convert signal on the sphere from MW sampling to MWSS sampling.</p>
+<p>Conversion is performed by first performing a period extension in
+<span class="math notranslate nohighlight">\(\theta\)</span> to <span class="math notranslate nohighlight">\(2\pi\)</span>, followed by zero padding in harmonic space.  The
+resulting signal is then unextend back to the <span class="math notranslate nohighlight">\(\theta\)</span> domain of
+<span class="math notranslate nohighlight">\([0,\pi]\)</span>.  Second, zero padding in harmonic space corresponding to
+<span class="math notranslate nohighlight">\(\phi\)</span> is performed.</p>
+<p>JAX implementation of <code class="xref py py-func docutils literal notranslate"><span class="pre">mw_to_mwss()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f_mw</strong> (<em>jnp.ndarray</em>) – Signal on the sphere sampled with MW sampling.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Signal on the sphere sampled with MWSS sampling.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.resampling_jax.mw_to_mwss_phi">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_jax.</span></span><span class="sig-name descname"><span class="pre">mw_to_mwss_phi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_mw</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">jax.Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_jax.mw_to_mwss_phi" title="Permalink to this definition"></a></dt>
+<dd><p>Convert <span class="math notranslate nohighlight">\(\phi\)</span> component of signal on the sphere from MW sampling to
+MWSS sampling.</p>
+<p>Conversion is performed by zero padding in harmonic space.</p>
+<p>JAX implementation of <code class="xref py py-func docutils literal notranslate"><span class="pre">mw_to_mwss_phi()</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Can work with arbitrary number of <span class="math notranslate nohighlight">\(\theta\)</span> samples.  Hence, to convert
+both <span class="math notranslate nohighlight">\((\theta,\phi)\)</span> sampling to MWSS, can use <a class="reference internal" href="#s2fft.utils.resampling_jax.mw_to_mwss_theta" title="s2fft.utils.resampling_jax.mw_to_mwss_theta"><code class="xref py py-func docutils literal notranslate"><span class="pre">mw_to_mwss_theta()</span></code></a>
+to first convert <span class="math notranslate nohighlight">\(\theta\)</span> sampling before using this function to convert
+the <span class="math notranslate nohighlight">\(\phi\)</span> sampling.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f_mw</strong> (<em>jnp.ndarray</em>) – Signal on the sphere sampled with MW sampling in
+<span class="math notranslate nohighlight">\(\phi\)</span> and arbitrary number of samples in</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Input spherical signal must have number of samples in <span class="math notranslate nohighlight">\(\phi\)</span>
+    matching MW sampling.</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Signal on the sphere with MWSS sampling in <span class="math notranslate nohighlight">\(\phi\)</span> and
+sampling in <span class="math notranslate nohighlight">\(\theta\)</span> of the input signal.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.resampling_jax.mw_to_mwss_theta">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_jax.</span></span><span class="sig-name descname"><span class="pre">mw_to_mwss_theta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_mw</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">jax.Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_jax.mw_to_mwss_theta" title="Permalink to this definition"></a></dt>
+<dd><p>Convert <span class="math notranslate nohighlight">\(\theta\)</span> component of signal on the sphere from MW sampling to
+MWSS sampling.</p>
+<p>Conversion is performed by first performing a period extension in
+<span class="math notranslate nohighlight">\(\theta\)</span> to <span class="math notranslate nohighlight">\(2\pi\)</span>, followed by zero padding in harmonic space.  The
+resulting signal is then unextend back to the <span class="math notranslate nohighlight">\(\theta\)</span> domain of
+<span class="math notranslate nohighlight">\([0,\pi]\)</span>.</p>
+<p>JAX implementation of <code class="xref py py-func docutils literal notranslate"><span class="pre">mw_to_mwss_theta()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f_mw</strong> (<em>jnp.ndarray</em>) – Signal on the sphere sampled with MW sampling.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Input spherical signal must have shape matching MW sampling.</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Signal on the sphere with MWSS sampling in <span class="math notranslate nohighlight">\(\theta\)</span> and MW
+sampling in <span class="math notranslate nohighlight">\(\phi\)</span>.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.resampling_jax.periodic_extension">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_jax.</span></span><span class="sig-name descname"><span class="pre">periodic_extension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">jax.Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_jax.periodic_extension" title="Permalink to this definition"></a></dt>
+<dd><p>Perform period extension of MW/MWSS signal on the sphere in harmonic
+domain, extending <span class="math notranslate nohighlight">\(\theta\)</span> domain from <span class="math notranslate nohighlight">\([0,\pi]\)</span> to <span class="math notranslate nohighlight">\([0,2\pi]\)</span>.
+JAX implementation of <code class="xref py py-func docutils literal notranslate"><span class="pre">periodic_extension()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>jnp.ndarray</em>) – Signal on the sphere sampled with MW/MWSS sampling scheme.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”}.  Defaults to “mw”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Only MW/MWW sampling schemes supported.</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Signal on the sphere extended to <span class="math notranslate nohighlight">\(\theta\)</span> domain
+<span class="math notranslate nohighlight">\([0,2\pi]\)</span>, in same scheme (MW/MWSS) as input.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.resampling_jax.periodic_extension_spatial_mwss">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_jax.</span></span><span class="sig-name descname"><span class="pre">periodic_extension_spatial_mwss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">jax.Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_jax.periodic_extension_spatial_mwss" title="Permalink to this definition"></a></dt>
+<dd><p>Perform period extension of MWSS signal on the sphere in spatial domain,
+extending <span class="math notranslate nohighlight">\(\theta\)</span> domain from <span class="math notranslate nohighlight">\([0,\pi]\)</span> to <span class="math notranslate nohighlight">\([0,2\pi]\)</span>.</p>
+<p>For the MWSS sampling scheme, it is possible to do the period extension in
+<span class="math notranslate nohighlight">\(\theta\)</span> in the spatial domain.  This is not possible for the MW sampling
+scheme.</p>
+<p>JAX implementation of <code class="xref py py-func docutils literal notranslate"><span class="pre">periodic_extension_spatial_mwss()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>jnp.ndarray</em>) – Signal on the sphere sampled with MWSS sampling scheme.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Signal on the sphere extended to <span class="math notranslate nohighlight">\(\theta\)</span> domain
+<span class="math notranslate nohighlight">\([0,2\pi]\)</span>, in MWSS sampling scheme.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.resampling_jax.unextend">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_jax.</span></span><span class="sig-name descname"><span class="pre">unextend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_ext</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">jax.Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_jax.unextend" title="Permalink to this definition"></a></dt>
+<dd><p>Unextend MW/MWSS sampled signal from <span class="math notranslate nohighlight">\(\theta\)</span> domain
+<span class="math notranslate nohighlight">\([0,2\pi]\)</span> to <span class="math notranslate nohighlight">\([0,\pi]\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f_ext</strong> (<em>jnp.ndarray</em>) – Signal on the sphere sampled on extended <span class="math notranslate nohighlight">\(\theta\)</span>
+domain <span class="math notranslate nohighlight">\([0,2\pi]\)</span>.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”}.  Defaults to “mw”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – Only MW/MWW sampling schemes supported.</p></li>
+<li><p><strong>ValueError</strong> – Period extension must have correct shape.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Signal on the sphere sampled on <span class="math notranslate nohighlight">\(\theta\)</span> domain
+<span class="math notranslate nohighlight">\([0,\pi]\)</span>.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.resampling_jax.upsample_by_two_mwss">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_jax.</span></span><span class="sig-name descname"><span class="pre">upsample_by_two_mwss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">jax.Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_jax.upsample_by_two_mwss" title="Permalink to this definition"></a></dt>
+<dd><p>Upsample MWSS sampled signal on the sphere defined on domain <span class="math notranslate nohighlight">\([0,\pi]\)</span>
+by a factor of two.</p>
+<p>Upsampling is performed by a periodic extension in <span class="math notranslate nohighlight">\(\theta\)</span> to
+<span class="math notranslate nohighlight">\([0,2\pi]\)</span>, followed by zero-padding in harmonic space, followed by
+unextending <span class="math notranslate nohighlight">\(\theta\)</span> domain back to <span class="math notranslate nohighlight">\([0,\pi]\)</span>.</p>
+<p>JAX implementation of <code class="xref py py-func docutils literal notranslate"><span class="pre">upsample_by_two_mwss()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>jnp.ndarray</em>) – Signal on the sphere sampled with MWSS sampling scheme, sampled
+at resolution L.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Signal on the sphere sampled with MWSS sampling scheme, sampling at
+resolution 2*L.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.resampling_jax.upsample_by_two_mwss_ext">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_jax.</span></span><span class="sig-name descname"><span class="pre">upsample_by_two_mwss_ext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_ext</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">jax.Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">jax.Array</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_jax.upsample_by_two_mwss_ext" title="Permalink to this definition"></a></dt>
+<dd><p>Upsample an extended MWSS sampled signal on the sphere defined on domain
+<span class="math notranslate nohighlight">\([0,2\pi]\)</span> by a factor of two.</p>
+<p>Upsampling is performed by zero-padding in harmonic space. JAX implementation of
+<code class="xref py py-func docutils literal notranslate"><span class="pre">upsample_by_two_mwss_ext()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f_ext</strong> (<em>jnp.ndarray</em>) – Signal on the sphere sampled on extended MWSS sampling
+scheme on domain <span class="math notranslate nohighlight">\([0,2\pi]\)</span>, sampled at resolution L.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Signal on the sphere sampled on extended MWSS sampling scheme on
+domain <span class="math notranslate nohighlight">\([0,2\pi]\)</span>, sampling at resolution 2*L.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 
