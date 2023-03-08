@@ -125,10 +125,8 @@ the case for many other methods that scale linearly with spin).
 | 8192 | 82 s      | 110.8     | 2.14E-13 | N/A       | N/A      | N/A      | N/A     |
 +------+-----------+-----------+----------+-----------+----------+----------+---------+
 
-
-Contributors :hammer:
-------------------------
-
+Contributors ✨
+--------------
 ``S2FFT`` has been developed at UCL, predominantly by `Matt Price
 <https://cosmomatt.github.io/>`_ and `Jason McEwen <http://www.jasonmcewen.org/>`_, with
 support from UCL's Advanced Research Computing (ARC) Centre.  The software was
@@ -137,16 +135,17 @@ funded in part by a UCL-ARC Open Source Software Sustainability grant.
 We encourage contributions from any interested developers. A simple first addition could be adding 
 support for more spherical sampling patterns! 
 
-## Contributors
+Thanks goes to these wonderful people (`emoji key`_):
 
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
+.. _emoji key: https://allcontributors.org/docs/en/emoji-key
 
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
+.. raw:: html
+   <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+   <table>
+     # ...
+   </table>
 
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+   <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 
 Attribution :books:
