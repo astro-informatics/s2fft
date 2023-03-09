@@ -47,6 +47,15 @@
         "code",
         "review"
       ]
+    },
+    {
+      "login": "krishnakumarg1984",
+      "name": "Krishnakumar Gopalakrishnan, PhD",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15239509?v=4",
+      "profile": "https://about.me/krishnakumarg",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
