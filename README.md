@@ -152,7 +152,7 @@ key](https://allcontributors.org/docs/en/emoji-key)):
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-## Attribution :books: 
+## Attribution :books: 
 
 Should this code be used in any way, we kindly request that the following article is
 referenced. A BibTeX entry for this reference may look like:
