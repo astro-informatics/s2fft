@@ -33,15 +33,32 @@ The popular `HEALPix <https://healpix.jpl.nasa.gov>`_ sampling scheme (`Gorski e
    :width: 700
    :align: center
 
-Contributors |:hammer:|
-------------------------
-``S2FFT`` has been developed at UCL, predominantly by `Matt Price
-<https://cosmomatt.github.io/>`_ and `Jason McEwen <http://www.jasonmcewen.org/>`_, with
-support from UCL's Advanced Research Computing (ARC) Centre.  The software was
-funded in part by a UCL-ARC Open Source Software Sustainability grant. 
+Contributors ✨
+-----------------------------------
 
-We encourage contributions from any interested developers. A simple first addition could be adding 
-support for more spherical sampling patterns!
+Thanks goes to these wonderful people (`emoji
+key <https://allcontributors.org/docs/en/emoji-key>`_):
+
+.. raw:: html 
+
+    <embed>
+        <table>
+        <tbody>
+            <tr>
+            <td align="center" valign="top" width="16.66%"><a href="https://cosmomatt.github.io"><img src="https://avatars.githubusercontent.com/u/32554533?v=4?s=100" width="100px;" alt="Matt Price"/><br /><sub><b>Matt Price</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=CosmoMatt" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3ACosmoMatt" title="Reviewed Pull Requests">👀</a> <a href="#ideas-CosmoMatt" title="Ideas, Planning, & Feedback">🤔</a></td>
+            <td align="center" valign="top" width="16.66%"><a href="http://www.jasonmcewen.org"><img src="https://avatars.githubusercontent.com/u/3181701?v=4?s=100" width="100px;" alt="Jason McEwen "/><br /><sub><b>Jason McEwen </b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=jasonmcewen" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3Ajasonmcewen" title="Reviewed Pull Requests">👀</a> <a href="#ideas-jasonmcewen" title="Ideas, Planning, & Feedback">🤔</a></td>
+            <td align="center" valign="top" width="16.66%"><a href="http://matt-graham.github.io"><img src="https://avatars.githubusercontent.com/u/6746980?v=4?s=100" width="100px;" alt="Matt Graham"/><br /><sub><b>Matt Graham</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=matt-graham" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3Amatt-graham" title="Reviewed Pull Requests">👀</a></td>
+            <td align="center" valign="top" width="16.66%"><a href="https://sfmig.github.io/"><img src="https://avatars.githubusercontent.com/u/33267254?v=4?s=100" width="100px;" alt="sfmig"/><br /><sub><b>sfmig</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=sfmig" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3Asfmig" title="Reviewed Pull Requests">👀</a></td>
+            <td align="center" valign="top" width="16.66%"><a href="https://github.com/Devaraj-G"><img src="https://avatars.githubusercontent.com/u/36169767?v=4?s=100" width="100px;" alt="Devaraj Gopinathan"/><br /><sub><b>Devaraj Gopinathan</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=Devaraj-G" title="Code">💻</a></td>
+            <td align="center" valign="top" width="16.66%"><a href="http://flanusse.net"><img src="https://avatars.githubusercontent.com/u/861591?v=4?s=100" width="100px;" alt="Francois Lanusse"/><br /><sub><b>Francois Lanusse</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=EiffL" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/issues?q=author%3AEiffL" title="Bug reports">🐛</a></td>
+            </tr>
+        </tbody>
+        </table>
+    </embed>
+
+We encourage contributions from any interested developers. A simple
+first addition could be adding support for more spherical sampling
+patterns!
 
 Attribution |:books:|
 ------------------
