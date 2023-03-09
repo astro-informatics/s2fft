@@ -114,7 +114,6 @@ details see Price & McEwen, in prep.). Note that our compute time is
 agnostic to spin number (which is not the case for many other methods
 that scale linearly with spin).
 
-|      |       Recursive Algorithm |          |          |       Precompute Algorithm |          |          |         |
 |------|---------------------------|----------|----------|----------------------------|----------|----------|---------|
 | L    | Wall-Time                 | Speed-up | Error    | Wall-Time                  | Speed-up | Error    | Memory  |
 | 64   | 3.6 ms                    | 0.88     | 1.81E-15 | 52.4 μs                    | 60.5     | 1.67E-15 | 4.2 MB  |
@@ -125,6 +124,10 @@ that scale linearly with spin).
 | 2048 | 1.44 s                    | 49.7     | 5.17E-14 | N/A                        | N/A      | N/A      | N/A     |
 | 4096 | 8.48 s                    | 133.9    | 1.06E-13 | N/A                        | N/A      | N/A      | N/A     |
 | 8192 | 82 s                      | 110.8    | 2.14E-13 | N/A                        | N/A      | N/A      | N/A     |
+|------|---------------------------|----------|----------|----------------------------|----------|----------|---------|
+
+where the left hand results are for the recursive based algorithm and the right hand side are 
+our precompute implementation.
 
 ## Contributors ✨
 
