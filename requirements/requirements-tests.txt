@@ -7,5 +7,6 @@ codecov
 jaxlib
 
 # Healpix Sampling
+pyssht
 healpy
 so3

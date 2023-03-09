@@ -4,4 +4,3 @@ from . import resampling
 from . import resampling_jax
 from . import healpix_ffts
 from . import signal_generator
-from . import plotting_functions

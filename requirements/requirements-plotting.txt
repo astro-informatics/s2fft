@@ -1,0 +1,5 @@
+# Packages required for plotting functionality
+pyvista
+trame
+ipykernel
+ipywidgets
