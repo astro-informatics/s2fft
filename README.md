@@ -209,3 +209,4 @@ Copyright 2023 Matthew Price, Jason McEwen and contributors.
 
 `S2FFT` is free software made available under the MIT License. For
 details see the LICENSE file.
+
