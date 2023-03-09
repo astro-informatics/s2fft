@@ -1,7 +1,5 @@
-[![image](https://img.shields.io/badge/GitHub-S2FFT-blue.svg?style=flat)](https://github.com/astro-informatics/s2fft)
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
+[![image](https://img.shields.io/badge/GitHub-S2FFT-blue.svg?style=flat)](https://github.com/astro-informatics/s2fft) <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-) <!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![image](https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml)
 [![image](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](https://astro-informatics.github.io/s2fft)
 [![image](https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE)](https://codecov.io/gh/astro-informatics/s2fft)
