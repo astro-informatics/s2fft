@@ -133,7 +133,8 @@ our precompute implementation.
 
 ## Contributors ✨
 
-`S2FFT` has been developed at UCL, predominantly by [Matt
+Thanks goes to these wonderful people ([emoji
+key](https://allcontributors.org/docs/en/emoji-key)):
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
@@ -149,26 +150,9 @@ our precompute implementation.
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
-Price](https://cosmomatt.github.io/) and [Jason
-McEwen](http://www.jasonmcewen.org/), with support from UCL\'s Advanced
-Research Computing (ARC) Centre. The software was funded in part by a
-UCL-ARC Open Source Software Sustainability grant.
-
 We encourage contributions from any interested developers. A simple
 first addition could be adding support for more spherical sampling
 patterns!
-
-Thanks goes to these wonderful people ([emoji
-key](https://allcontributors.org/docs/en/emoji-key)):
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ## Attribution :books: 
 
