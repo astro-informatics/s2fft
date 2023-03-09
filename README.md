@@ -78,7 +78,10 @@ In the very near future one will be able to install `S2FFT` directly
 from [PyPi]{.title-ref} by `pip install s2fft` but this is not yet
 supported. Note that to run `JAX` on NVIDIA GPUs you will need to follow
 the [guide](https://github.com/google/jax#installation) outlined by
-Google.
+Google. 
+
+    Note: For plotting functionality which can be found throughout our various notebooks, one 
+    must install the requirements which can be found in `requirements/requirements-plotting.txt`.
 
 ## Usage :rocket:
 
