@@ -1,7 +1,7 @@
 import numpy as np
 import jax.numpy as jnp
 import jax.lax as lax
-from jax import jit, pmap, local_device_count
+from jax import jit, pmap, local_device_count, custom_vjp
 from functools import partial
 from typing import List
 from s2fft.sampling import s2_samples as samples
@@ -225,7 +225,9 @@ def inverse_latitudinal_step_jax(
 
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
-    ftm = jnp.zeros(samples.ftm_shape(L, sampling, nside), dtype=jnp.complex128)
+    # ftm = jnp.zeros(samples.ftm_shape(L, sampling, nside), dtype=jnp.complex128)
+    m_count = 2 * L if sampling.lower() in ["mwss", "healpix"] else 2 * L - 1
+    ftm = jnp.zeros((ntheta, m_count), dtype=jnp.complex128)
     el = jnp.arange(L_lower, L)
 
     # Trigonometric constant adopted throughout
@@ -239,7 +241,7 @@ def inverse_latitudinal_step_jax(
 
     if precomps is None:
         precomps = generate_precomputes_jax(
-            L, -mm, sampling, nside, L_lower=L_lower
+            L, -mm, sampling, nside, L_lower=L_lower, betas=beta
         )
     lrenorm, vsign, cpi, cp2, indices = precomps
 
@@ -562,8 +564,8 @@ def forward_latitudinal_step(
 
 @partial(jit, static_argnums=(2, 4, 5, 6, 8, 9))
 def forward_latitudinal_step_jax(
-    ftm: jnp.ndarray,
-    beta: jnp.ndarray,
+    ftm_in: jnp.ndarray,
+    beta_in: jnp.ndarray,
     L: int,
     spin: int,
     nside: int,
@@ -622,6 +624,13 @@ def forward_latitudinal_step_jax(
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
     """
+    # Avoid pole-singularities for MWSS sampling
+    if sampling.lower() == "mwss":
+        ftm = ftm_in[1:-1]
+        beta = beta_in[1:-1]
+    else:
+        ftm = ftm_in
+        beta = beta_in
 
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
@@ -841,3 +850,45 @@ def forward_latitudinal_step_jax(
                     )[0]
                 )
     return flm
+
+
+@partial(jit, static_argnums=(2, 4, 5, 6, 8, 9))
+def forward_wigner_step(
+    ftm: jnp.ndarray,
+    beta: jnp.ndarray,
+    L: int,
+    spin: int,
+    nside: int,
+    sampling: str = "mw",
+    reality: bool = False,
+    precomps: List = None,
+    spmd: bool = False,
+    L_lower: int = 0,
+) -> jnp.ndarray:
+
+    # Manually create vector-jacobian product rule for
+    # reverse mode differentiation (back-prop).
+    @custom_vjp
+    def func(ftm):
+        return forward_latitudinal_step_jax(
+            ftm,
+            beta=beta,
+            L=L,
+            spin=spin,
+            nside=nside,
+            sampling=sampling,
+            reality=reality,
+            precomps=precomps,
+            spmd=spmd,
+            L_lower=L_lower,
+        )
+
+    def f_fwd(ftm):
+        return func(ftm), (jnp.zeros_like(ftm),)
+
+    def f_bwd(res, glm):
+        return (glm,)
+
+    func.defvjp(f_fwd, f_bwd)
+
+    return func

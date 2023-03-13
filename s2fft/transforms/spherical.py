@@ -1,4 +1,4 @@
-from jax import jit
+from jax import jit, custom_vjp
 
 import numpy as np
 import jax.numpy as jnp
@@ -589,23 +589,55 @@ def forward_jax(
         ftm = ftm.at[:, m_start_ind + m_offset :].multiply(phase_shifts)
 
     # Perform latitudinal wigner-d recursions
-    if sampling.lower() == "mwss":
-        flm = otf.forward_latitudinal_step_jax(
-            ftm[1:-1],
-            thetas[1:-1],
+    @custom_vjp
+    def func(ftm):
+        return otf.forward_latitudinal_step_jax(
+            ftm,
+            thetas,
             L,
             spin,
             nside,
             sampling,
             reality,
-            precomps,
-            spmd,
-            L0,
+            spmd=spmd,
+            L_lower=L_lower,
         )
-    else:
-        flm = otf.forward_latitudinal_step_jax(
-            ftm, thetas, L, spin, nside, sampling, reality, precomps, spmd, L0
+
+    def f_fwd(ftm):
+        return func(ftm), (jnp.zeros_like(ftm),)
+
+    def f_bwd(res, glm):
+        gtm = otf.inverse_latitudinal_step_jax(
+            glm,
+            thetas,
+            L,
+            spin,
+            nside,
+            sampling,
+            reality,
+            spmd=spmd,
+            L_lower=L_lower,
         )
+        # Remove south pole singularity
+        if sampling.lower() in ["mw", "mwss"]:
+            gtm = gtm.at[-1].set(0)
+            gtm = gtm.at[-1, L - 1 + spin + m_offset].set(
+                jnp.nansum(
+                    (-1) ** abs(jnp.arange(L0, L) - spin)
+                    * glm[L0:, L - 1 + spin]
+                )
+            )
+
+        # Remove north pole singularity
+        if sampling.lower() == "mwss":
+            gtm = gtm.at[0].set(0)
+            gtm = gtm.at[0, L - 1 - spin + m_offset].set(
+                jnp.nansum(glm[L0:, L - 1 - spin])
+            )
+        return (gtm,)
+
+    func.defvjp(f_fwd, f_bwd)
+    flm = func(ftm)
 
     # Include both pole singularities explicitly
     if sampling.lower() == "mwss":

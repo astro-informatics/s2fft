@@ -122,6 +122,7 @@ def generate_precomputes_jax(
     nside: int = None,
     forward: bool = False,
     L_lower: int = 0,
+    betas: jnp.ndarray = None,
 ) -> List[jnp.ndarray]:
     r"""Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
     In practice one could compute these on-the-fly but the memory overhead is
@@ -145,17 +146,22 @@ def generate_precomputes_jax(
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
+        beta (jnp.ndarray): Array of polar angles in radians.
+
     Returns:
         List[jnp.ndarray]: List of precomputed coefficient arrays.
     """
     mm = -spin
     L0 = L_lower
     # Correct for mw to mwss conversion
-    if forward and sampling.lower() in ["mw", "mwss"]:
-        sampling = "mwss"
-        beta = samples.thetas(2 * L, "mwss")[1:-1]
+    if betas is None:
+        if forward and sampling.lower() in ["mw", "mwss"]:
+            sampling = "mwss"
+            beta = samples.thetas(2 * L, "mwss")[1:-1]
+        else:
+            beta = samples.thetas(L, sampling, nside)
     else:
-        beta = samples.thetas(L, sampling, nside)
+        beta = betas
 
     ntheta = len(beta)  # Number of theta samples
     el = jnp.arange(L0, L)
@@ -243,7 +249,7 @@ def generate_precomputes_jax(
 
     # Remove redundant nans:
     # - in forward pass these are not accessed, so are irrelevant.
-    # - in backward pass the adjoint computation otherwise accumulates these 
+    # - in backward pass the adjoint computation otherwise accumulates these
     #   nans into grads if not set to zero.
     lrenorm = jnp.nan_to_num(lrenorm, nan=0.0, posinf=0.0, neginf=0.0)
     cpi = jnp.nan_to_num(cpi, nan=0.0, posinf=0.0, neginf=0.0)
