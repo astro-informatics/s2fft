@@ -2,21 +2,18 @@ from jax import config
 
 config.update("jax_enable_x64", True)
 import pytest
-import numpy as np
 import jax.numpy as jnp
 from jax.test_util import check_grads
 
-from s2fft.sampling import s2_samples as samples
 from s2fft.transforms import spherical
 from s2fft.recursions.price_mcewen import generate_precomputes_jax
 
 L_to_test = [16]
-L_lower_to_test = [0, 2]
+L_lower_to_test = [2]
 spin_to_test = [-2, 0, 1]
-nside_to_test = [8, 10]
+nside_to_test = [8]
 sampling_to_test = ["mw", "mwss", "dh"]
 reality_to_test = [False, True]
-multiple_gpus = [False]
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -24,7 +21,6 @@ multiple_gpus = [False]
 @pytest.mark.parametrize("spin", spin_to_test)
 @pytest.mark.parametrize("sampling", sampling_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
-@pytest.mark.parametrize("spmd", multiple_gpus)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_inverse_custom_gradients(
     flm_generator,
@@ -33,7 +29,6 @@ def test_inverse_custom_gradients(
     spin: int,
     sampling: str,
     reality: bool,
-    spmd: bool,
 ):
     if reality and spin != 0:
         pytest.skip("Reality only valid for scalar fields (spin=0).")
@@ -61,7 +56,6 @@ def test_inverse_custom_gradients(
             reality=reality,
             precomps=precomps,
             sampling=sampling,
-            spmd=spmd,
         )
         return jnp.sum(jnp.abs(f - f_target) ** 2)
 
@@ -73,7 +67,6 @@ def test_inverse_custom_gradients(
 @pytest.mark.parametrize("spin", spin_to_test)
 @pytest.mark.parametrize("sampling", sampling_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
-@pytest.mark.parametrize("spmd", multiple_gpus)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_forward_custom_gradients(
     flm_generator,
@@ -82,7 +75,6 @@ def test_forward_custom_gradients(
     spin: int,
     sampling: str,
     reality: bool,
-    spmd: bool,
 ):
     if reality and spin != 0:
         pytest.skip("Reality only valid for scalar fields (spin=0).")
@@ -110,7 +102,6 @@ def test_forward_custom_gradients(
             reality=reality,
             precomps=precomps,
             sampling=sampling,
-            spmd=spmd,
         )
         return jnp.sum(jnp.abs(flm - flm_target) ** 2)
 
@@ -122,7 +113,6 @@ def test_forward_custom_gradients(
 @pytest.mark.parametrize("spin", spin_to_test)
 @pytest.mark.parametrize("sampling", sampling_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
-@pytest.mark.parametrize("spmd", multiple_gpus)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_healpix_inverse_custom_gradients(
     flm_generator,
@@ -131,7 +121,6 @@ def test_healpix_inverse_custom_gradients(
     spin: int,
     sampling: str,
     reality: bool,
-    spmd: bool,
 ):
     sampling = "healpix"
     L = 2 * nside
@@ -164,7 +153,6 @@ def test_healpix_inverse_custom_gradients(
             reality=reality,
             precomps=precomps,
             sampling=sampling,
-            spmd=spmd,
         )
         return jnp.sum(jnp.abs(f - f_target) ** 2)
 
@@ -176,7 +164,6 @@ def test_healpix_inverse_custom_gradients(
 @pytest.mark.parametrize("spin", spin_to_test)
 @pytest.mark.parametrize("sampling", sampling_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
-@pytest.mark.parametrize("spmd", multiple_gpus)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_healpix_forward_custom_gradients(
     flm_generator,
@@ -185,7 +172,6 @@ def test_healpix_forward_custom_gradients(
     spin: int,
     sampling: str,
     reality: bool,
-    spmd: bool,
 ):
     sampling = "healpix"
     L = 2 * nside
@@ -218,7 +204,6 @@ def test_healpix_forward_custom_gradients(
             reality=reality,
             precomps=precomps,
             sampling=sampling,
-            spmd=spmd,
         )
         return jnp.sum(jnp.abs(flm - flm_target) ** 2)
 

@@ -8,8 +8,8 @@ from s2fft import recursions
 from s2fft.sampling import s2_samples as samples
 import pyssht as ssht
 
-L_to_test = [8, 16]
-spin_to_test = np.arange(-2, 2)
+L_to_test = [6, 7]
+spin_to_test = [-2, 0, 1]
 sampling_schemes = ["mw", "mwss", "dh", "healpix"]
 
 

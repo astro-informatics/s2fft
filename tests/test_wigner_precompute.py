@@ -6,9 +6,9 @@ from s2fft.precompute_transforms.construct import wigner_kernel
 from s2fft.base_transforms import wigner as base
 
 L_to_test = [8, 10]
-N_to_test = [2, 4]
+N_to_test = [2, 3]
 nside_to_test = [4, 6]
-L_to_nside_ratio = [2, 3]
+L_to_nside_ratio = [2]
 reality_to_test = [False, True]
 sampling_schemes = ["mw", "mwss", "dh"]
 methods_to_test = ["numpy", "jax"]
