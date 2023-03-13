@@ -225,7 +225,6 @@ def inverse_latitudinal_step_jax(
 
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
-    # ftm = jnp.zeros(samples.ftm_shape(L, sampling, nside), dtype=jnp.complex128)
     m_count = 2 * L if sampling.lower() in ["mwss", "healpix"] else 2 * L - 1
     ftm = jnp.zeros((ntheta, m_count), dtype=jnp.complex128)
     el = jnp.arange(L_lower, L)
@@ -403,6 +402,25 @@ def inverse_latitudinal_step_jax(
                     pm_recursion_step,
                     (ftm, dl_entry, dl_iter, lrenorm, indices, omc, c, s),
                 )
+
+    # Remove south pole singularity
+    m_offset = 1 if sampling.lower() in ["mwss", "healpix"] else 0
+    if sampling.lower() in ["mw", "mwss"]:
+        ftm = ftm.at[-1].set(0)
+        ftm = ftm.at[-1, L - 1 + spin + m_offset].set(
+            jnp.nansum(
+                (-1) ** abs(jnp.arange(L_lower, L) - spin)
+                * flm[L_lower:, L - 1 + spin]
+            )
+        )
+
+    # Remove north pole singularity
+    if sampling.lower() == "mwss":
+        ftm = ftm.at[0].set(0)
+        ftm = ftm.at[0, L - 1 - spin + m_offset].set(
+            jnp.nansum(flm[L_lower:, L - 1 - spin])
+        )
+
     return ftm
 
 
@@ -628,6 +646,9 @@ def forward_latitudinal_step_jax(
     if sampling.lower() == "mwss":
         ftm = ftm_in[1:-1]
         beta = beta_in[1:-1]
+    elif sampling.lower() == "mw":
+        ftm = ftm_in[:-1]
+        beta = beta_in[:-1]
     else:
         ftm = ftm_in
         beta = beta_in
@@ -648,7 +669,7 @@ def forward_latitudinal_step_jax(
 
     if precomps is None:
         precomps = generate_precomputes_jax(
-            L, -mm, sampling, nside, True, L_lower
+            L, -mm, sampling, nside, True, L_lower, betas=beta
         )
     lrenorm, vsign, cpi, cp2, indices = precomps
 
@@ -849,46 +870,17 @@ def forward_latitudinal_step_jax(
                         ),
                     )[0]
                 )
-    return flm
 
-
-@partial(jit, static_argnums=(2, 4, 5, 6, 8, 9))
-def forward_wigner_step(
-    ftm: jnp.ndarray,
-    beta: jnp.ndarray,
-    L: int,
-    spin: int,
-    nside: int,
-    sampling: str = "mw",
-    reality: bool = False,
-    precomps: List = None,
-    spmd: bool = False,
-    L_lower: int = 0,
-) -> jnp.ndarray:
-
-    # Manually create vector-jacobian product rule for
-    # reverse mode differentiation (back-prop).
-    @custom_vjp
-    def func(ftm):
-        return forward_latitudinal_step_jax(
-            ftm,
-            beta=beta,
-            L=L,
-            spin=spin,
-            nside=nside,
-            sampling=sampling,
-            reality=reality,
-            precomps=precomps,
-            spmd=spmd,
-            L_lower=L_lower,
+    # Include both pole singularities explicitly
+    m_offset = 1 if sampling.lower() in ["mwss", "healpix"] else 0
+    if sampling.lower() in ["mw", "mwss"]:
+        flm = flm.at[L_lower:, L - 1 + spin].add(
+            (-1) ** abs(jnp.arange(L_lower, L) - spin)
+            * ftm_in[-1, L - 1 + spin + m_offset]
         )
 
-    def f_fwd(ftm):
-        return func(ftm), (jnp.zeros_like(ftm),)
-
-    def f_bwd(res, glm):
-        return (glm,)
-
-    func.defvjp(f_fwd, f_bwd)
-
-    return func
+    if sampling.lower() == "mwss":
+        flm = flm.at[L_lower:, L - 1 - spin].add(
+            ftm_in[0, L - 1 - spin + m_offset]
+        )
+    return flm
