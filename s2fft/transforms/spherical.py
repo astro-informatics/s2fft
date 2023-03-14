@@ -257,7 +257,7 @@ def inverse_jax(
 
     # Perform latitudinal wigner-d recursions
     @custom_vjp
-    def func(flm, s, precomps):
+    def flm_to_ftm(flm, s, precomps):
         return otf.inverse_latitudinal_step_jax(
             flm,
             thetas,
@@ -272,7 +272,7 @@ def inverse_jax(
         )
 
     def f_fwd(flm, s, precomps):
-        return func(flm, s, precomps), (jnp.zeros_like(flm), s, [])
+        return flm_to_ftm(flm, s, precomps), (jnp.zeros_like(flm), s, [])
 
     def f_bwd(res, gtm):
         s = res[1]
@@ -289,8 +289,8 @@ def inverse_jax(
         )
         return glm, None, None
 
-    func.defvjp(f_fwd, f_bwd)
-    ftm = func(flm, spin, precomps)
+    flm_to_ftm.defvjp(f_fwd, f_bwd)
+    ftm = flm_to_ftm(flm, spin, precomps)
 
     # Correct healpix theta row offsets
     if sampling.lower() == "healpix":
@@ -604,7 +604,7 @@ def forward_jax(
 
     # Perform latitudinal wigner-d recursions
     @custom_vjp
-    def func(ftm, s, precomps):
+    def ftm_to_flm(ftm, s, precomps):
         flm = otf.forward_latitudinal_step_jax(
             ftm,
             thetas,
@@ -620,7 +620,7 @@ def forward_jax(
         return flm
 
     def f_fwd(ftm, s, precomps):
-        return func(ftm, s, precomps), (jnp.zeros_like(ftm), s, [])
+        return ftm_to_flm(ftm, s, precomps), (jnp.zeros_like(ftm), s, [])
 
     def f_bwd(res, glm):
         s = res[1]
@@ -637,8 +637,8 @@ def forward_jax(
         )
         return gtm, None, None
 
-    func.defvjp(f_fwd, f_bwd)
-    flm = func(ftm, spin, precomps)
+    ftm_to_flm.defvjp(f_fwd, f_bwd)
+    flm = ftm_to_flm(ftm, spin, precomps)
 
     # Apply harmonic normalisation
     flm = flm.at[L_lower:].set(
