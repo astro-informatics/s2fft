@@ -257,12 +257,12 @@ def inverse_jax(
 
     # Perform latitudinal wigner-d recursions
     @custom_vjp
-    def flm_to_ftm(flm, s, precomps):
+    def flm_to_ftm(flm, spin, precomps):
         return otf.inverse_latitudinal_step_jax(
             flm,
             thetas,
             L,
-            s,
+            spin,
             nside,
             sampling,
             reality,
@@ -271,16 +271,16 @@ def inverse_jax(
             L_lower=L_lower,
         )
 
-    def f_fwd(flm, s, precomps):
-        return flm_to_ftm(flm, s, precomps), ([], s, [])
+    def f_fwd(flm, spin, precomps):
+        return flm_to_ftm(flm, spin, precomps), ([], spin, [])
 
     def f_bwd(res, gtm):
-        s = res[1]
+        spin = res[1]
         glm = otf.forward_latitudinal_step_jax(
             gtm,
             thetas,
             L,
-            s,
+            spin,
             nside,
             sampling,
             reality,
@@ -604,12 +604,12 @@ def forward_jax(
 
     # Perform latitudinal wigner-d recursions
     @custom_vjp
-    def ftm_to_flm(ftm, s, precomps):
+    def ftm_to_flm(ftm, spin, precomps):
         flm = otf.forward_latitudinal_step_jax(
             ftm,
             thetas,
             L,
-            s,
+            spin,
             nside,
             sampling,
             reality,
@@ -619,16 +619,16 @@ def forward_jax(
         )
         return flm
 
-    def f_fwd(ftm, s, precomps):
-        return ftm_to_flm(ftm, s, precomps), ([], s, [])
+    def f_fwd(ftm, spin, precomps):
+        return ftm_to_flm(ftm, spin, precomps), ([], spin, [])
 
     def f_bwd(res, glm):
-        s = res[1]
+        spin = res[1]
         gtm = otf.inverse_latitudinal_step_jax(
             glm,
             thetas,
             L,
-            s,
+            spin,
             nside,
             sampling,
             reality,
