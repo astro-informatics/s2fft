@@ -272,7 +272,7 @@ def inverse_jax(
         )
 
     def f_fwd(flm, s, precomps):
-        return flm_to_ftm(flm, s, precomps), (jnp.zeros_like(flm), s, [])
+        return flm_to_ftm(flm, s, precomps), ([], s, [])
 
     def f_bwd(res, gtm):
         s = res[1]
@@ -620,7 +620,7 @@ def forward_jax(
         return flm
 
     def f_fwd(ftm, s, precomps):
-        return ftm_to_flm(ftm, s, precomps), (jnp.zeros_like(ftm), s, [])
+        return ftm_to_flm(ftm, s, precomps), ([], s, [])
 
     def f_bwd(res, glm):
         s = res[1]
