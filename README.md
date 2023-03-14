@@ -60,7 +60,7 @@ pixels of equal areas, which has many practical advantages.
 
 The Python dependencies for the `S2FFT` package are listed in the file
 `requirements/requirements-core.txt` and will be automatically installed
-into the active python environment by [pip]{.title-ref} when running
+into the active python environment by [pip](https://pypi.org) when running
 
 ``` bash
 pip install .        
@@ -75,7 +75,7 @@ tox -e py38           # for tox
 ```
 
 In the very near future one will be able to install `S2FFT` directly
-from [PyPi]{https://pypi.org} by `pip install s2fft` but this is not yet
+from [PyPi](https://pypi.org) by `pip install s2fft` but this is not yet
 supported. Note that to run `JAX` on NVIDIA GPUs you will need to follow
 the [guide](https://github.com/google/jax#installation) outlined by
 Google. 
