@@ -75,7 +75,7 @@ tox -e py38           # for tox
 ```
 
 In the very near future one will be able to install `S2FFT` directly
-from [PyPi]{.title-ref} by `pip install s2fft` but this is not yet
+from [PyPi]{https://pypi.org} by `pip install s2fft` but this is not yet
 supported. Note that to run `JAX` on NVIDIA GPUs you will need to follow
 the [guide](https://github.com/google/jax#installation) outlined by
 Google. 
