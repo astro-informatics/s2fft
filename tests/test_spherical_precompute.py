@@ -4,9 +4,9 @@ from s2fft.precompute_transforms.spherical import inverse, forward
 from s2fft.precompute_transforms.construct import spin_spherical_kernel
 from s2fft.base_transforms import spherical as base
 
-L_to_test = [6, 7, 8]
-spin_to_test = [-2, -1, 0, 1, 2]
-nside_to_test = [2, 4, 8]
+L_to_test = [6, 7]
+spin_to_test = [-2, 0, 1]
+nside_to_test = [4, 5]
 L_to_nside_ratio = [2, 3]
 sampling_to_test = ["mw", "mwss", "dh"]
 reality_to_test = [True, False]

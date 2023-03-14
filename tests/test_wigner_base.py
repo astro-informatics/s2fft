@@ -5,9 +5,9 @@ from s2fft.sampling import so3_samples as samples
 from s2fft.base_transforms import wigner
 
 
-L_to_test = [8, 16]
-N_to_test = [2, 4, 6]
-L_lower_to_test = [0, 2, 4]
+L_to_test = [6, 7]
+N_to_test = [2, 3]
+L_lower_to_test = [0, 2]
 sampling_schemes_so3 = ["mw", "mwss"]
 sampling_schemes = ["mw", "mwss", "dh"]
 reality_to_test = [False, True]

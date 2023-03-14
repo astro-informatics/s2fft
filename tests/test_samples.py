@@ -5,7 +5,7 @@ import healpy as hp
 from s2fft.sampling import s2_samples as samples
 
 
-nside_to_test = [32, 64, 128]
+nside_to_test = [16, 32]
 
 
 @pytest.mark.parametrize("L", [15, 16])

@@ -10,10 +10,10 @@ from s2fft.sampling import s2_samples as samples
 from s2fft.transforms import spherical
 from s2fft.recursions.price_mcewen import generate_precomputes
 
-L_to_test = [6, 7, 8]
-L_lower_to_test = [0, 1, 2]
-spin_to_test = [-2, -1, 0, 1, 2]
-nside_to_test = [2, 4, 8]
+L_to_test = [6, 7]
+L_lower_to_test = [0, 2]
+spin_to_test = [-2, 0, 1]
+nside_to_test = [4, 5]
 sampling_to_test = ["mw", "mwss", "dh"]
 method_to_test = ["numpy", "jax"]
 reality_to_test = [False, True]

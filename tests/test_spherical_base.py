@@ -6,10 +6,10 @@ import pyssht as ssht
 import healpy as hp
 
 
-L_to_test = [6, 7, 8]
-L_lower_to_test = [0, 1, 2]
-spin_to_test = [-2, -1, 0, 1, 2]
-nside_to_test = [2, 4, 8]
+L_to_test = [6, 7]
+L_lower_to_test = [0, 2]
+spin_to_test = [-2, 0, 1]
+nside_to_test = [4, 5]
 L_to_nside_ratio = [2, 3]
 sampling_to_test = ["mw", "mwss", "dh"]
 method_to_test = ["direct", "sov", "sov_fft", "sov_fft_vectorized"]

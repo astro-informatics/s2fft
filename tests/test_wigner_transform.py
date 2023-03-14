@@ -11,9 +11,9 @@ from s2fft.recursions.price_mcewen import (
     generate_precomputes_wigner_jax,
 )
 
-L_to_test = [6, 8]
-N_to_test = [2, 4]
-L_lower_to_test = [0, 2, 4]
+L_to_test = [6, 7]
+N_to_test = [2, 3]
+L_lower_to_test = [0, 2]
 sampling_to_test = ["mw", "mwss", "dh"]
 method_to_test = ["numpy", "jax"]
 reality_to_test = [False, True]

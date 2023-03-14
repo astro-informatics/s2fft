@@ -1,4 +1,4 @@
-from jax import jit
+from jax import jit, custom_vjp
 
 import numpy as np
 import jax.numpy as jnp
@@ -244,38 +244,53 @@ def inverse_jax(
     thetas = samples.thetas(L, sampling, nside)
     m_offset = 1 if sampling.lower() in ["mwss", "healpix"] else 0
     m_start_ind = L - 1 if reality else 0
-    L0 = L_lower
 
     # Apply harmonic normalisation
-    flm = flm.at[L0:].set(
+    flm = flm.at[L_lower:].set(
         jnp.einsum(
             "lm,l->lm",
-            flm[L0:],
-            jnp.sqrt((2 * jnp.arange(L0, L) + 1) / (4 * jnp.pi)),
+            flm[L_lower:],
+            jnp.sqrt((2 * jnp.arange(L_lower, L) + 1) / (4 * jnp.pi)),
             optimize=True,
         )
     )
 
     # Perform latitudinal wigner-d recursions
-    ftm = otf.inverse_latitudinal_step_jax(
-        flm, thetas, L, spin, nside, sampling, reality, precomps, spmd, L0
-    )
-
-    # Remove south pole singularity
-    if sampling.lower() in ["mw", "mwss"]:
-        ftm = ftm.at[-1].set(0)
-        ftm = ftm.at[-1, L - 1 + spin + m_offset].set(
-            jnp.nansum(
-                (-1) ** abs(jnp.arange(L0, L) - spin) * flm[L0:, L - 1 + spin]
-            )
+    @custom_vjp
+    def flm_to_ftm(flm, spin, precomps):
+        return otf.inverse_latitudinal_step_jax(
+            flm,
+            thetas,
+            L,
+            spin,
+            nside,
+            sampling,
+            reality,
+            precomps=precomps,
+            spmd=spmd,
+            L_lower=L_lower,
         )
 
-    # Remove north pole singularity
-    if sampling.lower() == "mwss":
-        ftm = ftm.at[0].set(0)
-        ftm = ftm.at[0, L - 1 - spin + m_offset].set(
-            jnp.nansum(flm[L0:, L - 1 - spin])
+    def f_fwd(flm, spin, precomps):
+        return flm_to_ftm(flm, spin, precomps), ([], spin, [])
+
+    def f_bwd(res, gtm):
+        spin = res[1]
+        glm = otf.forward_latitudinal_step_jax(
+            gtm,
+            thetas,
+            L,
+            spin,
+            nside,
+            sampling,
+            reality,
+            spmd=spmd,
+            L_lower=L_lower,
         )
+        return glm, None, None
+
+    flm_to_ftm.defvjp(f_fwd, f_bwd)
+    ftm = flm_to_ftm(flm, spin, precomps)
 
     # Correct healpix theta row offsets
     if sampling.lower() == "healpix":
@@ -563,7 +578,6 @@ def forward_jax(
     weights = quadrature_jax.quad_weights_transform(L, sampling, nside)
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     m_start_ind = L - 1 if reality else 0
-    L0 = L_lower
 
     # Perform longitundal Fast Fourier Transforms
     if sampling.lower() == "healpix":
@@ -589,38 +603,49 @@ def forward_jax(
         ftm = ftm.at[:, m_start_ind + m_offset :].multiply(phase_shifts)
 
     # Perform latitudinal wigner-d recursions
-    if sampling.lower() == "mwss":
+    @custom_vjp
+    def ftm_to_flm(ftm, spin, precomps):
         flm = otf.forward_latitudinal_step_jax(
-            ftm[1:-1],
-            thetas[1:-1],
+            ftm,
+            thetas,
             L,
             spin,
             nside,
             sampling,
             reality,
-            precomps,
-            spmd,
-            L0,
+            precomps=precomps,
+            spmd=spmd,
+            L_lower=L_lower,
         )
-    else:
-        flm = otf.forward_latitudinal_step_jax(
-            ftm, thetas, L, spin, nside, sampling, reality, precomps, spmd, L0
-        )
+        return flm
 
-    # Include both pole singularities explicitly
-    if sampling.lower() == "mwss":
-        flm = flm.at[L0:, L - 1 + spin].add(
-            (-1) ** abs(jnp.arange(L0, L) - spin)
-            * ftm[-1, L - 1 + spin + m_offset]
+    def f_fwd(ftm, spin, precomps):
+        return ftm_to_flm(ftm, spin, precomps), ([], spin, [])
+
+    def f_bwd(res, glm):
+        spin = res[1]
+        gtm = otf.inverse_latitudinal_step_jax(
+            glm,
+            thetas,
+            L,
+            spin,
+            nside,
+            sampling,
+            reality,
+            spmd=spmd,
+            L_lower=L_lower,
         )
-        flm = flm.at[L0:, L - 1 - spin].add(ftm[0, L - 1 - spin + m_offset])
+        return gtm, None, None
+
+    ftm_to_flm.defvjp(f_fwd, f_bwd)
+    flm = ftm_to_flm(ftm, spin, precomps)
 
     # Apply harmonic normalisation
-    flm = flm.at[L0:].set(
+    flm = flm.at[L_lower:].set(
         jnp.einsum(
             "lm,l->lm",
-            flm[L0:],
-            jnp.sqrt((2 * jnp.arange(L0, L) + 1) / (4 * jnp.pi)),
+            flm[L_lower:],
+            jnp.sqrt((2 * jnp.arange(L_lower, L) + 1) / (4 * jnp.pi)),
             optimize=True,
         )
     )
@@ -636,7 +661,6 @@ def forward_jax(
         )
 
     # Enforce spin condition explicitly.
-    # TODO: There must be a better way of doing this...
     indices = jnp.repeat(jnp.expand_dims(jnp.arange(L), -1), 2 * L - 1, axis=-1)
     flm = jnp.where(indices < abs(spin), jnp.zeros_like(flm), flm[..., :])
 
