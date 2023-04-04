@@ -1,68 +1,126 @@
-|GitHub| |Build Status| |Docs| |CodeCov| |MIT Licence| |ArXiv|
+Differentiable and accelerated spherical transforms
+===================================================
 
-.. |GitHub| image:: https://img.shields.io/badge/GitHub-PyTemplate-brightgreen.svg?style=flat
-    :target: https://github.com/astro-informatics/s2fft
-.. |Build Status| image:: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main
-    :target: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml
-.. |Docs| image:: https://readthedocs.org/projects/ansicolortags/badge/?version=latest
-    :target: https://astro-informatics.github.io/s2fft
-.. |CodeCov| image:: https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE
-    :target: https://codecov.io/gh/astro-informatics/s2fft
-.. |MIT Licence| image:: https://img.shields.io/badge/License-MIT-yellow.svg
-    :target: https://opensource.org/licenses/MIT
-.. |ArXiv| image:: http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat
-    :target: https://arxiv.org/abs/xxxx.xxxxx
+``S2FFT`` is a JAX package for computing Fourier transforms on the sphere and rotation 
+group.  It leverages autodiff to provide differentiable transforms, which are also 
+deployable on modern hardware accelerators (e.g. GPUs and TPUs).
 
-S2FFT: JAX accelerated spin-spherical harmonic transforms
-=================================================================================================================
+More specifically, ``S2FFT`` provides support for spin spherical harmonic and Wigner
+transforms (for both real and complex signals), with support for adjoint transformations
+where needed, and comes with different optimisations (precompute or not) that one
+may select depending on available resources and desired angular resolution :math:`L`.
 
-Add some basic discussion about ``S2FFT`` here.
+Algorithms |:zap:|
+-------------------
 
-Installation
-============
+``S2FFT`` leverages new algorithmic structures that can he highly parallelised and
+distributed, and so map very well onto the architecture of hardware accelerators (i.e.
+GPUs and TPUs).  In particular, these algorithms are based on new Wigner-d recursions
+that are stable to high angular resolution :math:`L`.  The diagram below illustrates the recursions (for further details see Price & McEwen 2023).
 
-Add some basic installation instructions here.
+.. image:: ./assets/figures/schematic.png
+
+Sampling |:earth_africa:|
+-----------------------------------
+
+The structure of the algorithms implemented in ``S2FFT`` can support any isolattitude sampling scheme.  A number of sampling schemes are currently supported.
+
+The equiangular sampling schemes of `McEwen & Wiaux (2012) <https://arxiv.org/abs/1110.6298>`_ and `Driscoll & Healy (1995) <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_ are supported, which exhibit associated sampling theorems and so harmonic transforms can be computed to machine precision.  Note that the McEwen & Wiaux sampling theorem reduces the Nyquist rate on the sphere by a factor of two compared to the Driscoll & Healy approach, halving the number of spherical samples required. 
+
+The popular `HEALPix <https://healpix.jpl.nasa.gov>`_ sampling scheme (`Gorski et al. 2005 <https://arxiv.org/abs/astro-ph/0409513>`_) is also supported.  The HEALPix sampling does not exhibit a sampling theorem and so the corresponding harmonic transforms do not achieve machine precision but exhibit some error.  However, the HEALPix sampling provides pixels of equal areas, which has many practical advantages.
     
-Documentation
-=============
+.. image:: ./assets/figures/spherical_sampling.png
+   :width: 700
+   :align: center
 
-Link to the full documentation (when deployed).
+Contributors ✨
+-----------------------------------
 
-Contributors
-============
-Author names & Contributors
+Thanks goes to these wonderful people (`emoji
+key <https://allcontributors.org/docs/en/emoji-key>`_):
 
-Attribution
-===========
-A BibTeX entry for ``S2FFT`` is:
+.. raw:: html 
+
+    <embed>
+        <table>
+        <tbody>
+            <tr>
+            <td align="center" valign="top" width="16.66%"><a href="https://cosmomatt.github.io"><img src="https://avatars.githubusercontent.com/u/32554533?v=4?s=100" width="100px;" alt="Matt Price"/><br /><sub><b>Matt Price</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=CosmoMatt" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3ACosmoMatt" title="Reviewed Pull Requests">👀</a> <a href="#ideas-CosmoMatt" title="Ideas, Planning, & Feedback">🤔</a></td>
+            <td align="center" valign="top" width="16.66%"><a href="http://www.jasonmcewen.org"><img src="https://avatars.githubusercontent.com/u/3181701?v=4?s=100" width="100px;" alt="Jason McEwen "/><br /><sub><b>Jason McEwen </b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=jasonmcewen" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3Ajasonmcewen" title="Reviewed Pull Requests">👀</a> <a href="#ideas-jasonmcewen" title="Ideas, Planning, & Feedback">🤔</a></td>
+            <td align="center" valign="top" width="16.66%"><a href="http://matt-graham.github.io"><img src="https://avatars.githubusercontent.com/u/6746980?v=4?s=100" width="100px;" alt="Matt Graham"/><br /><sub><b>Matt Graham</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=matt-graham" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3Amatt-graham" title="Reviewed Pull Requests">👀</a></td>
+            <td align="center" valign="top" width="16.66%"><a href="https://sfmig.github.io/"><img src="https://avatars.githubusercontent.com/u/33267254?v=4?s=100" width="100px;" alt="sfmig"/><br /><sub><b>sfmig</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=sfmig" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3Asfmig" title="Reviewed Pull Requests">👀</a></td>
+            <td align="center" valign="top" width="16.66%"><a href="https://github.com/Devaraj-G"><img src="https://avatars.githubusercontent.com/u/36169767?v=4?s=100" width="100px;" alt="Devaraj Gopinathan"/><br /><sub><b>Devaraj Gopinathan</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=Devaraj-G" title="Code">💻</a></td>
+            <td align="center" valign="top" width="16.66%"><a href="http://flanusse.net"><img src="https://avatars.githubusercontent.com/u/861591?v=4?s=100" width="100px;" alt="Francois Lanusse"/><br /><sub><b>Francois Lanusse</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=EiffL" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/issues?q=author%3AEiffL" title="Bug reports">🐛</a></td>
+            </tr>
+        </tbody>
+        </table>
+    </embed>
+
+We encourage contributions from any interested developers. A simple
+first addition could be adding support for more spherical sampling
+patterns!
+
+Attribution |:books:|
+------------------
+
+Should this code be used in any way, we kindly request that the following
+article is referenced. A BibTeX entry for this reference may look like:
 
 .. code-block:: 
 
-     @article{S2FFT, 
-        author = {Author~List},
-         title = {"A totally amazing name"},
-       journal = {ArXiv},
-        eprint = {arXiv:0000.00000},
-          year = {what year is it?!}
+     @article{price:s2fft, 
+        AUTHOR      = "Matthew A. Price and Jason D. McEwen",
+        TITLE       = "TBA",
+        YEAR        = "2023",
+        EPRINT      = "arXiv:0000.00000"        
      }
 
-License
-=======
+You might also like to consider citing our related papers on which this code builds:
 
-``S2FFT`` is released under the MIT license (see `LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
+.. code-block:: 
+
+    @article{mcewen:fssht,
+        AUTHOR      = "Jason D. McEwen and Yves Wiaux",
+        TITLE       = "A novel sampling theorem on the sphere",
+        JOURNAL     = "IEEE Trans. Sig. Proc.",
+        YEAR        = "2011",
+        VOLUME      = "59",
+        NUMBER      = "12",
+        PAGES       = "5876--5887",        
+        EPRINT      = "arXiv:1110.6298",
+        DOI         = "10.1109/TSP.2011.2166394"
+    }
 
 .. code-block::
+   
+    @article{mcewen:so3,
+        AUTHOR      = "Jason D. McEwen and Martin B{\"u}ttner and Boris ~Leistedt and Hiranya V. Peiris and Yves Wiaux",
+        TITLE       = "A novel sampling theorem on the rotation group",
+        JOURNAL     = "IEEE Sig. Proc. Let.",
+        YEAR        = "2015",
+        VOLUME      = "22",
+        NUMBER      = "12",
+        PAGES       = "2425--2429",
+        EPRINT      = "arXiv:1508.03101",
+        DOI         = "10.1109/LSP.2015.2490676"    
+    }
 
-     S2fft
-     Copyright (C) 2022 Author names & contributors
+License |:memo:|
+----------------
 
-     This program is released under the MIT license (see `LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
+We provide this code under an MIT open-source licence with the hope that it will be of use 
+to a wider community. 
+
+Copyright 2023 Matthew Price, Jason McEwen and contributors.
+
+``S2FFT`` is free software made available under the MIT License. For details see
+the LICENSE file.
 
 .. bibliography:: 
     :notcited:
     :list: bullet
 
-* :ref:`modindex`
+.. * :ref:`modindex`
 
 .. toctree::
    :hidden:
@@ -71,37 +129,17 @@ License
 
    user_guide/install
 
-
 .. toctree::
    :hidden:
-   :maxdepth: 2
-   :caption: Background
-
-   background/index
-
-.. toctree::
-   :hidden:
-   :maxdepth: 1
+   :maxdepth: 3
    :caption: Interactive Tutorials
    
-   tutorials/example_notebook.nblink
+   tutorials/index
 
 .. toctree::
    :hidden:
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: API
 
-   api/trapani
-   api/risbo
-   api/turok
-   api/turok_jax
-   api/logs
-   api/legendre_matrix 
-   api/precompute_transforms
-   api/quadrature
-   api/resampling 
-   api/sampling 
-   api/transforms 
-   api/wigner_samples
-   api/wigner_transform
-   api/utils
+   api/index
+

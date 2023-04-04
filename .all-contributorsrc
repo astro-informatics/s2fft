@@ -1,0 +1,77 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "commitConvention": "angular",
+  "contributors": [
+    {
+      "login": "CosmoMatt",
+      "name": "Matt Price",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32554533?v=4",
+      "profile": "https://cosmomatt.github.io",
+      "contributions": [
+        "code",
+        "review",
+        "ideas"
+      ]
+    },
+    {
+      "login": "jasonmcewen",
+      "name": "Jason McEwen ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3181701?v=4",
+      "profile": "http://www.jasonmcewen.org",
+      "contributions": [
+        "code",
+        "review",
+        "ideas"
+      ]
+    },
+    {
+      "login": "matt-graham",
+      "name": "Matt Graham",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6746980?v=4",
+      "profile": "http://matt-graham.github.io",
+      "contributions": [
+        "code",
+        "review"
+      ]
+    },
+    {
+      "login": "sfmig",
+      "name": "sfmig",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33267254?v=4",
+      "profile": "https://sfmig.github.io/",
+      "contributions": [
+        "code",
+        "review"
+      ]
+    },
+    {
+      "login": "Devaraj-G",
+      "name": "Devaraj Gopinathan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/36169767?v=4",
+      "profile": "https://github.com/Devaraj-G",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "EiffL",
+      "name": "Francois Lanusse",
+      "avatar_url": "https://avatars.githubusercontent.com/u/861591?v=4",
+      "profile": "http://flanusse.net",
+      "contributions": [
+        "code",
+        "bug"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "skipCi": true,
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "projectName": "s2fft",
+  "projectOwner": "astro-informatics"
+}

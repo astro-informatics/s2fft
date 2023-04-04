@@ -1,5 +1,0 @@
-**************************
-s2fft.wigner.trapani
-**************************
-.. automodule:: s2fft.wigner.trapani
-   :members: 

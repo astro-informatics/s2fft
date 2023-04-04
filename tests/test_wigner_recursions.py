@@ -1,16 +1,15 @@
-import pytest
-import numpy as np
-import jax.numpy as jnp
-import s2fft.wigner as wigner
-import s2fft.samples as samples
-import pyssht as ssht
-
 from jax.config import config
 
 config.update("jax_enable_x64", True)
+import pytest
+import numpy as np
+import jax.numpy as jnp
+from s2fft import recursions
+from s2fft.sampling import s2_samples as samples
+import pyssht as ssht
 
-L_to_test = [8, 16]
-spin_to_test = np.arange(-2, 2)
+L_to_test = [6, 7]
+spin_to_test = [-2, 0, 1]
 sampling_schemes = ["mw", "mwss", "dh", "healpix"]
 
 
@@ -26,9 +25,9 @@ def test_trapani_with_ssht():
 
     # Compare to routines in SSHT, which have been validated extensively.
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-    dl = wigner.trapani.init(dl, L)
+    dl = recursions.trapani.init(dl, L)
     for el in range(1, L):
-        dl = wigner.trapani.compute_full_loop(dl, L, el)
+        dl = recursions.trapani.compute_full_loop(dl, L, el)
         np.testing.assert_allclose(dl_array[el, :, :], dl, atol=1e-10)
 
 
@@ -40,15 +39,21 @@ def test_trapani_vectorized():
 
     # Compare to routines in SSHT, which have been validated extensively.
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-    dl = wigner.trapani.init(dl, L)
+    dl = recursions.trapani.init(dl, L)
     dl_vect = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-    dl_vect = wigner.trapani.init(dl_vect, L)
+    dl_vect = recursions.trapani.init(dl_vect, L)
     for el in range(1, L):
-        dl = wigner.trapani.compute_full_loop(dl, L, el)
-        dl_vect = wigner.trapani.compute_full_vectorized(dl_vect, L, el)
+        dl = recursions.trapani.compute_full_loop(dl, L, el)
+        dl_vect = recursions.trapani.compute_full_vectorized(dl_vect, L, el)
         np.testing.assert_allclose(
-            dl[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
-            dl_vect[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            dl[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
+            dl_vect[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
             atol=1e-10,
         )
 
@@ -61,15 +66,21 @@ def test_trapani_jax():
 
     # Compare to routines in SSHT, which have been validated extensively.
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-    dl = wigner.trapani.init(dl, L)
+    dl = recursions.trapani.init(dl, L)
     dl_jax = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
-    dl_jax = wigner.trapani.init_jax(dl_jax, L)
+    dl_jax = recursions.trapani.init_jax(dl_jax, L)
     for el in range(1, L):
-        dl = wigner.trapani.compute_full_vectorized(dl, L, el)
-        dl_jax = wigner.trapani.compute_full_jax(dl_jax, L, el)
+        dl = recursions.trapani.compute_full_vectorized(dl, L, el)
+        dl_jax = recursions.trapani.compute_full_jax(dl_jax, L, el)
         np.testing.assert_allclose(
-            dl[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
-            dl_jax[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            dl[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
+            dl_jax[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
             atol=1e-10,
         )
 
@@ -81,36 +92,54 @@ def test_trapani_interfaces():
     L = 5
 
     dl_loop = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-    dl_loop = wigner.trapani.init(dl_loop, L, implementation="loop")
+    dl_loop = recursions.trapani.init(dl_loop, L, implementation="loop")
 
     dl_vect = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-    dl_vect = wigner.trapani.init(dl_vect, L, implementation="vectorized")
+    dl_vect = recursions.trapani.init(dl_vect, L, implementation="vectorized")
 
     dl_jax = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-    dl_jax = wigner.trapani.init(dl_jax, L, implementation="jax")
+    dl_jax = recursions.trapani.init(dl_jax, L, implementation="jax")
 
     for el in range(1, L):
-        dl_loop = wigner.trapani.compute_full(dl_loop, L, el, implementation="loop")
-        dl_vect = wigner.trapani.compute_full(
+        dl_loop = recursions.trapani.compute_full(
+            dl_loop, L, el, implementation="loop"
+        )
+        dl_vect = recursions.trapani.compute_full(
             dl_vect, L, el, implementation="vectorized"
         )
-        dl_jax = wigner.trapani.compute_full(dl_jax, L, el, implementation="jax")
+        dl_jax = recursions.trapani.compute_full(
+            dl_jax, L, el, implementation="jax"
+        )
         np.testing.assert_allclose(
-            dl_loop[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
-            dl_vect[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            dl_loop[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
+            dl_vect[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
             atol=1e-10,
         )
         np.testing.assert_allclose(
-            dl_vect[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
-            dl_jax[-el + (L - 1) : el + (L - 1) + 1, -el + (L - 1) : el + (L - 1) + 1],
+            dl_vect[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
+            dl_jax[
+                -el + (L - 1) : el + (L - 1) + 1,
+                -el + (L - 1) : el + (L - 1) + 1,
+            ],
             atol=1e-10,
         )
 
     with pytest.raises(ValueError) as e:
-        wigner.trapani.init(dl_loop, L, implementation="unexpected")
+        recursions.trapani.init(dl_loop, L, implementation="unexpected")
 
     with pytest.raises(ValueError) as e:
-        wigner.trapani.compute_full(dl_jax, L, el, implementation="unexpected")
+        recursions.trapani.compute_full(
+            dl_jax, L, el, implementation="unexpected"
+        )
 
 
 def test_trapani_checks():
@@ -136,9 +165,9 @@ def test_risbo_with_ssht():
 
     # Compare to routines in SSHT, which have been validated extensively.
     dl = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
-    # dl = wigner.trapani.init(dl, L)
+    # dl = recursions.trapani.init(dl, L)
     for el in range(0, L):
-        dl = wigner.risbo.compute_full(dl, beta, L, el)
+        dl = recursions.risbo.compute_full(dl, beta, L, el)
         np.testing.assert_allclose(dl_array[el, :, :], dl, atol=1e-15)
 
 
@@ -156,7 +185,7 @@ def test_turok_with_ssht(L: int, sampling: str):
 
         for el in range(L):
 
-            dl_turok = wigner.turok.compute_full(beta, el, L)
+            dl_turok = recursions.turok.compute_full(beta, el, L)
 
             np.testing.assert_allclose(dl_turok, dl_array[el], atol=1e-14)
 
@@ -177,10 +206,13 @@ def test_turok_slice_with_ssht(L: int, spin: int, sampling: str):
         for el in range(L):
             if el >= np.abs(spin):
 
-                dl_turok = wigner.turok.compute_slice(beta, el, L, -spin)
+                dl_turok = recursions.turok.compute_slice(beta, el, L, -spin)
 
                 np.testing.assert_allclose(
-                    dl_turok, dl_array[el, :, L - 1 - spin], atol=1e-10, rtol=1e-12
+                    dl_turok,
+                    dl_array[el, :, L - 1 - spin],
+                    atol=1e-10,
+                    rtol=1e-12,
                 )
 
 
@@ -200,7 +232,9 @@ def test_turok_slice_jax_with_ssht(L: int, spin: int, sampling: str):
         for el in range(L):
             if el >= np.abs(spin):
                 print("beta {}, el {}, spin {}".format(beta, el, spin))
-                dl_turok = wigner.turok_jax.compute_slice(beta, el, L, -spin)
+                dl_turok = recursions.turok_jax.compute_slice(
+                    beta, el, L, -spin
+                )
 
                 np.testing.assert_allclose(
                     dl_turok[L - 1 - el : L - 1 + el + 1],
@@ -212,14 +246,12 @@ def test_turok_slice_jax_with_ssht(L: int, spin: int, sampling: str):
 
 def test_turok_exceptions():
     L = 10
-    dl = np.zeros(2 * L - 1, dtype=np.float64)
-    dl_full = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
     with pytest.raises(ValueError) as e:
-        wigner.turok.compute_full(np.pi / 2, L, L)
+        recursions.turok.compute_full(np.pi / 2, L, L)
 
     with pytest.raises(ValueError) as e:
-        wigner.turok.compute_slice(beta=np.pi / 2, el=L - 1, L=L, mm=L)
+        recursions.turok.compute_slice(beta=np.pi / 2, el=L - 1, L=L, mm=L)
 
     with pytest.raises(ValueError) as e:
-        wigner.turok.compute_slice(beta=np.pi / 2, el=L, L=L, mm=0)
+        recursions.turok.compute_slice(beta=np.pi / 2, el=L, L=L, mm=0)

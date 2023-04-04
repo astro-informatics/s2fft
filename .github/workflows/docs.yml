@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [3.9]
 
     steps:
     - name: Checkout Source
@@ -28,11 +28,14 @@ jobs:
       run: |
         sudo apt install pandoc
         python -m pip install --upgrade pip
-        python -m pip install tox
+        pip install jaxlib
+        pip install -r requirements/requirements-core.txt
+        pip install -r requirements/requirements-docs.txt
+        pip install .
   
     - name: Build Documentation
       run: |
-        tox -e docs
+        cd docs && make html
 
     - name: Deploy
       if: github.ref == 'refs/heads/main'
