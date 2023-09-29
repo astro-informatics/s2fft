@@ -37,19 +37,15 @@ def f_shape(
         :math:`SO(3)`.
     """
     if sampling in ["mw", "mwss", "dh"]:
-
         return _ngamma(N), _nbeta(L, sampling), _nalpha(L, sampling)
 
     elif sampling.lower() == "healpix":
-
         return _ngamma(N), 12 * nside**2
 
     elif sampling.lower() == "healpix":
-
         return 12 * nside**2, _ngamma(N)
 
     else:
-
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
 
@@ -94,15 +90,12 @@ def fnab_shape(
     """
 
     if sampling.lower() in ["mwss", "healpix"]:
-
         return _ngamma(N), samples.ntheta(L, sampling, nside), 2 * L
 
     elif sampling.lower() in ["mw", "dh"]:
-
         return _ngamma(N), samples.ntheta(L, sampling, nside), 2 * L - 1
 
     else:
-
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
     return 1
@@ -138,15 +131,12 @@ def _nalpha(L: int, sampling: str = "mw") -> int:
         int: Number of :math:`\alpha` samples.
     """
     if sampling.lower() in ["mw", "dh"]:
-
         return 2 * L - 1
 
     elif sampling.lower() == "mwss":
-
         return 2 * L
 
     else:
-
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
 
@@ -166,19 +156,15 @@ def _nbeta(L: int, sampling: str = "mw") -> int:
         int: Number of :math:`\beta` samples.
     """
     if sampling.lower() == "mw":
-
         return L
 
     elif sampling.lower() == "mwss":
-
         return L + 1
 
     elif sampling.lower() == "dh":
-
         return 2 * L
 
     else:
-
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
 
@@ -247,9 +233,7 @@ def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int) -> np.ndarray:
     for n in range(-N + 1, N):
         for el in range(L):
             for m in range(-el, el + 1):
-                flmn_1d[elmn2ind(el, m, n, L, N)] = flmn_3d[
-                    N - 1 + n, el, L - 1 + m
-                ]
+                flmn_1d[elmn2ind(el, m, n, L, N)] = flmn_3d[N - 1 + n, el, L - 1 + m]
 
     return flmn_1d
 
@@ -285,8 +269,6 @@ def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int) -> np.ndarray:
     for n in range(-N + 1, N):
         for el in range(L):
             for m in range(-el, el + 1):
-                flmn_3d[N - 1 + n, el, L - 1 + m] = flmn_1d[
-                    elmn2ind(el, m, n, L, N)
-                ]
+                flmn_3d[N - 1 + n, el, L - 1 + m] = flmn_1d[elmn2ind(el, m, n, L, N)]
 
     return flmn_3d

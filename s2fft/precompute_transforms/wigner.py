@@ -59,9 +59,7 @@ def inverse(
     if method == "numpy":
         return inverse_transform(flmn, kernel, L, N, sampling, reality, nside)
     elif method == "jax":
-        return inverse_transform_jax(
-            flmn, kernel, L, N, sampling, reality, nside
-        )
+        return inverse_transform_jax(flmn, kernel, L, N, sampling, reality, nside)
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -102,37 +100,25 @@ def inverse_transform(
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     n_start_ind = N - 1 if reality else 0
 
-    fnab = np.zeros(
-        samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128
-    )
+    fnab = np.zeros(samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128)
     fnab[n_start_ind:, :, m_offset:] = np.einsum(
         "...ntlm, ...nlm -> ...ntm", kernel, flmn[n_start_ind:, :, :]
     )
 
     if sampling.lower() in "healpix":
-        f = np.zeros(
-            samples.f_shape(L, N, sampling, nside), dtype=np.complex128
-        )
+        f = np.zeros(samples.f_shape(L, N, sampling, nside), dtype=np.complex128)
         for n in range(n_start_ind - N + 1, N):
             ind = N - 1 + n
             f[ind] = hp.healpix_ifft(fnab[ind], L, nside, "numpy")
         if reality:
-            return np.fft.irfft(
-                f[n_start_ind:], 2 * N - 1, axis=-2, norm="forward"
-            )
+            return np.fft.irfft(f[n_start_ind:], 2 * N - 1, axis=-2, norm="forward")
         else:
-            return np.fft.ifft(
-                np.fft.ifftshift(f, axes=-2), axis=-2, norm="forward"
-            )
+            return np.fft.ifft(np.fft.ifftshift(f, axes=-2), axis=-2, norm="forward")
 
     else:
         if reality:
-            fnab = np.fft.ifft(
-                np.fft.ifftshift(fnab, axes=-1), axis=-1, norm="forward"
-            )
-            return np.fft.irfft(
-                fnab[n_start_ind:], 2 * N - 1, axis=-3, norm="forward"
-            )
+            fnab = np.fft.ifft(np.fft.ifftshift(fnab, axes=-1), axis=-1, norm="forward")
+            return np.fft.irfft(fnab[n_start_ind:], 2 * N - 1, axis=-3, norm="forward")
         else:
             fnab = np.fft.ifftshift(fnab, axes=(-1, -3))
             return np.fft.ifft2(fnab, axes=(-1, -3), norm="forward")
@@ -175,9 +161,7 @@ def inverse_transform_jax(
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     n_start_ind = N - 1 if reality else 0
 
-    fnab = jnp.zeros(
-        samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex128
-    )
+    fnab = jnp.zeros(samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex128)
     fnab = fnab.at[n_start_ind:, :, m_offset:].set(
         jnp.einsum(
             "...ntlm, ...nlm -> ...ntm",
@@ -188,16 +172,12 @@ def inverse_transform_jax(
     )
 
     if sampling.lower() in "healpix":
-        f = jnp.zeros(
-            samples.f_shape(L, N, sampling, nside), dtype=jnp.complex128
-        )
+        f = jnp.zeros(samples.f_shape(L, N, sampling, nside), dtype=jnp.complex128)
         for n in range(n_start_ind - N + 1, N):
             ind = N - 1 + n
             f = f.at[ind].set(hp.healpix_ifft(fnab[ind], L, nside, "jax"))
         if reality:
-            return jnp.fft.irfft(
-                f[n_start_ind:], 2 * N - 1, axis=-2, norm="forward"
-            )
+            return jnp.fft.irfft(f[n_start_ind:], 2 * N - 1, axis=-2, norm="forward")
         else:
             return jnp.conj(
                 jnp.fft.fft(
@@ -216,9 +196,7 @@ def inverse_transform_jax(
                     norm="backward",
                 )
             )
-            return jnp.fft.irfft(
-                fnab[n_start_ind:], 2 * N - 1, axis=-3, norm="forward"
-            )
+            return jnp.fft.irfft(fnab[n_start_ind:], 2 * N - 1, axis=-3, norm="forward")
         else:
             fnab = jnp.conj(jnp.fft.ifftshift(fnab, axes=(-1, -3)))
             return jnp.conj(jnp.fft.fft2(fnab, axes=(-1, -3), norm="backward"))
@@ -331,9 +309,7 @@ def forward_transform(
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     if sampling.lower() in "healpix":
-        temp = np.zeros(
-            samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128
-        )
+        temp = np.zeros(samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128)
         for n in range(n_start_ind - N + 1, N):
             ind = n if reality else N - 1 + n
             temp[N - 1 + n] = hp.healpix_fft(fban[ind], L, nside, "numpy")
@@ -346,9 +322,7 @@ def forward_transform(
     flmn = np.zeros(samples.flmn_shape(L, N), dtype=np.complex128)
     flmn[n_start_ind:] = np.einsum("...ntlm, ...ntm -> ...nlm", kernel, fban)
     if reality:
-        flmn[:n_start_ind] = np.conj(
-            np.flip(flmn[n_start_ind + 1 :], axis=(-1, -3))
-        )
+        flmn[:n_start_ind] = np.conj(np.flip(flmn[n_start_ind + 1 :], axis=(-1, -3)))
         flmn[:n_start_ind] = np.einsum(
             "...nlm,...m->...nlm",
             flmn[:n_start_ind],
@@ -403,9 +377,7 @@ def forward_transform_jax(
     if reality:
         fban = jnp.fft.rfft(jnp.real(f), axis=ax, norm="backward")
     else:
-        fban = jnp.fft.fftshift(
-            jnp.fft.fft(f, axis=ax, norm="backward"), axes=ax
-        )
+        fban = jnp.fft.fftshift(jnp.fft.fft(f, axis=ax, norm="backward"), axes=ax)
 
     spins = -jnp.arange(n_start_ind - N + 1, N)
     if sampling.lower() == "mw":
@@ -423,9 +395,7 @@ def forward_transform_jax(
         )
         for n in range(n_start_ind - N + 1, N):
             ind = n if reality else N - 1 + n
-            temp = temp.at[N - 1 + n].set(
-                hp.healpix_fft(fban[ind], L, nside, "jax")
-            )
+            temp = temp.at[N - 1 + n].set(hp.healpix_fft(fban[ind], L, nside, "jax"))
         fban = temp[n_start_ind:, :, m_offset:]
 
     else:

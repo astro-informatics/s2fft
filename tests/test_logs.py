@@ -3,7 +3,6 @@ import pytest
 
 
 def test_incorrect_log_yaml_path():
-
     dir_name = "random/incorrect/filepath/"
 
     # Check cannot add samples with different ndim.
@@ -12,7 +11,6 @@ def test_incorrect_log_yaml_path():
 
 
 def test_general_logging():
-
     lg.setup_logging()
     lg.critical_log("A random critical message")
     lg.debug_log("A random debug message")

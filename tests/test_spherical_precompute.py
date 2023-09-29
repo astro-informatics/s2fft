@@ -58,9 +58,7 @@ def test_transform_inverse_healpix(
     flm = flm_generator(L=L, reality=True)
     f_check = base.inverse(flm, L, 0, sampling, nside, reality)
 
-    kernel = spin_spherical_kernel(
-        L, 0, reality, sampling, nside=nside, forward=False
-    )
+    kernel = spin_spherical_kernel(L, 0, reality, sampling, nside=nside, forward=False)
     f = inverse(flm, L, 0, kernel, sampling, reality, method, nside)
 
     np.testing.assert_allclose(f, f_check, atol=1e-12, rtol=1e-12)
@@ -84,9 +82,7 @@ def test_transform_forward(
     f = base.inverse(flm, L, spin, sampling, reality=reality)
     flm_check = base.forward(f, L, spin, sampling, reality=reality)
 
-    kernel = spin_spherical_kernel(
-        L, spin, reality, sampling, nside=None, forward=True
-    )
+    kernel = spin_spherical_kernel(L, spin, reality, sampling, nside=None, forward=True)
     flm_recov = forward(f, L, spin, kernel, sampling, reality, method)
     for i in range(L):
         for j in range(2 * L - 1):
@@ -111,9 +107,7 @@ def test_transform_forward_healpix(
     f = base.inverse(flm, L, 0, sampling, nside, reality)
     flm_check = base.forward(f, L, 0, sampling, nside, reality)
 
-    kernel = spin_spherical_kernel(
-        L, 0, reality, sampling, nside=nside, forward=True
-    )
+    kernel = spin_spherical_kernel(L, 0, reality, sampling, nside=nside, forward=True)
     flm_recov = forward(f, L, 0, kernel, sampling, reality, method, nside)
 
     np.testing.assert_allclose(flm_recov, flm_check, atol=1e-12, rtol=1e-12)

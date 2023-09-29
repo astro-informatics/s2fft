@@ -164,7 +164,7 @@ def _compute_quarter_slice(
                 # an IndexError exception when used with lax.fori_loop
                 lambda x: jnp.where((indices < (m + 1))[::sgn], bigi * x, x),
                 lambda x: x,
-                dl
+                dl,
             )
             return dl, lrenorm
 
@@ -178,7 +178,6 @@ def _compute_quarter_slice(
 
         if i == 1:
             dl = dl.at[-em].multiply((-1) ** ((mm - em + el + 1) % 2) * renorm)
-    
 
     return jnp.nan_to_num(dl, neginf=0, posinf=0)
 
@@ -279,7 +278,7 @@ def reindex(dl, el, L, mm) -> jnp.ndarray:
     dl = dl.at[: L - 1].set(jnp.roll(dl, L - el - 1)[: L - 1])
     dl = dl.at[L - 1 :].set(jnp.roll(dl, -(L - el - 1))[L - 1 :])
 
-    m = jnp.arange(-L+1, L+1)
-    dl = dl.at[L-1+m].multiply((-1)**((mm - m)%2))
+    m = jnp.arange(-L + 1, L + 1)
+    dl = dl.at[L - 1 + m].multiply((-1) ** ((mm - m) % 2))
 
     return dl

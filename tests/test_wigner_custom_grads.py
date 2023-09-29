@@ -68,9 +68,7 @@ def test_forward_wigner_custom_gradients(
 
     flmn_target = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
-    f = wigner.inverse_jax(
-        flmn, L, N, None, sampling, reality, None, False, L_lower
-    )
+    f = wigner.inverse_jax(flmn, L, N, None, sampling, reality, None, False, L_lower)
 
     def func(f):
         flmn = wigner.forward_jax(

@@ -65,9 +65,7 @@ def spectral_folding_jax(fm: jnp.ndarray, nphi: int, L: int) -> jnp.ndarray:
     )
 
 
-def spectral_periodic_extension(
-    fm: np.ndarray, nphi: int, L: int
-) -> np.ndarray:
+def spectral_periodic_extension(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
     """Extends lower frequency Fourier coefficients onto higher frequency
     coefficients, i.e. imposed periodicity in Fourier space.
 
@@ -161,9 +159,7 @@ def healpix_fft(
         raise ValueError(f"Method {method} not recognised.")
 
 
-def healpix_fft_numpy(
-    f: np.ndarray, L: int, nside: int, reality: bool
-) -> np.ndarray:
+def healpix_fft_numpy(f: np.ndarray, L: int, nside: int, reality: bool) -> np.ndarray:
     """Computes the Forward Fast Fourier Transform with spectral back-projection
     in the polar regions to manually enforce Fourier periodicity.
 
@@ -204,9 +200,7 @@ def healpix_fft_numpy(
 
 
 @partial(jit, static_argnums=(1, 2, 3))
-def healpix_fft_jax(
-    f: jnp.ndarray, L: int, nside: int, reality: bool
-) -> jnp.ndarray:
+def healpix_fft_jax(f: jnp.ndarray, L: int, nside: int, reality: bool) -> jnp.ndarray:
     """
     Healpix FFT JAX implementation using jax.numpy/numpy stack
     Computes the Forward Fast Fourier Transform with spectral back-projection
@@ -234,9 +228,7 @@ def healpix_fft_jax(
         if reality and nphi == 2 * L:
             fm_chunk = jnp.zeros(nphi, dtype=jnp.complex128)
             fm_chunk = fm_chunk.at[nphi // 2 :].set(
-                jnp.fft.rfft(
-                    jnp.real(f[index : index + nphi]), norm="backward"
-                )[:-1]
+                jnp.fft.rfft(jnp.real(f[index : index + nphi]), norm="backward")[:-1]
             )
         else:
             fm_chunk = jnp.fft.fftshift(
@@ -305,16 +297,12 @@ def healpix_ifft_numpy(
     Returns:
         np.ndarray: HEALPix pixel-space array.
     """
-    f = np.zeros(
-        samples.f_shape(sampling="healpix", nside=nside), dtype=np.complex128
-    )
+    f = np.zeros(samples.f_shape(sampling="healpix", nside=nside), dtype=np.complex128)
     ntheta = ftm.shape[0]
     index = 0
     for t in range(ntheta):
         nphi = samples.nphi_ring(t, nside)
-        fm_chunk = (
-            ftm[t] if nphi == 2 * L else spectral_folding(ftm[t], nphi, L)
-        )
+        fm_chunk = ftm[t] if nphi == 2 * L else spectral_folding(ftm[t], nphi, L)
         if reality and nphi == 2 * L:
             f[index : index + nphi] = np.fft.irfft(
                 fm_chunk[nphi // 2 :], nphi, norm="forward"
@@ -356,9 +344,7 @@ def healpix_ifft_jax(
 
     for t in range(ntheta):
         nphi = samples.nphi_ring(t, nside)
-        fm_chunk = (
-            ftm[t] if nphi == 2 * L else spectral_folding_jax(ftm[t], nphi, L)
-        )
+        fm_chunk = ftm[t] if nphi == 2 * L else spectral_folding_jax(ftm[t], nphi, L)
         if reality and nphi == 2 * L:
             f = f.at[index : index + nphi].set(
                 jnp.fft.irfft(fm_chunk[nphi // 2 :], nphi, norm="forward")
@@ -366,9 +352,7 @@ def healpix_ifft_jax(
         else:
             f = f.at[index : index + nphi].set(
                 jnp.conj(
-                    jnp.fft.fft(
-                        jnp.fft.ifftshift(jnp.conj(fm_chunk)), norm="backward"
-                    )
+                    jnp.fft.fft(jnp.fft.ifftshift(jnp.conj(fm_chunk)), norm="backward")
                 )
             )
 
@@ -395,9 +379,7 @@ def p2phi_rings(t: np.ndarray, nside: int) -> np.ndarray:
         shift * ((t - nside + 2) % 2) * np.pi / (2 * nside),
         tt,
     )
-    tt = np.where(
-        t + 1 > 3 * nside, shift * np.pi / (2 * (4 * nside - t - 1)), tt
-    )
+    tt = np.where(t + 1 > 3 * nside, shift * np.pi / (2 * (4 * nside - t - 1)), tt)
     tt = np.where(t + 1 < nside, shift * np.pi / (2 * (t + 1)), tt)
     return tt
 
@@ -422,9 +404,7 @@ def p2phi_rings_jax(t: jnp.ndarray, nside: int) -> jnp.ndarray:
         shift * ((t - nside + 2) % 2) * jnp.pi / (2 * nside),
         tt,
     )
-    tt = jnp.where(
-        t + 1 > 3 * nside, shift * jnp.pi / (2 * (4 * nside - t - 1)), tt
-    )
+    tt = jnp.where(t + 1 > 3 * nside, shift * jnp.pi / (2 * (4 * nside - t - 1)), tt)
     tt = jnp.where(t + 1 < nside, shift * jnp.pi / (2 * (t + 1)), tt)
     return tt
 

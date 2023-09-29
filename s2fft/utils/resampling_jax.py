@@ -29,9 +29,7 @@ def mw_to_mwss(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     """
     if f_mw.ndim == 2:
         return jnp.squeeze(
-            mw_to_mwss_phi(
-                mw_to_mwss_theta(jnp.expand_dims(f_mw, 0), L, spin), L
-            )
+            mw_to_mwss_phi(mw_to_mwss_theta(jnp.expand_dims(f_mw, 0), L, spin), L)
         )
     else:
         return mw_to_mwss_phi(mw_to_mwss_theta(f_mw, L, spin), L)
@@ -70,9 +68,7 @@ def mw_to_mwss_theta(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     )
 
     fmp_mwss_ext = fmp_mwss_ext.at[:, 1:, :].set(
-        jnp.fft.fftshift(
-            jnp.fft.fft(f_mw_ext, axis=-2, norm="forward"), axes=-2
-        )
+        jnp.fft.fftshift(jnp.fft.fft(f_mw_ext, axis=-2, norm="forward"), axes=-2)
     )
 
     fmp_mwss_ext = fmp_mwss_ext.at[:, 1:, :].set(
@@ -171,9 +167,7 @@ def periodic_extension(
 
     f_ext = jnp.zeros((f.shape[0], ntheta_ext, nphi), dtype=jnp.complex128)
     f_ext = f_ext.at[:, 0:ntheta, 0:nphi].set(f[:, 0:ntheta, 0:nphi])
-    f_ext = jnp.fft.fftshift(
-        jnp.fft.fft(f_ext, axis=-1, norm="backward"), axes=-1
-    )
+    f_ext = jnp.fft.fftshift(jnp.fft.fft(f_ext, axis=-1, norm="backward"), axes=-1)
 
     f_ext = f_ext.at[
         :,
@@ -318,14 +312,10 @@ def upsample_by_two_mwss_ext(f_ext: jnp.ndarray, L: int) -> jnp.ndarray:
     nphi = 2 * L
     ntheta_ext = 2 * L
 
-    f_ext = jnp.fft.fftshift(
-        jnp.fft.fft(f_ext, axis=-2, norm="forward"), axes=-2
-    )
+    f_ext = jnp.fft.fftshift(jnp.fft.fft(f_ext, axis=-2, norm="forward"), axes=-2)
 
     ntheta_ext_up = 2 * ntheta_ext
-    f_ext_up = jnp.zeros(
-        (f_ext.shape[0], ntheta_ext_up, nphi), dtype=jnp.complex128
-    )
+    f_ext_up = jnp.zeros((f_ext.shape[0], ntheta_ext_up, nphi), dtype=jnp.complex128)
     f_ext_up = f_ext_up.at[:, L : ntheta_ext + L, :nphi].set(
         f_ext[:, 0:ntheta_ext, :nphi]
     )

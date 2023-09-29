@@ -11,7 +11,6 @@ nside_to_test = [16, 32]
 @pytest.mark.parametrize("L", [15, 16])
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
 def test_samples_n_and_angles(L: int, sampling: str):
-
     # Test ntheta and nphi
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
@@ -28,17 +27,12 @@ def test_samples_n_and_angles(L: int, sampling: str):
     np.testing.assert_allclose(phis, phis_ssht, atol=1e-14)
 
     # Test direct thetas and phis
-    np.testing.assert_allclose(
-        samples.thetas(L, sampling), thetas_ssht, atol=1e-14
-    )
-    np.testing.assert_allclose(
-        samples.phis_equiang(L, sampling), phis_ssht, atol=1e-14
-    )
+    np.testing.assert_allclose(samples.thetas(L, sampling), thetas_ssht, atol=1e-14)
+    np.testing.assert_allclose(samples.phis_equiang(L, sampling), phis_ssht, atol=1e-14)
 
 
 @pytest.mark.parametrize("ind", [15, 16])
 def test_samples_index_conversion(ind: int):
-
     (el, m) = samples.ind2elm(ind)
 
     ind_check = samples.elm2ind(el, m)
@@ -48,7 +42,6 @@ def test_samples_index_conversion(ind: int):
 
 @pytest.mark.parametrize("L", [15, 16])
 def test_samples_ncoeff(L: int):
-
     n = 0
     for el in range(0, L):
         for m in range(-el, el + 1):
@@ -59,7 +52,6 @@ def test_samples_ncoeff(L: int):
 
 @pytest.mark.parametrize("nside", nside_to_test)
 def test_samples_n_and_angles_hp(nside: int):
-
     ntheta = samples.ntheta(L=0, sampling="healpix", nside=nside)
     assert ntheta == 4 * nside - 1
 
@@ -82,7 +74,6 @@ def test_samples_n_and_angles_hp(nside: int):
 
 @pytest.mark.parametrize("nside", nside_to_test)
 def test_hp_ang2pix(nside: int):
-
     for i in range(12 * nside**2):
         theta, phi = hp.pix2ang(nside, i)
         j = samples.hp_ang2pix(nside, theta, phi)
@@ -90,7 +81,6 @@ def test_hp_ang2pix(nside: int):
 
 
 def test_samples_exceptions():
-
     L = 10
 
     with pytest.raises(ValueError) as e:

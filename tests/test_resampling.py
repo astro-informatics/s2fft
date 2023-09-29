@@ -5,7 +5,6 @@ from s2fft.base_transforms import spherical
 
 
 def test_periodic_extension_invalid_sampling():
-
     f_dummy = np.zeros((2, 2), dtype=np.complex128)
 
     with pytest.raises(ValueError) as e:
@@ -20,7 +19,6 @@ def test_periodic_extension_invalid_sampling():
     "spin_reality", [(0, True), (0, False), (1, False), (2, False)]
 )
 def test_periodic_extension_mwss(flm_generator, L: int, spin_reality):
-
     (spin, reality) = spin_reality
     flm = flm_generator(L=L, spin=spin, reality=reality)
     f = spherical.inverse(flm, L, spin, sampling="mwss")
@@ -38,7 +36,6 @@ def test_periodic_extension_mwss(flm_generator, L: int, spin_reality):
     "spin_reality", [(0, True), (0, False), (1, False), (2, False)]
 )
 def test_mwss_upsample_downsample(flm_generator, L: int, spin_reality):
-
     (spin, reality) = spin_reality
     flm = flm_generator(L=L, spin=spin, reality=reality)
     f = spherical.inverse(flm, L, spin, sampling="mwss")
@@ -59,7 +56,6 @@ def test_mwss_upsample_downsample(flm_generator, L: int, spin_reality):
     "spin_reality", [(0, True), (0, False), (1, False), (2, False)]
 )
 def test_unextend(flm_generator, L: int, sampling: str, spin_reality):
-
     (spin, reality) = spin_reality
     flm = flm_generator(L=L, spin=spin, reality=reality)
     f = spherical.inverse(flm, L, spin, sampling=sampling)
@@ -72,7 +68,6 @@ def test_unextend(flm_generator, L: int, sampling: str, spin_reality):
 
 
 def test_resampling_exceptions():
-
     f_dummy = np.zeros((2, 2), dtype=np.complex128)
 
     with pytest.raises(ValueError) as e:
@@ -98,7 +93,6 @@ def test_resampling_exceptions():
     "spin_reality", [(0, True), (0, False), (1, False), (2, False)]
 )
 def test_mw_to_mwss_theta(flm_generator, L: int, spin_reality):
-
     (spin, reality) = spin_reality
     flm = flm_generator(L=L, spin=spin, reality=reality)
     f_mw = spherical.inverse(flm, L, spin, sampling="mw")

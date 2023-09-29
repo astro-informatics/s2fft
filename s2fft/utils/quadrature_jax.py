@@ -48,9 +48,7 @@ def quad_weights_transform(
 
 
 @partial(jit, static_argnums=(0, 1, 2))
-def quad_weights(
-    L: int = None, sampling: str = "mw", nside: int = None
-) -> jnp.ndarray:
+def quad_weights(L: int = None, sampling: str = "mw", nside: int = None) -> jnp.ndarray:
     r"""Compute quadrature weights for :math:`\theta` and :math:`\phi`
     integration for various sampling schemes. JAX implementation of
     :func:`~s2fft.quadrature.quad_weights`.
@@ -229,9 +227,7 @@ def quad_weights_mw_theta_only(L: int) -> jnp.ndarray:
         w = w.at[i + L - 1].set(mw_weights(i))
 
     w *= jnp.exp(-1j * jnp.arange(-(L - 1), L) * jnp.pi / (2 * L - 1))
-    wr = jnp.real(jnp.fft.fft(jnp.fft.ifftshift(w), norm="backward")) / (
-        2 * L - 1
-    )
+    wr = jnp.real(jnp.fft.fft(jnp.fft.ifftshift(w), norm="backward")) / (2 * L - 1)
     q = wr[:L]
     q = q.at[: L - 1].add(wr[-1 : L - 1 : -1])
 

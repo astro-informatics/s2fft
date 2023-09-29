@@ -4,7 +4,6 @@ from s2fft.sampling import s2_samples as samples
 
 
 def test_flm_reindexing_functions(flm_generator):
-
     L = 16
     flm_2d = flm_generator(L=L, spin=0, reality=False)
 
@@ -19,7 +18,6 @@ def test_flm_reindexing_functions(flm_generator):
 
 
 def test_flm_reindexing_functions_healpix(flm_generator):
-
     L = 16
     flm_2d = flm_generator(L=L, spin=0, reality=True)
     flm_hp = samples.flm_2d_to_hp(flm_2d, L)

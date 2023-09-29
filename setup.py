@@ -22,7 +22,7 @@ setup(
     name="s2fft",
     version="0.0.1",
     url="https://github.com/astro-informatics/s2fft",
-    author="Authors & Contributors",
+    author="Matthew A. Price, Jason D. McEwen & Contributors",
     license="GNU General Public License v3 (GPLv3)",
     python_requires=">=3.8",
     install_requires=requirements,
@@ -33,5 +33,5 @@ setup(
     long_description=long_description,
     packages=find_packages(),
     include_package_data=True,
-    pacakge_data={"s2fft": ["default-logging-config.yaml"]}
+    pacakge_data={"s2fft": ["default-logging-config.yaml"]},
 )

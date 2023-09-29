@@ -76,9 +76,7 @@ def inverse(
     if reality:
         f = np.fft.irfft(fban[N - 1 :], 2 * N - 1, axis=ax, norm="forward")
     else:
-        f = np.fft.ifft(
-            np.fft.ifftshift(fban, axes=ax), axis=ax, norm="forward"
-        )
+        f = np.fft.ifft(np.fft.ifftshift(fban, axes=ax), axis=ax, norm="forward")
 
     return f
 
