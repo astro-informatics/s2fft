@@ -217,9 +217,7 @@ def compute_quarter_slice(
             if i == 1:
                 for m in range(el + 1):
                     dl[lims[i] + sgn * m] = (
-                        (-1) ** ((mm - m + el) % 2)
-                        * dl[lims[i] + sgn * m]
-                        * renorm
+                        (-1) ** ((mm - m + el) % 2) * dl[lims[i] + sgn * m] * renorm
                     )
 
     s_ind = 0 if positive_m_only else -el
@@ -293,9 +291,7 @@ def compute_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
     for i in range(2, 2 * l + 2):
         m = l + 1 - i
         ratio = np.sqrt((m + l + 1) / (l - m))
-        log_first_row[i - 1] = (
-            log_first_row[i - 2] + np.log(ratio) + np.log(np.abs(t))
-        )
+        log_first_row[i - 1] = log_first_row[i - 2] + np.log(ratio) + np.log(np.abs(t))
         sign[i - 1] = sign[i - 2] * t / np.abs(t)
 
     # Initialising coefficients cp(m)= cplus(l-m).
@@ -326,9 +322,7 @@ def compute_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
                 if dl[index - lp1, m + 1 - lp1] > big:
                     lrenorm[index - 1] = lrenorm[index - 1] - lbig
                     for im in range(1, m + 2):
-                        dl[index - lp1, im - lp1] = (
-                            dl[index - lp1, im - lp1] * bigi
-                        )
+                        dl[index - lp1, im - lp1] = dl[index - lp1, im - lp1] * bigi
 
     # Use Turok & Bucher recursion to fill horizontal to anti-diagonal (upper left eight)
     for index in range(l + 2, 2 * l + 1):
@@ -345,9 +339,7 @@ def compute_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
                 if dl[index - lp1, m + 1 - lp1] > big:
                     lrenorm[index - 1] = lrenorm[index - 1] - lbig
                     for im in range(1, m + 2):
-                        dl[index - lp1, im - lp1] = (
-                            dl[index - lp1, im - lp1] * bigi
-                        )
+                        dl[index - lp1, im - lp1] = dl[index - lp1, im - lp1] * bigi
 
     # Apply renormalisation
     for i in range(1, l + 2):

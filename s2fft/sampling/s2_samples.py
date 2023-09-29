@@ -32,19 +32,15 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
         )
 
     if sampling.lower() == "mw":
-
         return L
 
     elif sampling.lower() == "mwss":
-
         return L + 1
 
     elif sampling.lower() == "dh":
-
         return 2 * L
 
     elif sampling.lower() == "healpix":
-
         if nside is None:
             raise ValueError(
                 f"Sampling scheme sampling={sampling} with nside={nside} not supported"
@@ -53,7 +49,6 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
         return 4 * nside - 1
 
     else:
-
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
 
@@ -76,15 +71,12 @@ def ntheta_extension(L: int, sampling: str = "mw") -> int:
     """
 
     if sampling.lower() == "mw":
-
         return 2 * L - 1
 
     elif sampling.lower() == "mwss":
-
         return 2 * L
 
     else:
-
         raise ValueError(
             f"Sampling scheme sampling={sampling} does not support periodic extension"
         )
@@ -113,31 +105,24 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
     """
 
     if sampling.lower() == "mw":
-
         return 2 * L - 1
 
     elif sampling.lower() == "mwss":
-
         return 2 * L
 
     elif sampling.lower() == "dh":
-
         return 2 * L - 1
 
     elif sampling.lower() == "healpix":
-
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
     else:
-
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
     return 1
 
 
-def ftm_shape(
-    L: int, sampling: str = "mw", nside: int = None
-) -> Tuple[int, int]:
+def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> Tuple[int, int]:
     r"""Shape of intermediate array, before/after latitudinal step.
 
     Args:
@@ -157,15 +142,12 @@ def ftm_shape(
     """
 
     if sampling.lower() in ["mwss", "healpix"]:
-
         return ntheta(L, sampling, nside), 2 * L
 
     elif sampling.lower() in ["mw", "dh"]:
-
         return ntheta(L, sampling, nside), 2 * L - 1
 
     else:
-
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
     return 1
@@ -213,9 +195,7 @@ def nphi_ring(t: int, nside: int = None) -> int:
         raise ValueError(f"Ring t={t} not contained by nside={nside}")
 
 
-def thetas(
-    L: int = None, sampling: str = "mw", nside: int = None
-) -> np.ndarray:
+def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray:
     r"""Compute :math:`\theta` samples for given sampling scheme.
 
     Args:
@@ -231,9 +211,7 @@ def thetas(
     Returns:
         np.ndarray: Array of :math:`\theta` samples for given sampling scheme.
     """
-    t = np.arange(0, ntheta(L=L, sampling=sampling, nside=nside)).astype(
-        np.float64
-    )
+    t = np.arange(0, ntheta(L=L, sampling=sampling, nside=nside)).astype(np.float64)
 
     return t2theta(t, L, sampling, nside)
 
@@ -272,19 +250,15 @@ def t2theta(
         )
 
     if sampling.lower() == "mw":
-
         return (2 * t + 1) * np.pi / (2 * L - 1)
 
     elif sampling.lower() == "mwss":
-
         return 2 * t * np.pi / (2 * L)
 
     elif sampling.lower() == "dh":
-
         return (2 * t + 1) * np.pi / (4 * L)
 
     elif sampling.lower() == "healpix":
-
         if nside is None:
             raise ValueError(
                 f"Sampling scheme sampling={sampling} with nside={nside} not supported"
@@ -293,7 +267,6 @@ def t2theta(
         return _t2theta_healpix(t, nside)
 
     else:
-
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
 
@@ -404,23 +377,18 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
     """
 
     if sampling.lower() == "mw":
-
         return 2 * p * np.pi / (2 * L - 1)
 
     elif sampling.lower() == "mwss":
-
         return 2 * p * np.pi / (2 * L)
 
     elif sampling.lower() == "dh":
-
         return 2 * p * np.pi / (2 * L - 1)
 
     elif sampling.lower() == "healpix":
-
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
     else:
-
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
 
@@ -456,9 +424,7 @@ def ring_phase_shift_hp(
     return np.exp(sign * 1j * np.arange(m_start_ind, L) * phi_offset)
 
 
-def f_shape(
-    L: int = None, sampling: str = "mw", nside: int = None
-) -> Tuple[int]:
+def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> Tuple[int]:
     r"""Shape of spherical signal.
 
     Args:
@@ -486,11 +452,9 @@ def f_shape(
         )
 
     if sampling.lower() == "healpix":
-
         return (12 * nside**2,)
 
     else:
-
         return ntheta(L, sampling), nphi_equiang(L, sampling)
 
 

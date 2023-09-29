@@ -33,9 +33,7 @@ def periodic_extension(
 
     f_ext = np.zeros((f.shape[0], ntheta_ext, nphi), dtype=np.complex128)
     f_ext[:, 0:ntheta, 0:nphi] = f[:, 0:ntheta, 0:nphi]
-    f_ext = np.fft.fftshift(
-        np.fft.fft(f_ext, axis=-1, norm="backward"), axes=-1
-    )
+    f_ext = np.fft.fftshift(np.fft.fft(f_ext, axis=-1, norm="backward"), axes=-1)
 
     ind1l = L + m_offset
     ind1u = 2 * L - 1 + m_offset
@@ -48,9 +46,7 @@ def periodic_extension(
         ],
         axis=-2,
     )
-    f_ext[:, ind1l:ind1u, m_offset:ind2u] *= (-1) ** np.abs(
-        np.arange(-(L - 1), L)
-    )
+    f_ext[:, ind1l:ind1u, m_offset:ind2u] *= (-1) ** np.abs(np.arange(-(L - 1), L))
     if hasattr(spin, "__len__"):
         f_ext[:, ind1l:ind1u, m_offset:ind2u] = np.einsum(
             "nlm,n->nlm",
@@ -60,14 +56,10 @@ def periodic_extension(
     else:
         f_ext[:, ind1l:ind1u, m_offset:ind2u] *= (-1) ** np.abs(spin)
 
-    return np.fft.ifft(
-        np.fft.ifftshift(f_ext, axes=-1), axis=-1, norm="backward"
-    )
+    return np.fft.ifft(np.fft.ifftshift(f_ext, axes=-1), axis=-1, norm="backward")
 
 
-def periodic_extension_spatial_mwss(
-    f: np.ndarray, L: int, spin: int = 0
-) -> np.ndarray:
+def periodic_extension_spatial_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
     r"""Perform period extension of MWSS signal on the sphere in spatial domain,
     extending :math:`\theta` domain from :math:`[0,\pi]` to :math:`[0,2\pi]`.
 
@@ -95,9 +87,7 @@ def periodic_extension_spatial_mwss(
     if hasattr(spin, "__len__"):
         f_ext[:, ntheta:, 0 : 2 * L] = np.einsum(
             "btp,b->btp",
-            np.fft.fftshift(
-                np.flip(f[:, 1 : ntheta - 1, 0 : 2 * L], axis=-2), axes=-1
-            ),
+            np.fft.fftshift(np.flip(f[:, 1 : ntheta - 1, 0 : 2 * L], axis=-2), axes=-1),
             (-1) ** np.abs(spin),
         )
     else:
@@ -157,13 +147,9 @@ def upsample_by_two_mwss_ext(f_ext: np.ndarray, L: int) -> np.ndarray:
     f_ext = np.fft.fftshift(np.fft.fft(f_ext, axis=-2, norm="forward"), axes=-2)
 
     ntheta_ext_up = 2 * ntheta_ext
-    f_ext_up = np.zeros(
-        (f_ext.shape[0], ntheta_ext_up, nphi), dtype=np.complex128
-    )
+    f_ext_up = np.zeros((f_ext.shape[0], ntheta_ext_up, nphi), dtype=np.complex128)
     f_ext_up[:, L : ntheta_ext + L, :nphi] = f_ext[:, 0:ntheta_ext, :nphi]
-    return np.fft.ifft(
-        np.fft.ifftshift(f_ext_up, axes=-2), axis=-2, norm="forward"
-    )
+    return np.fft.ifft(np.fft.ifftshift(f_ext_up, axes=-2), axis=-2, norm="forward")
 
 
 def downsample_by_two_mwss(f_ext: np.ndarray, L: int) -> np.ndarray:
@@ -235,11 +221,9 @@ def unextend(f_ext: np.ndarray, L: int, sampling: str = "mw") -> np.ndarray:
         )
 
     if sampling.lower() == "mw":
-
         f = f_ext[:, 0:L, :]
 
     elif sampling.lower() == "mwss":
-
         f = f_ext[:, 0 : L + 1, :]
 
     else:
@@ -282,9 +266,7 @@ def mw_to_mwss_phi(f_mw: np.ndarray, L: int) -> np.ndarray:
         np.fft.fft(f_mw, axis=-1, norm="forward"), axes=-1
     )
 
-    return np.fft.ifft(
-        np.fft.ifftshift(f_mwss, axes=-1), axis=-1, norm="forward"
-    )
+    return np.fft.ifft(np.fft.ifftshift(f_mwss, axes=-1), axis=-1, norm="forward")
 
 
 def mw_to_mwss_theta(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
@@ -311,9 +293,7 @@ def mw_to_mwss_theta(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
         sampling in :math:`\phi`.
     """
     f_mw_ext = periodic_extension(f_mw, L, spin=spin, sampling="mw")
-    fmp_mwss_ext = np.zeros(
-        (f_mw_ext.shape[0], 2 * L, 2 * L - 1), dtype=np.complex128
-    )
+    fmp_mwss_ext = np.zeros((f_mw_ext.shape[0], 2 * L, 2 * L - 1), dtype=np.complex128)
 
     fmp_mwss_ext[:, 1:, :] = np.fft.fftshift(
         np.fft.fft(f_mw_ext, axis=-2, norm="forward"), axes=-2
@@ -353,9 +333,7 @@ def mw_to_mwss(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
     """
     if f_mw.ndim == 2:
         return np.squeeze(
-            mw_to_mwss_phi(
-                mw_to_mwss_theta(np.expand_dims(f_mw, 0), L, spin), L
-            )
+            mw_to_mwss_phi(mw_to_mwss_theta(np.expand_dims(f_mw, 0), L, spin), L)
         )
     else:
         return mw_to_mwss_phi(mw_to_mwss_theta(f_mw, L, spin), L)

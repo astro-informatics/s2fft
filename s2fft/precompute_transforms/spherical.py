@@ -1,4 +1,4 @@
-from jax import jit 
+from jax import jit
 
 import numpy as np
 import jax.numpy as jnp
@@ -60,9 +60,7 @@ def inverse(
     if method == "numpy":
         return inverse_transform(flm, kernel, L, sampling, reality, spin, nside)
     elif method == "jax":
-        return inverse_transform_jax(
-            flm, kernel, L, sampling, reality, spin, nside
-        )
+        return inverse_transform_jax(flm, kernel, L, sampling, reality, spin, nside)
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -241,9 +239,7 @@ def forward(
     if method == "numpy":
         return forward_transform(f, kernel, L, sampling, reality, spin, nside)
     elif method == "jax":
-        return forward_transform_jax(
-            f, kernel, L, sampling, reality, spin, nside
-        )
+        return forward_transform_jax(f, kernel, L, sampling, reality, spin, nside)
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -380,8 +376,7 @@ def forward_transform_jax(
     if reality:
         flm = flm.at[:, :m_start_ind].set(
             jnp.flip(
-                (-1) ** (jnp.arange(1, L) % 2)
-                * jnp.conj(flm[:, m_start_ind + 1 :]),
+                (-1) ** (jnp.arange(1, L) % 2) * jnp.conj(flm[:, m_start_ind + 1 :]),
                 axis=-1,
             )
         )

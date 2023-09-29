@@ -72,9 +72,7 @@ def inverse(
         recover acceleration by the number of devices.
     """
     if method == "numpy":
-        return inverse_numpy(
-            flm, L, spin, nside, sampling, reality, precomps, L_lower
-        )
+        return inverse_numpy(flm, L, spin, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
         return inverse_jax(
             flm, L, spin, nside, sampling, reality, precomps, spmd, L_lower
@@ -178,9 +176,7 @@ def inverse_numpy(
                 norm="forward",
             )
         else:
-            return np.fft.ifft(
-                np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward"
-            )
+            return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
 
 @partial(jit, static_argnums=(1, 3, 4, 5, 7, 8))
@@ -368,9 +364,7 @@ def forward(
         recover acceleration by the number of devices.
     """
     if method == "numpy":
-        return forward_numpy(
-            f, L, spin, nside, sampling, reality, precomps, L_lower
-        )
+        return forward_numpy(f, L, spin, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
         return forward_jax(
             f, L, spin, nside, sampling, reality, precomps, spmd, L_lower
@@ -452,9 +446,7 @@ def forward_numpy(
             ftm = np.zeros_like(f).astype(np.complex128)
             ftm[:, L - 1 + m_offset :] = t
         else:
-            ftm = np.fft.fftshift(
-                np.fft.fft(f, axis=1, norm="backward"), axes=1
-            )
+            ftm = np.fft.fftshift(np.fft.fft(f, axis=1, norm="backward"), axes=1)
 
     # Apply quadrature weights
     ftm = np.einsum("tm,t->tm", ftm, weights)
@@ -590,9 +582,7 @@ def forward_jax(
             ftm = jnp.zeros_like(f).astype(jnp.complex128)
             ftm = ftm.at[:, L - 1 + m_offset :].set(t)
         else:
-            ftm = jnp.fft.fftshift(
-                jnp.fft.fft(f, axis=1, norm="backward"), axes=1
-            )
+            ftm = jnp.fft.fftshift(jnp.fft.fft(f, axis=1, norm="backward"), axes=1)
 
     # Apply quadrature weights
     ftm = jnp.einsum("tm,t->tm", ftm, weights, optimize=True)
@@ -654,8 +644,7 @@ def forward_jax(
     if reality:
         flm = flm.at[..., :m_start_ind].set(
             jnp.flip(
-                (-1) ** (jnp.arange(1, L) % 2)
-                * jnp.conj(flm[..., m_start_ind + 1 :]),
+                (-1) ** (jnp.arange(1, L) % 2) * jnp.conj(flm[..., m_start_ind + 1 :]),
                 axis=-1,
             )
         )

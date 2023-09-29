@@ -101,15 +101,11 @@ def test_trapani_interfaces():
     dl_jax = recursions.trapani.init(dl_jax, L, implementation="jax")
 
     for el in range(1, L):
-        dl_loop = recursions.trapani.compute_full(
-            dl_loop, L, el, implementation="loop"
-        )
+        dl_loop = recursions.trapani.compute_full(dl_loop, L, el, implementation="loop")
         dl_vect = recursions.trapani.compute_full(
             dl_vect, L, el, implementation="vectorized"
         )
-        dl_jax = recursions.trapani.compute_full(
-            dl_jax, L, el, implementation="jax"
-        )
+        dl_jax = recursions.trapani.compute_full(dl_jax, L, el, implementation="jax")
         np.testing.assert_allclose(
             dl_loop[
                 -el + (L - 1) : el + (L - 1) + 1,
@@ -137,13 +133,10 @@ def test_trapani_interfaces():
         recursions.trapani.init(dl_loop, L, implementation="unexpected")
 
     with pytest.raises(ValueError) as e:
-        recursions.trapani.compute_full(
-            dl_jax, L, el, implementation="unexpected"
-        )
+        recursions.trapani.compute_full(dl_jax, L, el, implementation="unexpected")
 
 
 def test_trapani_checks():
-
     # TODO
 
     # Check throws exception if arguments wrong
@@ -184,7 +177,6 @@ def test_turok_with_ssht(L: int, sampling: str):
         dl_array = ssht.generate_dl(beta, L)
 
         for el in range(L):
-
             dl_turok = recursions.turok.compute_full(beta, el, L)
 
             np.testing.assert_allclose(dl_turok, dl_array[el], atol=1e-14)
@@ -205,7 +197,6 @@ def test_turok_slice_with_ssht(L: int, spin: int, sampling: str):
 
         for el in range(L):
             if el >= np.abs(spin):
-
                 dl_turok = recursions.turok.compute_slice(beta, el, L, -spin)
 
                 np.testing.assert_allclose(
@@ -232,9 +223,7 @@ def test_turok_slice_jax_with_ssht(L: int, spin: int, sampling: str):
         for el in range(L):
             if el >= np.abs(spin):
                 print("beta {}, el {}, spin {}".format(beta, el, spin))
-                dl_turok = recursions.turok_jax.compute_slice(
-                    beta, el, L, -spin
-                )
+                dl_turok = recursions.turok_jax.compute_slice(beta, el, L, -spin)
 
                 np.testing.assert_allclose(
                     dl_turok[L - 1 - el : L - 1 + el + 1],

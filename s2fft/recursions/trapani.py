@@ -24,19 +24,15 @@ def init(dl: np.ndarray, L: int, implementation: str = "vectorized") -> np.ndarr
     """
 
     if implementation.lower() == "loop":
-
         return init_nonjax(dl, L)
 
     elif implementation == "vectorized":
-
         return init_nonjax(dl, L)
 
     elif implementation == "jax":
-
         return init_jax(dl, L)
 
     else:
-
         raise ValueError(f"Implementation {implementation} not supported")
 
 
@@ -148,7 +144,6 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     # Equation (11) of T&N (2006).
     for mm in range(el + 1):  # 0:el
-
         # m = el-1 case (t2 = 0).
         m = el - 1
         dl[m + (L - 1), mm + (L - 1)] = (
@@ -317,7 +312,10 @@ def compute_quarter_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
     )
 
     def compute_dl_submatrix_slice(dl_slice_1_dl_slice_2, t1_fact_i_t2_fact_i):
-        t1_fact_i, t2_fact_i, = t1_fact_i_t2_fact_i
+        (
+            t1_fact_i,
+            t2_fact_i,
+        ) = t1_fact_i_t2_fact_i
         dl_slice_1, dl_slice_2 = dl_slice_1_dl_slice_2
         t1 = 2 * mm / t1_fact_i * dl_slice_1
         t2 = t2_fact_i * dl_slice_2
@@ -327,7 +325,7 @@ def compute_quarter_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
     _, dl_submatrix = lax.scan(
         compute_dl_submatrix_slice,
         (dl[el - 1 + (L - 1), mm + (L - 1)], dl[el + (L - 1), mm + (L - 1)]),
-        (t1_fact, t2_fact)
+        (t1_fact, t2_fact),
     )
 
     dl = dl.at[ms[:, None] + (L - 1), mm[None] + (L - 1)].set(dl_submatrix)
@@ -609,19 +607,15 @@ def compute_full(
     """
 
     if implementation.lower() == "loop":
-
         return compute_full_loop(dl, L, el)
 
     elif implementation == "vectorized":
-
         return compute_full_vectorized(dl, L, el)
 
     elif implementation == "jax":
-
         return compute_full_jax(dl, L, el)
 
     else:
-
         raise ValueError(f"Implementation {implementation} not supported")
 
 

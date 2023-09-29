@@ -8,7 +8,6 @@ from s2fft.base_transforms import spherical
 @pytest.mark.parametrize("L", [5, 6])
 @pytest.mark.parametrize("sampling", ["mw", "mwss"])
 def test_quadrature_mw_weights(flm_generator, L: int, sampling: str):
-
     spin = 0
 
     q = quadrature.quad_weights(L, sampling, spin)
@@ -29,7 +28,6 @@ def test_quadrature_mw_weights(flm_generator, L: int, sampling: str):
 
 
 def test_quadrature_exceptions():
-
     L = 10
 
     with pytest.raises(ValueError) as e:

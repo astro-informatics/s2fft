@@ -191,12 +191,8 @@ def generate_precomputes_jax(
 
     def cpi_cp2_roll_loop(m, args):
         cpi, cp2 = args
-        cpi = cpi.at[:, m - L0].set(
-            jnp.roll(cpi[:, m - L0], (L - m - 1), axis=-1)
-        )
-        cp2 = cp2.at[:, m - L0].set(
-            jnp.roll(cp2[:, m - L0], (L - m - 1), axis=-1)
-        )
+        cpi = cpi.at[:, m - L0].set(jnp.roll(cpi[:, m - L0], (L - m - 1), axis=-1))
+        cp2 = cp2.at[:, m - L0].set(jnp.roll(cp2[:, m - L0], (L - m - 1), axis=-1))
         return cpi, cp2
 
     cpi, cp2 = lax.fori_loop(L0, L, cpi_cp2_roll_loop, (cpi, cp2))
@@ -235,9 +231,7 @@ def generate_precomputes_jax(
         log_first_row_iter = jnp.swapaxes(log_first_row_iter, 0, 1)
         for ind in range(2):
             lrenorm = lrenorm.at[ind].set(
-                jnp.where(
-                    i == half_slices[ind], log_first_row_iter, lrenorm[ind]
-                )
+                jnp.where(i == half_slices[ind], log_first_row_iter, lrenorm[ind])
             )
         return log_first_row_iter, lrenorm
 
@@ -303,9 +297,7 @@ def generate_precomputes_wigner(
     precomps = []
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
-        precomps.append(
-            generate_precomputes(L, -n, sampling, nside, forward, L_lower)
-        )
+        precomps.append(generate_precomputes(L, -n, sampling, nside, forward, L_lower))
     return precomps
 
 
@@ -357,9 +349,7 @@ def generate_precomputes_wigner_jax(
     captured_repeats = False
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
-        precomps = generate_precomputes_jax(
-            L, -n, sampling, nside, forward, L_lower
-        )
+        precomps = generate_precomputes_jax(L, -n, sampling, nside, forward, L_lower)
         lrenorm.append(precomps[0])
         vsign.append(precomps[1])
         if not captured_repeats:
@@ -456,9 +446,7 @@ def compute_all_slices(
         )
 
         dl_test[sind, :, lind:] = (
-            dl_iter[0, :, lind:]
-            * vsign[sind, lind:]
-            * np.exp(lrenorm[i, :, lind:])
+            dl_iter[0, :, lind:] * vsign[sind, lind:] * np.exp(lrenorm[i, :, lind:])
         )
         dl_test[sind + sgn, :, lind - 1 :] = (
             dl_iter[1, :, lind - 1 :]
@@ -501,9 +489,15 @@ def compute_all_slices(
     return dl_test
 
 
-@partial(jit, static_argnums=(1, 2))
+@partial(jit, static_argnums=(1, 3, 4, 5))
 def compute_all_slices_jax(
-    beta: jnp.ndarray, L: int, spin: int, precomps=None
+    beta: jnp.ndarray,
+    L: int,
+    spin: int,
+    sampling: str = "mw",
+    forward: bool = False,
+    nside: int = None,
+    precomps=None,
 ) -> jnp.ndarray:
     r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
     of the complete Wigner-d matrix for all sampled polar angles
@@ -544,13 +538,22 @@ def compute_all_slices_jax(
     ntheta = len(beta)
     lims = [0, -1]
 
+    # Trigonometric constant adopted throughout
+    c = jnp.cos(beta)
+    s = jnp.sin(beta)
+    omc = 1.0 - c
+    el = jnp.arange(L)
+
+    # Indexing boundaries
+    half_slices = [el + mm + 1, el - mm + 1]
+
     dl_test = jnp.zeros((2 * L - 1, ntheta, L), dtype=jnp.float64)
     if precomps is None:
-        lrenorm, lamb, vsign, cpi, cp2, cs, indices = generate_precomputes(
-            beta, L, mm
+        lrenorm, vsign, cpi, cp2, indices = generate_precomputes_jax(
+            L, spin, sampling, nside, forward, 0, beta
         )
     else:
-        lrenorm, lamb, vsign, cpi, cp2, cs, indices = precomps
+        lrenorm, vsign, cpi, cp2, indices = precomps
 
     for i in range(2):
         lind = L - 1
@@ -558,18 +561,23 @@ def compute_all_slices_jax(
         sgn = (-1) ** (i)
         dl_iter = jnp.ones((2, ntheta, L), dtype=jnp.float64)
 
+        lamb = (
+            jnp.einsum("l,t->tl", el + 1, omc, optimize=True)
+            + jnp.einsum("l,t->tl", 2 - L + el, c, optimize=True)
+            - half_slices[i]
+        )
+        lamb = jnp.einsum("tl,t->tl", lamb, 1 / s, optimize=True)
+
         dl_iter = dl_iter.at[1, :, lind:].set(
             jnp.einsum(
                 "l,tl->tl",
                 cpi[0, lind:],
-                dl_iter[0, :, lind:] * lamb[i, :, lind:],
+                dl_iter[0, :, lind:] * lamb[:, lind:],
             )
         )
 
         dl_test = dl_test.at[sind, :, lind:].set(
-            dl_iter[0, :, lind:]
-            * vsign[sind, lind:]
-            * jnp.exp(lrenorm[i, :, lind:])
+            dl_iter[0, :, lind:] * vsign[sind, lind:] * jnp.exp(lrenorm[i, :, lind:])
         )
 
         dl_test = dl_test.at[sind + sgn, :, lind - 1 :].set(
@@ -581,13 +589,20 @@ def compute_all_slices_jax(
         dl_entry = jnp.zeros((ntheta, L), dtype=jnp.float64)
 
         def pm_recursion_step(m, args):
-            dl_test, dl_entry, dl_iter, lamb, lrenorm = args
+            dl_test, dl_entry, dl_iter, lrenorm, indices, omc, c, s = args
             index = indices >= L - m - 1
-            lamb = lamb.at[i, :, jnp.arange(L)].add(cs)
+
+            lamb = (
+                jnp.einsum("l,t->tl", el + 1, omc, optimize=True)
+                + jnp.einsum("l,t->tl", m - L + el + 1, c, optimize=True)
+                - half_slices[i]
+            )
+            lamb = jnp.einsum("tl,t->tl", lamb, 1 / s, optimize=True)
+
             dl_entry = jnp.where(
                 index,
-                jnp.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb[i])
-                - jnp.einsum("l,tl->tl", cp2[m - 1], dl_iter[0]),
+                jnp.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb, optimize=True)
+                - jnp.einsum("l,tl->tl", cp2[m - 1], dl_iter[0], optimize=True),
                 dl_entry,
             )
             dl_entry = dl_entry.at[:, -(m + 1)].set(1)
@@ -603,18 +618,15 @@ def compute_all_slices_jax(
             bigi = 1.0 / abs(dl_entry)
             lbig = jnp.log(abs(dl_entry))
 
-            dl_iter = dl_iter.at[0].set(
-                jnp.where(index, bigi * dl_iter[1], dl_iter[0])
-            )
-            dl_iter = dl_iter.at[1].set(
-                jnp.where(index, bigi * dl_entry, dl_iter[1])
-            )
-            lrenorm = lrenorm.at[i].set(
-                jnp.where(index, lrenorm[i] + lbig, lrenorm[i])
-            )
-            return dl_test, dl_entry, dl_iter, lamb, lrenorm
+            dl_iter = dl_iter.at[0].set(jnp.where(index, bigi * dl_iter[1], dl_iter[0]))
+            dl_iter = dl_iter.at[1].set(jnp.where(index, bigi * dl_entry, dl_iter[1]))
+            lrenorm = lrenorm.at[i].set(jnp.where(index, lrenorm[i] + lbig, lrenorm[i]))
+            return dl_test, dl_entry, dl_iter, lrenorm, indices, omc, c, s
 
-        dl_test, dl_entry, dl_iter, lamb, lrenorm = lax.fori_loop(
-            2, L, pm_recursion_step, (dl_test, dl_entry, dl_iter, lamb, lrenorm)
+        dl_test, dl_entry, dl_iter, lrenorm, indices, omc, c, s = lax.fori_loop(
+            2,
+            L,
+            pm_recursion_step,
+            (dl_test, dl_entry, dl_iter, lrenorm, indices, omc, c, s),
         )
     return dl_test

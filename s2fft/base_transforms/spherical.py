@@ -297,18 +297,15 @@ def _compute_inverse_direct(
     f = np.zeros(samples.f_shape(L, sampling, nside), dtype=np.complex128)
 
     for t, theta in enumerate(thetas):
-
         if sampling.lower() == "healpix":
             phis_ring = samples.phis_ring(t, nside)
 
         for el in range(max(L_lower, abs(spin)), L):
-
             dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
             for p, phi in enumerate(phis_ring):
-
                 if sampling.lower() != "healpix":
                     entry = (t, p)
 
@@ -459,22 +456,17 @@ def _compute_inverse_sov_fft(
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     for t, theta in enumerate(thetas):
-
         phi_ring_offset = (
-            samples.p2phi_ring(t, 0, nside)
-            if sampling.lower() == "healpix"
-            else 0
+            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
         )
 
         for el in range(max(L_lower, abs(spin)), L):
-
             dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
             m_start_ind = 0 if reality else -el
             for m in range(m_start_ind, el + 1):
-
                 phase_shift = (
                     np.exp(1j * m * phi_ring_offset)
                     if sampling.lower() == "healpix"
@@ -506,9 +498,7 @@ def _compute_inverse_sov_fft(
                 norm="forward",
             )
         else:
-            f = np.fft.ifft(
-                np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward"
-            )
+            f = np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
     return f
 
@@ -554,7 +544,6 @@ def _compute_inverse_sov_fft_vectorized(
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
 
     for t, theta in enumerate(thetas):
-
         phase_shift = (
             samples.ring_phase_shift_hp(L, t, nside, False, reality)
             if sampling.lower() == "healpix"
@@ -562,16 +551,10 @@ def _compute_inverse_sov_fft_vectorized(
         )
 
         for el in range(max(L_lower, abs(spin)), L):
-
             dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
             m_start_ind = L - 1 if reality else 0
-            val = (
-                elfactor
-                * dl[m_start_ind:]
-                * flm[el, m_start_ind:]
-                * phase_shift
-            )
+            val = elfactor * dl[m_start_ind:] * flm[el, m_start_ind:] * phase_shift
             if reality and sampling.lower() == "healpix":
                 ftm[t, m_offset : L - 1 + m_offset] += np.flip(np.conj(val[1:]))
 
@@ -589,9 +572,7 @@ def _compute_inverse_sov_fft_vectorized(
                 norm="forward",
             )
         else:
-            f = np.fft.ifft(
-                np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward"
-            )
+            f = np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
     return f
 
@@ -641,18 +622,15 @@ def _compute_forward_direct(
         phis_ring = samples.phis_equiang(L, sampling)
 
     for t, theta in enumerate(thetas):
-
         if sampling.lower() == "healpix":
             phis_ring = samples.phis_ring(t, nside)
 
         for el in range(max(L_lower, abs(spin)), L):
-
             dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
             for p, phi in enumerate(phis_ring):
-
                 if sampling.lower() != "healpix":
                     entry = (t, p)
                 else:
@@ -660,11 +638,7 @@ def _compute_forward_direct(
 
                 if reality:
                     flm[el, L - 1] += (
-                        weights[t]
-                        * (-1) ** spin
-                        * elfactor
-                        * dl[L - 1]
-                        * f[entry]
+                        weights[t] * (-1) ** spin * elfactor * dl[L - 1] * f[entry]
                     )  # m = 0
                     for m in range(1, el + 1):
                         val = (
@@ -738,7 +712,6 @@ def _compute_forward_sov(
 
     ftm = np.zeros((len(thetas), 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
-
         if sampling.lower() == "healpix":
             phis_ring = samples.phis_ring(t, nside)
 
@@ -755,20 +728,14 @@ def _compute_forward_sov(
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
     for t, theta in enumerate(thetas):
-
         for el in range(max(L_lower, abs(spin)), L):
-
             dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
 
             if reality:
                 flm[el, L - 1] += (
-                    weights[t]
-                    * (-1) ** spin
-                    * elfactor
-                    * dl[L - 1]
-                    * ftm[t, L - 1]
+                    weights[t] * (-1) ** spin * elfactor * dl[L - 1] * ftm[t, L - 1]
                 )  # m = 0
                 for m in range(1, el + 1):
                     val = (
@@ -852,20 +819,14 @@ def _compute_forward_sov_fft(
                 ftm_temp = ftm_temp[:, :-1]
             ftm[:, L - 1 + m_offset :] = ftm_temp
         else:
-            ftm = np.fft.fftshift(
-                np.fft.fft(f, axis=1, norm="backward"), axes=1
-            )
+            ftm = np.fft.fftshift(np.fft.fft(f, axis=1, norm="backward"), axes=1)
 
     for t, theta in enumerate(thetas):
-
         phi_ring_offset = (
-            samples.p2phi_ring(t, 0, nside)
-            if sampling.lower() == "healpix"
-            else 0
+            samples.p2phi_ring(t, 0, nside) if sampling.lower() == "healpix" else 0
         )
 
         for el in range(max(L_lower, abs(spin)), L):
-
             dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))
@@ -974,12 +935,9 @@ def _compute_forward_sov_fft_vectorized(
                 t = t[:, :-1]
             ftm[:, L - 1 + m_offset :] = t
         else:
-            ftm = np.fft.fftshift(
-                np.fft.fft(f, axis=1, norm="backward"), axes=1
-            )
+            ftm = np.fft.fftshift(np.fft.fft(f, axis=1, norm="backward"), axes=1)
 
     for t, theta in enumerate(thetas):
-
         phase_shift = (
             samples.ring_phase_shift_hp(L, t, nside, True, reality)
             if sampling.lower() == "healpix"
@@ -987,7 +945,6 @@ def _compute_forward_sov_fft_vectorized(
         )
 
         for el in range(max(L_lower, abs(spin)), L):
-
             dl = recursions.turok.compute_slice(theta, el, L, -spin, reality)
 
             elfactor = np.sqrt((2 * el + 1) / (4 * np.pi))

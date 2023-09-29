@@ -25,12 +25,10 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
     _arg_checks(dl, beta, L, el)
 
     if el == 0:
-
         el = 0
         dl[el + L - 1, el + L - 1] = 1.0
 
     elif el == 1:
-
         cosb = np.cos(beta)
         sinb = np.sin(beta)
 
@@ -51,7 +49,6 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
         dl[1 + L - 1, 1 + L - 1] = coshb**2
 
     else:
-
         coshb = -np.cos(beta / 2.0)
         sinhb = np.sin(beta / 2.0)
 
@@ -61,12 +58,10 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
         j = 2 * el - 1
         rj = float(j)  # TODO: is this necessary?
         for k in range(0, j):
-
             sqrt_jmk = np.sqrt(j - k)
             sqrt_kp1 = np.sqrt(k + 1)
 
             for i in range(0, j):
-
                 sqrt_jmi = np.sqrt(j - i)
                 sqrt_ip1 = np.sqrt(i + 1)
 
@@ -84,12 +79,10 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
         j = 2 * el
         rj = float(j)  # TODO: is this necessary?
         for k in range(0, j):
-
             sqrt_jmk = np.sqrt(j - k)
             sqrt_kp1 = np.sqrt(k + 1)
 
             for i in range(0, j):
-
                 sqrt_jmi = np.sqrt(j - i)
                 sqrt_ip1 = np.sqrt(i + 1)
 

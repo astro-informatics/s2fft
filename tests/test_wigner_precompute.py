@@ -82,9 +82,7 @@ def test_inverse_wigner_transform_healpix(
     kernel = wigner_kernel(L, N, reality, sampling, nside=nside, forward=False)
     f_check = inverse(flmn, L, N, kernel, sampling, reality, method, nside)
 
-    np.testing.assert_allclose(
-        np.real(f), np.real(f_check), atol=1e-5, rtol=1e-5
-    )
+    np.testing.assert_allclose(np.real(f), np.real(f_check), atol=1e-5, rtol=1e-5)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)

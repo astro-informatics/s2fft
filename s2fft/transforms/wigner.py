@@ -77,9 +77,7 @@ def inverse(
         recover acceleration by the number of devices.
     """
     if method == "numpy":
-        return inverse_numpy(
-            flmn, L, N, nside, sampling, reality, precomps, L_lower
-        )
+        return inverse_numpy(flmn, L, N, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
         return inverse_jax(
             flmn, L, N, nside, sampling, reality, precomps, spmd, L_lower
@@ -170,9 +168,7 @@ def inverse_numpy(
     if reality:
         f = np.fft.irfft(fban[N - 1 :], 2 * N - 1, axis=ax, norm="forward")
     else:
-        f = np.fft.ifft(
-            np.fft.ifftshift(fban, axes=ax), axis=ax, norm="forward"
-        )
+        f = np.fft.ifft(np.fft.ifftshift(fban, axes=ax), axis=ax, norm="forward")
 
     return f
 
@@ -244,9 +240,7 @@ def inverse_jax(
         precomps = s2fft.generate_precomputes_wigner_jax(
             L, N, sampling, nside, False, reality, L_lower
         )
-    fban = jnp.zeros(
-        samples.f_shape(L, N, sampling, nside), dtype=jnp.complex128
-    )
+    fban = jnp.zeros(samples.f_shape(L, N, sampling, nside), dtype=jnp.complex128)
 
     flmn = flmn.at[:, L_lower:].set(
         jnp.einsum(
@@ -285,12 +279,9 @@ def inverse_jax(
         return fban, flmn, lrenorm, vsign, spins
 
     if spmd:
-
         # TODO: Generalise this to optional device counts.
         ndevices = local_device_count()
-        opsdevice = (
-            int(N / ndevices) if reality else int((2 * N - 1) / ndevices)
-        )
+        opsdevice = int(N / ndevices) if reality else int((2 * N - 1) / ndevices)
 
         def eval_spherical_loop(fban, flmn, lrenorm, vsign, spins):
             return lax.fori_loop(
@@ -405,13 +396,9 @@ def forward(
         recover acceleration by the number of devices.
     """
     if method == "numpy":
-        return forward_numpy(
-            f, L, N, nside, sampling, reality, precomps, L_lower
-        )
+        return forward_numpy(f, L, N, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
-        return forward_jax(
-            f, L, N, nside, sampling, reality, precomps, spmd, L_lower
-        )
+        return forward_jax(f, L, N, nside, sampling, reality, precomps, spmd, L_lower)
     else:
         raise ValueError(
             f"Implementation {method} not recognised. Should be either numpy or jax."
@@ -617,9 +604,7 @@ def forward_jax(
     if spmd:
         # TODO: Generalise this to optional device counts.
         ndevices = local_device_count()
-        opsdevice = (
-            int(N / ndevices) if reality else int((2 * N - 1) / ndevices)
-        )
+        opsdevice = int(N / ndevices) if reality else int((2 * N - 1) / ndevices)
 
         def eval_spherical_loop(fban, flmn, lrenorm, vsign, spins):
             return lax.fori_loop(

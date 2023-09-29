@@ -152,9 +152,7 @@ def inverse_latitudinal_step(
                 lbig = np.log(abs(dl_entry[:, L_lower:]))
 
                 dl_iter[0] = np.where(index, bigi * dl_iter[1], dl_iter[0])
-                dl_iter[1] = np.where(
-                    index, bigi * dl_entry[:, L_lower:], dl_iter[1]
-                )
+                dl_iter[1] = np.where(index, bigi * dl_entry[:, L_lower:], dl_iter[1])
                 lrenorm[i] = np.where(index, lrenorm[i] + lbig, lrenorm[i])
 
     return ftm
@@ -312,9 +310,7 @@ def inverse_latitudinal_step_jax(
                             dl_iter[1] * lamb,
                             optimize=True,
                         )
-                        - jnp.einsum(
-                            "l,tl->tl", cp2[m - 1], dl_iter[0], optimize=True
-                        ),
+                        - jnp.einsum("l,tl->tl", cp2[m - 1], dl_iter[0], optimize=True),
                         dl_entry[:, L_lower:],
                     )
                 )
@@ -371,9 +367,7 @@ def inverse_latitudinal_step_jax(
                 ndevices = local_device_count()
                 opsdevice = int(ntheta / ndevices)
 
-                ftm = pmap(
-                    eval_recursion_step, in_axes=(0, 0, 1, 1, 0, 0, 0, 0)
-                )(
+                ftm = pmap(eval_recursion_step, in_axes=(0, 0, 1, 1, 0, 0, 0, 0))(
                     ftm.reshape(ndevices, opsdevice, ftm.shape[-1]),
                     dl_entry.reshape(ndevices, opsdevice, L),
                     dl_iter.reshape(2, ndevices, opsdevice, L - L_lower),
@@ -382,9 +376,7 @@ def inverse_latitudinal_step_jax(
                     omc.reshape(ndevices, opsdevice),
                     c.reshape(ndevices, opsdevice),
                     s.reshape(ndevices, opsdevice),
-                ).reshape(
-                    ntheta, ftm.shape[-1]
-                )
+                ).reshape(ntheta, ftm.shape[-1])
 
             else:
                 (
@@ -409,8 +401,7 @@ def inverse_latitudinal_step_jax(
         ftm = ftm.at[-1].set(0)
         ftm = ftm.at[-1, L - 1 + spin + m_offset].set(
             jnp.nansum(
-                (-1) ** abs(jnp.arange(L_lower, L) - spin)
-                * flm[L_lower:, L - 1 + spin]
+                (-1) ** abs(jnp.arange(L_lower, L) - spin) * flm[L_lower:, L - 1 + spin]
             )
         )
 
@@ -572,9 +563,7 @@ def forward_latitudinal_step(
                 lbig = np.log(abs(dl_entry[:, L_lower:]))
 
                 dl_iter[0] = np.where(index, bigi * dl_iter[1], dl_iter[0])
-                dl_iter[1] = np.where(
-                    index, bigi * dl_entry[:, L_lower:], dl_iter[1]
-                )
+                dl_iter[1] = np.where(index, bigi * dl_entry[:, L_lower:], dl_iter[1])
                 lrenorm[i] = np.where(index, lrenorm[i] + lbig, lrenorm[i])
 
     return flm
@@ -751,12 +740,8 @@ def forward_latitudinal_step_jax(
 
                 dl_entry = jnp.where(
                     index,
-                    jnp.einsum(
-                        "l,tl->tl", cpi[m - 1], dl_iter[1] * lamb, optimize=True
-                    )
-                    - jnp.einsum(
-                        "l,tl->tl", cp2[m - 1], dl_iter[0], optimize=True
-                    ),
+                    jnp.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb, optimize=True)
+                    - jnp.einsum("l,tl->tl", cp2[m - 1], dl_iter[0], optimize=True),
                     dl_entry,
                 )
                 dl_entry = jnp.where(indices == L - 1 - m, 1, dl_entry)
@@ -766,9 +751,7 @@ def forward_latitudinal_step_jax(
                     jnp.nansum(
                         jnp.einsum(
                             "tl, t->tl",
-                            dl_entry
-                            * vsign[sind + sgn * m]
-                            * jnp.exp(lrenorm[i]),
+                            dl_entry * vsign[sind + sgn * m] * jnp.exp(lrenorm[i]),
                             ftm[:, sind + sgn * m + m_offset],
                             optimize=True,
                         ),
@@ -847,9 +830,7 @@ def forward_latitudinal_step_jax(
                         cp2.reshape(L + 1, ndevices, opsdevice),
                         vsign.reshape(2 * L - 1, ndevices, opsdevice),
                         indices.reshape(ntheta, ndevices, opsdevice),
-                    ).reshape(
-                        L - L_lower, 2 * L - 1
-                    )
+                    ).reshape(L - L_lower, 2 * L - 1)
                 )
 
             else:
@@ -880,7 +861,5 @@ def forward_latitudinal_step_jax(
         )
 
     if sampling.lower() == "mwss":
-        flm = flm.at[L_lower:, L - 1 - spin].add(
-            ftm_in[0, L - 1 - spin + m_offset]
-        )
+        flm = flm.at[L_lower:, L - 1 - spin].add(ftm_in[0, L - 1 - spin + m_offset])
     return flm

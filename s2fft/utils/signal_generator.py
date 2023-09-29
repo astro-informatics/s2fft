@@ -33,7 +33,6 @@ def generate_flm(
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
     for el in range(max(L_lower, abs(spin)), L):
-
         if reality:
             flm[el, 0 + L - 1] = rng.uniform()
         else:
@@ -78,9 +77,7 @@ def generate_flmn(
     flmn = np.zeros(wigner_samples.flmn_shape(L, N), dtype=np.complex128)
 
     for n in range(-N + 1, N):
-
         for el in range(max(L_lower, abs(n)), L):
-
             if reality:
                 flmn[N - 1 + n, el, 0 + L - 1] = rng.uniform()
                 flmn[N - 1 - n, el, 0 + L - 1] = (-1) ** n * flmn[
@@ -89,21 +86,15 @@ def generate_flmn(
                     0 + L - 1,
                 ]
             else:
-                flmn[N - 1 + n, el, 0 + L - 1] = (
-                    rng.uniform() + 1j * rng.uniform()
-                )
+                flmn[N - 1 + n, el, 0 + L - 1] = rng.uniform() + 1j * rng.uniform()
 
             for m in range(1, el + 1):
-                flmn[N - 1 + n, el, m + L - 1] = (
-                    rng.uniform() + 1j * rng.uniform()
-                )
+                flmn[N - 1 + n, el, m + L - 1] = rng.uniform() + 1j * rng.uniform()
                 if reality:
                     flmn[N - 1 - n, el, -m + L - 1] = (-1) ** (m + n) * np.conj(
                         flmn[N - 1 + n, el, m + L - 1]
                     )
                 else:
-                    flmn[N - 1 + n, el, -m + L - 1] = (
-                        rng.uniform() + 1j * rng.uniform()
-                    )
+                    flmn[N - 1 + n, el, -m + L - 1] = rng.uniform() + 1j * rng.uniform()
 
     return flmn
