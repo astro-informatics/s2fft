@@ -1,10 +1,10 @@
 [![image](https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml)
-[![image](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](https://astro-informatics.github.io/s2fft)
 [![image](https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE)](https://codecov.io/gh/astro-informatics/s2fft)
 [![image](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![image](http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat)](https://arxiv.org/abs/xxxx.xxxxx)<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-) <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 [![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YmJ2ljsF8HBvhPmD4hrYPlyAKc4WPUgq?usp=sharing)
 
 <img align="left" height="85" width="98" src="./docs/assets/sax_logo.png">
 
@@ -12,7 +12,7 @@
 
 `S2FFT` is a JAX package for computing Fourier transforms on the sphere
 and rotation group. It leverages autodiff to provide differentiable
-transforms, which are also deployable on modern hardware accelerators
+transforms, which are also deployable on hardware accelerators
 (e.g. GPUs and TPUs).
 
 More specifically, `S2FFT` provides support for spin spherical harmonic
@@ -30,7 +30,20 @@ algorithms are based on new Wigner-d recursions that are stable to high
 angular resolution $L$. The diagram below illustrates the recursions
 (for further details see Price & McEwen, in prep.).
 
-![image](./docs/assets/figures/schematic.png)
+![image](./docs/assets/figures/Wigner_recursion_legend_darkmode.png)
+With this recursion to hand, the spherical harmonic coefficients of an 
+isolatitudinally sampled map may be computed as a two step process. First, 
+a 1D Fourier transform over longitude, for each latitudinal ring. Second, 
+a projection onto the real polar-d functions. One may precompute and store 
+all real polar-d functions for extreme acceleration, however this comes 
+with an equally extreme memory overhead, which is infeasible at L ~ 1024. 
+Alternatively, the real polar-d functions may calculated recursively, 
+computing only a portion of the projection at a time, hence incurring 
+negligible memory overhead at the cost of slightly slower execution. The 
+diagram below illustrates the separable spherical harmonic transform 
+(for further details see Price & McEwen, in prep.).
+
+![image](./docs/assets/figures/sax_schematic_legend_darkmode.png)
 
 ## Sampling :earth_africa:
 
@@ -70,8 +83,7 @@ from the root directory of the repository. Unit tests can then be
 executed to ensure the installation was successful by running
 
 ``` bash
-pytest tests/         # for pytest
-tox -e py38           # for tox 
+pytest tests/  
 ```
 
 In the very near future one will be able to install `S2FFT` directly
@@ -166,10 +178,11 @@ referenced. A BibTeX entry for this reference may look like:
 
 ``` 
 @article{price:s2fft, 
-   AUTHOR      = "Matthew A. Price and Jason D. McEwen and Contributors",
-   TITLE       = "TBA",
-   YEAR        = "2023",
-   EPRINT      = "arXiv:0000.00000"        
+   author      = "Matthew A. Price and Jason D. McEwen and Contributors",
+   title       = "Differentiable and accelerated spherical harmonic and Wigner transforms",
+   journal     = "Journal of Computational Physics",
+   year        = "2023",
+   eprint      = "arXiv:0000.00000"        
 }
 ```
 
@@ -178,29 +191,29 @@ code builds:
 
 ``` 
 @article{mcewen:fssht,
-    AUTHOR      = "Jason D. McEwen and Yves Wiaux",
-    TITLE       = "A novel sampling theorem on the sphere",
-    JOURNAL     = "IEEE Trans. Sig. Proc.",
-    YEAR        = "2011",
-    VOLUME      = "59",
-    NUMBER      = "12",
-    PAGES       = "5876--5887",        
-    EPRINT      = "arXiv:1110.6298",
-    DOI         = "10.1109/TSP.2011.2166394"
+    author      = "Jason D. McEwen and Yves Wiaux",
+    title       = "A novel sampling theorem on the sphere",
+    journal     = "IEEE Trans. Sig. Proc.",
+    year        = "2011",
+    volume      = "59",
+    number      = "12",
+    pages       = "5876--5887",        
+    eprint      = "arXiv:1110.6298",
+    doi         = "10.1109/TSP.2011.2166394"
 }
 ```
 
 ``` 
 @article{mcewen:so3,
-    AUTHOR      = "Jason D. McEwen and Martin B{\"u}ttner and Boris ~Leistedt and Hiranya V. Peiris and Yves Wiaux",
-    TITLE       = "A novel sampling theorem on the rotation group",
-    JOURNAL     = "IEEE Sig. Proc. Let.",
-    YEAR        = "2015",
-    VOLUME      = "22",
-    NUMBER      = "12",
-    PAGES       = "2425--2429",
-    EPRINT      = "arXiv:1508.03101",
-    DOI         = "10.1109/LSP.2015.2490676"    
+    author      = "Jason D. McEwen and Martin B{\"u}ttner and Boris ~Leistedt and Hiranya V. Peiris and Yves Wiaux",
+    title       = "A novel sampling theorem on the rotation group",
+    journal     = "IEEE Sig. Proc. Let.",
+    year        = "2015",
+    volume      = "22",
+    number      = "12",
+    pages       = "2425--2429",
+    eprint      = "arXiv:1508.03101",
+    doi         = "10.1109/LSP.2015.2490676"    
 }
 ```
 

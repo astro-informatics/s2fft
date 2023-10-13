@@ -7,9 +7,7 @@ include .pip_readme.rst
 include README.rst
 include pytest.ini
 include LICENCE.txt
-include LICENCE_EXT.txt
 include s2fft/default-logging-config.yaml
-include tox.ini
 
 exclude .coveragerc
 exclude *.log

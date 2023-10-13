@@ -1,11 +1,9 @@
-from jax import jit, config
+from jax import config
 
 config.update("jax_enable_x64", True)
 
 import numpy as np
 import jax.numpy as jnp
-from jax import jit
-from functools import partial
 
 from s2fft.sampling import s2_samples as samples
 from s2fft.utils import quadrature, quadrature_jax

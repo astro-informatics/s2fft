@@ -20,7 +20,7 @@ When installing from source we recommend working within an existing conda enviro
 
 .. code-block:: bash
 
-    conda create -n "env_name" python>=3.8
+    conda create -n "env_name" python>=3.9
     conda activate "env_name"
 
 Once within a fresh environment ``S2FFT`` may be installed by cloning the GitHub repository 
@@ -37,8 +37,7 @@ installation was successful by running
 
 .. code-block:: bash 
 
-    pytest tests/         # for pytest
-    tox -e py38           # for tox 
+    pytest tests/ 
 
 In the very near future one will be able to install ``S2FFT`` directly from `PyPi` by ``pip install s2fft`` but this is not yet supported.
 

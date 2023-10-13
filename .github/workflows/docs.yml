@@ -4,9 +4,7 @@ on:
   push:
     branches:
     - main
-    # Add following in for testing
-    # - feature/deploy_docs
-
+    
 jobs:
   build:
 

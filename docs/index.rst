@@ -18,7 +18,20 @@ distributed, and so map very well onto the architecture of hardware accelerators
 GPUs and TPUs).  In particular, these algorithms are based on new Wigner-d recursions
 that are stable to high angular resolution :math:`L`.  The diagram below illustrates the recursions (for further details see Price & McEwen 2023).
 
-.. image:: ./assets/figures/schematic.png
+.. image:: ./assets/figures/Wigner_recursion_github_docs.png
+
+With this recursion to hand, the spherical harmonic coefficients of an 
+isolatitudinally sampled map may be computed as a two step process. First, 
+a 1D Fourier transform over longitude, for each latitudinal ring. Second, 
+a projection onto the real polar-d functions. One may precompute and store 
+all real polar-d functions for extreme acceleration, however this comes 
+with an equally extreme memory overhead, which is infeasible at L ~ 1024. 
+Alternatively, the real polar-d functions may calculated recursively, 
+computing only a portion of the projection at a time, hence incurring 
+negligible memory overhead at the cost of slightly slower execution. The 
+diagram below illustrates the separable spherical harmonic transform.
+
+.. image:: ./assets/figures/sax_schematic_github_docs.png
 
 Sampling |:earth_africa:|
 -----------------------------------
@@ -68,41 +81,42 @@ article is referenced. A BibTeX entry for this reference may look like:
 
 .. code-block:: 
 
-     @article{price:s2fft, 
-        AUTHOR      = "Matthew A. Price and Jason D. McEwen",
-        TITLE       = "TBA",
-        YEAR        = "2023",
-        EPRINT      = "arXiv:0000.00000"        
-     }
+    @article{price:s2fft, 
+        author      = "Matthew A. Price and Jason D. McEwen and Contributors",
+        title       = "Differentiable and accelerated spherical harmonic and Wigner transforms",
+        journal     = "Journal of Computational Physics",
+        year        = "2023",
+        eprint      = "arXiv:0000.00000"        
+    }
 
 You might also like to consider citing our related papers on which this code builds:
 
 .. code-block:: 
 
     @article{mcewen:fssht,
-        AUTHOR      = "Jason D. McEwen and Yves Wiaux",
-        TITLE       = "A novel sampling theorem on the sphere",
-        JOURNAL     = "IEEE Trans. Sig. Proc.",
-        YEAR        = "2011",
-        VOLUME      = "59",
-        NUMBER      = "12",
-        PAGES       = "5876--5887",        
-        EPRINT      = "arXiv:1110.6298",
-        DOI         = "10.1109/TSP.2011.2166394"
+        author      = "Jason D. McEwen and Yves Wiaux",
+        title       = "A novel sampling theorem on the sphere",
+        journal     = "IEEE Trans. Sig. Proc.",
+        year        = "2011",
+        volume      = "59",
+        number      = "12",
+        pages       = "5876--5887",        
+        eprint      = "arXiv:1110.6298",
+        doi         = "10.1109/TSP.2011.2166394"
     }
 
 .. code-block::
    
     @article{mcewen:so3,
-        AUTHOR      = "Jason D. McEwen and Martin B{\"u}ttner and Boris ~Leistedt and Hiranya V. Peiris and Yves Wiaux",
-        TITLE       = "A novel sampling theorem on the rotation group",
-        JOURNAL     = "IEEE Sig. Proc. Let.",
-        YEAR        = "2015",
-        VOLUME      = "22",
-        NUMBER      = "12",
-        PAGES       = "2425--2429",
-        EPRINT      = "arXiv:1508.03101",
-        DOI         = "10.1109/LSP.2015.2490676"    
+        author      = "Jason D. McEwen and Martin B{\"u}ttner and Boris ~Leistedt and Hiranya V. Peiris and Yves Wiaux",
+        title       = "A novel sampling theorem on the rotation group",
+        journal     = "IEEE Sig. Proc. Let.",
+        year        = "2015",
+        volume      = "22",
+        number      = "12",
+        pages       = "2425--2429",
+        eprint      = "arXiv:1508.03101",
+        doi         = "10.1109/LSP.2015.2490676"     
     }
 
 License |:memo:|
