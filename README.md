@@ -32,7 +32,17 @@ angular resolution $L$. The diagram below illustrates the recursions
 
 ![image](./docs/assets/figures/Wigner_recursion_legend_darkmode.png)
 
-With this recursion to hand, the spherical harmonic coefficients of an isolatitudinally sampled map may be compute as follows
+With this recursion to hand, the spherical harmonic coefficients of an 
+isolatitudinally sampled map may be computed as a two step process. First, 
+a 1D Fourier transform over longitude, for each latitudinal ring. Second, 
+a projection onto the real polar-d functions. One may precompute and store 
+all real polar-d functions for extreme acceleration, however this comes 
+with an equally extreme memory overhead, which is infeasible at L ~ 1024. 
+Alternatively, the real polar-d functions may calculated recursively, 
+computing only a portion of the projection at a time, hence incurring 
+negligible memory overhead at the cost of slightly slower execution. The 
+diagram below illustrates the separable spherical harmonic transform 
+(for further details see Price & McEwen, in prep.).
 
 ![image](./docs/assets/figures/sax_schematic_legend_darkmode.png)
 
