@@ -182,6 +182,16 @@
           
           
           
+          <a href="https://arxiv.org/abs/xxxx.xxxxx" title="ArXiv" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><img src="_static/arxiv-logomark-small.png" class="icon-link-image" alt="ArXiv"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
           <a href="https://github.com/astro-informatics/s2fft/" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fa-brands fa-github fa-2x"></i></span>
             <label class="sr-only">GitHub</label></a>
         </li>
@@ -298,6 +308,16 @@
           
           
           
+          <a href="https://arxiv.org/abs/xxxx.xxxxx" title="ArXiv" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><img src="_static/arxiv-logomark-small.png" class="icon-link-image" alt="ArXiv"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
           <a href="https://github.com/astro-informatics/s2fft/" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fa-brands fa-github fa-2x"></i></span>
             <label class="sr-only">GitHub</label></a>
         </li>
@@ -368,7 +388,18 @@ may select depending on available resources and desired angular resolution <span
 distributed, and so map very well onto the architecture of hardware accelerators (i.e.
 GPUs and TPUs).  In particular, these algorithms are based on new Wigner-d recursions
 that are stable to high angular resolution <span class="math notranslate nohighlight">\(L\)</span>.  The diagram below illustrates the recursions (for further details see Price &amp; McEwen 2023).</p>
-<img alt="_images/schematic.png" src="_images/schematic.png" />
+<img alt="_images/Wigner_recursion_github_docs.png" src="_images/Wigner_recursion_github_docs.png" />
+<p>With this recursion to hand, the spherical harmonic coefficients of an
+isolatitudinally sampled map may be computed as a two step process. First,
+a 1D Fourier transform over longitude, for each latitudinal ring. Second,
+a projection onto the real polar-d functions. One may precompute and store
+all real polar-d functions for extreme acceleration, however this comes
+with an equally extreme memory overhead, which is infeasible at L ~ 1024.
+Alternatively, the real polar-d functions may calculated recursively,
+computing only a portion of the projection at a time, hence incurring
+negligible memory overhead at the cost of slightly slower execution. The
+diagram below illustrates the separable spherical harmonic transform.</p>
+<img alt="_images/sax_schematic_github_docs.png" src="_images/sax_schematic_github_docs.png" />
 </div>
 <div class="section" id="sampling-earth-africa">
 <h2>Sampling 🌍<a class="headerlink" href="#sampling-earth-africa" title="Permalink to this headline"></a></h2>
@@ -403,37 +434,38 @@ patterns!</p>
 <p>Should this code be used in any way, we kindly request that the following
 article is referenced. A BibTeX entry for this reference may look like:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">price</span><span class="p">:</span><span class="n">s2fft</span><span class="p">,</span>
-   <span class="n">AUTHOR</span>      <span class="o">=</span> <span class="s2">&quot;Matthew A. Price and Jason D. McEwen&quot;</span><span class="p">,</span>
-   <span class="n">TITLE</span>       <span class="o">=</span> <span class="s2">&quot;TBA&quot;</span><span class="p">,</span>
-   <span class="n">YEAR</span>        <span class="o">=</span> <span class="s2">&quot;2023&quot;</span><span class="p">,</span>
-   <span class="n">EPRINT</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:0000.00000&quot;</span>
+    <span class="n">author</span>      <span class="o">=</span> <span class="s2">&quot;Matthew A. Price and Jason D. McEwen and Contributors&quot;</span><span class="p">,</span>
+    <span class="n">title</span>       <span class="o">=</span> <span class="s2">&quot;Differentiable and accelerated spherical harmonic and Wigner transforms&quot;</span><span class="p">,</span>
+    <span class="n">journal</span>     <span class="o">=</span> <span class="s2">&quot;Journal of Computational Physics&quot;</span><span class="p">,</span>
+    <span class="n">year</span>        <span class="o">=</span> <span class="s2">&quot;2023&quot;</span><span class="p">,</span>
+    <span class="n">eprint</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:0000.00000&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>You might also like to consider citing our related papers on which this code builds:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">mcewen</span><span class="p">:</span><span class="n">fssht</span><span class="p">,</span>
-    <span class="n">AUTHOR</span>      <span class="o">=</span> <span class="s2">&quot;Jason D. McEwen and Yves Wiaux&quot;</span><span class="p">,</span>
-    <span class="n">TITLE</span>       <span class="o">=</span> <span class="s2">&quot;A novel sampling theorem on the sphere&quot;</span><span class="p">,</span>
-    <span class="n">JOURNAL</span>     <span class="o">=</span> <span class="s2">&quot;IEEE Trans. Sig. Proc.&quot;</span><span class="p">,</span>
-    <span class="n">YEAR</span>        <span class="o">=</span> <span class="s2">&quot;2011&quot;</span><span class="p">,</span>
-    <span class="n">VOLUME</span>      <span class="o">=</span> <span class="s2">&quot;59&quot;</span><span class="p">,</span>
-    <span class="n">NUMBER</span>      <span class="o">=</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
-    <span class="n">PAGES</span>       <span class="o">=</span> <span class="s2">&quot;5876--5887&quot;</span><span class="p">,</span>
-    <span class="n">EPRINT</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:1110.6298&quot;</span><span class="p">,</span>
-    <span class="n">DOI</span>         <span class="o">=</span> <span class="s2">&quot;10.1109/TSP.2011.2166394&quot;</span>
+    <span class="n">author</span>      <span class="o">=</span> <span class="s2">&quot;Jason D. McEwen and Yves Wiaux&quot;</span><span class="p">,</span>
+    <span class="n">title</span>       <span class="o">=</span> <span class="s2">&quot;A novel sampling theorem on the sphere&quot;</span><span class="p">,</span>
+    <span class="n">journal</span>     <span class="o">=</span> <span class="s2">&quot;IEEE Trans. Sig. Proc.&quot;</span><span class="p">,</span>
+    <span class="n">year</span>        <span class="o">=</span> <span class="s2">&quot;2011&quot;</span><span class="p">,</span>
+    <span class="n">volume</span>      <span class="o">=</span> <span class="s2">&quot;59&quot;</span><span class="p">,</span>
+    <span class="n">number</span>      <span class="o">=</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
+    <span class="n">pages</span>       <span class="o">=</span> <span class="s2">&quot;5876--5887&quot;</span><span class="p">,</span>
+    <span class="n">eprint</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:1110.6298&quot;</span><span class="p">,</span>
+    <span class="n">doi</span>         <span class="o">=</span> <span class="s2">&quot;10.1109/TSP.2011.2166394&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">mcewen</span><span class="p">:</span><span class="n">so3</span><span class="p">,</span>
-    <span class="n">AUTHOR</span>      <span class="o">=</span> <span class="s2">&quot;Jason D. McEwen and Martin B{</span><span class="se">\&quot;</span><span class="s2">u}ttner and Boris ~Leistedt and Hiranya V. Peiris and Yves Wiaux&quot;</span><span class="p">,</span>
-    <span class="n">TITLE</span>       <span class="o">=</span> <span class="s2">&quot;A novel sampling theorem on the rotation group&quot;</span><span class="p">,</span>
-    <span class="n">JOURNAL</span>     <span class="o">=</span> <span class="s2">&quot;IEEE Sig. Proc. Let.&quot;</span><span class="p">,</span>
-    <span class="n">YEAR</span>        <span class="o">=</span> <span class="s2">&quot;2015&quot;</span><span class="p">,</span>
-    <span class="n">VOLUME</span>      <span class="o">=</span> <span class="s2">&quot;22&quot;</span><span class="p">,</span>
-    <span class="n">NUMBER</span>      <span class="o">=</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
-    <span class="n">PAGES</span>       <span class="o">=</span> <span class="s2">&quot;2425--2429&quot;</span><span class="p">,</span>
-    <span class="n">EPRINT</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:1508.03101&quot;</span><span class="p">,</span>
-    <span class="n">DOI</span>         <span class="o">=</span> <span class="s2">&quot;10.1109/LSP.2015.2490676&quot;</span>
+    <span class="n">author</span>      <span class="o">=</span> <span class="s2">&quot;Jason D. McEwen and Martin B{</span><span class="se">\&quot;</span><span class="s2">u}ttner and Boris ~Leistedt and Hiranya V. Peiris and Yves Wiaux&quot;</span><span class="p">,</span>
+    <span class="n">title</span>       <span class="o">=</span> <span class="s2">&quot;A novel sampling theorem on the rotation group&quot;</span><span class="p">,</span>
+    <span class="n">journal</span>     <span class="o">=</span> <span class="s2">&quot;IEEE Sig. Proc. Let.&quot;</span><span class="p">,</span>
+    <span class="n">year</span>        <span class="o">=</span> <span class="s2">&quot;2015&quot;</span><span class="p">,</span>
+    <span class="n">volume</span>      <span class="o">=</span> <span class="s2">&quot;22&quot;</span><span class="p">,</span>
+    <span class="n">number</span>      <span class="o">=</span> <span class="s2">&quot;12&quot;</span><span class="p">,</span>
+    <span class="n">pages</span>       <span class="o">=</span> <span class="s2">&quot;2425--2429&quot;</span><span class="p">,</span>
+    <span class="n">eprint</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:1508.03101&quot;</span><span class="p">,</span>
+    <span class="n">doi</span>         <span class="o">=</span> <span class="s2">&quot;10.1109/LSP.2015.2490676&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>

@@ -181,6 +181,16 @@
           
           
           
+          <a href="https://arxiv.org/abs/xxxx.xxxxx" title="ArXiv" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><img src="../_static/arxiv-logomark-small.png" class="icon-link-image" alt="ArXiv"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
           <a href="https://github.com/astro-informatics/s2fft/" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fa-brands fa-github fa-2x"></i></span>
             <label class="sr-only">GitHub</label></a>
         </li>
@@ -285,6 +295,16 @@
       
       <div class="navbar-end-item">
         <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://arxiv.org/abs/xxxx.xxxxx" title="ArXiv" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><img src="../_static/arxiv-logomark-small.png" class="icon-link-image" alt="ArXiv"/></a>
+        </li>
         <li class="nav-item">
           
           
@@ -403,7 +423,7 @@ from PyPi, an online python package manager.</p>
 <div class="section" id="install-from-source-github">
 <h2>Install from source (GitHub)<a class="headerlink" href="#install-from-source-github" title="Permalink to this headline"></a></h2>
 <p>When installing from source we recommend working within an existing conda environment, or creating a fresh conda environment to avoid any dependency conflicts,</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;env_name&quot;</span><span class="w"> </span>python&gt;<span class="o">=</span><span class="m">3</span>.8
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;env_name&quot;</span><span class="w"> </span>python&gt;<span class="o">=</span><span class="m">3</span>.9
 conda<span class="w"> </span>activate<span class="w"> </span><span class="s2">&quot;env_name&quot;</span>
 </pre></div>
 </div>
@@ -416,8 +436,7 @@ pip<span class="w"> </span>install<span class="w"> </span>.
 </div>
 <p>from the root directory of the repository. Unit tests can then be executed to ensure the
 installation was successful by running</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>tests/<span class="w">         </span><span class="c1"># for pytest</span>
-tox<span class="w"> </span>-e<span class="w"> </span>py38<span class="w">           </span><span class="c1"># for tox</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>tests/
 </pre></div>
 </div>
 <p>In the very near future one will be able to install <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> directly from <cite>PyPi</cite> by <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">s2fft</span></code> but this is not yet supported.</p>
