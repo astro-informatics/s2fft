@@ -30,11 +30,11 @@ algorithms are based on new Wigner-d recursions that are stable to high
 angular resolution $L$. The diagram below illustrates the recursions
 (for further details see Price & McEwen, in prep.).
 
-![image](./docs/assets/figures/Wigner_recursion_legend.png)
+![image](./docs/assets/figures/Wigner_recursion_legend_darkmode.png)
 
 With this recursion to hand, the spherical harmonic coefficients of an isolatitudinally sampled map may be compute as follows
 
-![image](./docs/assets/figures/sax_schematic_legend.png)
+![image](./docs/assets/figures/sax_schematic_legend_darkmode.png)
 
 ## Sampling :earth_africa:
 
