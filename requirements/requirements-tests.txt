@@ -3,9 +3,6 @@ pytest
 pytest-cov
 codecov
 
-#jax dependencies
-jaxlib
-
 # Healpix Sampling
 pyssht
 healpy

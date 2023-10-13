@@ -1,17 +1,4 @@
-[paths]
-source =
-    ../s2fft
-    */site-packages/s2fft
-
-[run]
-branch = true
-parallel = true
-source =
-    s2fft
-
 [report]
-show_missing = true
-precision = 2
 omit = 
     *test_*
     *__init__*
