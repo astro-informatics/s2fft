@@ -1,58 +1,90 @@
-.. image:: https://img.shields.io/badge/GitHub-PyTemplate-brightgreen.svg?style=flat
-    :target: https://github.com/astro-informatics/s2fft
 .. image:: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml
-.. image:: https://readthedocs.org/projects/ansicolortags/badge/?version=latest
-    :target: https://astro-informatics.github.io/s2fft
+.. image:: https://img.shields.io/badge/GitHub-PyTemplate-brightgreen.svg?style=flat
+    :target: https://github.com/astro-informatics/s2fft
 .. image:: https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE
     :target: https://codecov.io/gh/astro-informatics/s2fft
 .. image:: https://img.shields.io/badge/License-MIT-yellow.svg
     :target: https://opensource.org/licenses/MIT
 .. image:: http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat
     :target: https://arxiv.org/abs/xxxx.xxxxx
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+.. image:: https://colab.research.google.com/assets/colab-badge.svg
+    :target: https://colab.research.google.com/drive/1YmJ2ljsF8HBvhPmD4hrYPlyAKc4WPUgq?usp=sharing
 
-S2FFT: JAX accelerated spin-spherical harmonic transforms
+Differentiable and accelerated spherical transforms with JAX
 =================================================================================================================
 
-Add some basic discussion about ``S2FFT`` here.
+`S2FFT` is a JAX package for computing Fourier transforms on the sphere
+and rotation group. It leverages autodiff to provide differentiable
+transforms, which are also deployable on hardware accelerators
+(e.g. GPUs and TPUs).
 
-Installation
-============
+More specifically, `S2FFT` provides support for spin spherical harmonic
+and Wigner transforms (for both real and complex signals), with support
+for adjoint transformations where needed, and comes with different
+optimisations (precompute or not) that one may select depending on
+available resources and desired angular resolution $L$.
 
-Add some basic installation instructions here.
-    
 Documentation
 =============
-
-Link to the full documentation (when deployed).
-
-Contributors
-============
-Author names & Contributors
+Read the full documentation [here](https://astro-informatics.github.io/s2fft/#).
 
 Attribution
 ===========
-A BibTeX entry for <project-name> is:
+Should this code be used in any way, we kindly request that the following article is
+referenced. A BibTeX entry for this reference may look like:
 
 .. code-block:: 
 
-     @article{S2FFT, 
-        author = {Author~List},
-         title = {"A totally amazing name"},
-       journal = {ArXiv},
-        eprint = {arXiv:0000.00000},
-          year = {what year is it?!}
-     }
+    @article{price:s2fft, 
+        author      = "Matthew A. Price and Jason D. McEwen and Contributors",
+        title       = "Differentiable and accelerated spherical harmonic and Wigner transforms",
+        journal     = "Journal of Computational Physics",
+        year        = "2023",
+        eprint      = "arXiv:0000.00000"        
+    }
+
+You might also like to consider citing our related papers on which this
+code builds:
+
+.. code-block::
+
+    @article{mcewen:fssht,
+        author      = "Jason D. McEwen and Yves Wiaux",
+        title       = "A novel sampling theorem on the sphere",
+        journal     = "IEEE Trans. Sig. Proc.",
+        year        = "2011",
+        volume      = "59",
+        number      = "12",
+        pages       = "5876--5887",        
+        eprint      = "arXiv:1110.6298",
+        doi         = "10.1109/TSP.2011.2166394"
+    }
+
+
+.. code-block:: 
+
+    @article{mcewen:so3,
+        author      = "Jason D. McEwen and Martin B{\"u}ttner and Boris ~Leistedt and Hiranya V. Peiris and Yves Wiaux",
+        title       = "A novel sampling theorem on the rotation group",
+        journal     = "IEEE Sig. Proc. Let.",
+        year        = "2015",
+        volume      = "22",
+        number      = "12",
+        pages       = "2425--2429",
+        eprint      = "arXiv:1508.03101",
+        doi         = "10.1109/LSP.2015.2490676"    
+    }
 
 License
 =======
 
-``S2FFT`` is released under the MIT license (see 
-`LICENSE.txt <https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt>`_).
+We provide this code under an MIT open-source licence with the hope that
+it will be of use to a wider community.
 
-.. code-block::
+Copyright 2023 Matthew Price, Jason McEwen and contributors.
 
-     S2FFT
-     Copyright (C) 2022 Author names & contributors
-
-     This program is released under the MIT license (see `LICENSE.txt`).
+`S2FFT` is free software made available under the MIT License. For
+details see the LICENSE file.
