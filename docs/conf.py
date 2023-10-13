@@ -100,12 +100,12 @@ html_theme_options = {
     "header_links_before_dropdown": 5,
     "secondary_sidebar_items": ["page-toc", "edit-this-page", "sourcelink"],
     "icon_links": [
-        # {
-        #     "name": "ArXiv",
-        #     "url": "https://arxiv.org/abs/xxxx.xxxxx",
-        #     "icon": "_static/arxiv-logomark-small.png",
-        #     "type": "local",
-        # },
+        {
+            "name": "ArXiv",
+            "url": "https://arxiv.org/abs/xxxx.xxxxx",
+            "icon": "_static/arxiv-logomark-small.png",
+            "type": "local",
+        },
         # {
         #     "name": "YouTube",
         #     "url": "https://www.youtube.com/channel/UCrCOQsyQOJhOUaIYzmbkKQQ",

@@ -84,7 +84,7 @@ from the root directory of the repository. Unit tests can then be
 executed to ensure the installation was successful by running
 
 ``` bash
-pytest tests/         # for pytest
+pytest tests/  
 ```
 
 In the very near future one will be able to install `S2FFT` directly
