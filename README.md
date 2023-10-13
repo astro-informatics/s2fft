@@ -85,7 +85,6 @@ executed to ensure the installation was successful by running
 
 ``` bash
 pytest tests/         # for pytest
-tox -e py38           # for tox 
 ```
 
 In the very near future one will be able to install `S2FFT` directly
@@ -180,10 +179,10 @@ referenced. A BibTeX entry for this reference may look like:
 
 ``` 
 @article{price:s2fft, 
-   AUTHOR      = "Matthew A. Price and Jason D. McEwen and Contributors",
-   TITLE       = "TBA",
-   YEAR        = "2023",
-   EPRINT      = "arXiv:0000.00000"        
+   author      = "Matthew A. Price and Jason D. McEwen and Contributors",
+   title       = "Differentiable and accelerated spherical harmonic and Wigner transforms",
+   year        = "2023",
+   eprint      = "arXiv:0000.00000"        
 }
 ```
 
@@ -192,29 +191,29 @@ code builds:
 
 ``` 
 @article{mcewen:fssht,
-    AUTHOR      = "Jason D. McEwen and Yves Wiaux",
-    TITLE       = "A novel sampling theorem on the sphere",
-    JOURNAL     = "IEEE Trans. Sig. Proc.",
-    YEAR        = "2011",
-    VOLUME      = "59",
-    NUMBER      = "12",
-    PAGES       = "5876--5887",        
-    EPRINT      = "arXiv:1110.6298",
-    DOI         = "10.1109/TSP.2011.2166394"
+    author      = "Jason D. McEwen and Yves Wiaux",
+    title       = "A novel sampling theorem on the sphere",
+    journal     = "IEEE Trans. Sig. Proc.",
+    year        = "2011",
+    volume      = "59",
+    number      = "12",
+    pages       = "5876--5887",        
+    eprint      = "arXiv:1110.6298",
+    doi         = "10.1109/TSP.2011.2166394"
 }
 ```
 
 ``` 
 @article{mcewen:so3,
-    AUTHOR      = "Jason D. McEwen and Martin B{\"u}ttner and Boris ~Leistedt and Hiranya V. Peiris and Yves Wiaux",
-    TITLE       = "A novel sampling theorem on the rotation group",
-    JOURNAL     = "IEEE Sig. Proc. Let.",
-    YEAR        = "2015",
-    VOLUME      = "22",
-    NUMBER      = "12",
-    PAGES       = "2425--2429",
-    EPRINT      = "arXiv:1508.03101",
-    DOI         = "10.1109/LSP.2015.2490676"    
+    author      = "Jason D. McEwen and Martin B{\"u}ttner and Boris ~Leistedt and Hiranya V. Peiris and Yves Wiaux",
+    title       = "A novel sampling theorem on the rotation group",
+    journal     = "IEEE Sig. Proc. Let.",
+    year        = "2015",
+    volume      = "22",
+    number      = "12",
+    pages       = "2425--2429",
+    eprint      = "arXiv:1508.03101",
+    doi         = "10.1109/LSP.2015.2490676"    
 }
 ```
 
