@@ -12,7 +12,7 @@
 
 `S2FFT` is a JAX package for computing Fourier transforms on the sphere
 and rotation group. It leverages autodiff to provide differentiable
-transforms, which are also deployable on modern hardware accelerators
+transforms, which are also deployable on hardware accelerators
 (e.g. GPUs and TPUs).
 
 More specifically, `S2FFT` provides support for spin spherical harmonic
@@ -30,7 +30,11 @@ algorithms are based on new Wigner-d recursions that are stable to high
 angular resolution $L$. The diagram below illustrates the recursions
 (for further details see Price & McEwen, in prep.).
 
-![image](./docs/assets/figures/schematic.png)
+![image](./docs/assets/figures/Wigner_recursion_legend.png)
+
+With this recursion to hand, the spherical harmonic coefficients of an isolatitudinally sampled map may be compute as follows
+
+![image](./docs/assets/figures/sax_schematic_legend.png)
 
 ## Sampling :earth_africa:
 
