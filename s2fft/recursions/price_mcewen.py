@@ -1,5 +1,3 @@
-from jax import local_device_count
-
 import numpy as np
 import jax.numpy as jnp
 import jax.lax as lax
@@ -244,7 +242,7 @@ def generate_precomputes_jax(
     # Remove redundant nans:
     # - in forward pass these are not accessed, so are irrelevant.
     # - in backward pass the adjoint computation otherwise accumulates these
-    #   nans into grads if not set to zero.
+    #   nans into grads if not explicitly set to zero.
     lrenorm = jnp.nan_to_num(lrenorm, nan=0.0, posinf=0.0, neginf=0.0)
     cpi = jnp.nan_to_num(cpi, nan=0.0, posinf=0.0, neginf=0.0)
     cp2 = jnp.nan_to_num(cp2, nan=0.0, posinf=0.0, neginf=0.0)

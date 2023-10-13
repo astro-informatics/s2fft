@@ -1,7 +1,6 @@
 import numpy as np
 from s2fft.sampling import s2_samples as samples
 from typing import Tuple
-import s2fft
 
 
 def f_shape(
