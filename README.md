@@ -29,9 +29,7 @@ of hardware accelerators (i.e. GPUs and TPUs). In particular, these
 algorithms are based on new Wigner-d recursions that are stable to high
 angular resolution $L$. The diagram below illustrates the recursions
 (for further details see Price & McEwen, in prep.).
-
 ![image](./docs/assets/figures/Wigner_recursion_legend_darkmode.png)
-
 With this recursion to hand, the spherical harmonic coefficients of an 
 isolatitudinally sampled map may be computed as a two step process. First, 
 a 1D Fourier transform over longitude, for each latitudinal ring. Second, 
@@ -43,7 +41,6 @@ computing only a portion of the projection at a time, hence incurring
 negligible memory overhead at the cost of slightly slower execution. The 
 diagram below illustrates the separable spherical harmonic transform 
 (for further details see Price & McEwen, in prep.).
-
 ![image](./docs/assets/figures/sax_schematic_legend_darkmode.png)
 
 ## Sampling :earth_africa:
