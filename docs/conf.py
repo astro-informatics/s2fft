@@ -94,7 +94,7 @@ html_theme_options = {
     "logo_only": True,
     "display_version": False,
     "navbar_align": "left",
-    "announcement": "s2fft is currently in an open alpha, please provide feedback on GitHub",
+    "announcement": "s2fft is currently in an open beta, please provide feedback on GitHub",
     "show_toc_level": 2,
     "show_nav_level": 1,
     "header_links_before_dropdown": 5,

@@ -69,6 +69,9 @@ pixels of equal areas, which has many practical advantages.
 
 <p align="center"><img src="./docs/assets/figures/spherical_sampling.png" width="500"></p>
 
+> [!NOTE]  
+> For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and will work to improve this in subsequent versions.
+
 ## Installation :computer:
 
 The Python dependencies for the `S2FFT` package are listed in the file
@@ -86,14 +89,14 @@ executed to ensure the installation was successful by running
 pytest tests/  
 ```
 
-In the very near future one will be able to install `S2FFT` directly
-from [PyPi](https://pypi.org) by `pip install s2fft` but this is not yet
-supported. Note that to run `JAX` on NVIDIA GPUs you will need to follow
-the [guide](https://github.com/google/jax#installation) outlined by
-Google. 
+Alternatively, the `S2FFT` package may be installed directly from PyPi by running 
 
-    Note: For plotting functionality which can be found throughout our various notebooks, one 
-    must install the requirements which can be found in `requirements/requirements-plotting.txt`.
+``` bash
+pip install s2fft
+```
+
+> [!NOTE]  
+> For plotting functionality which can be found throughout our various notebooks, one must install the requirements which can be found in `requirements/requirements-plotting.txt`.
 
 ## Usage :rocket:
 
