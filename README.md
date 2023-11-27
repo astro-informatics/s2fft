@@ -125,7 +125,7 @@ f = fft.wigner.inverse_jax(flmn, L, N)
 
 We benchmarked the spherical harmonic and Wigner transforms implemented
 in `S2FFT` against the C implementations in the
-[SSHT](https://github.com/astro-informatics/ssht) pacakge.
+[SSHT](https://github.com/astro-informatics/ssht) package.
 
 A brief summary is shown in the table below for the recursion (left) and
 precompute (right) algorithms, with `S2FFT` running on GPUs (for further
