@@ -11,7 +11,13 @@ from PyPi, an online python package manager.
 
 Quick install (PyPi)
 --------------------
-Coming very soon.
+The simplest way to pick up ``S2FFT`` is to install it directly from PyPi by running 
+
+.. code-block:: bash
+    
+    pip install s2fft 
+
+after which ``S2FFT`` may be imported and run as outlined in the associated notebooks and collab tutorials.
 
 Install from source (GitHub)
 ----------------------------
