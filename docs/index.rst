@@ -82,11 +82,11 @@ article is referenced. A BibTeX entry for this reference may look like:
 .. code-block:: 
 
     @article{price:s2fft, 
-        author      = "Matthew A. Price and Jason D. McEwen and Contributors",
+        author      = "Matthew A. Price and Jason D. McEwen",
         title       = "Differentiable and accelerated spherical harmonic and Wigner transforms",
         journal     = "Journal of Computational Physics",
         year        = "2023",
-        eprint      = "arXiv:0000.00000"        
+        eprint      = "arXiv:2311.14670"        
     }
 
 You might also like to consider citing our related papers on which this code builds:

@@ -1,13 +1,13 @@
 .. image:: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml
-.. image:: https://img.shields.io/badge/GitHub-PyTemplate-brightgreen.svg?style=flat
+.. image:: https://img.shields.io/badge/GitHub-s2fft-brightgreen.svg?style=flat
     :target: https://github.com/astro-informatics/s2fft
 .. image:: https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE
     :target: https://codecov.io/gh/astro-informatics/s2fft
 .. image:: https://img.shields.io/badge/License-MIT-yellow.svg
     :target: https://opensource.org/licenses/MIT
-.. image:: http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat
-    :target: https://arxiv.org/abs/xxxx.xxxxx
+.. image:: http://img.shields.io/badge/arXiv-2311.14670-orange.svg?style=flat
+    :target: https://arxiv.org/abs/2311.14670
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
@@ -29,7 +29,7 @@ available resources and desired angular resolution $L$.
 
 Documentation
 =============
-Read the full documentation [here](https://astro-informatics.github.io/s2fft/#).
+Read the full documentation `here <https://astro-informatics.github.io/s2fft/>`_.
 
 Attribution
 ===========
@@ -39,11 +39,11 @@ referenced. A BibTeX entry for this reference may look like:
 .. code-block:: 
 
     @article{price:s2fft, 
-        author      = "Matthew A. Price and Jason D. McEwen and Contributors",
+        author      = "Matthew A. Price and Jason D. McEwen",
         title       = "Differentiable and accelerated spherical harmonic and Wigner transforms",
         journal     = "Journal of Computational Physics",
         year        = "2023",
-        eprint      = "arXiv:0000.00000"        
+        eprint      = "arXiv:2311.14670"        
     }
 
 You might also like to consider citing our related papers on which this

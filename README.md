@@ -1,10 +1,11 @@
 [![image](https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml)
 [![image](https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE)](https://codecov.io/gh/astro-informatics/s2fft)
 [![image](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![image](http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat)](https://arxiv.org/abs/xxxx.xxxxx)<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![image](https://badge.fury.io/py/s2fft.svg)](https://badge.fury.io/py/s2fft)
+[![image](http://img.shields.io/badge/arXiv-2311.14670-orange.svg?style=flat)](https://arxiv.org/abs/2311.14670)<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-) <!-- ALL-CONTRIBUTORS-BADGE:END --> 
-[![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YmJ2ljsF8HBvhPmD4hrYPlyAKc4WPUgq?usp=sharing)
+<!-- [![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) -->
 
 <img align="left" height="85" width="98" src="./docs/assets/sax_logo.png">
 
@@ -69,6 +70,9 @@ pixels of equal areas, which has many practical advantages.
 
 <p align="center"><img src="./docs/assets/figures/spherical_sampling.png" width="500"></p>
 
+> [!NOTE]  
+> For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and will work to improve this in subsequent versions.
+
 ## Installation :computer:
 
 The Python dependencies for the `S2FFT` package are listed in the file
@@ -86,14 +90,14 @@ executed to ensure the installation was successful by running
 pytest tests/  
 ```
 
-In the very near future one will be able to install `S2FFT` directly
-from [PyPi](https://pypi.org) by `pip install s2fft` but this is not yet
-supported. Note that to run `JAX` on NVIDIA GPUs you will need to follow
-the [guide](https://github.com/google/jax#installation) outlined by
-Google. 
+Alternatively, the `S2FFT` package may be installed directly from PyPi by running 
 
-    Note: For plotting functionality which can be found throughout our various notebooks, one 
-    must install the requirements which can be found in `requirements/requirements-plotting.txt`.
+``` bash
+pip install s2fft
+```
+
+> [!NOTE]  
+> For plotting functionality which can be found throughout our various notebooks, one must install the requirements which can be found in `requirements/requirements-plotting.txt`.
 
 ## Usage :rocket:
 
@@ -178,11 +182,11 @@ referenced. A BibTeX entry for this reference may look like:
 
 ``` 
 @article{price:s2fft, 
-   author      = "Matthew A. Price and Jason D. McEwen and Contributors",
+   author      = "Matthew A. Price and Jason D. McEwen",
    title       = "Differentiable and accelerated spherical harmonic and Wigner transforms",
    journal     = "Journal of Computational Physics",
    year        = "2023",
-   eprint      = "arXiv:0000.00000"        
+   eprint      = "arXiv:2311.14670"        
 }
 ```
 
