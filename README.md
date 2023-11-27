@@ -1,7 +1,8 @@
 [![image](https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml)
 [![image](https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE)](https://codecov.io/gh/astro-informatics/s2fft)
 [![image](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![image](http://img.shields.io/badge/arXiv-xxxx.xxxxx-orange.svg?style=flat)](https://arxiv.org/abs/xxxx.xxxxx)<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![image](https://badge.fury.io/py/s2fft.svg)](https://badge.fury.io/py/s2fft)
+[![image](http://img.shields.io/badge/arXiv-2311.14670-orange.svg?style=flat)](https://arxiv.org/abs/2311.14670)<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-) <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 [![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YmJ2ljsF8HBvhPmD4hrYPlyAKc4WPUgq?usp=sharing)
@@ -181,11 +182,11 @@ referenced. A BibTeX entry for this reference may look like:
 
 ``` 
 @article{price:s2fft, 
-   author      = "Matthew A. Price and Jason D. McEwen and Contributors",
+   author      = "Matthew A. Price and Jason D. McEwen",
    title       = "Differentiable and accelerated spherical harmonic and Wigner transforms",
    journal     = "Journal of Computational Physics",
    year        = "2023",
-   eprint      = "arXiv:0000.00000"        
+   eprint      = "arXiv:2311.14670"        
 }
 ```
 
