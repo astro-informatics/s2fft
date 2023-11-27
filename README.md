@@ -12,7 +12,7 @@
 # Differentiable and accelerated spherical transforms with JAX
 
 `S2FFT` is a JAX package for computing Fourier transforms on the sphere
-and rotation group [Price & McEwen 2023](https://arxiv.org/abs/2311.14670). It leverages autodiff to provide differentiable
+and rotation group [(Price & McEwen 2023)](https://arxiv.org/abs/2311.14670). It leverages autodiff to provide differentiable
 transforms, which are also deployable on hardware accelerators
 (e.g. GPUs and TPUs).
 
