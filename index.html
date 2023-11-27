@@ -376,7 +376,7 @@
   <div class="section" id="differentiable-and-accelerated-spherical-transforms">
 <h1>Differentiable and accelerated spherical transforms<a class="headerlink" href="#differentiable-and-accelerated-spherical-transforms" title="Permalink to this headline"></a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is a JAX package for computing Fourier transforms on the sphere and rotation
-group.  It leverages autodiff to provide differentiable transforms, which are also
+group <a class="reference external" href="https://arxiv.org/abs/2311.14670">(Price &amp; McEwen 2023)</a>.  It leverages autodiff to provide differentiable transforms, which are also
 deployable on modern hardware accelerators (e.g. GPUs and TPUs).</p>
 <p>More specifically, <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> provides support for spin spherical harmonic and Wigner
 transforms (for both real and complex signals), with support for adjoint transformations
@@ -400,6 +400,10 @@ computing only a portion of the projection at a time, hence incurring
 negligible memory overhead at the cost of slightly slower execution. The
 diagram below illustrates the separable spherical harmonic transform.</p>
 <img alt="_images/sax_schematic_github_docs.png" src="_images/sax_schematic_github_docs.png" />
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and will work to improve this in subsequent versions.</p>
+</div>
 </div>
 <div class="section" id="sampling-earth-africa">
 <h2>Sampling 🌍<a class="headerlink" href="#sampling-earth-africa" title="Permalink to this headline"></a></h2>
@@ -436,7 +440,7 @@ article is referenced. A BibTeX entry for this reference may look like:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">price</span><span class="p">:</span><span class="n">s2fft</span><span class="p">,</span>
     <span class="n">author</span>      <span class="o">=</span> <span class="s2">&quot;Matthew A. Price and Jason D. McEwen&quot;</span><span class="p">,</span>
     <span class="n">title</span>       <span class="o">=</span> <span class="s2">&quot;Differentiable and accelerated spherical harmonic and Wigner transforms&quot;</span><span class="p">,</span>
-    <span class="n">journal</span>     <span class="o">=</span> <span class="s2">&quot;Journal of Computational Physics&quot;</span><span class="p">,</span>
+    <span class="n">journal</span>     <span class="o">=</span> <span class="s2">&quot;Journal of Computational Physics, submitted&quot;</span><span class="p">,</span>
     <span class="n">year</span>        <span class="o">=</span> <span class="s2">&quot;2023&quot;</span><span class="p">,</span>
     <span class="n">eprint</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:2311.14670&quot;</span>
 <span class="p">}</span>
