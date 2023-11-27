@@ -2,7 +2,7 @@ Differentiable and accelerated spherical transforms
 ===================================================
 
 ``S2FFT`` is a JAX package for computing Fourier transforms on the sphere and rotation 
-group.  It leverages autodiff to provide differentiable transforms, which are also 
+group `(Price & McEwen 2023) <https://arxiv.org/abs/2311.14670>`_.  It leverages autodiff to provide differentiable transforms, which are also 
 deployable on modern hardware accelerators (e.g. GPUs and TPUs).
 
 More specifically, ``S2FFT`` provides support for spin spherical harmonic and Wigner
@@ -32,6 +32,9 @@ negligible memory overhead at the cost of slightly slower execution. The
 diagram below illustrates the separable spherical harmonic transform.
 
 .. image:: ./assets/figures/sax_schematic_github_docs.png
+
+.. note::
+    For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and will work to improve this in subsequent versions.
 
 Sampling |:earth_africa:|
 -----------------------------------
@@ -84,7 +87,7 @@ article is referenced. A BibTeX entry for this reference may look like:
     @article{price:s2fft, 
         author      = "Matthew A. Price and Jason D. McEwen",
         title       = "Differentiable and accelerated spherical harmonic and Wigner transforms",
-        journal     = "Journal of Computational Physics",
+        journal     = "Journal of Computational Physics, submitted",
         year        = "2023",
         eprint      = "arXiv:2311.14670"        
     }

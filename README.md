@@ -184,7 +184,7 @@ referenced. A BibTeX entry for this reference may look like:
 @article{price:s2fft, 
    author      = "Matthew A. Price and Jason D. McEwen",
    title       = "Differentiable and accelerated spherical harmonic and Wigner transforms",
-   journal     = "Journal of Computational Physics",
+   journal     = "Journal of Computational Physics, submitted",
    year        = "2023",
    eprint      = "arXiv:2311.14670"        
 }
