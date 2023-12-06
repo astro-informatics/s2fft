@@ -20,3 +20,4 @@ resources/
 .matrices/
 s2fft.code-workspace
 .tox
+s2fft/_version.py
