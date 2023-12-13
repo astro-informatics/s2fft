@@ -121,6 +121,8 @@ flmn = s2fft.wigner.forward_jax(f, L, N)
 f = fft.wigner.inverse_jax(flmn, L, N)
 ```
 
+For further details on usage see the [documentation](https://astro-informatics.github.io/s2fft/) and associated [notebooks](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/spherical_harmonic_transform.html).
+
 ## Benchmarking :hourglass_flowing_sand:
 
 We benchmarked the spherical harmonic and Wigner transforms implemented
