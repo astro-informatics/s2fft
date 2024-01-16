@@ -71,6 +71,8 @@ def inverse(
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
     """
+    if spin >= 8:
+        raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
     if method == "numpy":
         return inverse_numpy(flm, L, spin, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
@@ -363,6 +365,8 @@ def forward(
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
     """
+    if spin >= 8:
+        raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
     if method == "numpy":
         return forward_numpy(f, L, spin, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
