@@ -1,14 +1,16 @@
-sphinx==4.2.0
-nbsphinx-link==1.3.0
-pydata-sphinx-theme==0.12.0
-sphinx_toolbox==2.15.0
-sphinx-tabs==3.2.0
-sphinxcontrib-bibtex==2.4.1
-sphinx-git==11.0.0
-sphinxcontrib-texfigure==0.1.3
+# Documentation
+sphinx>=5.0.0
+nbsphinx-link>=1.3.0
+pydata-sphinx-theme>=0.12.0
+sphinx_toolbox>=2.15.0
+sphinx-tabs>=3.2.0
+sphinxcontrib-bibtex>=2.4.1
+sphinx-git>=11.0.0
+sphinxcontrib-texfigure>=0.1.3
 sphinx-copybutton
 sphinxemoji
 sphinx_rtd_theme
+
 # Notebooks
-ipython==7.16.1
-jupyter==1.0.0
+ipython>=7.16.1
+jupyter>=1.0.0
