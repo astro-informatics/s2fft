@@ -102,7 +102,7 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "ArXiv",
-            "url": "https://arxiv.org/abs/xxxx.xxxxx",
+            "url": "https://arxiv.org/abs/2311.14670",
             "icon": "_static/arxiv-logomark-small.png",
             "type": "local",
         },
