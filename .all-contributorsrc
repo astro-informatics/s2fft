@@ -66,6 +66,15 @@
         "code",
         "bug"
       ]
+    },
+    {
+      "login": "eltociear",
+      "name": "Ikko Eltociear Ashimine",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22633385?v=4",
+      "profile": "https://github.com/eltociear",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -73,5 +82,6 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "projectName": "s2fft",
-  "projectOwner": "astro-informatics"
+  "projectOwner": "astro-informatics",
+  "commitType": "docs"
 }
