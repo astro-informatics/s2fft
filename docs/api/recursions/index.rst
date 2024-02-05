@@ -89,6 +89,8 @@ Wigner-d recursions
      - Description
    * - :func:`~s2fft.recursions.risbo.compute_full`
      - Compute Wigner-d at argument :math:`\beta` for full plane using Risbo recursion.
+   * - :func:`~s2fft.recursions.risbo_jax.compute_full`
+     - Compute Wigner-d at argument :math:`\beta` for full plane using Risbo recursion (JAX implementation).
 
 .. warning:: 
 
