@@ -5,6 +5,25 @@ from functools import partial
 
 @partial(jit, static_argnums=(1, 2, 3))
 def compute_full(dl: jnp.ndarray, beta: float, L: int, el: int) -> jnp.ndarray:
+    r"""Compute Wigner-d at argument :math:`\beta` for full plane using
+    Risbo recursion (JAX implementation)
+
+    The Wigner-d plane is computed by recursion over :math:`\ell` (`el`).
+    Thus, for :math:`\ell > 0` the plane must be computed already for
+    :math:`\ell - 1`. At present, for :math:`\ell = 0` the recusion is initialised.
+
+    Args:
+        dl (np.ndarray): Wigner-d plane for :math:`\ell - 1` at :math:`\beta`.
+
+        beta (float): Argument :math:`\beta` at which to compute Wigner-d plane.
+
+        L (int): Harmonic band-limit.
+
+        el (int): Spherical harmonic degree :math:`\ell`.
+
+    Returns:
+        np.ndarray: Plane of Wigner-d for `el` and `beta`, with full plane computed.
+    """
     if el == 0:
         dl = dl.at[el + L - 1, el + L - 1].set(1.0)
         return dl

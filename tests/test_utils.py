@@ -1,6 +1,14 @@
+from jax.config import config
+
+config.update("jax_enable_x64", True)
 import pytest
+import pyssht as ssht
 import numpy as np
 from s2fft.sampling import s2_samples as samples
+from s2fft.utils.augmentation import rotate_flms, generate_rotate_dls
+
+L_to_test = [6, 8, 10]
+angles_to_test = [np.pi / 2, np.pi / 6]
 
 
 def test_flm_reindexing_functions(flm_generator):
@@ -47,3 +55,44 @@ def test_flm_reindexing_exceptions(flm_generator):
 
     with pytest.raises(ValueError) as e:
         samples.flm_1d_to_2d(flm_3d, L)
+
+
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("alpha", angles_to_test)
+@pytest.mark.parametrize("beta", angles_to_test)
+@pytest.mark.parametrize("gamma", angles_to_test)
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
+@pytest.mark.filterwarnings("ignore::FutureWarning")
+def test_rotate_flms(flm_generator, L: int, alpha: float, beta: float, gamma: float):
+    flm = flm_generator(L=L)
+    rot = (alpha, beta, gamma)
+    flm_1d = samples.flm_2d_to_1d(flm, L)
+
+    flm_rot_ssht = samples.flm_1d_to_2d(
+        ssht.rotate_flms(flm_1d, alpha, beta, gamma, L), L
+    )
+    flm_rot_s2fft = rotate_flms(flm, L, rot)
+
+    np.testing.assert_allclose(flm_rot_ssht, flm_rot_s2fft, atol=1e-14)
+
+
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("alpha", angles_to_test)
+@pytest.mark.parametrize("beta", angles_to_test)
+@pytest.mark.parametrize("gamma", angles_to_test)
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
+@pytest.mark.filterwarnings("ignore::FutureWarning")
+def test_rotate_flms_precompute_dls(
+    flm_generator, L: int, alpha: float, beta: float, gamma: float
+):
+    dl = generate_rotate_dls(L, beta)
+    flm = flm_generator(L=L)
+    rot = (alpha, beta, gamma)
+    flm_1d = samples.flm_2d_to_1d(flm, L)
+
+    flm_rot_ssht = samples.flm_1d_to_2d(
+        ssht.rotate_flms(flm_1d, alpha, beta, gamma, L), L
+    )
+    flm_rot_s2fft = rotate_flms(flm, L, rot, dl)
+
+    np.testing.assert_allclose(flm_rot_ssht, flm_rot_s2fft, atol=1e-14)
