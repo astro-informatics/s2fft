@@ -6,6 +6,8 @@ import pyssht as ssht
 import numpy as np
 from s2fft.sampling import s2_samples as samples
 from s2fft.utils.augmentation import rotate_flms, generate_rotate_dls
+import jax.numpy as jnp
+from jax.test_util import check_grads
 
 L_to_test = [6, 8, 10]
 angles_to_test = [np.pi / 2, np.pi / 6]
@@ -96,3 +98,24 @@ def test_rotate_flms_precompute_dls(
     flm_rot_s2fft = rotate_flms(flm, L, rot, dl)
 
     np.testing.assert_allclose(flm_rot_ssht, flm_rot_s2fft, atol=1e-14)
+
+
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("alpha", angles_to_test)
+@pytest.mark.parametrize("beta", angles_to_test)
+@pytest.mark.parametrize("gamma", angles_to_test)
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
+@pytest.mark.filterwarnings("ignore::FutureWarning")
+def test_rotate_flms_gradients(
+    flm_generator, L: int, alpha: float, beta: float, gamma: float
+):
+    flm_start = flm_generator(L=L)
+
+    rot = (alpha, beta, gamma)
+    flm_target = rotate_flms(flm_start, L, (0.1, 0.1, 0.1))
+
+    def func(flm):
+        flm_rot = rotate_flms(flm, L, rot)
+        return jnp.sum(jnp.abs(flm_rot - flm_target))
+
+    check_grads(func, (flm_start,), order=1, modes=("rev"))
