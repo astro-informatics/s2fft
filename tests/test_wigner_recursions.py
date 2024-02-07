@@ -136,16 +136,6 @@ def test_trapani_interfaces():
         recursions.trapani.compute_full(dl_jax, L, el, implementation="unexpected")
 
 
-def test_trapani_checks():
-    # TODO
-
-    # Check throws exception if arguments wrong
-
-    # Check throws exception if don't init
-
-    return
-
-
 def test_risbo_with_ssht():
     """Test Risbo computation against ssht"""
 
@@ -171,15 +161,16 @@ def test_risbo_with_ssht_jax():
     L = 10
 
     # Compute using SSHT.
-    beta = np.pi / 2.0
-    dl_array = ssht.generate_dl(beta, L)
+    betas = [0, np.pi / 2.0, np.pi]
+    for beta in betas:
+        dl_array = ssht.generate_dl(beta, L)
 
-    # Compare to routines in SSHT, which have been validated extensively.
-    dl = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
+        # Compare to routines in SSHT, which have been validated extensively.
+        dl = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
 
-    for el in range(0, L):
-        dl = recursions.risbo_jax.compute_full(dl, beta, L, el)
-        np.testing.assert_allclose(dl_array[el, :, :], dl, atol=1e-15)
+        for el in range(0, L):
+            dl = recursions.risbo_jax.compute_full(dl, beta, L, el)
+            np.testing.assert_allclose(dl_array[el, :, :], dl, atol=1e-15)
 
 
 @pytest.mark.parametrize("L", L_to_test)

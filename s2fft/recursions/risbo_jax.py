@@ -24,10 +24,24 @@ def compute_full(dl: jnp.ndarray, beta: float, L: int, el: int) -> jnp.ndarray:
     Returns:
         np.ndarray: Plane of Wigner-d for `el` and `beta`, with full plane computed.
     """
+
+    if beta == 0:
+        dl = dl.at[-el + L - 1, el + L - 1].set(1.0)
+
     if el == 0:
         dl = dl.at[el + L - 1, el + L - 1].set(1.0)
         return dl
-    elif el == 1:
+
+    if beta == jnp.pi:
+        dl = dl.at[:, :].multiply(0)
+        ind = jnp.arange(-el + L - 1, el + L)
+        dl = jnp.flip(dl.at[ind, ind].add(1.0), axis=0)
+        dl = jnp.einsum(
+            "nm,m->nm", dl, (-1) ** (el + jnp.arange(-L + 1, L)), optimize=True
+        )
+        return dl
+
+    if el == 1:
         cosb = jnp.cos(beta)
         sinb = jnp.sin(beta)
 
