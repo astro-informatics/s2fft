@@ -105,15 +105,15 @@ Utility Functions
       JAX versions of these functions share an almost identical function trace and 
       are simply accessed by the sub-module :func:`~s2fft.utils.resampling_jax`.
 
-.. list-table:: Augmentation functions
+.. list-table:: Rotation functions
    :widths: 25 25
    :header-rows: 1
 
    * - Function Name
      - Description
-   * - :func:`~s2fft.utils.augmentation.rotate_flms`
+   * - :func:`~s2fft.utils.rotation.rotate_flms`
      - Euler rotates spherical harmonic coefficients by given angle in zyz convention.
-   * - :func:`~s2fft.utils.augmentation.generate_rotate_dls`
+   * - :func:`~s2fft.utils.rotation.generate_rotate_dls`
      - Generates an array of all reduced Wigner d-function coefficients for angle beta.
 
 .. toctree::
@@ -128,6 +128,6 @@ Utility Functions
    quadrature_jax
    healpix_ffts
    utils
-   augmentation
+   rotation
    logs
    

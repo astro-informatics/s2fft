@@ -5,7 +5,7 @@ import pytest
 import pyssht as ssht
 import numpy as np
 from s2fft.sampling import s2_samples as samples
-from s2fft.utils.augmentation import rotate_flms, generate_rotate_dls
+from s2fft.utils.rotation import rotate_flms, generate_rotate_dls
 import jax.numpy as jnp
 from jax.test_util import check_grads
 

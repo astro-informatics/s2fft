@@ -1,7 +1,7 @@
 :html_theme.sidebar_secondary.remove:
 
 **************************
-augmentation
+rotations
 **************************
-.. automodule:: s2fft.utils.augmentation
+.. automodule:: s2fft.utils.rotation
    :members: 
