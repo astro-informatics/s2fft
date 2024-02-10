@@ -67,3 +67,4 @@ the case for many other methods that scale linearly with spin).
 
    spherical_harmonic/spherical_harmonic_transform.nblink
    wigner/wigner_transform.nblink
+   rotation/rotation.nblink

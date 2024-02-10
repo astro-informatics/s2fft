@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Turok &amp; Bucher JAX &#8212; S2FFT 1.0.1 documentation</title>
+    <title>Rotate a signal &#8212; S2FFT 1.0.1 documentation</title>
   
   
   
@@ -30,6 +30,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=9be2284e" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/custom_tabs.css?v=82e1095b" />
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/fontawesome.min.css" />
@@ -51,11 +52,11 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'api/recursions/turok_jax';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/rotation/rotation';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Utility Functions" href="../utility/index.html" />
-    <link rel="prev" title="Turok &amp; Bucher" href="turok.html" />
+    <link rel="next" title="API" href="../../api/index.html" />
+    <link rel="prev" title="Wigner transform" href="../wigner/wigner_transform.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -161,15 +162,15 @@
                     </li>
                 
 
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../tutorials/index.html">
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../index.html">
                         Notebooks
                       </a>
                     </li>
                 
 
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="../index.html">
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../api/index.html">
                         API
                       </a>
                     </li>
@@ -278,6 +279,10 @@ document.write(`
   
 
   
+    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
 </div>
 
     </header>
@@ -308,15 +313,15 @@ document.write(`
                     </li>
                 
 
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../tutorials/index.html">
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../index.html">
                         Notebooks
                       </a>
                     </li>
                 
 
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="../index.html">
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../api/index.html">
                         API
                       </a>
                     </li>
@@ -400,50 +405,11 @@ document.write(`
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Namespaces</span></p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Jupyter Notebooks</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../transforms/index.html">Transforms</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../transforms/on_the_fly_recursions.html">On-the-fly (<em>OTF</em>) recursions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../transforms/spin_spherical_transform.html">Spherical Harmonic Transform</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../transforms/wigner.html">Wigner Transform</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../precompute_transforms/index.html">Precompute Functions</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../precompute_transforms/construct.html">constructor</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../precompute_transforms/spin_spherical.html">Spherical Harmonic Transform</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../precompute_transforms/wigner.html">Wigner Transform</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../base_transforms/index.html">Reference Transforms</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../base_transforms/spin_spherical_transform.html">Spherical Harmonic Transform</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../base_transforms/wigner_transform.html">Wigner Transform</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../sampling/index.html">Sampling Functions</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../sampling/spherical_samples.html">Spherical samples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../sampling/wigner_samples.html">Wigner samples</a></li>
-</ul>
-</li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Wigner-d recursions</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-5"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="price_mcewen.html">Price &amp; McEwen</a></li>
-<li class="toctree-l2"><a class="reference internal" href="risbo.html">Risbo</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trapani.html">Trapani</a></li>
-<li class="toctree-l2"><a class="reference internal" href="turok.html">Turok &amp; Bucher</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Turok &amp; Bucher JAX</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../utility/index.html">Utility Functions</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../utility/signal_generator.html">signal generator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/resampling.html">resampling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/resampling_jax.html">resampling_jax</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/quadrature.html">quadrature</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/quadrature_jax.html">quadrature_jax</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/healpix_ffts.html">healpix functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/utils.html">utils</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/rotation.html">rotations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/logs.html">logs</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../spherical_harmonic/spherical_harmonic_transform.html"><strong>Spherical harmonic transform</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../wigner/wigner_transform.html"><strong>Wigner transform</strong></a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#"><strong>Rotate a signal</strong></a></li>
 </ul>
 </div>
 </nav></div>
@@ -482,12 +448,9 @@ document.write(`
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">API</a></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Notebooks</a></li>
     
-    
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Wigner-d recursions</a></li>
-    
-    <li class="breadcrumb-item active" aria-current="page">Turok &amp;...</li>
+    <li class="breadcrumb-item active" aria-current="page"><strong>Rota...</li>
   </ul>
 </nav>
 </div>
@@ -504,75 +467,66 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-s2fft.recursions.turok_jax">
-<span id="turok-bucher-jax"></span><h1>Turok &amp; Bucher JAX<a class="headerlink" href="#module-s2fft.recursions.turok_jax" title="Link to this heading">#</a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.recursions.turok_jax.compute_slice">
-<span class="sig-prename descclassname"><span class="pre">s2fft.recursions.turok_jax.</span></span><span class="sig-name descname"><span class="pre">compute_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.recursions.turok_jax.compute_slice" title="Link to this definition">#</a></dt>
-<dd><p>Compute a particular slice <span class="math notranslate nohighlight">\(m^{\prime}\)</span>, denoted <cite>mm</cite>,
-of the complete Wigner-d matrix at polar angle <span class="math notranslate nohighlight">\(\beta\)</span> using Turok &amp;
-Bucher recursion.</p>
-<p>The Wigner-d slice for a given <span class="math notranslate nohighlight">\(\ell\)</span> (<cite>el</cite>) and <span class="math notranslate nohighlight">\(\beta\)</span> is
-computed recursively over <span class="math notranslate nohighlight">\(m\)</span> labelled ‘m’ at a specific
-<span class="math notranslate nohighlight">\(m^{\prime}\)</span>. The Turok &amp; Bucher recursion is analytically correct
-from <span class="math notranslate nohighlight">\(-\ell &lt; m &lt; \ell\)</span> however numerically it can become unstable for
-<span class="math notranslate nohighlight">\(m &gt; 0\)</span>. To avoid this we compute <span class="math notranslate nohighlight">\(d_{m,
-m^{\prime}}^{\ell}(\beta)\)</span> for negative <span class="math notranslate nohighlight">\(m\)</span> and then evaluate
-<span class="math notranslate nohighlight">\(d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m,
-m^{\prime}}^{\ell}(\beta)\)</span> which we can again evaluate using a Turok &amp;
-Bucher recursion.</p>
-<p>The Wigner-d slice <span class="math notranslate nohighlight">\(d^\ell_{m, m^{\prime}}(\beta)\)</span> is indexed for
-<span class="math notranslate nohighlight">\(-L &lt; m &lt; L\)</span> by <cite>dl[L - 1 - m]</cite>. This implementation has computational
-scaling <span class="math notranslate nohighlight">\(\mathcal{O}(L)\)</span> and typically requires <span class="math notranslate nohighlight">\(\sim 2L\)</span>
-operations.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>beta</strong> (<em>float</em>) – Polar angle in radians.</p></li>
-<li><p><strong>el</strong> (<em>int</em>) – Harmonic degree of Wigner-d matrix.</p></li>
-<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>mm</strong> (<em>int</em>) – Harmonic order at which to slice the matrix.</p></li>
+  <section id="Rotate-a-signal">
+<h1><strong>Rotate a signal</strong><a class="headerlink" href="#Rotate-a-signal" title="Link to this heading">#</a></h1>
+<hr class="docutils" />
+<p>This tutorial demonstrates how to use <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> to rotate a signal on the sphere. A signal can be rotated in pixel space, however this can introduce artifacts. The best way to perform a rotation is through spherical harmonic space using the Wigner d-matrices, that is:</p>
+<ul class="simple">
+<li><p>forward spherical harmonic transform</p></li>
+<li><p>rotation on the flm coefficients</p></li>
+<li><p>inverse spherical harmonic transform</p></li>
 </ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Wigner-d matrix mm slice of dimension [2L-1].</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>jnp.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
+<p>Specifically, we will adopt the sampling scheme of <a class="reference external" href="https://arxiv.org/abs/1110.6298">McEwen &amp; Wiaux (2012)</a>. For our purposes here we’ll just generate a random bandlimited signal.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">jax.config</span> <span class="kn">import</span> <span class="n">config</span>
+<span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;jax_enable_x64&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.recursions.turok_jax.reindex">
-<span class="sig-prename descclassname"><span class="pre">s2fft.recursions.turok_jax.</span></span><span class="sig-name descname"><span class="pre">reindex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mm</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.recursions.turok_jax.reindex" title="Link to this definition">#</a></dt>
-<dd><p>Reorders indexing of Wigner-d matrix.</p>
-<p>Reindexes the Wigner-d matrix to centre m values around L-1.
-The original indexing is given by
-<span class="math notranslate nohighlight">\([-m \rightarrow -1, \dots, 0 \rightarrow m]\)</span> and the
-resulting indexing is given by
-<span class="math notranslate nohighlight">\([\dots, -m \rightarrow 0 \rightarrow m, \dots]\)</span>, where
-<span class="math notranslate nohighlight">\(\dots\)</span> represents entries in which the values should be
-ignored. These extra entries are necessary to ensure <a class="reference internal" href="#s2fft.recursions.turok_jax.compute_slice" title="s2fft.recursions.turok_jax.compute_slice"><code class="xref py py-func docutils literal notranslate"><span class="pre">compute_slice()</span></code></a>
-can operate with static length.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dl</strong> (<em>np.ndarray</em>) – Wigner-d matrix to populate (shape: 2L-1).</p></li>
-<li><p><strong>el</strong> (<em>int</em>) – Harmonic degree of Wigner-d matrix.</p></li>
-<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>mm</strong> (<em>int</em>) – Harmonic order at which to slice the matrix.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Wigner-d matrix slice of dimension [2L-1].</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>jnp.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">s2fft</span>
+<span class="kn">import</span> <span class="nn">plotting_functions</span>
 
+<span class="n">L</span> <span class="o">=</span> <span class="mi">128</span>
+<span class="n">sampling</span> <span class="o">=</span> <span class="s2">&quot;mw&quot;</span>
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">12346161</span><span class="p">)</span>
+<span class="n">flm</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">signal_generator</span><span class="o">.</span><span class="n">generate_flm</span><span class="p">(</span><span class="n">rng</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">inverse</span><span class="p">(</span><span class="n">flm</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Execute-the-rotation-steps">
+<h2>Execute the rotation steps<a class="headerlink" href="#Execute-the-rotation-steps" title="Link to this heading">#</a></h2>
+<hr class="docutils" />
+<p>First, we will run the JAX function to compute the spherical harmonic transform of our signal</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">flm</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">forward_jax</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">reality</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Now apply the rotation (here pi/2 in each of alpha, beta, gamma) on the harmonic coefficients flm</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">flm_rotated</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">rotate_flms</span><span class="p">(</span><span class="n">flm</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<p>Finally, we will run the JAX function to compute the inverse spherical harmonic transform to get back to pixel space</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f_rotated</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">inverse_jax</span><span class="p">(</span><span class="n">flm_rotated</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">reality</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
 </section>
 
 
@@ -586,20 +540,20 @@ can operate with static length.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="turok.html"
+       href="../wigner/wigner_transform.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Turok &amp; Bucher</p>
+        <p class="prev-next-title"><strong>Wigner transform</strong></p>
       </div>
     </a>
     <a class="right-next"
-       href="../utility/index.html"
+       href="../../api/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Utility Functions</p>
+        <p class="prev-next-title">API</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -609,6 +563,32 @@ can operate with static length.</p>
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Execute-the-rotation-steps">Execute the rotation steps</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/tutorials/rotation/rotation.nblink.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
               
             
           </div>
