@@ -7,6 +7,7 @@ from .recursions.price_mcewen import (
     generate_precomputes_wigner,
     generate_precomputes_wigner_jax,
 )
+from .utils.rotation import rotate_flms, generate_rotate_dls
 
 import logging
 from jax.config import config

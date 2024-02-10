@@ -56,7 +56,7 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
         # from l - 1 to l - 1/2.
         dd = np.zeros((2 * el + 2, 2 * el + 2))
         j = 2 * el - 1
-        rj = float(j)  # TODO: is this necessary?
+
         for k in range(0, j):
             sqrt_jmk = np.sqrt(j - k)
             sqrt_kp1 = np.sqrt(k + 1)
@@ -77,7 +77,7 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
         # the plane of the dl-matrix to 0.0.
         dl[-el + L - 1 : el + 1 + L - 1, -el + L - 1 : el + 1 + L - 1] = 0.0
         j = 2 * el
-        rj = float(j)  # TODO: is this necessary?
+
         for k in range(0, j):
             sqrt_jmk = np.sqrt(j - k)
             sqrt_kp1 = np.sqrt(k + 1)
