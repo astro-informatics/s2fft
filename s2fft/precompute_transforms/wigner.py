@@ -2,8 +2,8 @@ from jax import jit
 
 import numpy as np
 import jax.numpy as jnp
-
-from s2fft.utils import resampling, resampling_jax
+import torch
+from s2fft.utils import resampling, resampling_jax, resampling_torch
 from s2fft.utils import healpix_ffts as hp
 from s2fft.sampling import so3_samples as samples
 from functools import partial
@@ -38,7 +38,8 @@ def inverse(
             conjugate symmetry is exploited to reduce computational costs.
             Defaults to False.
 
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "jax".
+        method (str, optional): Execution mode in {"numpy", "jax", "torch"}.
+            Defaults to "jax".
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
@@ -60,6 +61,8 @@ def inverse(
         return inverse_transform(flmn, kernel, L, N, sampling, reality, nside)
     elif method == "jax":
         return inverse_transform_jax(flmn, kernel, L, N, sampling, reality, nside)
+    elif method == "torch":
+        return inverse_transform_torch(flmn, kernel, L, N, sampling, reality, nside)
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -202,6 +205,82 @@ def inverse_transform_jax(
             return jnp.conj(jnp.fft.fft2(fnab, axes=(-1, -3), norm="backward"))
 
 
+def inverse_transform_torch(
+    flmn: torch.tensor,
+    kernel: torch.tensor,
+    L: int,
+    N: int,
+    sampling: str,
+    reality: bool,
+    nside: int,
+) -> torch.tensor:
+    r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
+    :math:`SO(3)`.
+
+    Args:
+        flmn (torch.tensor): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
+
+        kernel (torch.tensor): Wigner-d kernel.
+
+        L (int): Harmonic band-limit.
+
+        N (int): Directional band-limit.
+
+        sampling (str): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
+        nside (int): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".
+
+    Returns:
+        torch.tensor: Pixel-space coefficients.
+    """
+    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    n_start_ind = N - 1 if reality else 0
+
+    fnab = torch.zeros(
+        samples.fnab_shape(L, N, sampling, nside), dtype=torch.complex128
+    )
+    if sampling.lower() == "healpix":
+        fnab[n_start_ind:, :, m_offset:] = torch.einsum(
+            "...ntlm, ...nlm -> ...ntm", kernel, flmn[n_start_ind:, :, :]
+        )
+    else:
+        fnab[n_start_ind:, :, m_offset:].real = torch.einsum(
+            "...ntlm, ...nlm -> ...ntm", kernel, flmn[n_start_ind:, :, :].real
+        )
+        fnab[n_start_ind:, :, m_offset:].imag = torch.einsum(
+            "...ntlm, ...nlm -> ...ntm", kernel, flmn[n_start_ind:, :, :].imag
+        )
+
+    if sampling.lower() in "healpix":
+        f = torch.zeros(samples.f_shape(L, N, sampling, nside), dtype=torch.complex128)
+        for n in range(n_start_ind - N + 1, N):
+            ind = N - 1 + n
+            f[ind] = hp.healpix_ifft(fnab[ind], L, nside, "torch")
+        if reality:
+            return torch.fft.irfft(f[n_start_ind:], 2 * N - 1, axis=-2, norm="forward")
+        else:
+            return torch.fft.ifft(
+                torch.fft.ifftshift(f, dim=[-2]), axis=-2, norm="forward"
+            )
+
+    else:
+        if reality:
+            fnab = torch.fft.ifft(
+                torch.fft.ifftshift(fnab, dim=[-1]), axis=-1, norm="forward"
+            )
+            return torch.fft.irfft(
+                fnab[n_start_ind:], 2 * N - 1, axis=-3, norm="forward"
+            )
+        else:
+            fnab = torch.fft.ifftshift(fnab, dim=[-1, -3])
+            return torch.fft.ifft2(fnab, dim=[-1, -3], norm="forward")
+
+
 def forward(
     f: np.ndarray,
     L: int,
@@ -233,7 +312,8 @@ def forward(
             conjugate symmetry is exploited to reduce computational costs.
             Defaults to False.
 
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "jax".
+        method (str, optional): Execution mode in {"numpy", "jax", "torch"}.
+            Defaults to "jax".
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
@@ -253,6 +333,8 @@ def forward(
         return forward_transform(f, kernel, L, N, sampling, reality, nside)
     elif method == "jax":
         return forward_transform_jax(f, kernel, L, N, sampling, reality, nside)
+    elif method == "torch":
+        return forward_transform_torch(f, kernel, L, N, sampling, reality, nside)
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -425,6 +507,99 @@ def forward_transform_jax(
                 (-1) ** abs(jnp.arange(-N + 1, 0)),
                 optimize=True,
             )
+        )
+
+    return flmn
+
+
+def forward_transform_torch(
+    f: torch.tensor,
+    kernel: torch.tensor,
+    L: int,
+    N: int,
+    sampling: str,
+    reality: bool,
+    nside: int,
+) -> torch.tensor:
+    r"""Compute the forward Wigner transform, i.e. Fourier transform on
+    :math:`SO(3)`.
+
+    Args:
+        f (torch.tensor): Signal on the sphere.
+
+        kernel (torch.tensor): Wigner-d kernel.
+
+        L (int): Harmonic band-limit.
+
+        N (int): Directional band-limit.
+
+        sampling (str): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "healpix"}.
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
+        nside (int): HEALPix Nside resolution parameter.  Only required
+            if sampling="healpix".
+
+    Returns:
+        torch.tensor: Wigner space coefficients.
+    """
+    n_start_ind = N - 1 if reality else 0
+
+    ax = -2 if sampling.lower() == "healpix" else -3
+    if reality:
+        fban = torch.fft.rfft(torch.real(f), axis=ax, norm="backward")
+    else:
+        fban = torch.fft.fftshift(torch.fft.fft(f, axis=ax, norm="backward"), dim=ax)
+
+    spins = -torch.arange(n_start_ind - N + 1, N)
+    if sampling.lower() == "mw":
+        fban = resampling_torch.mw_to_mwss(fban, L, spins)
+
+    if sampling.lower() in ["mw", "mwss"]:
+        sampling = "mwss"
+        fban = resampling_torch.upsample_by_two_mwss(fban, L, spins)
+
+    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+
+    if sampling.lower() in "healpix":
+        temp = torch.zeros(
+            samples.fnab_shape(L, N, sampling, nside), dtype=torch.complex128
+        )
+        for n in range(n_start_ind - N + 1, N):
+            ind = n if reality else N - 1 + n
+            temp[N - 1 + n] = hp.healpix_fft(fban[ind], L, nside, "torch")
+        fban = temp[n_start_ind:, :, m_offset:]
+
+    else:
+        fban = torch.fft.fft(fban, axis=-1, norm="backward")
+        fban = torch.fft.fftshift(fban, dim=[-1])[:, :, m_offset:]
+
+    flmn = torch.zeros(samples.flmn_shape(L, N), dtype=torch.complex128)
+
+    if sampling.lower() == "healpix":
+        flmn[n_start_ind:] = torch.einsum("...ntlm, ...ntm -> ...nlm", kernel, fban)
+    else:
+        flmn[n_start_ind:].real = torch.einsum(
+            "...ntlm, ...ntm -> ...nlm", kernel, fban.real
+        )
+        flmn[n_start_ind:].imag = torch.einsum(
+            "...ntlm, ...ntm -> ...nlm", kernel, fban.imag
+        )
+    if reality:
+        flmn[:n_start_ind] = torch.conj(
+            torch.flip(flmn[n_start_ind + 1 :], axis=(-1, -3))
+        )
+        flmn[:n_start_ind] = torch.einsum(
+            "...nlm,...m->...nlm",
+            flmn[:n_start_ind],
+            (-1) ** abs(torch.arange(-L + 1, L)),
+        )
+        flmn[:n_start_ind] = torch.einsum(
+            "...nlm,...n->...nlm",
+            flmn[:n_start_ind],
+            (-1) ** abs(torch.arange(-N + 1, 0)),
         )
 
     return flmn

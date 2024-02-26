@@ -4,3 +4,4 @@ colorlog
 pyyaml
 jax>=0.3.13
 jaxlib
+torch
