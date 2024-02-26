@@ -75,6 +75,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "kmulderdas",
+      "name": "Kevin Mulder",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33317219?v=4",
+      "profile": "https://github.com/kmulderdas",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
