@@ -4,7 +4,7 @@ config.update("jax_enable_x64", True)
 
 import numpy as np
 import jax.numpy as jnp
-
+import torch
 from s2fft.sampling import s2_samples as samples
 from s2fft.utils import quadrature, quadrature_jax
 from s2fft import recursions
@@ -18,6 +18,7 @@ def spin_spherical_kernel(
     sampling: str = "mw",
     nside: int = None,
     forward: bool = False,
+    using_torch: bool = False,
 ):
     r"""Precompute the wigner-d kernel for spin-spherical transform. This can be
     drastically faster but comes at a :math:`\mathcal{O}(L^3)` memory overhead, making
@@ -40,6 +41,8 @@ def spin_spherical_kernel(
 
         forward (bool, optional): Whether to provide forward or inverse shift.
             Defaults to False.
+
+        using_torch (bool, optional): Desired frontend functionality. Defaults to False.
 
     Returns:
         np.ndarray: Transform kernel for spin-spherical harmonic transform.
@@ -78,7 +81,7 @@ def spin_spherical_kernel(
             healpix_phase_shifts(L, nside, forward)[:, m_start_ind:],
         )
 
-    return dl
+    return torch.from_numpy(dl) if using_torch else dl
 
 
 def spin_spherical_kernel_jax(
@@ -166,6 +169,7 @@ def wigner_kernel(
     sampling: str = "mw",
     nside: int = None,
     forward: bool = False,
+    using_torch: bool = False,
 ):
     r"""Precompute the wigner-d kernels required for a Wigner transform. This can be
     drastically faster but comes at a :math:`\mathcal{O}(NL^3)` memory overhead, making
@@ -188,6 +192,8 @@ def wigner_kernel(
 
         forward (bool, optional): Whether to provide forward or inverse shift.
             Defaults to False.
+
+        using_torch (bool, optional): Desired frontend functionality. Defaults to False.
 
     Returns:
         np.ndarray: Transform kernel for Wigner transform.
@@ -227,7 +233,7 @@ def wigner_kernel(
             healpix_phase_shifts(L, nside, forward),
         )
 
-    return dl
+    return torch.from_numpy(dl) if using_torch else dl
 
 
 def wigner_kernel_jax(
