@@ -195,7 +195,7 @@ def quad_weights_mwss_theta_only(L: int) -> torch.tensor:
 
     wr = torch.real(torch.fft.fft(torch.fft.ifftshift(w), norm="backward")) / (2 * L)
     q = wr[: L + 1]
-    q[1:L] += wr[-1:L:-1]
+    q[1:L] += torch.flip(wr, dims=[0])[: L - 1]
 
     return q
 
@@ -221,7 +221,7 @@ def quad_weights_mw_theta_only(L: int) -> torch.tensor:
         2 * L - 1
     )
     q = wr[:L]
-    q[: L - 1] += wr[-1 : L - 1 : -1]
+    q[: L - 1] += torch.flip(wr, dims=[0])[: L - 1]
 
     return q
 
