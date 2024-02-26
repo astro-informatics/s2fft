@@ -589,7 +589,7 @@ def forward_transform_torch(
         )
     if reality:
         flmn[:n_start_ind] = torch.conj(
-            torch.flip(flmn[n_start_ind + 1 :], axis=(-1, -3))
+            torch.flip(flmn[n_start_ind + 1 :], dims=(-1, -3))
         )
         flmn[:n_start_ind] = torch.einsum(
             "...nlm,...m->...nlm",

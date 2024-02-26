@@ -11,7 +11,7 @@ nside_to_test = [4, 6]
 L_to_nside_ratio = [2]
 reality_to_test = [False, True]
 sampling_schemes = ["mw", "mwss", "dh"]
-methods_to_test = ["numpy", "jax"]
+methods_to_test = ["numpy", "jax", "torch"]
 
 
 @pytest.mark.parametrize("L", L_to_test)
