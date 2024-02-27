@@ -137,9 +137,9 @@ def quad_weight_dh_theta_only(theta: float, L: int) -> float:
     """
     w = 0.0
     for k in range(0, L):
-        w += torch.sin((2 * k + 1) * theta) / (2 * k + 1)
+        w += torch.sin((2 * k + 1) * torch.from_numpy(theta)) / (2 * k + 1)
 
-    w *= 2 / L * torch.sin(theta)
+    w *= 2 / L * torch.sin(torch.from_numpy(theta))
 
     return w
 

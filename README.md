@@ -24,7 +24,7 @@ available resources and desired angular resolution $L$.
 
 As of version 1.0.2 `S2FFT` also provides PyTorch implementations of underlying 
 precompute transforms. In future releases this support will be extended to our 
-recursion based algorithms.
+on-the-fly algorithms.
 
 ## Algorithms :zap:
 
