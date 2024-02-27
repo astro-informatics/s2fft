@@ -17,7 +17,7 @@ Differentiable and accelerated spherical transforms
 =================================================================================================================
 
 `S2FFT` is a Python package for computing Fourier transforms on the sphere
-and rotation group in JAX and PyTorch. It leverages autodiff to provide differentiable
+and rotation group using JAX and PyTorch. It leverages autodiff to provide differentiable
 transforms, which are also deployable on hardware accelerators
 (e.g. GPUs and TPUs).
 

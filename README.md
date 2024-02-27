@@ -12,7 +12,7 @@
 # Differentiable and accelerated spherical transforms
 
 `S2FFT` is a Python package for computing Fourier transforms on the sphere
-and rotation group [(Price & McEwen 2023)](https://arxiv.org/abs/2311.14670) Using 
+and rotation group [(Price & McEwen 2023)](https://arxiv.org/abs/2311.14670) using 
 JAX or PyTorch. It leverages autodiff to provide differentiable transforms, which are 
 also deployable on hardware accelerators (e.g. GPUs and TPUs).
 
@@ -87,7 +87,7 @@ into the active python environment by [pip](https://pypi.org) when running
 pip install s2fft
 ```
 This will install all core functionality which includes JAX support. To install `S2FFT` 
-with PyTorch support run the following 
+with PyTorch support run 
 
 ``` bash
 pip install s2fft[torch]
