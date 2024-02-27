@@ -1,6 +1,6 @@
-from jax.config import config
+import jax
 
-config.update("jax_enable_x64", True)
+jax.config.update("jax_enable_x64", True)
 import pytest
 import pyssht as ssht
 import numpy as np
