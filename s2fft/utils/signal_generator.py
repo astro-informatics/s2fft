@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 from s2fft.sampling import s2_samples as samples
 from s2fft.sampling import so3_samples as wigner_samples
 
@@ -9,6 +10,7 @@ def generate_flm(
     L_lower: int = 0,
     spin: int = 0,
     reality: bool = False,
+    using_torch: bool = False,
 ) -> np.ndarray:
     r"""Generate a 2D set of random harmonic coefficients.
 
@@ -25,6 +27,8 @@ def generate_flm(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         reality (bool, optional): Reality of signal. Defaults to False.
+
+        using_torch (bool, optional): Desired frontend functionality. Defaults to False.
 
     Returns:
         np.ndarray: Random set of spherical harmonic coefficients.
@@ -45,7 +49,7 @@ def generate_flm(
             else:
                 flm[el, -m + L - 1] = rng.uniform() + 1j * rng.uniform()
 
-    return flm
+    return torch.from_numpy(flm) if using_torch else flm
 
 
 def generate_flmn(
@@ -54,6 +58,7 @@ def generate_flmn(
     N: int = 1,
     L_lower: int = 0,
     reality: bool = False,
+    using_torch: bool = False,
 ) -> np.ndarray:
     r"""Generate a 3D set of random Wigner coefficients.
     Note:
@@ -69,6 +74,8 @@ def generate_flmn(
         L_lower (int, optional): Harmonic lower bound. Defaults to 0.
 
         reality (bool, optional): Reality of signal. Defaults to False.
+
+        using_torch (bool, optional): Desired frontend functionality. Defaults to False.
 
     Returns:
 
@@ -97,4 +104,4 @@ def generate_flmn(
                 else:
                     flmn[N - 1 + n, el, -m + L - 1] = rng.uniform() + 1j * rng.uniform()
 
-    return flmn
+    return torch.from_numpy(flmn) if using_torch else flmn

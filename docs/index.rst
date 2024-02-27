@@ -10,6 +10,10 @@ transforms (for both real and complex signals), with support for adjoint transfo
 where needed, and comes with different optimisations (precompute or not) that one
 may select depending on available resources and desired angular resolution :math:`L`.
 
+As of version 1.0.2 ``S2FFT`` also provides PyTorch implementations of underlying 
+precompute transforms. In future releases this support will be extended to our 
+on-the-fly algorithms.
+
 Algorithms |:zap:|
 -------------------
 

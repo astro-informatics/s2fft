@@ -2,6 +2,7 @@ from jax import jit, vmap
 
 import numpy as np
 import jax.numpy as jnp
+import torch
 from s2fft.sampling import s2_samples as samples
 from functools import partial
 
@@ -65,6 +66,39 @@ def spectral_folding_jax(fm: jnp.ndarray, nphi: int, L: int) -> jnp.ndarray:
     )
 
 
+def spectral_folding_torch(fm: torch.tensor, nphi: int, L: int) -> torch.tensor:
+    """Folds higher frequency Fourier coefficients back onto lower frequency
+    coefficients, i.e. aliasing high frequencies. Torch specific implementation of
+    :func:`~spectral_folding`.
+
+    Args:
+        fm (torch.tensor): Slice of Fourier coefficients corresponding to ring at latitute t.
+
+        nphi (int): Total number of pixel space phi samples for latitude t.
+
+        L (int): Harmonic band-limit.
+
+    Returns:
+        torch.tensor: Lower resolution set of aliased Fourier coefficients.
+    """
+    slice_start = L - nphi // 2
+    slice_stop = slice_start + nphi
+    ftm_slice = fm[slice_start:slice_stop]
+
+    ftm_slice = ftm_slice.put_(
+        -torch.arange(1, L - nphi // 2 + 1) % nphi,
+        fm[slice_start - torch.arange(1, L - nphi // 2 + 1)],
+        accumulate=True,
+    )
+    ftm_slice = ftm_slice.put_(
+        torch.arange(L - nphi // 2) % nphi,
+        fm[slice_stop + torch.arange(L - nphi // 2)],
+        accumulate=True,
+    )
+
+    return ftm_slice
+
+
 def spectral_periodic_extension(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
     """Extends lower frequency Fourier coefficients onto higher frequency
     coefficients, i.e. imposed periodicity in Fourier space.
@@ -121,6 +155,29 @@ def spectral_periodic_extension_jax(fm: jnp.ndarray, L: int) -> jnp.ndarray:
     )
 
 
+def spectral_periodic_extension_torch(fm: torch.tensor, L: int) -> torch.tensor:
+    """Extends lower frequency Fourier coefficients onto higher frequency
+    coefficients, i.e. imposed periodicity in Fourier space. Based on
+    :func:`~spectral_periodic_extension`.
+
+    Args:
+        fm (torch.tensor): Slice of Fourier coefficients corresponding to ring at latitute t.
+
+        L (int): Harmonic band-limit.
+
+    Returns:
+        torch.tensor: Higher resolution set of periodic Fourier coefficients.
+    """
+    nphi = fm.shape[0]
+    return torch.concatenate(
+        (
+            fm[-torch.arange(L - nphi // 2, 0, -1) % nphi],
+            fm,
+            fm[torch.arange(L - (nphi + 1) // 2) % nphi],
+        )
+    )
+
+
 def healpix_fft(
     f: np.ndarray,
     L: int,
@@ -138,7 +195,7 @@ def healpix_fft(
 
         nside (int): HEALPix Nside resolution parameter.
 
-        method (str, optional): Evaluation method in {"numpy", "jax"}.
+        method (str, optional): Evaluation method in {"numpy", "jax", "torch"}.
             Defaults to "numpy".
 
         reality (bool): Whether the signal on the sphere is real.  If so,
@@ -146,7 +203,7 @@ def healpix_fft(
             Defaults to False.
 
     Raises:
-        ValueError: Deployment method not in {"numpy", "jax"}.
+        ValueError: Deployment method not in {"numpy", "jax", "torch"}.
 
     Returns:
         np.ndarray: Array of Fourier coefficients for all latitudes.
@@ -155,6 +212,8 @@ def healpix_fft(
         return healpix_fft_numpy(f, L, nside, reality)
     elif method.lower() == "jax":
         return healpix_fft_jax(f, L, nside, reality)
+    elif method.lower() == "torch":
+        return healpix_fft_torch(f, L, nside, reality)
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -263,6 +322,49 @@ def healpix_fft_jax(f: jnp.ndarray, L: int, nside: int, reality: bool) -> jnp.nd
     )
 
 
+def healpix_fft_torch(
+    f: torch.tensor, L: int, nside: int, reality: bool
+) -> torch.tensor:
+    """Computes the Forward Fast Fourier Transform with spectral back-projection
+    in the polar regions to manually enforce Fourier periodicity. Torch specific
+    implementation of :func:`~healpix_fft_numpy`.
+
+    Args:
+        f (torch.tensor): HEALPix pixel-space array.
+
+        L (int): Harmonic band-limit.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
+    Returns:
+        torch.tensor: Array of Fourier coefficients for all latitudes.
+    """
+    index = 0
+    ftm = torch.zeros(samples.ftm_shape(L, "healpix", nside), dtype=torch.complex128)
+    ntheta = ftm.shape[0]
+    for t in range(ntheta):
+        nphi = samples.nphi_ring(t, nside)
+        if reality and nphi == 2 * L:
+            fm_chunk = torch.zeros(nphi, dtype=torch.complex128)
+            fm_chunk[nphi // 2 :] = torch.fft.rfft(
+                torch.real(f[index : index + nphi]), norm="backward"
+            )[:-1]
+        else:
+            fm_chunk = torch.fft.fftshift(
+                torch.fft.fft(f[index : index + nphi], norm="backward")
+            )
+        ftm[t] = (
+            fm_chunk
+            if nphi == 2 * L
+            else spectral_periodic_extension_torch(fm_chunk, L)
+        )
+        index += nphi
+    return ftm
+
+
 def healpix_ifft(
     ftm: np.ndarray,
     L: int,
@@ -280,7 +382,7 @@ def healpix_ifft(
 
         nside (int): HEALPix Nside resolution parameter.
 
-        method (str, optional): Evaluation method in {"numpy", "jax"}.
+        method (str, optional): Evaluation method in {"numpy", "jax", "torch"}.
             Defaults to "numpy".
 
         reality (bool): Whether the signal on the sphere is real.  If so,
@@ -288,7 +390,7 @@ def healpix_ifft(
             Defaults to False.
 
     Raises:
-        ValueError: Deployment method not in {"numpy", "jax"}.
+        ValueError: Deployment method not in {"numpy", "jax", "torch"}.
 
     Returns:
         np.ndarray: HEALPix pixel-space array.
@@ -298,6 +400,8 @@ def healpix_ifft(
         return healpix_ifft_numpy(ftm, L, nside, reality)
     elif method.lower() == "jax":
         return healpix_ifft_jax(ftm, L, nside, reality)
+    elif method.lower() == "torch":
+        return healpix_ifft_torch(ftm, L, nside, reality)
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -391,6 +495,46 @@ def healpix_ifft_jax(
         + [f_chunks_equatorial.flatten()]
         + [f_chunks_polar[t][1] for t in reversed(range(nside - 1))]
     )
+
+
+def healpix_ifft_torch(
+    ftm: torch.tensor, L: int, nside: int, reality: bool
+) -> torch.tensor:
+    """Computes the Inverse Fast Fourier Transform with spectral folding in the polar
+    regions to mitigate aliasing. Torch specific implementation of
+    :func:`~healpix_ifft_numpy`.
+
+    Args:
+        ftm (torch.tensor): Array of Fourier coefficients for all latitudes.
+
+        L (int): Harmonic band-limit.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
+    Returns:
+        torch.tensor: HEALPix pixel-space array.
+    """
+    f = torch.zeros(
+        samples.f_shape(sampling="healpix", nside=nside), dtype=torch.complex128
+    )
+    ntheta = ftm.shape[0]
+    index = 0
+    for t in range(ntheta):
+        nphi = samples.nphi_ring(t, nside)
+        fm_chunk = ftm[t] if nphi == 2 * L else spectral_folding_torch(ftm[t], nphi, L)
+        if reality and nphi == 2 * L:
+            f[index : index + nphi] = torch.fft.irfft(
+                fm_chunk[nphi // 2 :], nphi, norm="forward"
+            )
+        else:
+            f[index : index + nphi] = torch.fft.ifft(
+                torch.fft.ifftshift(fm_chunk), norm="forward"
+            )
+        index += nphi
+    return f
 
 
 def p2phi_rings(t: np.ndarray, nside: int) -> np.ndarray:

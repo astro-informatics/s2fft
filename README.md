@@ -22,6 +22,10 @@ for adjoint transformations where needed, and comes with different
 optimisations (precompute or not) that one may select depending on
 available resources and desired angular resolution $L$.
 
+As of version 1.0.2 `S2FFT` also provides PyTorch implementations of underlying 
+precompute transforms. In future releases this support will be extended to our 
+on-the-fly algorithms.
+
 ## Algorithms :zap:
 
 `S2FFT` leverages new algorithmic structures that can he highly
@@ -122,6 +126,9 @@ f = fft.wigner.inverse_jax(flmn, L, N)
 ```
 
 For further details on usage see the [documentation](https://astro-informatics.github.io/s2fft/) and associated [notebooks](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/spherical_harmonic_transform.html).
+
+> [!NOTE]  
+> We also provide PyTorch support for the precompute version of our transforms. These are called through forward/inverse_torch(). Full PyTorch support will be provided in future releases.
 
 ## Benchmarking :hourglass_flowing_sand:
 
