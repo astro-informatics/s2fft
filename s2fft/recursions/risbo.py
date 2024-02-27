@@ -5,7 +5,7 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
     r"""Compute Wigner-d at argument :math:`\beta` for full plane using
     Risbo recursion.
 
-    The Wigner-d plane is computed by recursion over :math:`\ell` (`el`).
+    The Wigner-d plane is computed by recursion over :math:`\ell`.
     Thus, for :math:`\ell > 0` the plane must be computed already for
     :math:`\ell - 1`. At present, for :math:`\ell = 0` the recusion is initialised.
 
@@ -19,7 +19,7 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
         el (int): Spherical harmonic degree :math:`\ell`.
 
     Returns:
-        np.ndarray: Plane of Wigner-d for `el` and `beta`, with full plane computed.
+        np.ndarray: Plane of Wigner-d for :math:`\ell` and :math:`\beta`, with full plane computed.
     """
 
     _arg_checks(dl, beta, L, el)
@@ -103,7 +103,7 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
 
 
 def _arg_checks(dl: np.ndarray, beta: float, L: int, el: int):
-    """Check arguments of Risbo functions.
+    r"""Check arguments of Risbo functions.
 
     Args:
         dl (np.ndarray): Wigner-d plane of which to check shape.
