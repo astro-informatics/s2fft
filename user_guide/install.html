@@ -514,11 +514,16 @@ locally execute the unit testing. Alternately, one may simply install the packag
 from PyPi, an online python package manager.</p>
 <section id="quick-install-pypi">
 <h2>Quick install (PyPi)<a class="headerlink" href="#quick-install-pypi" title="Link to this heading">#</a></h2>
-<p>The simplest way to pick up <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is to install it directly from PyPi by running</p>
+<p>The simplest way to pick up <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is to install the core JAX functionality directly
+from PyPi by running</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>s2fft
 </pre></div>
 </div>
-<p>after which <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> may be imported and run as outlined in the associated notebooks and collab tutorials.</p>
+<p>after which <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> may be imported and run as outlined in the associated notebooks and collab tutorials.
+To install the PyTorch functionality you will need to install the subpackage by running</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>s2fft<span class="o">[</span>torch<span class="o">]</span>
+</pre></div>
+</div>
 </section>
 <section id="install-from-source-github">
 <h2>Install from source (GitHub)<a class="headerlink" href="#install-from-source-github" title="Link to this heading">#</a></h2>
@@ -534,8 +539,16 @@ and pip installing locally</p>
 pip<span class="w"> </span>install<span class="w"> </span>.
 </pre></div>
 </div>
-<p>from the root directory of the repository. Unit tests can then be executed to ensure the
-installation was successful by running</p>
+<p>from the root directory of the repository. To install the Pytorch support you will need to
+install the subpackage by running</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>torch<span class="o">]</span>
+</pre></div>
+</div>
+<p>which, depending on operating system, can sometimes be</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="se">\[</span>torch<span class="se">\]</span>
+</pre></div>
+</div>
+<p>Unit tests can then be executed to ensure the installation was successful by running</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>tests/
 </pre></div>
 </div>

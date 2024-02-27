@@ -11,13 +11,19 @@ from PyPi, an online python package manager.
 
 Quick install (PyPi)
 --------------------
-The simplest way to pick up ``S2FFT`` is to install it directly from PyPi by running 
+The simplest way to pick up ``S2FFT`` is to install the core JAX functionality directly 
+from PyPi by running 
 
 .. code-block:: bash
     
     pip install s2fft 
 
 after which ``S2FFT`` may be imported and run as outlined in the associated notebooks and collab tutorials.
+To install the PyTorch functionality you will need to install the subpackage by running 
+
+.. code-block:: bash
+    
+    pip install s2fft[torch]
 
 Install from source (GitHub)
 ----------------------------
@@ -38,8 +44,20 @@ and pip installing locally
     cd s2fft
     pip install .
 
-from the root directory of the repository. Unit tests can then be executed to ensure the 
-installation was successful by running 
+from the root directory of the repository. To install the Pytorch support you will need to 
+install the subpackage by running 
+
+.. code-block:: bash
+
+    pip install .[torch]
+
+which, depending on operating system, can sometimes be 
+
+.. code-block:: bash
+
+    pip install .\[torch\]
+    
+Unit tests can then be executed to ensure the installation was successful by running 
 
 .. code-block:: bash 
 
