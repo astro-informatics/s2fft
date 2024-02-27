@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Wigner samples &#8212; S2FFT 1.0.2 documentation</title>
+    <title>resampling_torch &#8212; S2FFT 1.0.2 documentation</title>
   
   
   
@@ -51,11 +51,11 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'api/sampling/wigner_samples';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/utility/resampling_torch';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Wigner-d recursions" href="../recursions/index.html" />
-    <link rel="prev" title="Spherical samples" href="spherical_samples.html" />
+    <link rel="next" title="quadrature" href="quadrature.html" />
+    <link rel="prev" title="resampling_jax" href="resampling_jax.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -441,9 +441,9 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="../base_transforms/wigner_transform.html">Wigner Transform</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Sampling Functions</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="spherical_samples.html">Spherical samples</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Wigner samples</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../sampling/index.html">Sampling Functions</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../sampling/spherical_samples.html">Spherical samples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sampling/wigner_samples.html">Wigner samples</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../recursions/index.html">Wigner-d recursions</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-5"><i class="fa-solid fa-chevron-down"></i></label><ul>
@@ -454,18 +454,18 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="../recursions/turok_jax.html">Turok &amp; Bucher JAX</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../utility/index.html">Utility Functions</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../utility/signal_generator.html">signal generator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/resampling.html">resampling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/resampling_jax.html">resampling_jax</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/resampling_torch.html">resampling_torch</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/quadrature.html">quadrature</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/quadrature_jax.html">quadrature_jax</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/quadrature_torch.html">quadrature_torch</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/healpix_ffts.html">healpix functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/utils.html">utils</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/rotation.html">rotations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/logs.html">logs</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Utility Functions</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="signal_generator.html">signal generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resampling.html">resampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resampling_jax.html">resampling_jax</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">resampling_torch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quadrature.html">quadrature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quadrature_jax.html">quadrature_jax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quadrature_torch.html">quadrature_torch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="healpix_ffts.html">healpix functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rotation.html">rotations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logs.html">logs</a></li>
 </ul>
 </li>
 </ul>
@@ -509,9 +509,9 @@ document.write(`
     <li class="breadcrumb-item"><a href="../index.html" class="nav-link">API</a></li>
     
     
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Sampling Functions</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Utility Functions</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page">Wigner samples</li>
+    <li class="breadcrumb-item active" aria-current="page">resampling_torch</li>
   </ul>
 </nav>
 </div>
@@ -528,197 +528,238 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-s2fft.sampling.so3_samples">
-<span id="wigner-samples"></span><h1>Wigner samples<a class="headerlink" href="#module-s2fft.sampling.so3_samples" title="Link to this heading">#</a></h1>
+  <section id="module-s2fft.utils.resampling_torch">
+<span id="resampling-torch"></span><h1>resampling_torch<a class="headerlink" href="#module-s2fft.utils.resampling_torch" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="s2fft.sampling.so3_samples.elmn2ind">
-<span class="sig-prename descclassname"><span class="pre">s2fft.sampling.so3_samples.</span></span><span class="sig-name descname"><span class="pre">elmn2ind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#s2fft.sampling.so3_samples.elmn2ind" title="Link to this definition">#</a></dt>
-<dd><p>Convert from Wigner space 3D indexing of <span class="math notranslate nohighlight">\((\ell,m, n)\)</span> to 1D index.</p>
+<dt class="sig sig-object py" id="s2fft.utils.resampling_torch.mw_to_mwss">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_torch.</span></span><span class="sig-name descname"><span class="pre">mw_to_mwss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_mw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_torch.mw_to_mwss" title="Link to this definition">#</a></dt>
+<dd><p>Convert signal on the sphere from MW sampling to MWSS sampling.</p>
+<p>Conversion is performed by first performing a period extension in
+<span class="math notranslate nohighlight">\(\theta\)</span> to <span class="math notranslate nohighlight">\(2\pi\)</span>, followed by zero padding in harmonic space.  The
+resulting signal is then unextend back to the <span class="math notranslate nohighlight">\(\theta\)</span> domain of
+<span class="math notranslate nohighlight">\([0,\pi]\)</span>.  Second, zero padding in harmonic space corresponding to
+<span class="math notranslate nohighlight">\(\phi\)</span> is performed.</p>
+<p>Torch implementation of <code class="xref py py-func docutils literal notranslate"><span class="pre">mw_to_mwss()</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>el</strong> (<em>int</em>) – Harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
-<li><p><strong>m</strong> (<em>int</em>) – Harmonic order <span class="math notranslate nohighlight">\(m\)</span>.</p></li>
-<li><p><strong>n</strong> (<em>int</em>) – Directional order <span class="math notranslate nohighlight">\(n\)</span>.</p></li>
+<li><p><strong>f_mw</strong> (<em>torch.tensor</em>) – Signal on the sphere sampled with MW sampling.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>N</strong> (<em>int</em><em>, </em><em>optional</em>) – Directional band-limit. Defaults to 1.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Corresponding 1D index in Wigner space.</p>
+<dd class="field-even"><p>Signal on the sphere sampled with MWSS sampling.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
+<dd class="field-odd"><p>torch.tensor</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="s2fft.sampling.so3_samples.f_shape">
-<span class="sig-prename descclassname"><span class="pre">s2fft.sampling.so3_samples.</span></span><span class="sig-name descname"><span class="pre">f_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#s2fft.sampling.so3_samples.f_shape" title="Link to this definition">#</a></dt>
-<dd><p>Computes the pixel-space sampling shape for signal on the rotation group
-<span class="math notranslate nohighlight">\(SO(3)\)</span>.</p>
+<dt class="sig sig-object py" id="s2fft.utils.resampling_torch.mw_to_mwss_phi">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_torch.</span></span><span class="sig-name descname"><span class="pre">mw_to_mwss_phi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_mw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_torch.mw_to_mwss_phi" title="Link to this definition">#</a></dt>
+<dd><p>Convert <span class="math notranslate nohighlight">\(\phi\)</span> component of signal on the sphere from MW sampling to
+MWSS sampling.</p>
+<p>Conversion is performed by zero padding in harmonic space.</p>
+<p>Torch implementation of <code class="xref py py-func docutils literal notranslate"><span class="pre">mw_to_mwss_phi()</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Importantly, the convention adopted for storage of f is <span class="math notranslate nohighlight">\([\beta, \alpha,
-\gamma]\)</span>, for Euler angles <span class="math notranslate nohighlight">\((\alpha, \beta, \gamma)\)</span> following the
-<span class="math notranslate nohighlight">\(zyz\)</span> Euler convention, in order to simplify indexing for internal use.
-For a given <span class="math notranslate nohighlight">\(\gamma\)</span> we thus recover a signal on the sphere indexed by
-<span class="math notranslate nohighlight">\([\theta, \phi]\)</span>, i.e. we associate <span class="math notranslate nohighlight">\(\beta\)</span> with <span class="math notranslate nohighlight">\(\theta\)</span> and
-<span class="math notranslate nohighlight">\(\alpha\)</span> with <span class="math notranslate nohighlight">\(\phi\)</span>.</p>
+<p>Can work with arbitrary number of <span class="math notranslate nohighlight">\(\theta\)</span> samples.  Hence, to convert
+both <span class="math notranslate nohighlight">\((\theta,\phi)\)</span> sampling to MWSS, can use <a class="reference internal" href="#s2fft.utils.resampling_torch.mw_to_mwss_theta" title="s2fft.utils.resampling_torch.mw_to_mwss_theta"><code class="xref py py-func docutils literal notranslate"><span class="pre">mw_to_mwss_theta()</span></code></a>
+to first convert <span class="math notranslate nohighlight">\(\theta\)</span> sampling before using this function to convert
+the <span class="math notranslate nohighlight">\(\phi\)</span> sampling.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>f_mw</strong> (<em>torch.tensor</em>) – Signal on the sphere sampled with MW sampling in
+<span class="math notranslate nohighlight">\(\phi\)</span> and arbitrary number of samples in</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>N</strong> (<em>int</em>) – Directional band-limit.</p></li>
-<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
-{“mw”, “mwss”, “dh”}.  Defaults to “mw”.</p></li>
-<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
-if sampling=”healpix”.  Defaults to None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – Unknown sampling scheme.</p>
+<dd class="field-even"><p><strong>ValueError</strong> – Input spherical signal must have number of samples in <span class="math notranslate nohighlight">\(\phi\)</span>
+    matching MW sampling.</p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Shape of pixel-space sampling of rotation group
-<span class="math notranslate nohighlight">\(SO(3)\)</span>.</p>
+<dd class="field-odd"><p>Signal on the sphere with MWSS sampling in <span class="math notranslate nohighlight">\(\phi\)</span> and
+sampling in <span class="math notranslate nohighlight">\(\theta\)</span> of the input signal.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Tuple[int,int,int]</p>
+<dd class="field-even"><p>torch.tensor</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="s2fft.sampling.so3_samples.flmn_1d_to_3d">
-<span class="sig-prename descclassname"><span class="pre">s2fft.sampling.so3_samples.</span></span><span class="sig-name descname"><span class="pre">flmn_1d_to_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flmn_1d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.sampling.so3_samples.flmn_1d_to_3d" title="Link to this definition">#</a></dt>
-<dd><p>Convert from 1D indexed Wigner coefficients to 3D indexed coefficients.</p>
+<dt class="sig sig-object py" id="s2fft.utils.resampling_torch.mw_to_mwss_theta">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_torch.</span></span><span class="sig-name descname"><span class="pre">mw_to_mwss_theta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_mw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_torch.mw_to_mwss_theta" title="Link to this definition">#</a></dt>
+<dd><p>Convert <span class="math notranslate nohighlight">\(\theta\)</span> component of signal on the sphere from MW sampling to
+MWSS sampling.</p>
+<p>Conversion is performed by first performing a period extension in
+<span class="math notranslate nohighlight">\(\theta\)</span> to <span class="math notranslate nohighlight">\(2\pi\)</span>, followed by zero padding in harmonic space.  The
+resulting signal is then unextend back to the <span class="math notranslate nohighlight">\(\theta\)</span> domain of
+<span class="math notranslate nohighlight">\([0,\pi]\)</span>.</p>
+<p>Torch implementation of <code class="xref py py-func docutils literal notranslate"><span class="pre">mw_to_mwss_theta()</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>flm_1d</strong> (<em>np.ndarray</em>) – 1D indexed Wigner coefficients, C flatten index priority
-<span class="math notranslate nohighlight">\(n, \ell, m\)</span>.</p></li>
+<li><p><strong>f_mw</strong> (<em>torch.tensor</em>) – Signal on the sphere sampled with MW sampling.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>N</strong> (<em>int</em>) – Directional band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Input spherical signal must have shape matching MW sampling.</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Signal on the sphere with MWSS sampling in <span class="math notranslate nohighlight">\(\theta\)</span> and MW
+sampling in <span class="math notranslate nohighlight">\(\phi\)</span>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.resampling_torch.periodic_extension">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_torch.</span></span><span class="sig-name descname"><span class="pre">periodic_extension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_torch.periodic_extension" title="Link to this definition">#</a></dt>
+<dd><p>Perform period extension of MW/MWSS signal on the sphere in harmonic
+domain, extending <span class="math notranslate nohighlight">\(\theta\)</span> domain from <span class="math notranslate nohighlight">\([0,\pi]\)</span> to <span class="math notranslate nohighlight">\([0,2\pi]\)</span>.
+Torch implementation of <code class="xref py py-func docutils literal notranslate"><span class="pre">periodic_extension()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>torch.tensor</em>) – Signal on the sphere sampled with MW/MWSS sampling scheme.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”}.  Defaults to “mw”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Only MW/MWW sampling schemes supported.</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Signal on the sphere extended to <span class="math notranslate nohighlight">\(\theta\)</span> domain
+<span class="math notranslate nohighlight">\([0,2\pi]\)</span>, in same scheme (MW/MWSS) as input.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.resampling_torch.periodic_extension_spatial_mwss">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_torch.</span></span><span class="sig-name descname"><span class="pre">periodic_extension_spatial_mwss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_torch.periodic_extension_spatial_mwss" title="Link to this definition">#</a></dt>
+<dd><p>Perform period extension of MWSS signal on the sphere in spatial domain,
+extending <span class="math notranslate nohighlight">\(\theta\)</span> domain from <span class="math notranslate nohighlight">\([0,\pi]\)</span> to <span class="math notranslate nohighlight">\([0,2\pi]\)</span>.</p>
+<p>For the MWSS sampling scheme, it is possible to do the period extension in
+<span class="math notranslate nohighlight">\(\theta\)</span> in the spatial domain.  This is not possible for the MW sampling
+scheme.</p>
+<p>Torch implementation of <code class="xref py py-func docutils literal notranslate"><span class="pre">periodic_extension_spatial_mwss()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>torch.tensor</em>) – Signal on the sphere sampled with MWSS sampling scheme.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Signal on the sphere extended to <span class="math notranslate nohighlight">\(\theta\)</span> domain
+<span class="math notranslate nohighlight">\([0,2\pi]\)</span>, in MWSS sampling scheme.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.resampling_torch.unextend">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_torch.</span></span><span class="sig-name descname"><span class="pre">unextend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_ext</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_torch.unextend" title="Link to this definition">#</a></dt>
+<dd><p>Unextend MW/MWSS sampled signal from <span class="math notranslate nohighlight">\(\theta\)</span> domain
+<span class="math notranslate nohighlight">\([0,2\pi]\)</span> to <span class="math notranslate nohighlight">\([0,\pi]\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f_ext</strong> (<em>torch.tensor</em>) – Signal on the sphere sampled on extended <span class="math notranslate nohighlight">\(\theta\)</span>
+domain <span class="math notranslate nohighlight">\([0,2\pi]\)</span>.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”}.  Defaults to “mw”.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>ValueError</strong> – <cite>flmn</cite> is already 3D indexed.</p></li>
-<li><p><strong>ValueError</strong> – <cite>flmn</cite> is not 1D.</p></li>
+<li><p><strong>ValueError</strong> – Only MW/MWW sampling schemes supported.</p></li>
+<li><p><strong>ValueError</strong> – Period extension must have correct shape.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>3D indexed Wigner coefficients, index order <span class="math notranslate nohighlight">\([\ell, m, n]\)</span>.</p>
+<dd class="field-odd"><p>Signal on the sphere sampled on <span class="math notranslate nohighlight">\(\theta\)</span> domain
+<span class="math notranslate nohighlight">\([0,\pi]\)</span>.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>np.ndarray</p>
+<dd class="field-even"><p>torch.tensor</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="s2fft.sampling.so3_samples.flmn_3d_to_1d">
-<span class="sig-prename descclassname"><span class="pre">s2fft.sampling.so3_samples.</span></span><span class="sig-name descname"><span class="pre">flmn_3d_to_1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flmn_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.sampling.so3_samples.flmn_3d_to_1d" title="Link to this definition">#</a></dt>
-<dd><p>Convert from 3D indexed Wigner coefficients to 1D indexed coefficients.</p>
+<dt class="sig sig-object py" id="s2fft.utils.resampling_torch.upsample_by_two_mwss">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_torch.</span></span><span class="sig-name descname"><span class="pre">upsample_by_two_mwss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_torch.upsample_by_two_mwss" title="Link to this definition">#</a></dt>
+<dd><p>Upsample MWSS sampled signal on the sphere defined on domain <span class="math notranslate nohighlight">\([0,\pi]\)</span>
+by a factor of two.</p>
+<p>Upsampling is performed by a periodic extension in <span class="math notranslate nohighlight">\(\theta\)</span> to
+<span class="math notranslate nohighlight">\([0,2\pi]\)</span>, followed by zero-padding in harmonic space, followed by
+unextending <span class="math notranslate nohighlight">\(\theta\)</span> domain back to <span class="math notranslate nohighlight">\([0,\pi]\)</span>.</p>
+<p>Torch implementation of <code class="xref py py-func docutils literal notranslate"><span class="pre">upsample_by_two_mwss()</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>flm_3d</strong> (<em>np.ndarray</em>) – 3D indexed Wigner coefficients, index order
-<span class="math notranslate nohighlight">\([\ell, m, n]\)</span>.</p></li>
+<li><p><strong>f</strong> (<em>torch.tensor</em>) – Signal on the sphere sampled with MWSS sampling scheme, sampled
+at resolution L.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>N</strong> (<em>int</em><em>, </em><em>optional</em>) – Directional band-limit.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>ValueError</strong> – <cite>flmn</cite> is already 1D indexed.</p></li>
-<li><p><strong>ValueError</strong> – <cite>flmn</cite> is not 3D.</p></li>
-</ul>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>1D indexed Wigner coefficients, C flatten index priority <span class="math notranslate nohighlight">\(n, \ell, m\)</span>.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.sampling.so3_samples.flmn_shape">
-<span class="sig-prename descclassname"><span class="pre">s2fft.sampling.so3_samples.</span></span><span class="sig-name descname"><span class="pre">flmn_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#s2fft.sampling.so3_samples.flmn_shape" title="Link to this definition">#</a></dt>
-<dd><p>Computes the shape of Wigner coefficients for signal on the rotation group
-<span class="math notranslate nohighlight">\(SO(3)\)</span>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>N</strong> (<em>int</em>) – Directional band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>Shape of Wigner space sampling of rotation group</dt><dd><p><span class="math notranslate nohighlight">\(SO(3)\)</span>.</p>
-</dd>
-</dl>
-</p>
+<dd class="field-even"><p>Signal on the sphere sampled with MWSS sampling scheme, sampling at
+resolution 2*L.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple[int,int,int]</p>
+<dd class="field-odd"><p>torch.tensor</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="s2fft.sampling.so3_samples.flmn_shape_1d">
-<span class="sig-prename descclassname"><span class="pre">s2fft.sampling.so3_samples.</span></span><span class="sig-name descname"><span class="pre">flmn_shape_1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#s2fft.sampling.so3_samples.flmn_shape_1d" title="Link to this definition">#</a></dt>
-<dd><p>Computes the number of non-zero Wigner coefficients.</p>
+<dt class="sig sig-object py" id="s2fft.utils.resampling_torch.upsample_by_two_mwss_ext">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.resampling_torch.</span></span><span class="sig-name descname"><span class="pre">upsample_by_two_mwss_ext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_ext</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.utils.resampling_torch.upsample_by_two_mwss_ext" title="Link to this definition">#</a></dt>
+<dd><p>Upsample an extended MWSS sampled signal on the sphere defined on domain
+<span class="math notranslate nohighlight">\([0,2\pi]\)</span> by a factor of two.</p>
+<p>Upsampling is performed by zero-padding in harmonic space. Torch implementation of
+<code class="xref py py-func docutils literal notranslate"><span class="pre">upsample_by_two_mwss_ext()</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>f_ext</strong> (<em>torch.tensor</em>) – Signal on the sphere sampled on extended MWSS sampling
+scheme on domain <span class="math notranslate nohighlight">\([0,2\pi]\)</span>, sampled at resolution L.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>N</strong> (<em>int</em>) – Directional band-limit.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Total number of non-zero Wigner coefficients.</p>
+<dd class="field-even"><p>Signal on the sphere sampled on extended MWSS sampling scheme on
+domain <span class="math notranslate nohighlight">\([0,2\pi]\)</span>, sampling at resolution 2*L.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.sampling.so3_samples.fnab_shape">
-<span class="sig-prename descclassname"><span class="pre">s2fft.sampling.so3_samples.</span></span><span class="sig-name descname"><span class="pre">fnab_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#s2fft.sampling.so3_samples.fnab_shape" title="Link to this definition">#</a></dt>
-<dd><p>Computes the shape of Wigner coefficients for signal on the rotation group
-<span class="math notranslate nohighlight">\(SO(3)\)</span>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>N</strong> (<em>int</em>) – Directional band-limit.</p></li>
-<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
-{“mw”, “mwss”, “dh”}.  Defaults to “mw”.</p></li>
-<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – Unknown sampling scheme.</p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><dl class="simple">
-<dt>Shape of Wigner space sampling of rotation group</dt><dd><p><span class="math notranslate nohighlight">\(SO(3)\)</span>.</p>
-</dd>
-</dl>
-</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Tuple[int,int,int]</p>
+<dd class="field-odd"><p>torch.tensor</p>
 </dd>
 </dl>
 </dd></dl>
@@ -736,20 +777,20 @@ if sampling=”healpix”.  Defaults to None.</p></li>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="spherical_samples.html"
+       href="resampling_jax.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Spherical samples</p>
+        <p class="prev-next-title">resampling_jax</p>
       </div>
     </a>
     <a class="right-next"
-       href="../recursions/index.html"
+       href="quadrature.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Wigner-d recursions</p>
+        <p class="prev-next-title">quadrature</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

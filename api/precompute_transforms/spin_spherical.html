@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Spherical Harmonic Transform &#8212; S2FFT 1.0.1 documentation</title>
+    <title>Spherical Harmonic Transform &#8212; S2FFT 1.0.2 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
 
     <script src="../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../../_static/documentation_options.js?v=292eb321"></script>
+    <script src="../../_static/documentation_options.js?v=1ed6394b"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -136,8 +136,8 @@
       
     
     
-    <img src="../../_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.0.1 documentation - Home"/>
-    <script>document.write(`<img src="../../_static/sax_logo.png" class="logo__image only-dark" alt="S2FFT 1.0.1 documentation - Home"/>`);</script>
+    <img src="../../_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.0.2 documentation - Home"/>
+    <script>document.write(`<img src="../../_static/sax_logo.png" class="logo__image only-dark" alt="S2FFT 1.0.2 documentation - Home"/>`);</script>
   
   
 </a></div>
@@ -219,6 +219,17 @@ document.write(`
           
           
           <a href="https://arxiv.org/abs/2311.14670" title="ArXiv" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="../../_static/arxiv-logomark-small.png" class="icon-link-image" alt="ArXiv"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/s2fft/" title="PyPi" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="../../_static/pypi.png" class="icon-link-image" alt="PyPi"/></a>
         </li>
         <li class="nav-item">
           
@@ -362,6 +373,17 @@ document.write(`
           
           
           
+          <a href="https://pypi.org/project/s2fft/" title="PyPi" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="../../_static/pypi.png" class="icon-link-image" alt="PyPi"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
           <a href="https://github.com/astro-informatics/s2fft/" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-github fa-2x fa-lg" aria-hidden="true"></i></span>
             <span class="sr-only">GitHub</span></a>
         </li>
@@ -434,8 +456,10 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="../utility/signal_generator.html">signal generator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utility/resampling.html">resampling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utility/resampling_jax.html">resampling_jax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utility/resampling_torch.html">resampling_torch</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utility/quadrature.html">quadrature</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utility/quadrature_jax.html">quadrature_jax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utility/quadrature_torch.html">quadrature_torch</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utility/healpix_ffts.html">healpix functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utility/utils.html">utils</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utility/rotation.html">rotations</a></li>
@@ -520,7 +544,8 @@ document.write(`
 <li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
 conjugate symmetry is exploited to reduce computational costs.
 Defaults to False.</p></li>
-<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”}. Defaults to “jax”.</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”, “torch”}.
+Defaults to “jax”.</p></li>
 <li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.  Only required
 if sampling=”healpix”.</p></li>
 </ul>
@@ -599,6 +624,35 @@ if sampling=”healpix”.</p></li>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="s2fft.precompute_transforms.spherical.forward_transform_torch">
+<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.spherical.</span></span><span class="sig-name descname"><span class="pre">forward_transform_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.spherical.forward_transform_torch" title="Link to this definition">#</a></dt>
+<dd><p>Compute the forward spherical harmonic tranclearsform via precompute (vectorized
+implementation).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>torch.tensor</em>) – Signal on the sphere.</p></li>
+<li><p><strong>kernel</strong> (<em>torch.tensor</em>) – Wigner-d kernel.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “healpix”}.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.</p></li>
+<li><p><strong>spin</strong> (<em>int</em>) – Harmonic spin.</p></li>
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.  Only required
+if sampling=”healpix”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pixel-space coefficients.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="s2fft.precompute_transforms.spherical.inverse">
 <span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.spherical.</span></span><span class="sig-name descname"><span class="pre">inverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'jax'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.spherical.inverse" title="Link to this definition">#</a></dt>
 <dd><p>Compute the inverse spherical harmonic transform via precompute.</p>
@@ -614,7 +668,8 @@ if sampling=”healpix”.</p></li>
 <li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
 conjugate symmetry is exploited to reduce computational costs.
 Defaults to False.</p></li>
-<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”}. Defaults to “jax”.</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”, “torch”}.
+Defaults to “jax”.</p></li>
 <li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.  Only required
 if sampling=”healpix”.</p></li>
 </ul>
@@ -688,6 +743,35 @@ if sampling=”healpix”.</p></li>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.precompute_transforms.spherical.inverse_transform_torch">
+<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.spherical.</span></span><span class="sig-name descname"><span class="pre">inverse_transform_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.spherical.inverse_transform_torch" title="Link to this definition">#</a></dt>
+<dd><p>Compute the inverse spherical harmonic transform via precompute (Torch
+implementation).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>flm</strong> (<em>torch.tensor</em>) – Spherical harmonic coefficients.</p></li>
+<li><p><strong>kernel</strong> (<em>torch.tensor</em>) – Wigner-d kernel.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “healpix”}.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.</p></li>
+<li><p><strong>spin</strong> (<em>int</em>) – Harmonic spin.</p></li>
+<li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.  Only required
+if sampling=”healpix”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pixel-space coefficients with shape.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
 </dd>
 </dl>
 </dd></dl>

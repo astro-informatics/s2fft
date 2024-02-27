@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Differentiable and accelerated spherical transforms &#8212; S2FFT 1.0.1 documentation</title>
+    <title>Differentiable and accelerated spherical transforms &#8212; S2FFT 1.0.2 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
 
     <script src="_static/jquery.js?v=5d32c60e"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="_static/documentation_options.js?v=292eb321"></script>
+    <script src="_static/documentation_options.js?v=1ed6394b"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -137,8 +137,8 @@
       
     
     
-    <img src="_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.0.1 documentation - Home"/>
-    <script>document.write(`<img src="_static/sax_logo.png" class="logo__image only-dark" alt="S2FFT 1.0.1 documentation - Home"/>`);</script>
+    <img src="_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.0.2 documentation - Home"/>
+    <script>document.write(`<img src="_static/sax_logo.png" class="logo__image only-dark" alt="S2FFT 1.0.2 documentation - Home"/>`);</script>
   
   
 </a></div>
@@ -220,6 +220,17 @@ document.write(`
           
           
           <a href="https://arxiv.org/abs/2311.14670" title="ArXiv" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="_static/arxiv-logomark-small.png" class="icon-link-image" alt="ArXiv"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/s2fft/" title="PyPi" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="_static/pypi.png" class="icon-link-image" alt="PyPi"/></a>
         </li>
         <li class="nav-item">
           
@@ -369,6 +380,17 @@ document.write(`
           
           
           
+          <a href="https://pypi.org/project/s2fft/" title="PyPi" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="_static/pypi.png" class="icon-link-image" alt="PyPi"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
           <a href="https://github.com/astro-informatics/s2fft/" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-github fa-2x fa-lg" aria-hidden="true"></i></span>
             <span class="sr-only">GitHub</span></a>
         </li>
@@ -432,6 +454,9 @@ deployable on modern hardware accelerators (e.g. GPUs and TPUs).</p>
 transforms (for both real and complex signals), with support for adjoint transformations
 where needed, and comes with different optimisations (precompute or not) that one
 may select depending on available resources and desired angular resolution <span class="math notranslate nohighlight">\(L\)</span>.</p>
+<p>As of version 1.0.2 <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> also provides PyTorch implementations of underlying
+precompute transforms. In future releases this support will be extended to our
+on-the-fly algorithms.</p>
 <section id="algorithms-zap">
 <h2>Algorithms ⚡<a class="headerlink" href="#algorithms-zap" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> leverages new algorithmic structures that can he highly parallelised and
