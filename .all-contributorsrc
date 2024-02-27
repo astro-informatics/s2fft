@@ -75,6 +75,24 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "kmulderdas",
+      "name": "Kevin Mulder",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33317219?v=4",
+      "profile": "https://github.com/kmulderdas",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "PhilippMisofCH",
+      "name": "Philipp Misof",
+      "avatar_url": "https://avatars.githubusercontent.com/u/142883157?v=4",
+      "profile": "https://github.com/PhilippMisofCH",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,

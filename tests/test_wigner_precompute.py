@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+
 import torch
 from s2fft.precompute_transforms.wigner import inverse, forward
 from s2fft.precompute_transforms.construct import wigner_kernel
