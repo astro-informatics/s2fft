@@ -1,7 +1,9 @@
 import numpy as np
 import healpy as hp
 import pytest
-from jax import config
+import jax
+
+jax.config.update("jax_enable_x64", True)
 from s2fft.sampling import s2_samples as samples
 from s2fft.utils.healpix_ffts import (
     healpix_fft_jax,
@@ -9,9 +11,6 @@ from s2fft.utils.healpix_ffts import (
     healpix_ifft_jax,
     healpix_ifft_numpy,
 )
-
-
-config.update("jax_enable_x64", True)
 
 
 nside_to_test = [4, 5]

@@ -37,7 +37,7 @@ def rotate_flms(
     dl = (
         dl_array
         if dl_array != None
-        else jnp.zeros((2 * L - 1, 2 * L - 1)).astype(jnp.complex128)
+        else jnp.zeros((2 * L - 1, 2 * L - 1)).astype(jnp.float64)
     )
 
     # Perform rotation

@@ -296,7 +296,7 @@ def inverse_jax(
         ftm = ftm.at[:, m_start_ind + m_offset :].multiply(phase_shifts)
 
     # Perform longitundal Fast Fourier Transforms
-    ftm *= (-1) ** spin
+    ftm *= (-1) ** jnp.abs(spin)
     if reality:
         ftm = ftm.at[:, m_offset : L - 1 + m_offset].set(
             jnp.flip(jnp.conj(ftm[:, L - 1 + m_offset + 1 :]), axis=-1)
@@ -657,4 +657,4 @@ def forward_jax(
     indices = jnp.repeat(jnp.expand_dims(jnp.arange(L), -1), 2 * L - 1, axis=-1)
     flm = jnp.where(indices < abs(spin), jnp.zeros_like(flm), flm[..., :])
 
-    return flm * (-1) ** spin
+    return flm * (-1) ** jnp.abs(spin)
