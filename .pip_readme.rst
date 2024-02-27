@@ -13,11 +13,11 @@
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
     :target: https://colab.research.google.com/drive/1YmJ2ljsF8HBvhPmD4hrYPlyAKc4WPUgq?usp=sharing
 
-Differentiable and accelerated spherical transforms with JAX
+Differentiable and accelerated spherical transforms
 =================================================================================================================
 
-`S2FFT` is a JAX package for computing Fourier transforms on the sphere
-and rotation group. It leverages autodiff to provide differentiable
+`S2FFT` is a Python package for computing Fourier transforms on the sphere
+and rotation group in JAX and PyTorch. It leverages autodiff to provide differentiable
 transforms, which are also deployable on hardware accelerators
 (e.g. GPUs and TPUs).
 

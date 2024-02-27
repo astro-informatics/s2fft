@@ -9,12 +9,12 @@
 
 <img align="left" height="85" width="98" src="./docs/assets/sax_logo.png">
 
-# Differentiable and accelerated spherical transforms with JAX
+# Differentiable and accelerated spherical transforms
 
-`S2FFT` is a JAX package for computing Fourier transforms on the sphere
-and rotation group [(Price & McEwen 2023)](https://arxiv.org/abs/2311.14670). It leverages autodiff to provide differentiable
-transforms, which are also deployable on hardware accelerators
-(e.g. GPUs and TPUs).
+`S2FFT` is a Python package for computing Fourier transforms on the sphere
+and rotation group [(Price & McEwen 2023)](https://arxiv.org/abs/2311.14670) Using 
+JAX or PyTorch. It leverages autodiff to provide differentiable transforms, which are 
+also deployable on hardware accelerators (e.g. GPUs and TPUs).
 
 More specifically, `S2FFT` provides support for spin spherical harmonic
 and Wigner transforms (for both real and complex signals), with support
@@ -84,20 +84,32 @@ The Python dependencies for the `S2FFT` package are listed in the file
 into the active python environment by [pip](https://pypi.org) when running
 
 ``` bash
+pip install s2fft
+```
+This will install all core functionality which includes JAX support. To install `S2FFT` 
+with PyTorch support run the following 
+
+``` bash
+pip install s2fft[torch]
+```
+
+Alternatively, the `S2FFT` package may be installed directly from GitHub by cloning this 
+repository and then running 
+
+``` bash
 pip install .        
 ```
 
-from the root directory of the repository. Unit tests can then be
-executed to ensure the installation was successful by running
+from the root directory of the repository. To enable PyTorch support you will need to run 
+
+``` bash
+pip install .[torch]     
+```
+
+Unit tests can then be executed to ensure the installation was successful by running
 
 ``` bash
 pytest tests/  
-```
-
-Alternatively, the `S2FFT` package may be installed directly from PyPi by running 
-
-``` bash
-pip install s2fft
 ```
 
 > [!NOTE]  
