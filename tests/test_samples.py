@@ -9,7 +9,7 @@ nside_to_test = [16, 32]
 
 
 @pytest.mark.parametrize("L", [15, 16])
-@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "gl"])
 def test_samples_n_and_angles(L: int, sampling: str):
     # Test ntheta and nphi
     ntheta = samples.ntheta(L, sampling)
@@ -18,8 +18,11 @@ def test_samples_n_and_angles(L: int, sampling: str):
     assert (ntheta, nphi) == pytest.approx((ntheta_ssht, nphi_ssht))
 
     # Test thetas and phis
-    t = np.arange(0, ntheta)
-    thetas = samples.t2theta(t, L, sampling)
+    if sampling.lower() == "gl":
+        thetas = samples.thetas(L, sampling)
+    else:
+        t = np.arange(0, ntheta)
+        thetas = samples.t2theta(t, L, sampling)
     p = np.arange(0, nphi)
     phis = samples.p2phi_equiang(L, p, sampling)
     thetas_ssht, phis_ssht = ssht.sample_positions(L, sampling.upper())

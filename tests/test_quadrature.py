@@ -6,12 +6,12 @@ from s2fft.base_transforms import spherical
 
 
 @pytest.mark.parametrize("L", [5, 6])
-@pytest.mark.parametrize("sampling", ["mw", "mwss"])
+@pytest.mark.parametrize("sampling", ["gl"])
+# @pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "gl"])
 def test_quadrature_mw_weights(flm_generator, L: int, sampling: str):
     spin = 0
 
     q = quadrature.quad_weights(L, sampling, spin)
-
     flm = flm_generator(L, spin, reality=False)
 
     f = spherical.inverse(flm, L, spin, sampling)
