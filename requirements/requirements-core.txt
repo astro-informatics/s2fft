@@ -4,3 +4,6 @@ colorlog
 pyyaml
 jax>=0.3.13
 jaxlib
+
+# Remove when subpackage functionality is fixed.
+torch 
