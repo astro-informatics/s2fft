@@ -259,7 +259,7 @@ def inverse_jax(
     def spherical_loop(n, args):
         fban, flmn, lrenorm, vsign, spins = args
         fban = fban.at[n].add(
-            (-1) ** spins[n]
+            (-1) ** jnp.abs(spins[n])
             * s2fft.inverse_jax(
                 flmn[n],
                 L,

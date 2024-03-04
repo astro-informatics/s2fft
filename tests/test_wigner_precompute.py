@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
-import s2fft
+
+import torch
 from s2fft.precompute_transforms.wigner import inverse, forward
 from s2fft.precompute_transforms.construct import wigner_kernel
 from s2fft.base_transforms import wigner as base
@@ -11,7 +12,7 @@ nside_to_test = [4, 6]
 L_to_nside_ratio = [2]
 reality_to_test = [False, True]
 sampling_schemes = ["mw", "mwss", "dh", "gl"]
-methods_to_test = ["numpy", "jax"]
+methods_to_test = ["numpy", "jax", "torch"]
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -32,9 +33,38 @@ def test_inverse_wigner_transform(
     f = base.inverse(flmn, L, N, 0, sampling, reality)
 
     kernel = wigner_kernel(L, N, reality, sampling, forward=False)
-    f_check = inverse(flmn, L, N, kernel, sampling, reality, method)
+    if method.lower() == "torch":
+        # Test Transform
+        f_check = inverse(
+            torch.from_numpy(flmn),
+            L,
+            N,
+            torch.from_numpy(kernel),
+            sampling,
+            reality,
+            method,
+        )
+        np.testing.assert_allclose(f, f_check, atol=1e-5, rtol=1e-5)
 
-    np.testing.assert_allclose(f, f_check, atol=1e-5, rtol=1e-5)
+        # Test Gradients
+        flmn_grad_test = torch.from_numpy(flmn)
+        flmn_grad_test.requires_grad = True
+        assert torch.autograd.gradcheck(
+            inverse,
+            (
+                flmn_grad_test,
+                L,
+                N,
+                torch.from_numpy(kernel),
+                sampling,
+                reality,
+                method,
+            ),
+        )
+
+    else:
+        f_check = inverse(flmn, L, N, kernel, sampling, reality, method)
+        np.testing.assert_allclose(f, f_check, atol=1e-5, rtol=1e-5)
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -56,8 +86,37 @@ def test_forward_wigner_transform(
     flmn = base.forward(f, L, N, sampling=sampling, reality=reality)
 
     kernel = wigner_kernel(L, N, reality, sampling, forward=True)
-    flmn_check = forward(f, L, N, kernel, sampling, reality, method)
-    np.testing.assert_allclose(flmn, flmn_check, atol=1e-5, rtol=1e-5)
+    if method.lower() == "torch":
+        # Test Transform
+        flmn_check = forward(
+            torch.from_numpy(f),
+            L,
+            N,
+            torch.from_numpy(kernel),
+            sampling,
+            reality,
+            method,
+        )
+        np.testing.assert_allclose(flmn, flmn_check, atol=1e-5, rtol=1e-5)
+
+        # Test Gradients
+        f_grad_test = torch.from_numpy(f)
+        f_grad_test.requires_grad = True
+        assert torch.autograd.gradcheck(
+            forward,
+            (
+                f_grad_test,
+                L,
+                N,
+                torch.from_numpy(kernel),
+                sampling,
+                reality,
+                method,
+            ),
+        )
+    else:
+        flmn_check = forward(f, L, N, kernel, sampling, reality, method)
+        np.testing.assert_allclose(flmn, flmn_check, atol=1e-5, rtol=1e-5)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -80,9 +139,41 @@ def test_inverse_wigner_transform_healpix(
     f = base.inverse(flmn, L, N, 0, sampling, reality, nside)
 
     kernel = wigner_kernel(L, N, reality, sampling, nside=nside, forward=False)
-    f_check = inverse(flmn, L, N, kernel, sampling, reality, method, nside)
 
-    np.testing.assert_allclose(np.real(f), np.real(f_check), atol=1e-5, rtol=1e-5)
+    if method.lower() == "torch":
+        # Test Transform
+        f_check = inverse(
+            torch.from_numpy(flmn),
+            L,
+            N,
+            torch.from_numpy(kernel),
+            sampling,
+            reality,
+            method,
+            nside,
+        )
+        np.testing.assert_allclose(np.real(f), np.real(f_check), atol=1e-5, rtol=1e-5)
+
+        # Test Gradients
+        flmn_grad_test = torch.from_numpy(flmn)
+        flmn_grad_test.requires_grad = True
+        assert torch.autograd.gradcheck(
+            inverse,
+            (
+                flmn_grad_test,
+                L,
+                N,
+                torch.from_numpy(kernel),
+                sampling,
+                reality,
+                method,
+                nside,
+            ),
+        )
+
+    else:
+        f_check = inverse(flmn, L, N, kernel, sampling, reality, method, nside)
+        np.testing.assert_allclose(f, f_check, atol=1e-5, rtol=1e-5)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -106,5 +197,37 @@ def test_forward_wigner_transform_healpix(
     flmn_check = base.forward(f, L, N, 0, sampling, reality, nside)
 
     kernel = wigner_kernel(L, N, reality, sampling, nside=nside, forward=True)
-    flmn_forward = forward(f, L, N, kernel, sampling, reality, method, nside)
-    np.testing.assert_allclose(flmn_forward, flmn_check, atol=1e-5, rtol=1e-5)
+    if method.lower() == "torch":
+        # Test Transform
+        flmn = forward(
+            torch.from_numpy(f),
+            L,
+            N,
+            torch.from_numpy(kernel),
+            sampling,
+            reality,
+            method,
+            nside,
+        )
+        np.testing.assert_allclose(flmn, flmn_check, atol=1e-5, rtol=1e-5)
+
+        # Test Gradients
+        f_grad_test = torch.from_numpy(f)
+        f_grad_test.requires_grad = True
+        assert torch.autograd.gradcheck(
+            forward,
+            (
+                f_grad_test,
+                L,
+                N,
+                torch.from_numpy(kernel),
+                sampling,
+                reality,
+                method,
+                nside,
+            ),
+        )
+
+    else:
+        flmn = forward(f, L, N, kernel, sampling, reality, method, nside)
+        np.testing.assert_allclose(flmn, flmn_check, atol=1e-5, rtol=1e-5)

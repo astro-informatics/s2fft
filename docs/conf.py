@@ -25,9 +25,9 @@ copyright = "2023, Matthew Price and Jason McEwen"
 author = "Matthew Price, Jason McEwen, Matthew Graham, Sofia Miñano, Devaraj Gopinathan"
 
 # The short X.Y version
-version = "1.0.1"
+version = "1.0.2"
 # The full version, including alpha/beta/rc tags
-release = "1.0.1"
+release = "1.0.2"
 
 
 # -- General configuration ---------------------------------------------------
@@ -112,12 +112,12 @@ html_theme_options = {
         #     "icon": "fa-brands fa-youtube fa-2x",
         #     "type": "fontawesome",
         # },
-        # {
-        #     "name": "PyPi",
-        #     "url": "https://github.com/astro-informatics/s2fft/",
-        #     "icon": "_static/pypi.png",
-        #     "type": "local",
-        # },
+        {
+            "name": "PyPi",
+            "url": "https://pypi.org/project/s2fft/",
+            "icon": "_static/pypi.png",
+            "type": "local",
+        },
         {
             "name": "GitHub",
             "url": "https://github.com/astro-informatics/s2fft/",

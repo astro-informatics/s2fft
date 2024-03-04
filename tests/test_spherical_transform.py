@@ -1,6 +1,6 @@
-from jax import config
+import jax
 
-config.update("jax_enable_x64", True)
+jax.config.update("jax_enable_x64", True)
 import pytest
 import pyssht as ssht
 import numpy as np
@@ -14,7 +14,7 @@ L_to_test = [6, 7]
 L_lower_to_test = [0, 2]
 spin_to_test = [-2, 0, 1]
 nside_to_test = [4, 5]
-sampling_to_test = ["mw", "mwss", "dh"]
+sampling_to_test = ["mw", "mwss", "dh", "gl"]
 method_to_test = ["numpy", "jax"]
 reality_to_test = [False, True]
 multiple_gpus = [False, True]

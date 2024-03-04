@@ -16,20 +16,28 @@ Utility Functions
      - Computes the Inverse Fast Fourier Transform with spectral folding in the polar regions to mitigate aliasing (NumPy).
    * - :func:`~s2fft.utils.healpix_ffts.healpix_ifft_jax`
      - Computes the Inverse Fast Fourier Transform with spectral folding in the polar regions to mitigate aliasing (JAX).
+   * - :func:`~s2fft.utils.healpix_ffts.healpix_ifft_torch`
+     - Computes the Inverse Fast Fourier Transform with spectral folding in the polar regions to mitigate aliasing (Torch).
    * - :func:`~s2fft.utils.healpix_ffts.healpix_fft`
      - Wrapper function for the Forward Fast Fourier Transform with spectral back-projection in the polar regions to manually enforce Fourier periodicity.
    * - :func:`~s2fft.utils.healpix_ffts.healpix_fft_numpy`
      - Computes the Forward Fast Fourier Transform with spectral back-projection in the polar regions (NumPy).
    * - :func:`~s2fft.utils.healpix_ffts.healpix_fft_jax`
-     - Computes the Forward Fast Fourier Transform with spectral back-projection in the polar regions (NumPy).
+     - Computes the Forward Fast Fourier Transform with spectral back-projection in the polar regions (JAX).
+   * - :func:`~s2fft.utils.healpix_ffts.healpix_fft_torch`
+     - Computes the Forward Fast Fourier Transform with spectral back-projection in the polar regions (Torch).
    * - :func:`~s2fft.utils.healpix_ffts.spectral_folding`
      - Folds higher frequency Fourier coefficients back onto lower frequency coefficients (NumPy).
    * - :func:`~s2fft.utils.healpix_ffts.spectral_folding_jax`
      - Folds higher frequency Fourier coefficients back onto lower frequency coefficients (JAX).
+   * - :func:`~s2fft.utils.healpix_ffts.spectral_folding_torch`
+     - Folds higher frequency Fourier coefficients back onto lower frequency coefficients (Torch).
    * - :func:`~s2fft.utils.healpix_ffts.spectral_periodic_extension`
      - Extends lower frequency Fourier coefficients onto higher frequency coefficients (NumPy).
    * - :func:`~s2fft.utils.healpix_ffts.spectral_periodic_extension_jax`
      - Extends lower frequency Fourier coefficients onto higher frequency coefficients (JAX).
+   * - :func:`~s2fft.utils.healpix_ffts.spectral_periodic_extension_torch`
+     - Extends lower frequency Fourier coefficients onto higher frequency coefficients (Torch).
    
 
 .. list-table:: Quadrature functions.
@@ -61,8 +69,9 @@ Utility Functions
 
 .. note::
 
-      JAX versions of these functions share an almost identical function trace and 
-      are simply accessed by the sub-module :func:`~s2fft.utils.quadrature_jax`.
+      JAX and Torch versions of these functions share an almost identical function trace and 
+      are simply accessed by the sub-modules :func:`~s2fft.utils.quadrature_jax` and 
+      :func:`~s2fft.utils.quadrature_torch` respectively.
 
 .. list-table:: Periodic resampling functions
    :widths: 25 25
@@ -102,8 +111,9 @@ Utility Functions
 
 .. note::
 
-      JAX versions of these functions share an almost identical function trace and 
-      are simply accessed by the sub-module :func:`~s2fft.utils.resampling_jax`.
+      JAX and Torch versions of these functions share an almost identical function trace and 
+      are simply accessed by the sub-modules :func:`~s2fft.utils.resampling_jax` and 
+      :func:`~s2fft.utils.resampling_torch` respectively.
 
 .. list-table:: Rotation functions
    :widths: 25 25
@@ -124,8 +134,10 @@ Utility Functions
    signal_generator
    resampling
    resampling_jax
+   resampling_torch
    quadrature
    quadrature_jax
+   quadrature_torch
    healpix_ffts
    utils
    rotation

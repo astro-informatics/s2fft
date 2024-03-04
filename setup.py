@@ -21,7 +21,7 @@ setup(
         "Intended Audience :: Science/Research",
     ],
     name="s2fft",
-    version="1.0.1",
+    version="1.0.2",
     url="https://github.com/astro-informatics/s2fft",
     author="Matthew A. Price, Jason D. McEwen & Contributors",
     license="MIT",
@@ -33,4 +33,5 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     pacakge_data={"s2fft": ["default-logging-config.yaml"]},
+    extras_require={"torch": ["torch"]},
 )
