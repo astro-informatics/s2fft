@@ -33,7 +33,7 @@ def spin_spherical_kernel(
             Defaults to False.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
@@ -103,7 +103,7 @@ def spin_spherical_kernel_jax(
             Defaults to False.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
@@ -181,7 +181,7 @@ def wigner_kernel(
             Defaults to False.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
@@ -252,7 +252,7 @@ def wigner_kernel_jax(
             Defaults to False.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".

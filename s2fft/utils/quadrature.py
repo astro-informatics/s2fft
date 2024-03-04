@@ -135,24 +135,24 @@ def quad_weights_gl(L: int) -> np.ndarray:
     m = int((L + 1) / 2)
     x1 = 0.5 * (x2 - x1)
 
-    for i in range(1, m + 1):
-        z = np.cos(np.pi * (i - 0.25) / (L + 0.5))
-        z1 = 2.0
-        while np.abs(z - z1) > 1e-14:
-            p1 = 1.0
-            p2 = 0.0
-            for j in range(1, L + 1):
-                p3 = p2
-                p2 = p1
-                p1 = ((2.0 * j - 1.0) * z * p2 - (j - 1.0) * p3) / j
-            pp = L * (z * p1 - p2) / (z * z - 1.0)
-            z1 = z
-            z = z1 - p1 / pp
+    i = np.arange(1, m + 1)
+    z = np.cos(np.pi * (i - 0.25) / (L + 0.5))
+    z1 = 2.0
+    while np.max(np.abs(z - z1)) > 1e-14:
+        p1 = 1.0
+        p2 = 0.0
+        for j in range(1, L + 1):
+            p3 = p2
+            p2 = p1
+            p1 = ((2.0 * j - 1.0) * z * p2 - (j - 1.0) * p3) / j
+        pp = L * (z * p1 - p2) / (z * z - 1.0)
+        z1 = z
+        z = z1 - p1 / pp
 
-        weights[i - 1] = 2.0 * x1 / ((1.0 - z**2) * pp * pp)
-        weights[L + 1 - i - 1] = weights[i - 1]
+    weights[i - 1] = 2.0 * x1 / ((1.0 - z**2) * pp * pp)
+    weights[L + 1 - i - 1] = weights[i - 1]
 
-    return weights
+    return weights * 2 * np.pi / (2 * L - 1)
 
 
 def quad_weights_dh(L: int) -> np.ndarray:
