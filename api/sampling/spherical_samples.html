@@ -564,7 +564,7 @@ document.write(`
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
-{“mw”, “mwss”, “dh”, “healpix”}.  Defaults to “mw”.</p></li>
+{“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
 <li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
 if sampling=”healpix”.  Defaults to None.</p></li>
 </ul>
@@ -772,7 +772,7 @@ e.g. <span class="math notranslate nohighlight">\(L = 3\)</span>, are as follows
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
-{“mw”, “mwss”, “dh”, “healpix”}.  Defaults to “mw”.</p></li>
+{“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
 <li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.</p></li>
 </ul>
 </dd>
@@ -932,7 +932,7 @@ scheme.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
-{“mw”, “mwss”, “dh”}.  Defaults to “mw”.</p></li>
+{“mw”, “mwss”, “dh”, “gl”}.  Defaults to “mw”.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -1002,7 +1002,7 @@ ring.</p>
 <li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.  Required if sampling not healpix.
 Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
-{“mw”, “mwss”, “dh”, “healpix”}.  Defaults to “mw”.</p></li>
+{“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
 <li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
 if sampling=”healpix”.  Defaults to None.</p></li>
 </ul>
@@ -1058,7 +1058,7 @@ if sampling=”healpix”.  Defaults to None.</p></li>
 <li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.</p></li>
 <li><p><strong>p</strong> (<em>int</em>) – <span class="math notranslate nohighlight">\(\phi\)</span> index.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported equiangular sampling
-schemes include {“mw”, “mwss”, “dh”}.  Defaults to “mw”.</p></li>
+schemes include {“mw”, “mwss”, “dh”, “gl”}.  Defaults to “mw”.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -1106,7 +1106,7 @@ schemes include {“mw”, “mwss”, “dh”}.  Defaults to “mw”.</p></li
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported equiangular sampling
-schemes include {“mw”, “mwss”, “dh”}.  Defaults to “mw”.</p></li>
+schemes include {“mw”, “mwss”, “dh”, “gl”}.  Defaults to “mw”.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1175,7 +1175,7 @@ Defaults to False.</p></li>
 <li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.  Required if sampling not healpix.
 Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
-{“mw”, “mwss”, “dh”, “healpix”}.  Defaults to “mw”.</p></li>
+{“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
 <li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
 if sampling=”healpix”.  Defaults to None.</p></li>
 </ul>
@@ -1206,7 +1206,7 @@ if sampling=”healpix”.  Defaults to None.</p></li>
 <li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.  Required if sampling not healpix.
 Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
-{“mw”, “mwss”, “dh”, “healpix”}.  Defaults to “mw”.</p></li>
+{“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
 <li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
 if sampling=”healpix”.  Defaults to None.</p></li>
 </ul>

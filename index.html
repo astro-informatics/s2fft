@@ -463,7 +463,8 @@ on-the-fly algorithms.</p>
 <p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> leverages new algorithmic structures that can he highly parallelised and
 distributed, and so map very well onto the architecture of hardware accelerators (i.e.
 GPUs and TPUs).  In particular, these algorithms are based on new Wigner-d recursions
-that are stable to high angular resolution <span class="math notranslate nohighlight">\(L\)</span>.  The diagram below illustrates the recursions (for further details see Price &amp; McEwen 2023).</p>
+that are stable to high angular resolution <span class="math notranslate nohighlight">\(L\)</span>.  The diagram below illustrates the
+recursions (for further details see Price &amp; McEwen 2023).</p>
 <img alt="_images/Wigner_recursion_github_docs.png" src="_images/Wigner_recursion_github_docs.png" />
 <p>With this recursion to hand, the spherical harmonic coefficients of an
 isolatitudinally sampled map may be computed as a two step process. First,
@@ -484,7 +485,8 @@ diagram below illustrates the separable spherical harmonic transform.</p>
 <section id="sampling-earth-africa">
 <h2>Sampling 🌍<a class="headerlink" href="#sampling-earth-africa" title="Link to this heading">#</a></h2>
 <p>The structure of the algorithms implemented in <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> can support any isolattitude sampling scheme.  A number of sampling schemes are currently supported.</p>
-<p>The equiangular sampling schemes of <a class="reference external" href="https://arxiv.org/abs/1110.6298">McEwen &amp; Wiaux (2012)</a> and <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0196885884710086">Driscoll &amp; Healy (1995)</a> are supported, which exhibit associated sampling theorems and so harmonic transforms can be computed to machine precision.  Note that the McEwen &amp; Wiaux sampling theorem reduces the Nyquist rate on the sphere by a factor of two compared to the Driscoll &amp; Healy approach, halving the number of spherical samples required.</p>
+<p>The equiangular sampling schemes of <a class="reference external" href="https://arxiv.org/abs/1110.6298">McEwen &amp; Wiaux (2012)</a>,
+<a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0196885884710086">Driscoll &amp; Healy (1995)</a>, and <a class="reference external" href="https://link.springer.com/article/10.1007/BF02519350">Gauss-Legendre (1986)</a> are supported, which exhibit associated sampling theorems and so harmonic transforms can be computed to machine precision.  Note that the McEwen &amp; Wiaux sampling theorem reduces the Nyquist rate on the sphere by a factor of two compared to the Driscoll &amp; Healy approach, halving the number of spherical samples required.</p>
 <p>The popular <a class="reference external" href="https://healpix.jpl.nasa.gov">HEALPix</a> sampling scheme (<a class="reference external" href="https://arxiv.org/abs/astro-ph/0409513">Gorski et al. 2005</a>) is also supported.  The HEALPix sampling does not exhibit a sampling theorem and so the corresponding harmonic transforms do not achieve machine precision but exhibit some error.  However, the HEALPix sampling provides pixels of equal areas, which has many practical advantages.</p>
 <a class="reference internal image-reference" href="_images/spherical_sampling.png"><img alt="_images/spherical_sampling.png" class="align-center" src="_images/spherical_sampling.png" style="width: 700px;" /></a>
 </section>

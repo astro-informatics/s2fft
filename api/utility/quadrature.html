@@ -583,7 +583,7 @@ integration for various sampling schemes.</p>
 <li><p><strong>L</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic band-limit.  Required if sampling not healpix.
 Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
-{“mw”, “mwss”, “dh”, “healpix”}.  Defaults to “mw”.</p></li>
+{“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
 <li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
 <li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
 if sampling=”healpix”.  Defaults to None.</p></li>
@@ -606,6 +606,24 @@ if sampling=”healpix”.  Defaults to None.</p></li>
 <dt class="sig sig-object py" id="s2fft.utils.quadrature.quad_weights_dh">
 <span class="sig-prename descclassname"><span class="pre">s2fft.utils.quadrature.</span></span><span class="sig-name descname"><span class="pre">quad_weights_dh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.quadrature.quad_weights_dh" title="Link to this definition">#</a></dt>
 <dd><p>Compute DH quadrature weights for <span class="math notranslate nohighlight">\(\theta\)</span> and <span class="math notranslate nohighlight">\(\phi\)</span> integration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Weights computed for each <span class="math notranslate nohighlight">\(\theta\)</span> (weights are identical
+as <span class="math notranslate nohighlight">\(\phi\)</span> varies for given <span class="math notranslate nohighlight">\(\theta\)</span>).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.utils.quadrature.quad_weights_gl">
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.quadrature.</span></span><span class="sig-name descname"><span class="pre">quad_weights_gl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.quadrature.quad_weights_gl" title="Link to this definition">#</a></dt>
+<dd><p>Compute GL quadrature weights for <span class="math notranslate nohighlight">\(\theta\)</span> and <span class="math notranslate nohighlight">\(\phi\)</span> integration.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p>
@@ -739,7 +757,7 @@ are twice the base resolution, i.e. 2 * L.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
-{“mwss”, “dh”, “healpix}.  Defaults to “mwss”.</p></li>
+{“mwss”, “dh”, “gl”, “healpix}.  Defaults to “mwss”.</p></li>
 <li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
 <li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
 if sampling=”healpix”.  Defaults to None.</p></li>
