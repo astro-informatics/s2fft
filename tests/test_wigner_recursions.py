@@ -10,7 +10,7 @@ import pyssht as ssht
 
 L_to_test = [6, 7]
 spin_to_test = [-2, 0, 1]
-sampling_schemes = ["mw", "mwss", "dh", "healpix"]
+sampling_schemes = ["mw", "mwss", "dh", "gl", "healpix"]
 
 
 def test_trapani_with_ssht():

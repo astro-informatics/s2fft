@@ -9,7 +9,7 @@ from s2fft.base_transforms import spherical
 
 
 @pytest.mark.parametrize("L", [5, 6])
-@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh"])
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "gl"])
 @pytest.mark.parametrize("method", ["numpy", "jax", "torch"])
 def test_quadrature_mw_weights(flm_generator, L: int, sampling: str, method: str):
     spin = 0
@@ -31,6 +31,9 @@ def test_quadrature_mw_weights(flm_generator, L: int, sampling: str, method: str
     nphi = samples.nphi_equiang(L, sampling)
     Q = q.dot(np.ones((1, nphi)))
 
+    print(q.shape)
+    print(Q.shape)
+    print(f.shape)
     integral_check = np.sum(Q * f)
 
     np.testing.assert_allclose(integral, integral_check, atol=1e-14)

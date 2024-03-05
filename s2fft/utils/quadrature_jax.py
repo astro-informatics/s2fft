@@ -1,3 +1,4 @@
+import jax
 from jax import jit
 
 from functools import partial
@@ -20,7 +21,7 @@ def quad_weights_transform(
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mwss", "dh", "healpix}.  Defaults to "mwss".
+            {"mwss", "dh", "gl", "healpix}.  Defaults to "mwss".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -40,6 +41,9 @@ def quad_weights_transform(
     elif sampling.lower() == "dh":
         return quad_weights_dh(L)
 
+    elif sampling.lower() == "gl":
+        return quad_weights_gl(L)
+
     elif sampling.lower() == "healpix":
         return quad_weights_hp(nside)
 
@@ -58,7 +62,7 @@ def quad_weights(L: int = None, sampling: str = "mw", nside: int = None) -> jnp.
             Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
@@ -81,6 +85,9 @@ def quad_weights(L: int = None, sampling: str = "mw", nside: int = None) -> jnp.
 
     elif sampling.lower() == "dh":
         return quad_weights_dh(L)
+
+    elif sampling.lower() == "gl":
+        return quad_weights_gl(L)
 
     elif sampling.lower() == "healpix":
         return quad_weights_hp(nside)
@@ -109,6 +116,55 @@ def quad_weights_hp(nside: int) -> jnp.ndarray:
     npix = 12 * nside**2
     rings = samples.ntheta(sampling="healpix", nside=nside)
     return jnp.ones(rings, dtype=jnp.float64) * 4 * jnp.pi / npix
+
+
+@partial(jit, static_argnums=(0))
+def quad_weights_gl(L: int) -> jnp.ndarray:
+    r"""Compute GL quadrature weights for :math:`\theta` and :math:`\phi` integration.
+
+    Args:
+        L (int): Harmonic band-limit.
+
+    Returns:
+        jnp.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        as :math:`\phi` varies for given :math:`\theta`).
+    """
+    x1, x2 = -1.0, 1.0
+    ntheta = samples.ntheta(L, "gl")
+    weights = jnp.zeros(ntheta, dtype=jnp.float64)
+
+    m = int((L + 1) / 2)
+    x1 = 0.5 * (x2 - x1)
+    i = jnp.arange(1, m + 1)
+    z = jnp.cos(jnp.pi * (i - 0.25) / (L + 0.5))
+    z1 = 2.0 * jnp.ones_like(z)
+    pp = jnp.zeros_like(z)
+
+    def optimizer(z, z1, pp):
+        def cond(arg):
+            z, z1, pp = arg
+            return jnp.max(jnp.abs(z - z1)) > 1e-14
+
+        def body(arg):
+            z, z1, pp = arg
+            p1 = 1.0
+            p2 = 0.0
+            for j in range(1, L + 1):
+                p3 = p2
+                p2 = p1
+                p1 = ((2.0 * j - 1.0) * z * p2 - (j - 1.0) * p3) / j
+            pp = L * (z * p1 - p2) / (z * z - 1.0)
+            z1 = z
+            z = z1 - p1 / pp
+            return z, z1, pp
+
+        return jax.lax.while_loop(cond, body, (z, z1, pp))
+
+    z, z1, pp = optimizer(z, z1, pp)
+    weights = weights.at[i - 1].set(2.0 * x1 / ((1.0 - z**2) * pp * pp))
+    weights = weights.at[L + 1 - i - 1].set(weights[i - 1])
+
+    return weights * 2 * jnp.pi / (2 * L - 1)
 
 
 @partial(jit, static_argnums=(0))

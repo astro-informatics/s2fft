@@ -11,7 +11,7 @@ L_lower_to_test = [0, 2]
 spin_to_test = [-2, 0, 1]
 nside_to_test = [4, 5]
 L_to_nside_ratio = [2, 3]
-sampling_to_test = ["mw", "mwss", "dh"]
+sampling_to_test = ["mw", "mwss", "dh", "gl"]
 method_to_test = ["direct", "sov", "sov_fft", "sov_fft_vectorized"]
 reality_to_test = [False, True]
 

@@ -12,7 +12,7 @@ L_to_test = [16]
 L_lower_to_test = [2]
 spin_to_test = [-2, 0, 1]
 nside_to_test = [8]
-sampling_to_test = ["mw", "mwss", "dh"]
+sampling_to_test = ["mw", "mwss", "dh", "gl"]
 reality_to_test = [False, True]
 
 

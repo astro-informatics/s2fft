@@ -11,7 +11,7 @@ N_to_test = [2, 3]
 nside_to_test = [4, 6]
 L_to_nside_ratio = [2]
 reality_to_test = [False, True]
-sampling_schemes = ["mw", "mwss", "dh"]
+sampling_schemes = ["mw", "mwss", "dh", "gl"]
 methods_to_test = ["numpy", "jax", "torch"]
 
 

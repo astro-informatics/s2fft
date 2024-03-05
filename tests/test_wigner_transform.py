@@ -14,7 +14,7 @@ from s2fft.recursions.price_mcewen import (
 L_to_test = [6, 7]
 N_to_test = [2]
 L_lower_to_test = [0, 2]
-sampling_to_test = ["mw", "mwss", "dh"]
+sampling_to_test = ["mw", "mwss", "dh", "gl"]
 method_to_test = ["numpy", "jax"]
 reality_to_test = [False, True]
 multiple_gpus = [False, True]

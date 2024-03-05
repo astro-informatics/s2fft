@@ -23,7 +23,7 @@ def f_shape(
         N (int): Directional band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -35,14 +35,11 @@ def f_shape(
         Tuple[int,int,int]: Shape of pixel-space sampling of rotation group
         :math:`SO(3)`.
     """
-    if sampling in ["mw", "mwss", "dh"]:
+    if sampling in ["mw", "mwss", "dh", "gl"]:
         return _ngamma(N), _nbeta(L, sampling), _nalpha(L, sampling)
 
     elif sampling.lower() == "healpix":
         return _ngamma(N), 12 * nside**2
-
-    elif sampling.lower() == "healpix":
-        return 12 * nside**2, _ngamma(N)
 
     else:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
@@ -76,7 +73,7 @@ def fnab_shape(
         N (int): Directional band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.
 
@@ -91,7 +88,7 @@ def fnab_shape(
     if sampling.lower() in ["mwss", "healpix"]:
         return _ngamma(N), samples.ntheta(L, sampling, nside), 2 * L
 
-    elif sampling.lower() in ["mw", "dh"]:
+    elif sampling.lower() in ["mw", "dh", "gl"]:
         return _ngamma(N), samples.ntheta(L, sampling, nside), 2 * L - 1
 
     else:
@@ -121,7 +118,7 @@ def _nalpha(L: int, sampling: str = "mw") -> int:
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
 
     Raises:
         ValueError: Unknown sampling scheme.
@@ -129,7 +126,7 @@ def _nalpha(L: int, sampling: str = "mw") -> int:
     Returns:
         int: Number of :math:`\alpha` samples.
     """
-    if sampling.lower() in ["mw", "dh"]:
+    if sampling.lower() in ["mw", "dh", "gl"]:
         return 2 * L - 1
 
     elif sampling.lower() == "mwss":
@@ -146,7 +143,7 @@ def _nbeta(L: int, sampling: str = "mw") -> int:
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
 
     Raises:
         ValueError: Unknown sampling scheme.
@@ -154,7 +151,7 @@ def _nbeta(L: int, sampling: str = "mw") -> int:
     Returns:
         int: Number of :math:`\beta` samples.
     """
-    if sampling.lower() == "mw":
+    if sampling.lower() in ["mw", "gl"]:
         return L
 
     elif sampling.lower() == "mwss":
