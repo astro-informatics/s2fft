@@ -62,7 +62,8 @@ def inverse(
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
         _ssht_backend (int, optional, experimental): Whether to default to SSHT core
-            recursions or pick up ducc0 accelerated experimental backend. Use with caution.
+            (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
+            backend. Use with caution.
 
     Raises:
         ValueError: Transform method not recognised.
@@ -374,7 +375,8 @@ def forward(
             the gradient pass. Between 2 and 3 iterations is a good compromise.
 
         _ssht_backend (int, optional, experimental): Whether to default to SSHT core
-            recursions or pick up ducc0 accelerated experimental backend. Use with caution.
+            (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
+            backend. Use with caution.
 
     Raises:
         ValueError: Transform method not recognised.

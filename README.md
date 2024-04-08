@@ -156,7 +156,7 @@ For further details on usage see the [documentation](https://astro-informatics.g
 
 ## C/C++ JAX Frontends for SSHT/HEALPix :bulb:
 
-`S2FFT` also provides JAX support for existing C/C++ packages, specifically `HEALPix` and `SSHT`. This works 
+`S2FFT` also provides JAX support for existing C/C++ packages, specifically [`HEALPix`](https://healpix.jpl.nasa.gov) and [`SSHT`](https://github.com/astro-informatics/ssht). This works 
 by wrapping python bindings with custom JAX frontends. Note that this C/C++ to JAX interoperability is currently limited to CPU.
 
 For example, one may call these alternate backends for the spherical harmonic transform by:

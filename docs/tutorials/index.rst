@@ -27,7 +27,8 @@ To import and use ``S2FFT``  is as simple follows:
 
 C/C++ backend usage |:bulb:|
 -----------------
-``S2FFT`` also provides JAX support for existing C/C++ packages, specifically ``HEALPix`` and ``SSHT``. This works 
+``S2FFT`` also provides JAX support for existing C/C++ packages, specifically `HEALPix <https://healpix.jpl.nasa.gov>`_
+and `SSHT <https://github.com/astro-informatics/ssht>`_.  This works 
 by wrapping python bindings with custom JAX frontends. Note that currently this C/C++ to JAX interoperability is currently 
 limited to CPU, however for many applications this is desirable due to memory constraints.
 
