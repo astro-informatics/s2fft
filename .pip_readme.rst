@@ -11,8 +11,8 @@
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
-    :target: https://colab.research.google.com/github/astro-informatics/s2fft/blob/main/notebooks/JAX_SSHT_frontend.ipynb
-
+    :target: https://colab.research.google.com/github/astro-informatics/s2fft/blob/main/notebooksspherical_harmonic_transform.ipynb
+    
 Differentiable and accelerated spherical transforms
 =================================================================================================================
 
