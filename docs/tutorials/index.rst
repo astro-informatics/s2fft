@@ -27,7 +27,8 @@ To import and use ``S2FFT``  is as simple follows:
 
 C/C++ backend usage |:bulb:|
 -----------------
-``S2FFT`` also provides JAX support for existing C/C++ packages, specifically ``HEALPix`` and ``SSHT``. This works 
+``S2FFT`` also provides JAX support for existing C/C++ packages, specifically `HEALPix <https://healpix.jpl.nasa.gov>`_
+and `SSHT <https://github.com/astro-informatics/ssht>`_.  This works 
 by wrapping python bindings with custom JAX frontends. Note that currently this C/C++ to JAX interoperability is currently 
 limited to CPU, however for many applications this is desirable due to memory constraints.
 
@@ -36,7 +37,7 @@ For example, one may call these alternate backends for the spherical harmonic tr
 .. code-block:: python
 
    # Forward SSHT spherical harmonic transform
-   flm = s2fft.forward(f, L, sampling=["mw"/"mwss"/"gl"/"dh"], method="jax_ssht")  
+   flm = s2fft.forward(f, L, sampling=["mw"], method="jax_ssht")  
 
    # Forward HEALPix spherical harmonic transform
    flm = s2fft.forward(f, L, nside=nside, sampling="healpix", method="jax_healpy")  
@@ -45,39 +46,6 @@ All of these JAX frontends supports out of the box reverse mode automatic differ
 and under the hood is simply linking to the C/C++ packages you are familiar with. In this 
 way ``S2FFT`` enhances existing packages with gradient functionality for modern signal processing 
 applications!
-
-Benchmarking |:hourglass_flowing_sand:|
--------------------------------------
-We benchmarked the spherical harmonic and Wigner transforms implemented in ``S2FFT``
-against the C implementations in the `SSHT <https://github.com/astro-informatics/ssht>`_
-pacakge. 
-
-A brief summary is shown in the table below for the recursion (left) and precompute
-(right) algorithms, with ``S2FFT`` running on GPUs (for further details see Price &
-McEwen, in prep.).  Note that our compute time is agnostic to spin number (which is not
-the case for many other methods that scale linearly with spin).
-
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-|      |       Recursive Algorithm        |       Precompute Algorithm                |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| L    | Wall-Time | Speed-up  | Error    | Wall-Time | Speed-up | Error    | Memory  |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 64   | 3.6 ms    | 0.88      | 1.81E-15 | 52.4 μs   | 60.5     | 1.67E-15 | 4.2 MB  |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 128  | 7.26 ms   | 1.80      | 3.32E-15 | 162 μs    | 80.5     | 3.64E-15 | 33 MB   |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 256  | 17.3 ms   | 6.32      | 6.66E-15 | 669 μs    | 163      | 6.74E-15 | 268 MB  |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 512  | 58.3 ms   | 11.4      | 1.43E-14 | 3.6 ms    | 184      | 1.37E-14 | 2.14 GB |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 1024 | 194 ms    | 32.9      | 2.69E-14 | 32.6 ms   | 195      | 2.47E-14 | 17.1 GB |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 2048 | 1.44 s    | 49.7      | 5.17E-14 | N/A       | N/A      | N/A      | N/A     |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 4096 | 8.48 s    | 133.9     | 1.06E-13 | N/A       | N/A      | N/A      | N/A     |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
-| 8192 | 82 s      | 110.8     | 2.14E-13 | N/A       | N/A      | N/A      | N/A     |
-+------+-----------+-----------+----------+-----------+----------+----------+---------+
 
 
 .. toctree::

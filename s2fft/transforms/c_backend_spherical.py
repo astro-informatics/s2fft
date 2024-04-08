@@ -41,7 +41,8 @@ def ssht_inverse(
             {"mw" = 0, "mwss" = 1, "dh" = 2, "gl" = 3}.  Defaults to "mw" = 0.
 
         _ssht_backend (int, optional, experimental): Whether to default to SSHT core
-            recursions or pick up ducc0 accelerated experimental backend. Use with caution.
+            (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
+            backend. Use with caution.
 
     Returns:
         jnp.ndarray: Signal on the sphere.
@@ -150,7 +151,8 @@ def ssht_forward(
             {"mw" = 0, "mwss" = 1, "dh" = 2, "gl" = 3}.  Defaults to "mw" = 0.
 
         _ssht_backend (int, optional, experimental): Whether to default to SSHT core
-            recursions or pick up ducc0 accelerated experimental backend. Use with caution.
+            (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
+            backend. Use with caution.
 
     Returns:
         jnp.ndarray: Harmonic coefficients of signal f.
