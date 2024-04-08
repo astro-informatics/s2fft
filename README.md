@@ -83,7 +83,7 @@ so the corresponding harmonic transforms do not achieve machine
 precision but exhibit some error. However, the HEALPix sampling provides
 pixels of equal areas, which has many practical advantages.
 
-<p align="center"><img src="./docs/assets/figures/spherical_sampling.png" width="500"></p>
+<p align="center"><img src="./docs/assets/figures/spherical_sampling.png" width="700"></p>
 
 > [!NOTE]  
 > For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and are working to fix it.  A fix for CPU execution has now been implemented (see example [notebook](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_HEALPix_backend.html)).  Fix for GPU execution is coming soon.
