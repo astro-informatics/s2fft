@@ -3,7 +3,5 @@ pytest
 pytest-cov
 codecov
 
-# Healpix Sampling
-pyssht
-healpy
+# Benchmarking for Wigner transforms
 so3

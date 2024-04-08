@@ -9,7 +9,7 @@ in the time being feel free to contact contributors for advice! At a high-level 
 ``S2FFT`` package is structured such that the 2 primary transforms, the Wigner and 
 spherical harmonic transforms, can easily be accessed.
 
-Usage |:rocket:|
+Core usage |:rocket:|
 -----------------
 To import and use ``S2FFT``  is as simple follows: 
 
@@ -25,6 +25,26 @@ To import and use ``S2FFT``  is as simple follows:
 |   f = s2fft.inverse_jax(flm, L)                       |   f = s2fft.wigner.inverse_jax(flmn, L, N)                 |
 +-------------------------------------------------------+------------------------------------------------------------+
 
+C/C++ backend usage |:bulb:|
+-----------------
+``S2FFT`` also provides JAX support for existing C/C++ packages, specifically ``HEALPix`` and ``SSHT``. This works 
+by wrapping python bindings with custom JAX frontends. Note that currently this C/C++ to JAX interoperability is currently 
+limited to CPU, however for many applications this is desirable due to memory constraints.
+
+For example, one may call these alternate backends for the spherical harmonic transform by:
+
+.. code-block:: python
+
+   # Forward SSHT spherical harmonic transform
+   flm = s2fft.forward(f, L, sampling=["mw"/"mwss"/"gl"/"dh"], method="jax_ssht")  
+
+   # Forward HEALPix spherical harmonic transform
+   flm = s2fft.forward(f, L, nside=nside, sampling="healpix", method="jax_healpy")  
+
+All of these JAX frontends supports out of the box reverse mode automatic differentiation, 
+and under the hood is simply linking to the C/C++ packages you are familiar with. In this 
+way ``S2FFT`` enhances existing packages with gradient functionality for modern signal processing 
+applications!
 
 Benchmarking |:hourglass_flowing_sand:|
 -------------------------------------
@@ -69,3 +89,5 @@ the case for many other methods that scale linearly with spin).
    wigner/wigner_transform.nblink
    rotation/rotation.nblink
    torch_frontend/torch_frontend.nblink
+   JAX_SSHT/JAX_SSHT_frontend.nblink
+   JAX_HEALPix/JAX_HEALPix_frontend.nblink

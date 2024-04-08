@@ -8,6 +8,7 @@ from functools import partial
 from typing import List
 import s2fft
 from s2fft.sampling import so3_samples as samples
+from s2fft.transforms import c_backend_spherical as c_sph
 
 
 def inverse(
@@ -21,6 +22,7 @@ def inverse(
     precomps: List = None,
     spmd: bool = False,
     L_lower: int = 0,
+    _ssht_backend: int = 1,
 ) -> np.ndarray:
     r"""Wrapper for the inverse Wigner transform, i.e. inverse Fourier transform on
     :math:`SO(3)`.
@@ -31,6 +33,10 @@ def inverse(
     For a given :math:`\gamma` we thus recover a signal on the sphere indexed by
     :math:`[\theta, \phi]`, i.e. we associate :math:`\beta` with :math:`\theta` and
     :math:`\alpha` with :math:`\phi`.
+
+    Should the user select method = "jax_ssht" they will be restricted to deployment on
+    CPU using our custom JAX frontend for the highly optimised SSHT C library [1]. In many
+    cases this approach may be desirable to mitigate e.g. memory i/o cost.
 
     Args:
         flmn (np.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
@@ -45,7 +51,8 @@ def inverse(
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
+        method (str, optional): Execution mode in {"numpy", "jax", "jax_ssht"}.
+            Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -61,6 +68,9 @@ def inverse(
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
+        _ssht_backend (int, optional, experimental): Whether to default to SSHT core
+            recursions or pick up ducc0 accelerated experimental backend. Use with caution.
+
     Raises:
         ValueError: Transform method not recognised.
 
@@ -75,6 +85,9 @@ def inverse(
         harmonic bandlimits L this is inefficient as the I/O overhead for communication
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
+
+        [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
+            IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
     """
     if N >= 8:
         raise Warning("Recursive transform may provide lower precision beyond N ~ 8")
@@ -84,6 +97,10 @@ def inverse(
         return inverse_jax(
             flmn, L, N, nside, sampling, reality, precomps, spmd, L_lower
         )
+    elif method == "jax_ssht":
+        if sampling.lower() == "healpix":
+            raise ValueError("Legacy code ssht does not support healpix sampling.")
+        return inverse_jax_ssht(flmn, L, N, L_lower, sampling, reality, _ssht_backend)
     else:
         raise ValueError(
             f"Implementation {method} not recognised. Should be either numpy or jax."
@@ -177,7 +194,7 @@ def inverse_numpy(
 
 @partial(jit, static_argnums=(1, 2, 3, 4, 5, 7, 8))
 def inverse_jax(
-    flmn: np.ndarray,
+    flmn: jnp.ndarray,
     L: int,
     N: int,
     nside: int = None,
@@ -187,7 +204,7 @@ def inverse_jax(
     spmd: bool = False,
     L_lower: int = 0,
 ) -> jnp.ndarray:
-    r"""Compute the inverse Wigner transform (numpy).
+    r"""Compute the inverse Wigner transform (JAX).
 
     Uses separation of variables and exploits the Price & McEwen recursion for accelerated
     and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
@@ -201,7 +218,7 @@ def inverse_jax(
     :math:`\alpha` with :math:`\phi`.
 
     Args:
-        flmn (np.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
+        flmn (jnp.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
 
         L (int): Harmonic band-limit.
 
@@ -212,8 +229,6 @@ def inverse_jax(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
-
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -331,6 +346,84 @@ def inverse_jax(
     return f
 
 
+def inverse_jax_ssht(
+    flmn: jnp.ndarray,
+    L: int,
+    N: int,
+    L_lower: int = 0,
+    sampling: str = "mw",
+    reality: bool = False,
+    _ssht_backend: int = 1,
+) -> jnp.ndarray:
+    r"""Compute the inverse Wigner transform (SSHT JAX).
+
+    SSHT is a highly optimised C library which implements the spin-spherical harmonic
+    transform outlined in McEwen & Wiaux 2011 [1]. We make use of their python bindings
+    for which we provide custom JAX frontends, hence providing support for automatic
+    differentiation. Currently these transforms can only be deployed on CPU, which is a
+    limitation of the SSHT C package.
+
+    Args:
+        flmn (jnp.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
+
+        L (int): Harmonic band-limit.
+
+        N (int): Azimuthal band-limit.
+
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        _ssht_backend (int, optional, experimental): Whether to default to SSHT core
+            recursions or pick up ducc0 accelerated experimental backend. Use with caution.
+
+    Returns:
+        np.ndarray: Signal on the sphere.
+
+    Note:
+        [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
+            IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
+    """
+    ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
+    fban = jnp.zeros(samples.f_shape(L, N, sampling), dtype=jnp.complex128)
+
+    flmn = flmn.at[:, L_lower:].set(
+        jnp.einsum(
+            "...nlm,...l->...nlm",
+            flmn[:, L_lower:],
+            jnp.sqrt((2 * jnp.arange(L_lower, L) + 1) / (16 * jnp.pi**3)),
+            optimize=True,
+        )
+    )
+
+    n_start_ind = 0 if reality else -N + 1
+    for n in range(n_start_ind, N):
+        fban = fban.at[N - 1 + n].add(
+            (-1) ** jnp.abs(n)
+            * c_sph.ssht_inverse(
+                flmn[N - 1 + n],
+                L,
+                -n,
+                reality if n == 0 else False,
+                ssht_sampling,
+                _ssht_backend,
+            )
+        )
+
+    if reality:
+        f = jnp.fft.irfft(fban[N - 1 :], 2 * N - 1, axis=-3, norm="forward")
+    else:
+        f = jnp.fft.ifft(jnp.fft.ifftshift(fban, axes=-3), axis=-3, norm="forward")
+
+    return f
+
+
 def forward(
     f: np.ndarray,
     L: int,
@@ -342,6 +435,7 @@ def forward(
     precomps: List = None,
     spmd: bool = False,
     L_lower: int = 0,
+    _ssht_backend: int = 1,
 ) -> np.ndarray:
     r"""Wrapper for the forward Wigner transform, i.e. Fourier transform on
     :math:`SO(3)`.
@@ -352,6 +446,10 @@ def forward(
     For a given :math:`\gamma` we thus recover a signal on the sphere indexed by
     :math:`[\theta, \phi]`, i.e. we associate :math:`\beta` with :math:`\theta` and
     :math:`\alpha` with :math:`\phi`.
+
+    Should the user select method = "jax_ssht" they will be restricted to deployment on
+    CPU using our custom JAX frontend for the highly optimised SSHT C library [1]. In many
+    cases this approach may be desirable to mitigate e.g. memory i/o cost.
 
     Args:
         f (np.ndarray): Signal on the on :math:`SO(3)` with shape
@@ -368,7 +466,8 @@ def forward(
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
+        method (str, optional): Execution mode in {"numpy", "jax", "jax_ssht"}.
+            Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -384,6 +483,9 @@ def forward(
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
+        _ssht_backend (int, optional, experimental): Whether to default to SSHT core
+            recursions or pick up ducc0 accelerated experimental backend. Use with caution.
+
     Raises:
         ValueError: Transform method not recognised.
 
@@ -396,6 +498,9 @@ def forward(
         harmonic bandlimits L this is inefficient as the I/O overhead for communication
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
+
+        [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
+            IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
     """
     if N >= 8:
         raise Warning("Recursive transform may provide lower precision beyond N ~ 8")
@@ -403,6 +508,10 @@ def forward(
         return forward_numpy(f, L, N, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
         return forward_jax(f, L, N, nside, sampling, reality, precomps, spmd, L_lower)
+    elif method == "jax_ssht":
+        if sampling.lower() == "healpix":
+            raise ValueError("Legacy code ssht does not support healpix sampling.")
+        return forward_jax_ssht(f, L, N, L_lower, sampling, reality, _ssht_backend)
     else:
         raise ValueError(
             f"Implementation {method} not recognised. Should be either numpy or jax."
@@ -651,6 +760,92 @@ def forward_jax(
     # Fill out Wigner coefficients steerability of real signals
     for n in range(n_start_ind, N):
         if reality and n != 0:
+            flmn = flmn.at[N - 1 - n].set(
+                jnp.conj(jnp.flip(flmn[N - 1 + n] * sgn * (-1) ** n, axis=-1))
+            )
+
+    flmn = flmn.at[:, L_lower:].set(
+        jnp.einsum(
+            "...nlm,...l->...nlm",
+            flmn[:, L_lower:],
+            jnp.sqrt(4 * jnp.pi / (2 * jnp.arange(L_lower, L) + 1)),
+            optimize=True,
+        )
+    )
+    return flmn
+
+
+def forward_jax_ssht(
+    f: jnp.ndarray,
+    L: int,
+    N: int,
+    L_lower: int = 0,
+    sampling: str = "mw",
+    reality: bool = False,
+    _ssht_backend: int = 1,
+) -> jnp.ndarray:
+    r"""Compute the forward Wigner transform (SSHT JAX).
+
+    SSHT is a highly optimised C library which implements the spin-spherical harmonic
+    transform outlined in McEwen & Wiaux 2011 [1]. We make use of their python bindings
+    for which we provide custom JAX frontends, hence providing support for automatic
+    differentiation. Currently these transforms can only be deployed on CPU, which is a
+    limitation of the SSHT C package.
+
+    Args:
+        f (jnp.ndarray): Signal on the on :math:`SO(3)` with shape
+            :math:`[n_{\gamma}, n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the
+            number of samples for angle :math:`\xi`.
+
+        L (int): Harmonic band-limit.
+
+        N (int): Azimuthal band-limit.
+
+        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
+
+        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            False.
+
+        _ssht_backend (int, optional, experimental): Whether to default to SSHT core
+            recursions or pick up ducc0 accelerated experimental backend. Use with caution.
+
+    Returns:
+        jnp.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
+
+    Note:
+        [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
+            IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
+    """
+    ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
+    flmn = jnp.zeros(samples.flmn_shape(L, N), dtype=jnp.complex128)
+
+    if reality:
+        fban = jnp.fft.rfft(jnp.real(f), axis=0, norm="backward")
+    else:
+        fban = jnp.fft.fftshift(jnp.fft.fft(f, axis=0, norm="backward"), axes=0)
+
+    fban *= 2 * jnp.pi / (2 * N - 1)
+
+    n_start_ind = 0 if reality else -N + 1
+    for n in range(n_start_ind, N):
+        flmn = flmn.at[N - 1 + n].set(
+            (-1) ** jnp.abs(n)
+            * c_sph.ssht_forward(
+                fban[jnp.int64(n - n_start_ind)],
+                L,
+                -n,
+                False,
+                ssht_sampling,
+                _ssht_backend,
+            )
+        )
+        if reality and n != 0:
+            sgn = (-1) ** abs(jnp.arange(-L + 1, L))
             flmn = flmn.at[N - 1 - n].set(
                 jnp.conj(jnp.flip(flmn[N - 1 + n] * sgn * (-1) ** n, axis=-1))
             )

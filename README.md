@@ -26,6 +26,12 @@ As of version 1.0.2 `S2FFT` also provides PyTorch implementations of underlying
 precompute transforms. In future releases this support will be extended to our 
 on-the-fly algorithms.
 
+As of version 1.0.3 `S2FFT` also provides JAX support for existing C/C++ packages, 
+specifically `HEALPix` and `SSHT`. This works by wrapping python bindings with custom 
+JAX frontends. Note that currently this C/C++ to JAX interoperability is currently 
+limited to CPU, however for many applications this is desirable due to memory 
+constraints.
+
 ## Algorithms :zap:
 
 `S2FFT` leverages new algorithmic structures that can he highly
@@ -142,6 +148,29 @@ For further details on usage see the [documentation](https://astro-informatics.g
 
 > [!NOTE]  
 > We also provide PyTorch support for the precompute version of our transforms. These are called through forward/inverse_torch(). Full PyTorch support will be provided in future releases.
+
+## C/C++ JAX Frontends for SSHT/HEALPix :bulb:
+
+`S2FFT` also provides JAX support for existing C/C++ packages, specifically `HEALPix` and `SSHT`. This works 
+by wrapping python bindings with custom JAX frontends. Note that currently this C/C++ to JAX interoperability is currently 
+limited to CPU, however for many applications this is desirable due to memory constraints.
+
+For example, one may call these alternate backends for the spherical harmonic transform by:
+
+``` python
+# Forward SSHT spherical harmonic transform
+flm = s2fft.forward(f, L, sampling=["mw"/"mwss"/"gl"/"dh"], method="jax_ssht")  
+
+# Forward HEALPix spherical harmonic transform
+flm = s2fft.forward(f, L, nside=nside, sampling="healpix", method="jax_healpy")  
+```
+
+All of these JAX frontends supports out of the box reverse mode automatic differentiation, 
+and under the hood is simply linking to the C/C++ packages you are familiar with. In this 
+way `S2fft` enhances existing packages with gradient functionality for modern signal processing 
+applications!
+
+For further details on usage see the associated [notebooks](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_SSHT_backend.html).
 
 ## Benchmarking :hourglass_flowing_sand:
 

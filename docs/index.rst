@@ -15,6 +15,12 @@ As of version 1.0.2 ``S2FFT`` also provides PyTorch implementations of underlyin
 precompute transforms. In future releases this support will be extended to our 
 on-the-fly algorithms.
 
+As of version 1.0.3 ``S2FFT`` also provides JAX support for existing C/C++ packages, 
+specifically ``HEALPix`` and ``SSHT``. This works by wrapping python bindings with custom 
+JAX frontends. Note that currently this C/C++ to JAX interoperability is currently 
+limited to CPU, however for many applications this is desirable due to memory 
+constraints.
+
 Algorithms |:zap:|
 -------------------
 

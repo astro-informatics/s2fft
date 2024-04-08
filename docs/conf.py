@@ -25,9 +25,9 @@ copyright = "2023, Matthew Price and Jason McEwen"
 author = "Matthew Price, Jason McEwen, Matthew Graham, Sofia Miñano, Devaraj Gopinathan"
 
 # The short X.Y version
-version = "1.0.2"
+version = "1.0.3"
 # The full version, including alpha/beta/rc tags
-release = "1.0.2"
+release = "1.0.3"
 
 
 # -- General configuration ---------------------------------------------------
@@ -106,12 +106,12 @@ html_theme_options = {
             "icon": "_static/arxiv-logomark-small.png",
             "type": "local",
         },
-        # {
-        #     "name": "YouTube",
-        #     "url": "https://www.youtube.com/channel/UCrCOQsyQOJhOUaIYzmbkKQQ",
-        #     "icon": "fa-brands fa-youtube fa-2x",
-        #     "type": "fontawesome",
-        # },
+        {
+            "name": "Medium",
+            "url": "https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1",
+            "icon": "fa-brands fa-medium",
+            "type": "fontawesome",
+        },
         {
             "name": "PyPi",
             "url": "https://pypi.org/project/s2fft/",

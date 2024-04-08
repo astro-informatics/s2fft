@@ -7,3 +7,8 @@ jaxlib
 
 # Remove when subpackage functionality is fixed.
 torch 
+
+# Legacy codes for which to provide JAX frontend support.
+pyssht
+healpy
+ducc0
