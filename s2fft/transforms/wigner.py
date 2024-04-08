@@ -35,7 +35,7 @@ def inverse(
     :math:`\alpha` with :math:`\phi`.
 
     Should the user select method = "jax_ssht" they will be restricted to deployment on
-    CPU using our custom JAX frontend for the highly optimised SSHT C library [1]. In many
+    CPU using our custom JAX frontend for the SSHT C library [1]. In many
     cases this approach may be desirable to mitigate e.g. memory i/o cost.
 
     Args:
@@ -358,11 +358,11 @@ def inverse_jax_ssht(
 ) -> jnp.ndarray:
     r"""Compute the inverse Wigner transform (SSHT JAX).
 
-    SSHT is a highly optimised C library which implements the spin-spherical harmonic
-    transform outlined in McEwen & Wiaux 2011 [1]. We make use of their python bindings
-    for which we provide custom JAX frontends, hence providing support for automatic
-    differentiation. Currently these transforms can only be deployed on CPU, which is a
-    limitation of the SSHT C package.
+    SSHT is a C library which implements the spin-spherical harmonic transform outlined
+    in McEwen & Wiaux 2011 [1]. We make use of their python bindings for which we
+    provide custom JAX frontends, hence providing support for automatic differentiation.
+    Currently these transforms can only be deployed on CPU, which is a limitation of the
+    SSHT C package.
 
     Args:
         flmn (jnp.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
@@ -450,8 +450,8 @@ def forward(
     :math:`\alpha` with :math:`\phi`.
 
     Should the user select method = "jax_ssht" they will be restricted to deployment on
-    CPU using our custom JAX frontend for the highly optimised SSHT C library [1]. In many
-    cases this approach may be desirable to mitigate e.g. memory i/o cost.
+    CPU using our custom JAX frontend for the SSHT C library [1]. In many cases this
+    approach may be desirable to mitigate e.g. memory i/o cost.
 
     Args:
         f (np.ndarray): Signal on the on :math:`SO(3)` with shape
@@ -787,11 +787,11 @@ def forward_jax_ssht(
 ) -> jnp.ndarray:
     r"""Compute the forward Wigner transform (SSHT JAX).
 
-    SSHT is a highly optimised C library which implements the spin-spherical harmonic
-    transform outlined in McEwen & Wiaux 2011 [1]. We make use of their python bindings
-    for which we provide custom JAX frontends, hence providing support for automatic
-    differentiation. Currently these transforms can only be deployed on CPU, which is a
-    limitation of the SSHT C package.
+    SSHT is a C library which implements the spin-spherical harmonic transform outlined
+    in McEwen & Wiaux 2011 [1]. We make use of their python bindings for which we
+    provide custom JAX frontends, hence providing support for automatic differentiation.
+    Currently these transforms can only be deployed on CPU, which is a limitation of the
+    SSHT C package.
 
     Args:
         f (jnp.ndarray): Signal on the on :math:`SO(3)` with shape
