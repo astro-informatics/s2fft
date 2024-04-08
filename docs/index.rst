@@ -11,15 +11,19 @@ transforms (for both real and complex signals), with support for adjoint transfo
 where needed, and comes with different optimisations (precompute or not) that one
 may select depending on available resources and desired angular resolution :math:`L`.
 
-As of version 1.0.2 ``S2FFT`` also provides PyTorch implementations of underlying 
-precompute transforms. In future releases this support will be extended to our 
-on-the-fly algorithms.
+.. note::
+    HEALPix long JIT compile time fixed for CPU!  Fix for GPU coming soon.
 
-As of version 1.0.3 ``S2FFT`` also provides JAX support for existing C/C++ packages, 
-specifically ``HEALPix`` and ``SSHT``. This works by wrapping python bindings with custom 
-JAX frontends. Note that currently this C/C++ to JAX interoperability is currently 
-limited to CPU, however for many applications this is desirable due to memory 
-constraints.
+.. tip::
+    As of version 1.0.2 ``S2FFT`` also provides PyTorch implementations of underlying 
+    precompute transforms. In future releases this support will be extended to our 
+    on-the-fly algorithms.
+
+.. tip::
+    As of version 1.0.3 ``S2FFT`` also provides JAX support for existing C/C++ packages, 
+    specifically ``HEALPix`` and ``SSHT``. This works by wrapping python bindings with custom 
+    JAX frontends. Note that currently this C/C++ to JAX interoperability is currently 
+    limited to CPU.
 
 Algorithms |:zap:|
 -------------------

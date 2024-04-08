@@ -22,15 +22,19 @@ for adjoint transformations where needed, and comes with different
 optimisations (precompute or not) that one may select depending on
 available resources and desired angular resolution $L$.
 
+> [!NOTE]
+> HEALPix long JIT compile time fixed for CPU!  Fix for GPU coming soon.
+
+> [!TIP]
 As of version 1.0.2 `S2FFT` also provides PyTorch implementations of underlying 
 precompute transforms. In future releases this support will be extended to our 
 on-the-fly algorithms.
 
+> [!TIP]
 As of version 1.0.3 `S2FFT` also provides JAX support for existing C/C++ packages, 
 specifically `HEALPix` and `SSHT`. This works by wrapping python bindings with custom 
 JAX frontends. Note that currently this C/C++ to JAX interoperability is currently 
-limited to CPU, however for many applications this is desirable due to memory 
-constraints.
+limited to CPU.
 
 ## Algorithms :zap:
 
@@ -59,7 +63,7 @@ diagram below illustrates the separable spherical harmonic transform
 ## Sampling :earth_africa:
 
 The structure of the algorithms implemented in `S2FFT` can support any
-isolattitude sampling scheme. A number of sampling schemes are currently
+isolatitude sampling scheme. A number of sampling schemes are currently
 supported.
 
 The equiangular sampling schemes of [McEwen & Wiaux
@@ -82,7 +86,7 @@ pixels of equal areas, which has many practical advantages.
 <p align="center"><img src="./docs/assets/figures/spherical_sampling.png" width="500"></p>
 
 > [!NOTE]  
-> For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and will work to improve this in subsequent versions.
+> For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and are working to fix it.  A fix for CPU execution has now been implemented (see example [notebook](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_HEALPix_backend.html)).  Fix for GPU execution is coming soon.
 
 ## Installation :computer:
 
@@ -153,14 +157,13 @@ For further details on usage see the [documentation](https://astro-informatics.g
 ## C/C++ JAX Frontends for SSHT/HEALPix :bulb:
 
 `S2FFT` also provides JAX support for existing C/C++ packages, specifically `HEALPix` and `SSHT`. This works 
-by wrapping python bindings with custom JAX frontends. Note that currently this C/C++ to JAX interoperability is currently 
-limited to CPU, however for many applications this is desirable due to memory constraints.
+by wrapping python bindings with custom JAX frontends. Note that this C/C++ to JAX interoperability is currently limited to CPU.
 
 For example, one may call these alternate backends for the spherical harmonic transform by:
 
 ``` python
 # Forward SSHT spherical harmonic transform
-flm = s2fft.forward(f, L, sampling=["mw"/"mwss"/"gl"/"dh"], method="jax_ssht")  
+flm = s2fft.forward(f, L, sampling=["mw"], method="jax_ssht")  
 
 # Forward HEALPix spherical harmonic transform
 flm = s2fft.forward(f, L, nside=nside, sampling="healpix", method="jax_healpy")  
@@ -168,12 +171,12 @@ flm = s2fft.forward(f, L, nside=nside, sampling="healpix", method="jax_healpy")
 
 All of these JAX frontends supports out of the box reverse mode automatic differentiation, 
 and under the hood is simply linking to the C/C++ packages you are familiar with. In this 
-way `S2fft` enhances existing packages with gradient functionality for modern signal processing 
+way `S2fft` enhances existing packages with gradient functionality for modern scientific computing or machine learning 
 applications!
 
 For further details on usage see the associated [notebooks](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_SSHT_backend.html).
 
-## Benchmarking :hourglass_flowing_sand:
+<!-- ## Benchmarking :hourglass_flowing_sand:
 
 We benchmarked the spherical harmonic and Wigner transforms implemented
 in `S2FFT` against the C implementations in the
@@ -197,7 +200,7 @@ that scale linearly with spin).
 | 8192 | 82 s      | 110.8    | 2.14E-13 | N/A       | N/A      | N/A      | N/A     |
 
 where the left hand results are for the recursive based algorithm and the right hand side are 
-our precompute implementation.
+our precompute implementation. -->
 
 ## Contributors ✨
 
