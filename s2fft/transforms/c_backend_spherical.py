@@ -20,11 +20,10 @@ def ssht_inverse(
 ) -> jnp.ndarray:
     r"""Compute the inverse spin-spherical harmonic transform (SSHT JAX).
 
-    SSHT is a highly optimised C library which implements the spin-spherical harmonic
-    transform outlined in McEwen & Wiaux 2011 [1]. We make use of their python bindings
-    for which we provide custom JAX frontends, hence providing support for automatic
-    differentiation. Currently these transforms can only be deployed on CPU, which is a
-    limitation of the SSHT C package.
+    SSHT is a C library which implements the spin-spherical harmonic transform outlined in
+    McEwen & Wiaux 2011 [1]. We make use of their python bindings for which we provide
+    custom JAX frontends, hence providing support for automatic differentiation. Currently
+    these transforms can only be deployed on CPU, which is a limitation of the SSHT C package.
 
     Args:
         flm (jnp.ndarray): Spherical harmonic coefficients.
@@ -130,11 +129,10 @@ def ssht_forward(
 ) -> jnp.ndarray:
     r"""Compute the forward spin-spherical harmonic transform (SSHT JAX).
 
-    SSHT is a highly optimised C library which implements the spin-spherical harmonic
-    transform outlined in McEwen & Wiaux 2011 [1]. We make use of their python bindings
-    for which we provide custom JAX frontends, hence providing support for automatic
-    differentiation. Currently these transforms can only be deployed on CPU, which is a
-    limitation of the SSHT C package.
+    SSHT is a C library which implements the spin-spherical harmonic transform outlined in
+    McEwen & Wiaux 2011 [1]. We make use of their python bindings for which we provide
+    custom JAX frontends, hence providing support for automatic differentiation. Currently
+    these transforms can only be deployed on CPU, which is a limitation of the SSHT C package.
 
     Args:
         f (jnp.ndarray): Signal on the sphere.
@@ -228,8 +226,8 @@ def _ssht_forward_bwd(res, flm):
 def healpy_inverse(flm: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
     r"""Compute the inverse scalar real spherical harmonic transform (HEALPix JAX).
 
-    HEALPix is a highly optimised C++ library which implements the scalar spherical harmonic
-    transform outlined in [1]. We make use of their healpy python bindings for which we provide
+    HEALPix is a C++ library which implements the scalar spherical harmonic transform
+    outlined in [1]. We make use of their healpy python bindings for which we provide
     custom JAX frontends, hence providing support for automatic differentiation. Currently
     these transforms can only be deployed on CPU, which is a limitation of the C++ library.
 
@@ -278,8 +276,8 @@ def _healpy_inverse_bwd(res, f):
 def healpy_forward(f: jnp.ndarray, L: int, nside: int, iter: int = 3) -> jnp.ndarray:
     r"""Compute the forward scalar spherical harmonic transform (healpy JAX).
 
-    HEALPix is a highly optimised C++ library which implements the scalar spherical harmonic
-    transform outlined in [1]. We make use of their healpy python bindings for which we provide
+    HEALPix is a C++ library which implements the scalar spherical harmonic transform
+    outlined in [1]. We make use of their healpy python bindings for which we provide
     custom JAX frontends, hence providing support for automatic differentiation. Currently
     these transforms can only be deployed on CPU, which is a limitation of the C++ library.
 

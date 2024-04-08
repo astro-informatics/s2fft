@@ -88,12 +88,12 @@ def inverse(
         )
     elif method == "jax_ssht":
         if sampling.lower() == "healpix":
-            raise ValueError("Legacy code ssht does not support healpix sampling.")
+            raise ValueError("SSHT does not support healpix sampling.")
         ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
         return c_sph.ssht_inverse(flm, L, spin, reality, ssht_sampling, _ssht_backend)
     elif method == "jax_healpy":
         if sampling.lower() != "healpix":
-            raise ValueError("Legacy code healpy only supports healpix sampling.")
+            raise ValueError("Healpy only supports healpix sampling.")
         return c_sph.healpy_inverse(flm, L, nside)
     else:
         raise ValueError(
@@ -401,12 +401,12 @@ def forward(
         )
     elif method == "jax_ssht":
         if sampling.lower() == "healpix":
-            raise ValueError("Legacy code ssht does not support healpix sampling.")
+            raise ValueError("SSHT does not support healpix sampling.")
         ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
         return c_sph.ssht_forward(f, L, spin, reality, ssht_sampling, _ssht_backend)
     elif method == "jax_healpy":
         if sampling.lower() != "healpix":
-            raise ValueError("Legacy code healpy only supports healpix sampling.")
+            raise ValueError("Healpy only supports healpix sampling.")
         return c_sph.healpy_forward(f, L, nside, iter)
     else:
         raise ValueError(

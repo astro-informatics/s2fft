@@ -100,7 +100,7 @@ def inverse(
         )
     elif method == "jax_ssht":
         if sampling.lower() == "healpix":
-            raise ValueError("Legacy code ssht does not support healpix sampling.")
+            raise ValueError("SSHT does not support healpix sampling.")
         return inverse_jax_ssht(flmn, L, N, L_lower, sampling, reality, _ssht_backend)
     else:
         raise ValueError(
@@ -513,7 +513,7 @@ def forward(
         return forward_jax(f, L, N, nside, sampling, reality, precomps, spmd, L_lower)
     elif method == "jax_ssht":
         if sampling.lower() == "healpix":
-            raise ValueError("Legacy code ssht does not support healpix sampling.")
+            raise ValueError("SSHT does not support healpix sampling.")
         return forward_jax_ssht(f, L, N, L_lower, sampling, reality, _ssht_backend)
     else:
         raise ValueError(
