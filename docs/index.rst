@@ -20,7 +20,7 @@ may select depending on available resources and desired angular resolution :math
     on-the-fly algorithms.
 
 .. tip::
-    As of version 1.0.3 ``S2FFT`` also provides JAX support for existing C/C++ packages, 
+    As of version 1.1.0 ``S2FFT`` also provides JAX support for existing C/C++ packages, 
     specifically ``HEALPix`` and ``SSHT``. This works by wrapping python bindings with custom 
     JAX frontends. Note that currently this C/C++ to JAX interoperability is currently 
     limited to CPU.
