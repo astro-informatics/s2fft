@@ -90,8 +90,10 @@ def inverse(
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
     """
-    if N >= 8:
+
+    if N >= 8 and method in ["numpy", "jax"]:
         raise Warning("Recursive transform may provide lower precision beyond N ~ 8")
+
     if method == "numpy":
         return inverse_numpy(flmn, L, N, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
@@ -143,8 +145,6 @@ def inverse_numpy(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
-
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -505,8 +505,10 @@ def forward(
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
     """
-    if N >= 8:
+
+    if N >= 8 and method in ["numpy", "jax"]:
         raise Warning("Recursive transform may provide lower precision beyond N ~ 8")
+
     if method == "numpy":
         return forward_numpy(f, L, N, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
@@ -558,8 +560,6 @@ def forward_numpy(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
-
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -654,8 +654,6 @@ def forward_jax(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
-
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to

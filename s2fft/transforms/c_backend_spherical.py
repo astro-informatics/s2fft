@@ -81,7 +81,7 @@ def _ssht_inverse_bwd(res, f):
     _, L, spin, reality, ssht_sampling, _ssht_backend = res
     sampling_str = ["MW", "MWSS", "DH", "GL"]
     _backend = "SSHT" if _ssht_backend == 0 else "ducc0"
-    if ssht_sampling < 2:
+    if ssht_sampling < 2:  # MW or MWSS sampling
         flm = np.conj(
             pyssht.inverse_adjoint(
                 np.conj(f),
@@ -92,7 +92,7 @@ def _ssht_inverse_bwd(res, f):
                 backend=_backend,
             )
         )
-    else:
+    else:  # DH or GL samping
         quad_weights = quadrature_jax.quad_weights_transform(
             L, sampling_str[ssht_sampling].lower()
         )
@@ -192,7 +192,7 @@ def _ssht_forward_bwd(res, flm):
     _backend = "SSHT" if _ssht_backend == 0 else "ducc0"
     flm_1d = samples.flm_2d_to_1d(flm, L)
 
-    if ssht_sampling < 2:
+    if ssht_sampling < 2:  # MW or MWSS sampling
         f = np.conj(
             pyssht.forward_adjoint(
                 np.conj(flm_1d),
@@ -203,7 +203,7 @@ def _ssht_forward_bwd(res, flm):
                 backend=_backend,
             )
         )
-    else:
+    else:  # DH or GL sampling
         quad_weights = quadrature_jax.quad_weights_transform(
             L, sampling_str[ssht_sampling].lower()
         )

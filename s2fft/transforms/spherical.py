@@ -78,8 +78,10 @@ def inverse(
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
     """
-    if spin >= 8:
+
+    if spin >= 8 and method in ["numpy", "jax"]:
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
+
     if method == "numpy":
         return inverse_numpy(flm, L, spin, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
@@ -129,8 +131,6 @@ def inverse_numpy(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
-
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -228,8 +228,6 @@ def inverse_jax(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
-
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -354,7 +352,8 @@ def forward(
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
+        method (str, optional): Execution mode in {"numpy", "jax", "jax_ssht", "jax_healpy"}.
+            Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -391,8 +390,10 @@ def forward(
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
     """
-    if spin >= 8:
+
+    if spin >= 8 and method in ["numpy", "jax"]:
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
+
     if method == "numpy":
         return forward_numpy(f, L, spin, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
@@ -442,8 +443,6 @@ def forward_numpy(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
-
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -569,8 +568,6 @@ def forward_jax(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
-
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
