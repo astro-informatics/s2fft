@@ -33,5 +33,4 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     pacakge_data={"s2fft": ["default-logging-config.yaml"]},
-    extras_require={"torch": ["torch"]},
 )

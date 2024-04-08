@@ -4,11 +4,7 @@ colorlog
 pyyaml
 jax>=0.3.13
 jaxlib
-
-# Remove when subpackage functionality is fixed.
-torch 
-
-# Legacy codes for which to provide JAX frontend support.
+torch # Remove when subpackage functionality is fixed.
 pyssht
 healpy
 ducc0

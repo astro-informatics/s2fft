@@ -93,12 +93,7 @@ into the active python environment by [pip](https://pypi.org) when running
 ``` bash
 pip install s2fft
 ```
-This will install all core functionality which includes JAX support. To install `S2FFT` 
-with PyTorch support run 
-
-``` bash
-pip install s2fft[torch]
-```
+This will install all core functionality which includes JAX support (including PyTorch support).
 
 Alternatively, the `S2FFT` package may be installed directly from GitHub by cloning this 
 repository and then running 
@@ -107,16 +102,22 @@ repository and then running
 pip install .        
 ```
 
-from the root directory of the repository. To enable PyTorch support you will need to run 
+from the root directory of the repository. 
+
+Unit tests can then be executed to ensure the installation was successful by first installing the test requirements and then running pytest
 
 ``` bash
-pip install .[torch]     
+pip install -r requirements/requirements-tests.txt
+pytest tests/  
 ```
 
-Unit tests can then be executed to ensure the installation was successful by running
+Documentation for the released version is available [here](https://astro-informatics.github.io/s2fft/).  To build the documentation locally run
 
 ``` bash
-pytest tests/  
+pip install -r requirements/requirements-docs.txt
+cd docs 
+make html
+open _build/html/index.html
 ```
 
 > [!NOTE]  

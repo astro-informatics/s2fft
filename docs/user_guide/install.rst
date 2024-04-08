@@ -19,11 +19,7 @@ from PyPi by running
     pip install s2fft 
 
 after which ``S2FFT`` may be imported and run as outlined in the associated notebooks and collab tutorials.
-To install the PyTorch functionality you will need to install the subpackage by running 
-
-.. code-block:: bash
-    
-    pip install s2fft[torch]
+This will include PyTorch functionality.
 
 Install from source (GitHub)
 ----------------------------
@@ -44,26 +40,25 @@ and pip installing locally
     cd s2fft
     pip install .
 
-from the root directory of the repository. To install the Pytorch support you will need to 
-install the subpackage by running 
+from the root directory of the repository. This will include PyTorch functionality.
 
-.. code-block:: bash
-
-    pip install .[torch]
-
-which, depending on operating system, can sometimes be 
-
-.. code-block:: bash
-
-    pip install .\[torch\]
-    
-Unit tests can then be executed to ensure the installation was successful by running 
+Unit tests can then be executed to ensure the installation was successful by first installing the test requirements and then running pytest
 
 .. code-block:: bash 
 
+    pip install -r requirements/requirements-tests.txt
     pytest tests/ 
 
-In the very near future one will be able to install ``S2FFT`` directly from `PyPi` by ``pip install s2fft`` but this is not yet supported.
+Documentation for the released version is available `here <https://astro-informatics.github.io/s2fft/>`_.  To build the documentation locally run
+
+.. code-block:: bash 
+
+    pip install -r requirements/requirements-docs.txt
+    cd docs 
+    make html
+    open _build/html/index.html
+
+
 
 Installing JAX for NVIDIA GPUs
 ------------------------------
