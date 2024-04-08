@@ -11,7 +11,7 @@ transforms (for both real and complex signals), with support for adjoint transfo
 where needed, and comes with different optimisations (precompute or not) that one
 may select depending on available resources and desired angular resolution :math:`L`.
 
-.. note::
+.. important::
     HEALPix long JIT compile time fixed for CPU!  Fix for GPU coming soon.
 
 .. tip::

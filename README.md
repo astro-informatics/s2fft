@@ -22,7 +22,7 @@ for adjoint transformations where needed, and comes with different
 optimisations (precompute or not) that one may select depending on
 available resources and desired angular resolution $L$.
 
-> [!NOTE]
+> [!IMPORTANT]
 > HEALPix long JIT compile time fixed for CPU!  Fix for GPU coming soon.
 
 > [!TIP]
@@ -31,7 +31,7 @@ precompute transforms. In future releases this support will be extended to our
 on-the-fly algorithms.
 
 > [!TIP]
-As of version 1.0.3 `S2FFT` also provides JAX support for existing C/C++ packages, 
+As of version 1.1.0 `S2FFT` also provides JAX support for existing C/C++ packages, 
 specifically `HEALPix` and `SSHT`. This works by wrapping python bindings with custom 
 JAX frontends. Note that currently this C/C++ to JAX interoperability is currently 
 limited to CPU.
