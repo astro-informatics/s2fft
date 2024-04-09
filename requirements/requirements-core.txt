@@ -4,6 +4,7 @@ colorlog
 pyyaml
 jax>=0.3.13
 jaxlib
-
-# Remove when subpackage functionality is fixed.
-torch 
+torch # Remove when subpackage functionality is fixed.
+pyssht
+healpy
+ducc0

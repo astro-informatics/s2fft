@@ -180,3 +180,55 @@ def test_transform_forward_healpix(
     flm = hp.sphtfunc.map2alm(f, lmax=L - 1, iter=0)
 
     np.testing.assert_allclose(flm, flm_check, atol=1e-14)
+
+
+def test_spin_exceptions(flm_generator):
+    spin = 10
+    L = 16
+    sampling = "mw"
+
+    flm = flm_generator(L=L, reality=False)
+    f = spherical.inverse(flm, L, spin=0, sampling=sampling, method="jax_ssht")
+
+    with pytest.raises(Warning) as e:
+        spherical.inverse(flm, L, spin=spin, sampling=sampling, method="jax")
+
+    with pytest.raises(Warning) as e:
+        spherical.forward(f, L, spin=spin, sampling=sampling, method="jax")
+
+
+def test_sampling_ssht_backend_exceptions(flm_generator):
+    sampling = "healpix"
+    nside = 6
+    L = 2 * nside
+
+    flm = flm_generator(L=L, reality=False)
+    f = spherical.inverse(flm, L, 0, nside, sampling, "jax_healpy")
+
+    with pytest.raises(ValueError) as e:
+        spherical.inverse(flm, L, 0, nside, sampling, "jax_ssht")
+
+    with pytest.raises(ValueError) as e:
+        spherical.forward(f, L, 0, nside, sampling, "jax_ssht")
+
+
+def test_sampling_healpy_backend_exceptions(flm_generator):
+    sampling = "mw"
+    L = 12
+
+    flm = flm_generator(L=L, reality=False)
+    f = spherical.inverse(flm, L, 0, None, sampling, "jax_ssht")
+
+    with pytest.raises(ValueError) as e:
+        spherical.inverse(flm, L, 0, None, sampling, "jax_healpy")
+
+    with pytest.raises(ValueError) as e:
+        spherical.forward(f, L, 0, None, sampling, "jax_healpy")
+
+
+def test_sampling_exceptions(flm_generator):
+    with pytest.raises(ValueError) as e:
+        spherical.inverse(None, 0, 0, None, method="incorrect")
+
+    with pytest.raises(ValueError) as e:
+        spherical.forward(None, 0, 0, None, method="incorrect")

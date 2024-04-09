@@ -13,6 +13,7 @@ from s2fft.utils import (
 )
 from s2fft.utils import healpix_ffts as hp
 from s2fft.transforms import otf_recursions as otf
+from s2fft.transforms import c_backend_spherical as c_sph
 
 
 def inverse(
@@ -26,6 +27,7 @@ def inverse(
     precomps: List = None,
     spmd: bool = False,
     L_lower: int = 0,
+    _ssht_backend: int = 1,
 ) -> np.ndarray:
     r"""Wrapper for the inverse spin-spherical harmonic transform.
 
@@ -42,7 +44,8 @@ def inverse(
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
+        method (str, optional): Execution mode in {"numpy", "jax", "jax_ssht", "jax_healpy"}.
+            Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -58,6 +61,10 @@ def inverse(
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
+        _ssht_backend (int, optional, experimental): Whether to default to SSHT core
+            (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
+            backend. Use with caution.
+
     Raises:
         ValueError: Transform method not recognised.
 
@@ -71,14 +78,25 @@ def inverse(
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
     """
-    if spin >= 8:
+
+    if spin >= 8 and method in ["numpy", "jax"]:
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
+
     if method == "numpy":
         return inverse_numpy(flm, L, spin, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
         return inverse_jax(
             flm, L, spin, nside, sampling, reality, precomps, spmd, L_lower
         )
+    elif method == "jax_ssht":
+        if sampling.lower() == "healpix":
+            raise ValueError("SSHT does not support healpix sampling.")
+        ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
+        return c_sph.ssht_inverse(flm, L, spin, reality, ssht_sampling, _ssht_backend)
+    elif method == "jax_healpy":
+        if sampling.lower() != "healpix":
+            raise ValueError("Healpy only supports healpix sampling.")
+        return c_sph.healpy_inverse(flm, L, nside)
     else:
         raise ValueError(
             f"Implementation {method} not recognised. Should be either numpy or jax."
@@ -113,8 +131,6 @@ def inverse_numpy(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
-
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -212,8 +228,6 @@ def inverse_jax(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
-
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -320,6 +334,8 @@ def forward(
     precomps: List = None,
     spmd: bool = False,
     L_lower: int = 0,
+    iter: int = 3,
+    _ssht_backend: int = 1,
 ) -> np.ndarray:
     r"""Wrapper for the forward spin-spherical harmonic transform.
 
@@ -336,7 +352,8 @@ def forward(
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
+        method (str, optional): Execution mode in {"numpy", "jax", "jax_ssht", "jax_healpy"}.
+            Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -352,6 +369,14 @@ def forward(
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
+        iter (int, optional): Number of subiterations for healpy. Note that iterations
+            increase the precision of the forward transform, but reduce the accuracy of
+            the gradient pass. Between 2 and 3 iterations is a good compromise.
+
+        _ssht_backend (int, optional, experimental): Whether to default to SSHT core
+            (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
+            backend. Use with caution.
+
     Raises:
         ValueError: Transform method not recognised.
 
@@ -365,14 +390,25 @@ def forward(
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
     """
-    if spin >= 8:
+
+    if spin >= 8 and method in ["numpy", "jax"]:
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
+
     if method == "numpy":
         return forward_numpy(f, L, spin, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
         return forward_jax(
             f, L, spin, nside, sampling, reality, precomps, spmd, L_lower
         )
+    elif method == "jax_ssht":
+        if sampling.lower() == "healpix":
+            raise ValueError("SSHT does not support healpix sampling.")
+        ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
+        return c_sph.ssht_forward(f, L, spin, reality, ssht_sampling, _ssht_backend)
+    elif method == "jax_healpy":
+        if sampling.lower() != "healpix":
+            raise ValueError("Healpy only supports healpix sampling.")
+        return c_sph.healpy_forward(f, L, nside, iter)
     else:
         raise ValueError(
             f"Implementation {method} not recognised. Should be either numpy or jax."
@@ -407,8 +443,6 @@ def forward_numpy(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
-
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -534,8 +568,6 @@ def forward_jax(
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
-
-        method (str, optional): Execution mode in {"numpy", "jax"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
