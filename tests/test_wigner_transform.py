@@ -132,3 +132,29 @@ def test_ssht_c_backend_forward_wigner_transform(
         f, L, N, None, sampling, "jax_ssht", reality, L_lower=L_lower
     )
     np.testing.assert_allclose(flmn, flmn_check, atol=1e-12)
+
+
+def test_N_exceptions(flmn_generator):
+    N = 10
+    L = 16
+    flmn = flmn_generator(L=L, N=N)
+    f = base_wigner.inverse(flmn, L, N)
+
+    with pytest.raises(Warning) as e:
+        wigner.inverse(flmn, L, N)
+
+    with pytest.raises(Warning) as e:
+        wigner.forward(f, L, N)
+
+
+def test_sampling_ssht_backend_exceptions(flmn_generator):
+    L = 16
+    N = 1
+    flmn = flmn_generator(L=L, N=N)
+    f = base_wigner.inverse(flmn, L, N)
+
+    with pytest.raises(ValueError) as e:
+        wigner.inverse(flmn, L, N, sampling="healpix", method="jax_ssht")
+
+    with pytest.raises(ValueError) as e:
+        wigner.forward(f, L, N, sampling="healpix", method="jax_ssht")
