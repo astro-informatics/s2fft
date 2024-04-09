@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Transforms &#8212; S2FFT 1.0.2 documentation</title>
+    <title>Transforms &#8212; S2FFT 1.1.0 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
 
     <script src="../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../../_static/documentation_options.js?v=1ed6394b"></script>
+    <script src="../../_static/documentation_options.js?v=fc837d61"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/transforms/index';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="On-the-fly (OTF) recursions" href="on_the_fly_recursions.html" />
+    <link rel="next" title="Precompute Functions" href="../precompute_transforms/index.html" />
     <link rel="prev" title="API" href="../index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -136,8 +136,8 @@
       
     
     
-    <img src="../../_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.0.2 documentation - Home"/>
-    <script>document.write(`<img src="../../_static/sax_logo.png" class="logo__image only-dark" alt="S2FFT 1.0.2 documentation - Home"/>`);</script>
+    <img src="../../_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.1.0 documentation - Home"/>
+    <script>document.write(`<img src="../../_static/sax_logo.png" class="logo__image only-dark" alt="S2FFT 1.1.0 documentation - Home"/>`);</script>
   
   
 </a></div>
@@ -219,6 +219,18 @@ document.write(`
           
           
           <a href="https://arxiv.org/abs/2311.14670" title="ArXiv" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="../../_static/arxiv-logomark-small.png" class="icon-link-image" alt="ArXiv"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1" title="Medium" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-medium fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Medium</span></a>
         </li>
         <li class="nav-item">
           
@@ -373,6 +385,18 @@ document.write(`
           
           
           
+          <a href="https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1" title="Medium" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-medium fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Medium</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
           <a href="https://pypi.org/project/s2fft/" title="PyPi" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="../../_static/pypi.png" class="icon-link-image" alt="PyPi"/></a>
         </li>
         <li class="nav-item">
@@ -422,10 +446,7 @@ document.write(`
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Namespaces</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Transforms</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="on_the_fly_recursions.html">On-the-fly (<em>OTF</em>) recursions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spin_spherical_transform.html">Spherical Harmonic Transform</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wigner.html">Wigner Transform</a></li>
+<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Transforms</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="simple">
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../precompute_transforms/index.html">Precompute Functions</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
@@ -590,7 +611,39 @@ document.write(`
 </tbody>
 </table>
 <table class="table" id="id3">
-<caption><span class="caption-text">On-the-fly Price-McEwen recursions.</span><a class="headerlink" href="#id3" title="Link to this table">#</a></caption>
+<caption><span class="caption-text">C/C++ backend gradient support</span><a class="headerlink" href="#id3" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="xref py py-func docutils literal notranslate"><span class="pre">ssht_inverse()</span></code></p></td>
+<td><p>Custom JAX frontend for inverse SSHT C spherical harmonic library.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-func docutils literal notranslate"><span class="pre">ssht_forward()</span></code></p></td>
+<td><p>Custom JAX frontend for forward SSHT C spherical harmonic library.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-func docutils literal notranslate"><span class="pre">healpy_inverse()</span></code></p></td>
+<td><p>Custom JAX frontend for inverse HEALPix C++ spherical harmonic library.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-func docutils literal notranslate"><span class="pre">healpy_forward()</span></code></p></td>
+<td><p>Custom JAX frontend for forwardHEALPix C++ spherical harmonic library.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wigner.html#s2fft.transforms.wigner.inverse_jax_ssht" title="s2fft.transforms.wigner.inverse_jax_ssht"><code class="xref py py-func docutils literal notranslate"><span class="pre">inverse_jax_ssht()</span></code></a></p></td>
+<td><p>Custom JAX frontend for hybrid inverse SSHT C Wigner transforms.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wigner.html#s2fft.transforms.wigner.forward_jax_ssht" title="s2fft.transforms.wigner.forward_jax_ssht"><code class="xref py py-func docutils literal notranslate"><span class="pre">forward_jax_ssht()</span></code></a></p></td>
+<td><p>Custom JAX frontend for hybrid forward SSHT C Wigner transforms.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="table" id="id4">
+<caption><span class="caption-text">On-the-fly Price-McEwen recursions.</span><a class="headerlink" href="#id4" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 50.0%" />
 <col style="width: 50.0%" />
@@ -639,11 +692,11 @@ document.write(`
       </div>
     </a>
     <a class="right-next"
-       href="on_the_fly_recursions.html"
+       href="../precompute_transforms/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">On-the-fly (<em>OTF</em>) recursions</p>
+        <p class="prev-next-title">Precompute Functions</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

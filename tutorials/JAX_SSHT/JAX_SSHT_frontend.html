@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Risbo &#8212; S2FFT 1.1.0 documentation</title>
+    <title># JAX SSHT frontend &#8212; S2FFT 1.1.0 documentation</title>
   
   
   
@@ -30,6 +30,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=9be2284e" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/custom_tabs.css?v=82e1095b" />
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/fontawesome.min.css" />
@@ -51,11 +52,11 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'api/recursions/risbo';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/JAX_SSHT/JAX_SSHT_frontend';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Trapani" href="trapani.html" />
-    <link rel="prev" title="Price &amp; McEwen" href="price_mcewen.html" />
+    <link rel="next" title="# JAX HEALPix frontend" href="../JAX_HEALPix/JAX_HEALPix_frontend.html" />
+    <link rel="prev" title="# Torch frontend guide" href="../torch_frontend/torch_frontend.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -161,15 +162,15 @@
                     </li>
                 
 
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../tutorials/index.html">
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../index.html">
                         Notebooks
                       </a>
                     </li>
                 
 
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="../index.html">
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../api/index.html">
                         API
                       </a>
                     </li>
@@ -301,6 +302,10 @@ document.write(`
   
 
   
+    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
 </div>
 
     </header>
@@ -331,15 +336,15 @@ document.write(`
                     </li>
                 
 
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../tutorials/index.html">
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../index.html">
                         Notebooks
                       </a>
                     </li>
                 
 
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="../index.html">
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../api/index.html">
                         API
                       </a>
                     </li>
@@ -446,49 +451,14 @@ document.write(`
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Namespaces</span></p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Jupyter Notebooks</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../transforms/index.html">Transforms</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="simple">
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../precompute_transforms/index.html">Precompute Functions</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../precompute_transforms/construct.html">constructor</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../precompute_transforms/spin_spherical.html">Spherical Harmonic Transform</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../precompute_transforms/wigner.html">Wigner Transform</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../base_transforms/index.html">Reference Transforms</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../base_transforms/spin_spherical_transform.html">Spherical Harmonic Transform</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../base_transforms/wigner_transform.html">Wigner Transform</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../sampling/index.html">Sampling Functions</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../sampling/spherical_samples.html">Spherical samples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../sampling/wigner_samples.html">Wigner samples</a></li>
-</ul>
-</li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Wigner-d recursions</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-5"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="price_mcewen.html">Price &amp; McEwen</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Risbo</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trapani.html">Trapani</a></li>
-<li class="toctree-l2"><a class="reference internal" href="turok.html">Turok &amp; Bucher</a></li>
-<li class="toctree-l2"><a class="reference internal" href="turok_jax.html">Turok &amp; Bucher JAX</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../utility/index.html">Utility Functions</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../utility/signal_generator.html">signal generator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/resampling.html">resampling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/resampling_jax.html">resampling_jax</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/resampling_torch.html">resampling_torch</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/quadrature.html">quadrature</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/quadrature_jax.html">quadrature_jax</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/quadrature_torch.html">quadrature_torch</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/healpix_ffts.html">healpix functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/utils.html">utils</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/rotation.html">rotations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/logs.html">logs</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../spherical_harmonic/spherical_harmonic_transform.html"># <strong>Spherical harmonic transform</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../wigner/wigner_transform.html"># <strong>Wigner transform</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation/rotation.html"># <strong>Rotate a signal</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../torch_frontend/torch_frontend.html"># <strong>Torch frontend guide</strong></a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#"># <strong>JAX SSHT frontend</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../JAX_HEALPix/JAX_HEALPix_frontend.html"># <strong>JAX HEALPix frontend</strong></a></li>
 </ul>
 </div>
 </nav></div>
@@ -527,12 +497,9 @@ document.write(`
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">API</a></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Notebooks</a></li>
     
-    
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Wigner-d recursions</a></li>
-    
-    <li class="breadcrumb-item active" aria-current="page">Risbo</li>
+    <li class="breadcrumb-item active" aria-current="page">#...</li>
   </ul>
 </nav>
 </div>
@@ -549,34 +516,118 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-s2fft.recursions.risbo">
-<span id="risbo"></span><h1>Risbo<a class="headerlink" href="#module-s2fft.recursions.risbo" title="Link to this heading">#</a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.recursions.risbo.compute_full">
-<span class="sig-prename descclassname"><span class="pre">s2fft.recursions.risbo.</span></span><span class="sig-name descname"><span class="pre">compute_full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">el</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.recursions.risbo.compute_full" title="Link to this definition">#</a></dt>
-<dd><p>Compute Wigner-d at argument <span class="math notranslate nohighlight">\(\beta\)</span> for full plane using
-Risbo recursion.</p>
-<p>The Wigner-d plane is computed by recursion over <span class="math notranslate nohighlight">\(\ell\)</span>.
-Thus, for <span class="math notranslate nohighlight">\(\ell &gt; 0\)</span> the plane must be computed already for
-<span class="math notranslate nohighlight">\(\ell - 1\)</span>. At present, for <span class="math notranslate nohighlight">\(\ell = 0\)</span> the recusion is initialised.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dl</strong> (<em>np.ndarray</em>) – Wigner-d plane for <span class="math notranslate nohighlight">\(\ell - 1\)</span> at <span class="math notranslate nohighlight">\(\beta\)</span>.</p></li>
-<li><p><strong>beta</strong> (<em>float</em>) – Argument <span class="math notranslate nohighlight">\(\beta\)</span> at which to compute Wigner-d plane.</p></li>
-<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>el</strong> (<em>int</em>) – Spherical harmonic degree <span class="math notranslate nohighlight">\(\ell\)</span>.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Plane of Wigner-d for <span class="math notranslate nohighlight">\(\ell\)</span> and <span class="math notranslate nohighlight">\(\beta\)</span>, with full plane computed.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
+  <section id="#-JAX-SSHT-frontend">
+<h1># <strong>JAX SSHT frontend</strong><a class="headerlink" href="##-JAX-SSHT-frontend" title="Link to this heading">#</a></h1>
+<p><a class="reference external" href="https://colab.research.google.com/github/astro-informatics/s2fft/blob/main/notebooks/JAX_SSHT_frontend.ipynb"><img alt="colab image" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install s2fft</span>
+<span class="o">!</span>pip<span class="w"> </span>install<span class="w"> </span>s2fft<span class="w"> </span><span class="p">&amp;</span>&gt;<span class="w"> </span>/dev/null
+</pre></div>
+</div>
+</div>
+<p>This short tutorial demonstrates how to use the custom JAX frontend support <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> provides for the <code class="docutils literal notranslate"><span class="pre">`SSHT</span></code> &lt;<a class="github reference external" href="https://github.com/astro-informatics/ssht">astro-informatics/ssht</a>&gt;`__ C library.</p>
+<p>As with the other introductions, let’s import some packages and define an arbitrary bandlimited signal to work with.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">jax</span>
+<span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;jax_enable_x64&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">s2fft</span>
+
+<span class="n">L</span> <span class="o">=</span> <span class="mi">1024</span>
+<span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;jax_ssht&quot;</span>
+<span class="n">flm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">L</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">L</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">inverse</span><span class="p">(</span><span class="n">flm</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Calling-forward-SSHT-C-function-from-JAX.">
+<h2>Calling forward SSHT C function from JAX.<a class="headerlink" href="#Calling-forward-SSHT-C-function-from-JAX." title="Link to this heading">#</a></h2>
+<hr class="docutils" />
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">flm</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Calling-inverse-SSHT-C-function-from-JAX.">
+<h2>Calling inverse SSHT C function from JAX.<a class="headerlink" href="#Calling-inverse-SSHT-C-function-from-JAX." title="Link to this heading">#</a></h2>
+<hr class="docutils" />
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f_recov</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">inverse</span><span class="p">(</span><span class="n">flm</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Computing-the-roundtrip-error">
+<h2>Computing the roundtrip error<a class="headerlink" href="#Computing-the-roundtrip-error" title="Link to this heading">#</a></h2>
+<hr class="docutils" />
+<p>Let’s check the associated error, which should be close to machine precision for the sampling scheme used.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean absolute error = </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f_recov</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">f</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Mean absolute error = 4.909423754134027e-11
+</pre></div></div>
+</div>
+</section>
+<section id="Differentiating-through-SSHT-C-functions.">
+<h2>Differentiating through SSHT C functions.<a class="headerlink" href="#Differentiating-through-SSHT-C-functions." title="Link to this heading">#</a></h2>
+<hr class="docutils" />
+<p>So far all this is doing is providing an interface between <code class="docutils literal notranslate"><span class="pre">JAX</span></code> and <code class="docutils literal notranslate"><span class="pre">SSHT</span></code>, the real novelty comes when we differentiate through the C library.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define an arbitrary JAX function</span>
+<span class="k">def</span> <span class="nf">differentiable_test</span><span class="p">(</span><span class="n">flm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">inverse</span><span class="p">(</span><span class="n">flm</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Create the JAX reverse mode gradient function</span>
+<span class="n">gradient_func</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">differentiable_test</span><span class="p">)</span>
+
+<span class="c1"># Compute the gradient automatically</span>
+<span class="n">gradient</span> <span class="o">=</span> <span class="n">gradient_func</span><span class="p">(</span><span class="n">flm</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Validating-these-gradients">
+<h2>Validating these gradients<a class="headerlink" href="#Validating-these-gradients" title="Link to this heading">#</a></h2>
+<hr class="docutils" />
+<p>This is all well and good, but how do we know these gradients are correct? Thankfully <code class="docutils literal notranslate"><span class="pre">JAX</span></code> prvoides a simple function to check this…</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">jax.test_util</span> <span class="kn">import</span> <span class="n">check_grads</span>
+<span class="n">check_grads</span><span class="p">(</span><span class="n">differentiable_test</span><span class="p">,</span> <span class="p">(</span><span class="n">flm</span><span class="p">,),</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">modes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;rev&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</section>
 </section>
 
 
@@ -590,20 +641,20 @@ Thus, for <span class="math notranslate nohighlight">\(\ell &gt; 0\)</span> the 
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="price_mcewen.html"
+       href="../torch_frontend/torch_frontend.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Price &amp; McEwen</p>
+        <p class="prev-next-title"># <strong>Torch frontend guide</strong></p>
       </div>
     </a>
     <a class="right-next"
-       href="trapani.html"
+       href="../JAX_HEALPix/JAX_HEALPix_frontend.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Trapani</p>
+        <p class="prev-next-title"># <strong>JAX HEALPix frontend</strong></p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -613,6 +664,36 @@ Thus, for <span class="math notranslate nohighlight">\(\ell &gt; 0\)</span> the 
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Calling-forward-SSHT-C-function-from-JAX.">Calling forward SSHT C function from JAX.</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Calling-inverse-SSHT-C-function-from-JAX.">Calling inverse SSHT C function from JAX.</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Computing-the-roundtrip-error">Computing the roundtrip error</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Differentiating-through-SSHT-C-functions.">Differentiating through SSHT C functions.</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Validating-these-gradients">Validating these gradients</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/tutorials/JAX_SSHT/JAX_SSHT_frontend.nblink.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
               
             
           </div>

@@ -11,9 +11,19 @@ transforms (for both real and complex signals), with support for adjoint transfo
 where needed, and comes with different optimisations (precompute or not) that one
 may select depending on available resources and desired angular resolution :math:`L`.
 
-As of version 1.0.2 ``S2FFT`` also provides PyTorch implementations of underlying 
-precompute transforms. In future releases this support will be extended to our 
-on-the-fly algorithms.
+.. important::
+    HEALPix long JIT compile time fixed for CPU!  Fix for GPU coming soon.
+
+.. tip::
+    As of version 1.0.2 ``S2FFT`` also provides PyTorch implementations of underlying 
+    precompute transforms. In future releases this support will be extended to our 
+    on-the-fly algorithms.
+
+.. tip::
+    As of version 1.1.0 ``S2FFT`` also provides JAX support for existing C/C++ packages, 
+    specifically ``HEALPix`` and ``SSHT``. This works by wrapping python bindings with custom 
+    JAX frontends. Note that currently this C/C++ to JAX interoperability is currently 
+    limited to CPU.
 
 Algorithms |:zap:|
 -------------------
@@ -40,7 +50,7 @@ diagram below illustrates the separable spherical harmonic transform.
 .. image:: ./assets/figures/sax_schematic_github_docs.png
 
 .. note::
-    For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and will work to improve this in subsequent versions.
+    For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and are working to fix it.  A fix for CPU execution has now been implemented (see example `notebook <https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_HEALPix_backend.html>`_).  Fix for GPU execution is coming soon.
 
 Sampling |:earth_africa:|
 -----------------------------------
@@ -53,7 +63,7 @@ The equiangular sampling schemes of `McEwen & Wiaux (2012) <https://arxiv.org/ab
 The popular `HEALPix <https://healpix.jpl.nasa.gov>`_ sampling scheme (`Gorski et al. 2005 <https://arxiv.org/abs/astro-ph/0409513>`_) is also supported.  The HEALPix sampling does not exhibit a sampling theorem and so the corresponding harmonic transforms do not achieve machine precision but exhibit some error.  However, the HEALPix sampling provides pixels of equal areas, which has many practical advantages.
     
 .. image:: ./assets/figures/spherical_sampling.png
-   :width: 700
+   :width: 900
    :align: center
 
 Contributors ✨

@@ -41,6 +41,25 @@ Transforms
    * - :func:`~s2fft.transforms.wigner.forward_jax`
      - Forward Wigner transform (JAX)
 
+.. list-table:: C/C++ backend gradient support
+   :widths: 25 25
+   :header-rows: 1
+
+   * - Function Name
+     - Description
+   * - :func:`~s2fft.transforms.c_backend_spherical.ssht_inverse`
+     - Custom JAX frontend for inverse SSHT C spherical harmonic library.
+   * - :func:`~s2fft.transforms.c_backend_spherical.ssht_forward`
+     - Custom JAX frontend for forward SSHT C spherical harmonic library.
+   * - :func:`~s2fft.transforms.c_backend_spherical.healpy_inverse`
+     - Custom JAX frontend for inverse HEALPix C++ spherical harmonic library.
+   * - :func:`~s2fft.transforms.c_backend_spherical.healpy_forward`
+     - Custom JAX frontend for forwardHEALPix C++ spherical harmonic library.
+   * - :func:`~s2fft.transforms.wigner.inverse_jax_ssht`
+     - Custom JAX frontend for hybrid inverse SSHT C Wigner transforms.
+   * - :func:`~s2fft.transforms.wigner.forward_jax_ssht`
+     - Custom JAX frontend for hybrid forward SSHT C Wigner transforms.
+
 .. list-table:: On-the-fly Price-McEwen recursions.
    :widths: 25 25
    :header-rows: 1
@@ -64,4 +83,5 @@ Transforms
    on_the_fly_recursions
    spin_spherical_transform
    wigner
+  ..  c_backend_spherical
 

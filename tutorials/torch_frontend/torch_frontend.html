@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Torch frontend guide &#8212; S2FFT 1.0.2 documentation</title>
+    <title># Torch frontend guide &#8212; S2FFT 1.1.0 documentation</title>
   
   
   
@@ -44,7 +44,7 @@
 
     <script src="../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../../_static/documentation_options.js?v=1ed6394b"></script>
+    <script src="../../_static/documentation_options.js?v=fc837d61"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,8 +55,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/torch_frontend/torch_frontend';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="API" href="../../api/index.html" />
-    <link rel="prev" title="Rotate a signal" href="../rotation/rotation.html" />
+    <link rel="next" title="# JAX SSHT frontend" href="../JAX_SSHT/JAX_SSHT_frontend.html" />
+    <link rel="prev" title="# Rotate a signal" href="../rotation/rotation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -139,8 +139,8 @@
       
     
     
-    <img src="../../_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.0.2 documentation - Home"/>
-    <script>document.write(`<img src="../../_static/sax_logo.png" class="logo__image only-dark" alt="S2FFT 1.0.2 documentation - Home"/>`);</script>
+    <img src="../../_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.1.0 documentation - Home"/>
+    <script>document.write(`<img src="../../_static/sax_logo.png" class="logo__image only-dark" alt="S2FFT 1.1.0 documentation - Home"/>`);</script>
   
   
 </a></div>
@@ -222,6 +222,18 @@ document.write(`
           
           
           <a href="https://arxiv.org/abs/2311.14670" title="ArXiv" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="../../_static/arxiv-logomark-small.png" class="icon-link-image" alt="ArXiv"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1" title="Medium" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-medium fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Medium</span></a>
         </li>
         <li class="nav-item">
           
@@ -380,6 +392,18 @@ document.write(`
           
           
           
+          <a href="https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1" title="Medium" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-medium fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Medium</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
           <a href="https://pypi.org/project/s2fft/" title="PyPi" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="../../_static/pypi.png" class="icon-link-image" alt="PyPi"/></a>
         </li>
         <li class="nav-item">
@@ -429,10 +453,12 @@ document.write(`
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Jupyter Notebooks</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../spherical_harmonic/spherical_harmonic_transform.html"><strong>Spherical harmonic transform</strong></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../wigner/wigner_transform.html"><strong>Wigner transform</strong></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../rotation/rotation.html"><strong>Rotate a signal</strong></a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#"><strong>Torch frontend guide</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../spherical_harmonic/spherical_harmonic_transform.html"># <strong>Spherical harmonic transform</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../wigner/wigner_transform.html"># <strong>Wigner transform</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation/rotation.html"># <strong>Rotate a signal</strong></a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#"># <strong>Torch frontend guide</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../JAX_SSHT/JAX_SSHT_frontend.html"># <strong>JAX SSHT frontend</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../JAX_HEALPix/JAX_HEALPix_frontend.html"># <strong>JAX HEALPix frontend</strong></a></li>
 </ul>
 </div>
 </nav></div>
@@ -473,7 +499,7 @@ document.write(`
     
     <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Notebooks</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><strong>Torc...</li>
+    <li class="breadcrumb-item active" aria-current="page">#...</li>
   </ul>
 </nav>
 </div>
@@ -490,21 +516,21 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="Torch-frontend-guide">
-<h1><strong>Torch frontend guide</strong><a class="headerlink" href="#Torch-frontend-guide" title="Link to this heading">#</a></h1>
-<hr class="docutils" />
-<p>This minimal tutorial demonstrates how to use the torch frontend for <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> to compute spherical harmonic transforms.</p>
-<p>Note that to install <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> with torch functionality from <code class="docutils literal notranslate"><span class="pre">PyPi</span></code> run</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>s2fft<span class="o">[</span>torch<span class="o">]</span>
-</pre></div>
-</div>
-<p>or from source by cloning the repository and running</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="se">\[</span>torch<span class="se">\]</span>
-</pre></div>
-</div>
-<p>Though <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is primarily designed for JAX, this torch functionality is fully unit tested (including gradients) and can be used straightforwardly as a learnable layer within existing models.</p>
-<div class="nbinput docutils container">
+  <section id="#-Torch-frontend-guide">
+<h1># <strong>Torch frontend guide</strong><a class="headerlink" href="##-Torch-frontend-guide" title="Link to this heading">#</a></h1>
+<p><a class="reference external" href="https://colab.research.google.com/github/astro-informatics/s2fft/blob/main/notebooks/torch_frontend.ipynb"><img alt="colab image" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install s2fft</span>
+<span class="o">!</span>pip<span class="w"> </span>install<span class="w"> </span>s2fft<span class="w"> </span><span class="p">&amp;</span>&gt;<span class="w"> </span>/dev/null
+</pre></div>
+</div>
+</div>
+<p>This minimal tutorial demonstrates how to use the torch frontend for <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> to compute spherical harmonic transforms. Though <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is primarily designed for JAX, this torch functionality is fully unit tested (including gradients) and can be used straightforwardly as a learnable layer within existing models.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
@@ -525,7 +551,7 @@ JAX is not using 64-bit precision. This will dramatically affect numerical preci
 </div>
 <p>Lets set up a mock problem by specifiying a bandlimit <span class="math notranslate nohighlight">\(L\)</span> and generating some arbitrary harmonic coefficients.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">L</span> <span class="o">=</span> <span class="mi">64</span>                                                          <span class="c1"># Spherical harmonic bandlimit</span>
@@ -536,7 +562,7 @@ JAX is not using 64-bit precision. This will dramatically affect numerical preci
 </div>
 <p>For the fully precompute transform we must also generate the precompute kernels which we store as a torch tensors.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">inverse_kernel</span> <span class="o">=</span> <span class="n">spin_spherical_kernel</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">using_torch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">forward</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -546,7 +572,7 @@ JAX is not using 64-bit precision. This will dramatically affect numerical preci
 </div>
 <p>Now lets calculate the signal on the sphere by applying the inverse spherical harmonic transform</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f</span> <span class="o">=</span> <span class="n">inverse</span><span class="p">(</span><span class="n">flm</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">inverse_kernel</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;torch&quot;</span><span class="p">)</span>
@@ -555,7 +581,7 @@ JAX is not using 64-bit precision. This will dramatically affect numerical preci
 </div>
 <p>To calculate the corresponding spherical harmonic representation execute</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">flm_check</span> <span class="o">=</span> <span class="n">forward</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">forward_kernel</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;torch&quot;</span><span class="p">)</span>
@@ -564,7 +590,7 @@ JAX is not using 64-bit precision. This will dramatically affect numerical preci
 </div>
 <p>Finally, lets check the error on the roundtrip is at 64bit machine precision</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean absolute error = </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">flm_check</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">flm</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -597,15 +623,15 @@ Mean absolute error = 1.1866908936078849e-14
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title"><strong>Rotate a signal</strong></p>
+        <p class="prev-next-title"># <strong>Rotate a signal</strong></p>
       </div>
     </a>
     <a class="right-next"
-       href="../../api/index.html"
+       href="../JAX_SSHT/JAX_SSHT_frontend.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">API</p>
+        <p class="prev-next-title"># <strong>JAX SSHT frontend</strong></p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

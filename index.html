@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Differentiable and accelerated spherical transforms &#8212; S2FFT 1.0.2 documentation</title>
+    <title>Differentiable and accelerated spherical transforms &#8212; S2FFT 1.1.0 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
 
     <script src="_static/jquery.js?v=5d32c60e"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="_static/documentation_options.js?v=1ed6394b"></script>
+    <script src="_static/documentation_options.js?v=fc837d61"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -137,8 +137,8 @@
       
     
     
-    <img src="_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.0.2 documentation - Home"/>
-    <script>document.write(`<img src="_static/sax_logo.png" class="logo__image only-dark" alt="S2FFT 1.0.2 documentation - Home"/>`);</script>
+    <img src="_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.1.0 documentation - Home"/>
+    <script>document.write(`<img src="_static/sax_logo.png" class="logo__image only-dark" alt="S2FFT 1.1.0 documentation - Home"/>`);</script>
   
   
 </a></div>
@@ -220,6 +220,18 @@ document.write(`
           
           
           <a href="https://arxiv.org/abs/2311.14670" title="ArXiv" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="_static/arxiv-logomark-small.png" class="icon-link-image" alt="ArXiv"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1" title="Medium" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-medium fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Medium</span></a>
         </li>
         <li class="nav-item">
           
@@ -380,6 +392,18 @@ document.write(`
           
           
           
+          <a href="https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1" title="Medium" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-medium fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Medium</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
           <a href="https://pypi.org/project/s2fft/" title="PyPi" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="_static/pypi.png" class="icon-link-image" alt="PyPi"/></a>
         </li>
         <li class="nav-item">
@@ -455,9 +479,23 @@ deployable on modern hardware accelerators (e.g. GPUs and TPUs).</p>
 transforms (for both real and complex signals), with support for adjoint transformations
 where needed, and comes with different optimisations (precompute or not) that one
 may select depending on available resources and desired angular resolution <span class="math notranslate nohighlight">\(L\)</span>.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>HEALPix long JIT compile time fixed for CPU!  Fix for GPU coming soon.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
 <p>As of version 1.0.2 <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> also provides PyTorch implementations of underlying
 precompute transforms. In future releases this support will be extended to our
 on-the-fly algorithms.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>As of version 1.1.0 <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> also provides JAX support for existing C/C++ packages,
+specifically <code class="docutils literal notranslate"><span class="pre">HEALPix</span></code> and <code class="docutils literal notranslate"><span class="pre">SSHT</span></code>. This works by wrapping python bindings with custom
+JAX frontends. Note that currently this C/C++ to JAX interoperability is currently
+limited to CPU.</p>
+</div>
 <section id="algorithms-zap">
 <h2>Algorithms ⚡<a class="headerlink" href="#algorithms-zap" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> leverages new algorithmic structures that can he highly parallelised and
@@ -479,7 +517,7 @@ diagram below illustrates the separable spherical harmonic transform.</p>
 <img alt="_images/sax_schematic_github_docs.png" src="_images/sax_schematic_github_docs.png" />
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and will work to improve this in subsequent versions.</p>
+<p>For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and are working to fix it.  A fix for CPU execution has now been implemented (see example <a class="reference external" href="https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_HEALPix_backend.html">notebook</a>).  Fix for GPU execution is coming soon.</p>
 </div>
 </section>
 <section id="sampling-earth-africa">
@@ -488,7 +526,7 @@ diagram below illustrates the separable spherical harmonic transform.</p>
 <p>The equiangular sampling schemes of <a class="reference external" href="https://arxiv.org/abs/1110.6298">McEwen &amp; Wiaux (2012)</a>,
 <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0196885884710086">Driscoll &amp; Healy (1995)</a>, and <a class="reference external" href="https://link.springer.com/article/10.1007/BF02519350">Gauss-Legendre (1986)</a> are supported, which exhibit associated sampling theorems and so harmonic transforms can be computed to machine precision.  Note that the McEwen &amp; Wiaux sampling theorem reduces the Nyquist rate on the sphere by a factor of two compared to the Driscoll &amp; Healy approach, halving the number of spherical samples required.</p>
 <p>The popular <a class="reference external" href="https://healpix.jpl.nasa.gov">HEALPix</a> sampling scheme (<a class="reference external" href="https://arxiv.org/abs/astro-ph/0409513">Gorski et al. 2005</a>) is also supported.  The HEALPix sampling does not exhibit a sampling theorem and so the corresponding harmonic transforms do not achieve machine precision but exhibit some error.  However, the HEALPix sampling provides pixels of equal areas, which has many practical advantages.</p>
-<a class="reference internal image-reference" href="_images/spherical_sampling.png"><img alt="_images/spherical_sampling.png" class="align-center" src="_images/spherical_sampling.png" style="width: 700px;" /></a>
+<a class="reference internal image-reference" href="_images/spherical_sampling.png"><img alt="_images/spherical_sampling.png" class="align-center" src="_images/spherical_sampling.png" style="width: 900px;" /></a>
 </section>
 <section id="contributors">
 <h2>Contributors ✨<a class="headerlink" href="#contributors" title="Link to this heading">#</a></h2>

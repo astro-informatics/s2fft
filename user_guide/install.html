@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Installation &#8212; S2FFT 1.0.2 documentation</title>
+    <title>Installation &#8212; S2FFT 1.1.0 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
 
     <script src="../_static/jquery.js?v=5d32c60e"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../_static/documentation_options.js?v=1ed6394b"></script>
+    <script src="../_static/documentation_options.js?v=fc837d61"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -136,8 +136,8 @@
       
     
     
-    <img src="../_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.0.2 documentation - Home"/>
-    <script>document.write(`<img src="../_static/sax_logo.png" class="logo__image only-dark" alt="S2FFT 1.0.2 documentation - Home"/>`);</script>
+    <img src="../_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.1.0 documentation - Home"/>
+    <script>document.write(`<img src="../_static/sax_logo.png" class="logo__image only-dark" alt="S2FFT 1.1.0 documentation - Home"/>`);</script>
   
   
 </a></div>
@@ -219,6 +219,18 @@ document.write(`
           
           
           <a href="https://arxiv.org/abs/2311.14670" title="ArXiv" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="../_static/arxiv-logomark-small.png" class="icon-link-image" alt="ArXiv"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1" title="Medium" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-medium fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Medium</span></a>
         </li>
         <li class="nav-item">
           
@@ -363,6 +375,18 @@ document.write(`
           
           
           <a href="https://arxiv.org/abs/2311.14670" title="ArXiv" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="../_static/arxiv-logomark-small.png" class="icon-link-image" alt="ArXiv"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1" title="Medium" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-medium fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Medium</span></a>
         </li>
         <li class="nav-item">
           
@@ -520,10 +544,7 @@ from PyPi by running</p>
 </pre></div>
 </div>
 <p>after which <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> may be imported and run as outlined in the associated notebooks and collab tutorials.
-To install the PyTorch functionality you will need to install the subpackage by running</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>s2fft<span class="o">[</span>torch<span class="o">]</span>
-</pre></div>
-</div>
+This will include PyTorch functionality.</p>
 </section>
 <section id="install-from-source-github">
 <h2>Install from source (GitHub)<a class="headerlink" href="#install-from-source-github" title="Link to this heading">#</a></h2>
@@ -539,20 +560,19 @@ and pip installing locally</p>
 pip<span class="w"> </span>install<span class="w"> </span>.
 </pre></div>
 </div>
-<p>from the root directory of the repository. To install the Pytorch support you will need to
-install the subpackage by running</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>torch<span class="o">]</span>
+<p>from the root directory of the repository. This will include PyTorch functionality.</p>
+<p>Unit tests can then be executed to ensure the installation was successful by first installing the test requirements and then running pytest</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements/requirements-tests.txt
+pytest<span class="w"> </span>tests/
 </pre></div>
 </div>
-<p>which, depending on operating system, can sometimes be</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="se">\[</span>torch<span class="se">\]</span>
+<p>Documentation for the released version is available <a class="reference external" href="https://astro-informatics.github.io/s2fft/">here</a>.  To build the documentation locally run</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements/requirements-docs.txt
+<span class="nb">cd</span><span class="w"> </span>docs
+make<span class="w"> </span>html
+open<span class="w"> </span>_build/html/index.html
 </pre></div>
 </div>
-<p>Unit tests can then be executed to ensure the installation was successful by running</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>tests/
-</pre></div>
-</div>
-<p>In the very near future one will be able to install <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> directly from <cite>PyPi</cite> by <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">s2fft</span></code> but this is not yet supported.</p>
 </section>
 <section id="installing-jax-for-nvidia-gpus">
 <h2>Installing JAX for NVIDIA GPUs<a class="headerlink" href="#installing-jax-for-nvidia-gpus" title="Link to this heading">#</a></h2>

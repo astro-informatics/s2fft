@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Wigner Transform &#8212; S2FFT 1.0.2 documentation</title>
+    <title>Wigner Transform &#8212; S2FFT 1.1.0 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
 
     <script src="../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../../_static/documentation_options.js?v=1ed6394b"></script>
+    <script src="../../_static/documentation_options.js?v=fc837d61"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,8 +54,6 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/transforms/wigner';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Precompute Functions" href="../precompute_transforms/index.html" />
-    <link rel="prev" title="Spherical Harmonic Transform" href="spin_spherical_transform.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -138,8 +136,8 @@
       
     
     
-    <img src="../../_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.0.2 documentation - Home"/>
-    <script>document.write(`<img src="../../_static/sax_logo.png" class="logo__image only-dark" alt="S2FFT 1.0.2 documentation - Home"/>`);</script>
+    <img src="../../_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.1.0 documentation - Home"/>
+    <script>document.write(`<img src="../../_static/sax_logo.png" class="logo__image only-dark" alt="S2FFT 1.1.0 documentation - Home"/>`);</script>
   
   
 </a></div>
@@ -168,7 +166,7 @@
                     </li>
                 
 
-                    <li class="nav-item current active">
+                    <li class="nav-item">
                       <a class="nav-link nav-internal" href="../index.html">
                         API
                       </a>
@@ -221,6 +219,18 @@ document.write(`
           
           
           <a href="https://arxiv.org/abs/2311.14670" title="ArXiv" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="../../_static/arxiv-logomark-small.png" class="icon-link-image" alt="ArXiv"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1" title="Medium" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-medium fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Medium</span></a>
         </li>
         <li class="nav-item">
           
@@ -299,7 +309,9 @@ document.write(`
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
         
 
   
@@ -326,7 +338,7 @@ document.write(`
                     </li>
                 
 
-                    <li class="nav-item current active">
+                    <li class="nav-item">
                       <a class="nav-link nav-internal" href="../index.html">
                         API
                       </a>
@@ -365,6 +377,18 @@ document.write(`
           
           
           <a href="https://arxiv.org/abs/2311.14670" title="ArXiv" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><img src="../../_static/arxiv-logomark-small.png" class="icon-link-image" alt="ArXiv"/></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1" title="Medium" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-medium fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Medium</span></a>
         </li>
         <li class="nav-item">
           
@@ -417,62 +441,6 @@ document.write(`
     
   </div>
   
-    <div class="sidebar-primary-items__start sidebar-primary__section">
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
-     aria-label="Section Navigation">
-  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Namespaces</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Transforms</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="on_the_fly_recursions.html">On-the-fly (<em>OTF</em>) recursions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spin_spherical_transform.html">Spherical Harmonic Transform</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Wigner Transform</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../precompute_transforms/index.html">Precompute Functions</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../precompute_transforms/construct.html">constructor</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../precompute_transforms/spin_spherical.html">Spherical Harmonic Transform</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../precompute_transforms/wigner.html">Wigner Transform</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../base_transforms/index.html">Reference Transforms</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../base_transforms/spin_spherical_transform.html">Spherical Harmonic Transform</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../base_transforms/wigner_transform.html">Wigner Transform</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../sampling/index.html">Sampling Functions</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../sampling/spherical_samples.html">Spherical samples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../sampling/wigner_samples.html">Wigner samples</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../recursions/index.html">Wigner-d recursions</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-5"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../recursions/price_mcewen.html">Price &amp; McEwen</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../recursions/risbo.html">Risbo</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../recursions/trapani.html">Trapani</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../recursions/turok.html">Turok &amp; Bucher</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../recursions/turok_jax.html">Turok &amp; Bucher JAX</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../utility/index.html">Utility Functions</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../utility/signal_generator.html">signal generator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/resampling.html">resampling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/resampling_jax.html">resampling_jax</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/resampling_torch.html">resampling_torch</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/quadrature.html">quadrature</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/quadrature_jax.html">quadrature_jax</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/quadrature_torch.html">quadrature_torch</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/healpix_ffts.html">healpix functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/utils.html">utils</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/rotation.html">rotations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utility/logs.html">logs</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</nav></div>
-    </div>
-  
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
   </div>
@@ -505,12 +473,6 @@ document.write(`
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">API</a></li>
-    
-    
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Transforms</a></li>
-    
     <li class="breadcrumb-item active" aria-current="page">Wigner Transform</li>
   </ul>
 </nav>
@@ -532,7 +494,7 @@ document.write(`
 <span id="wigner-transform"></span><h1>Wigner Transform<a class="headerlink" href="#module-s2fft.transforms.wigner" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.transforms.wigner.forward">
-<span class="sig-prename descclassname"><span class="pre">s2fft.transforms.wigner.</span></span><span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'numpy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.transforms.wigner.forward" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.transforms.wigner.</span></span><span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'numpy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_ssht_backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.transforms.wigner.forward" title="Link to this definition">#</a></dt>
 <dd><p>Wrapper for the forward Wigner transform, i.e. Fourier transform on
 <span class="math notranslate nohighlight">\(SO(3)\)</span>.</p>
 <p>Importantly, the convention adopted for storage of f is <span class="math notranslate nohighlight">\([\gamma, \beta,
@@ -541,6 +503,9 @@ document.write(`
 For a given <span class="math notranslate nohighlight">\(\gamma\)</span> we thus recover a signal on the sphere indexed by
 <span class="math notranslate nohighlight">\([\theta, \phi]\)</span>, i.e. we associate <span class="math notranslate nohighlight">\(\beta\)</span> with <span class="math notranslate nohighlight">\(\theta\)</span> and
 <span class="math notranslate nohighlight">\(\alpha\)</span> with <span class="math notranslate nohighlight">\(\phi\)</span>.</p>
+<p>Should the user select method = “jax_ssht” they will be restricted to deployment on
+CPU using our custom JAX frontend for the SSHT C library [1]. In many cases this
+approach may be desirable to mitigate e.g. memory i/o cost.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -553,7 +518,8 @@ number of samples for angle <span class="math notranslate nohighlight">\(\xi\)</
 if sampling=”healpix”.  Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
 {“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
-<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”}. Defaults to “numpy”.</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”, “jax_ssht”}.
+Defaults to “numpy”.</p></li>
 <li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
 conjugate symmetry is exploited to reduce computational costs.  Defaults to
 False.</p></li>
@@ -564,6 +530,9 @@ only maps over all available devices, and is only valid for JAX implementations.
 Defaults to False.</p></li>
 <li><p><strong>L_lower</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic lower-bound. Transform will only be computed
 for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt; \texttt{L}\)</span>. Defaults to 0.</p></li>
+<li><p><strong>_ssht_backend</strong> (<em>int</em><em>, </em><em>optional</em><em>, </em><em>experimental</em>) – Whether to default to SSHT core
+(set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
+backend. Use with caution.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -583,6 +552,10 @@ the transform is run over a single device or all available devices. For very low
 harmonic bandlimits L this is inefficient as the I/O overhead for communication
 between devices is noticable, however as L increases one will asymptotically
 recover acceleration by the number of devices.</p>
+<dl class="simple">
+<dt>[1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”</dt><dd><p>IEEE Transactions on Signal Processing 59 (2011): 5876-5887.</p>
+</dd>
+</dl>
 </div>
 </dd></dl>
 
@@ -611,7 +584,6 @@ number of samples for angle <span class="math notranslate nohighlight">\(\xi\)</
 if sampling=”healpix”.  Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
 {“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
-<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”}. Defaults to “numpy”.</p></li>
 <li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
 conjugate symmetry is exploited to reduce computational costs.  Defaults to
 False.</p></li>
@@ -631,6 +603,51 @@ for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt;
 <dd class="field-odd"><p>jnp.ndarray</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.transforms.wigner.forward_jax_ssht">
+<span class="sig-prename descclassname"><span class="pre">s2fft.transforms.wigner.</span></span><span class="sig-name descname"><span class="pre">forward_jax_ssht</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_ssht_backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.transforms.wigner.forward_jax_ssht" title="Link to this definition">#</a></dt>
+<dd><p>Compute the forward Wigner transform (SSHT JAX).</p>
+<p>SSHT is a C library which implements the spin-spherical harmonic transform outlined
+in McEwen &amp; Wiaux 2011 [1]. We make use of their python bindings for which we
+provide custom JAX frontends, hence providing support for automatic differentiation.
+Currently these transforms can only be deployed on CPU, which is a limitation of the
+SSHT C package.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>jnp.ndarray</em>) – Signal on the on <span class="math notranslate nohighlight">\(SO(3)\)</span> with shape
+<span class="math notranslate nohighlight">\([n_{\gamma}, n_{\beta}, n_{\alpha}]\)</span>, where <span class="math notranslate nohighlight">\(n_\xi\)</span> denotes the
+number of samples for angle <span class="math notranslate nohighlight">\(\xi\)</span>.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit.</p></li>
+<li><p><strong>L_lower</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic lower-bound. Transform will only be computed
+for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt; \texttt{L}\)</span>. Defaults to 0.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “gl”}.  Defaults to “mw”.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.  Defaults to
+False.</p></li>
+<li><p><strong>_ssht_backend</strong> (<em>int</em><em>, </em><em>optional</em><em>, </em><em>experimental</em>) – Whether to default to SSHT core
+(set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
+backend. Use with caution.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Wigner coefficients <cite>flmn</cite> with shape <span class="math notranslate nohighlight">\([2N-1, L, 2L-1]\)</span>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<dl class="simple">
+<dt>[1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”</dt><dd><p>IEEE Transactions on Signal Processing 59 (2011): 5876-5887.</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -658,7 +675,6 @@ number of samples for angle <span class="math notranslate nohighlight">\(\xi\)</
 if sampling=”healpix”.  Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
 {“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
-<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”}. Defaults to “numpy”.</p></li>
 <li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
 conjugate symmetry is exploited to reduce computational costs.  Defaults to
 False.</p></li>
@@ -679,7 +695,7 @@ for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt;
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.transforms.wigner.inverse">
-<span class="sig-prename descclassname"><span class="pre">s2fft.transforms.wigner.</span></span><span class="sig-name descname"><span class="pre">inverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flmn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'numpy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.transforms.wigner.inverse" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.transforms.wigner.</span></span><span class="sig-name descname"><span class="pre">inverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flmn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'numpy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_ssht_backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.transforms.wigner.inverse" title="Link to this definition">#</a></dt>
 <dd><p>Wrapper for the inverse Wigner transform, i.e. inverse Fourier transform on
 <span class="math notranslate nohighlight">\(SO(3)\)</span>.</p>
 <p>Importantly, the convention adopted for storage of f is <span class="math notranslate nohighlight">\([\gamma, \beta,
@@ -688,6 +704,9 @@ for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt;
 For a given <span class="math notranslate nohighlight">\(\gamma\)</span> we thus recover a signal on the sphere indexed by
 <span class="math notranslate nohighlight">\([\theta, \phi]\)</span>, i.e. we associate <span class="math notranslate nohighlight">\(\beta\)</span> with <span class="math notranslate nohighlight">\(\theta\)</span> and
 <span class="math notranslate nohighlight">\(\alpha\)</span> with <span class="math notranslate nohighlight">\(\phi\)</span>.</p>
+<p>Should the user select method = “jax_ssht” they will be restricted to deployment on
+CPU using our custom JAX frontend for the SSHT C library [1]. In many
+cases this approach may be desirable to mitigate e.g. memory i/o cost.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -698,7 +717,8 @@ For a given <span class="math notranslate nohighlight">\(\gamma\)</span> we thus
 if sampling=”healpix”.  Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
 {“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
-<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”}. Defaults to “numpy”.</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”, “jax_ssht”}.
+Defaults to “numpy”.</p></li>
 <li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
 conjugate symmetry is exploited to reduce computational costs.  Defaults to
 False.</p></li>
@@ -709,6 +729,9 @@ only maps over all available devices, and is only valid for JAX implementations.
 Defaults to False.</p></li>
 <li><p><strong>L_lower</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic lower-bound. Transform will only be computed
 for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt; \texttt{L}\)</span>. Defaults to 0.</p></li>
+<li><p><strong>_ssht_backend</strong> (<em>int</em><em>, </em><em>optional</em><em>, </em><em>experimental</em>) – Whether to default to SSHT core
+(set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
+backend. Use with caution.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -730,13 +753,17 @@ the transform is run over a single device or all available devices. For very low
 harmonic bandlimits L this is inefficient as the I/O overhead for communication
 between devices is noticable, however as L increases one will asymptotically
 recover acceleration by the number of devices.</p>
+<dl class="simple">
+<dt>[1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”</dt><dd><p>IEEE Transactions on Signal Processing 59 (2011): 5876-5887.</p>
+</dd>
+</dl>
 </div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.transforms.wigner.inverse_jax">
-<span class="sig-prename descclassname"><span class="pre">s2fft.transforms.wigner.</span></span><span class="sig-name descname"><span class="pre">inverse_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flmn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.transforms.wigner.inverse_jax" title="Link to this definition">#</a></dt>
-<dd><p>Compute the inverse Wigner transform (numpy).</p>
+<span class="sig-prename descclassname"><span class="pre">s2fft.transforms.wigner.</span></span><span class="sig-name descname"><span class="pre">inverse_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flmn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.transforms.wigner.inverse_jax" title="Link to this definition">#</a></dt>
+<dd><p>Compute the inverse Wigner transform (JAX).</p>
 <p>Uses separation of variables and exploits the Price &amp; McEwen recursion for accelerated
 and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
 function is theoretically <span class="math notranslate nohighlight">\(\mathcal{O}(NL^2)\)</span>.</p>
@@ -749,14 +776,13 @@ For a given <span class="math notranslate nohighlight">\(\gamma\)</span> we thus
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>flmn</strong> (<em>np.ndarray</em>) – Wigner coefficients with shape <span class="math notranslate nohighlight">\([2N-1, L, 2L-1]\)</span>.</p></li>
+<li><p><strong>flmn</strong> (<em>jnp.ndarray</em>) – Wigner coefficients with shape <span class="math notranslate nohighlight">\([2N-1, L, 2L-1]\)</span>.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 <li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit.</p></li>
 <li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
 if sampling=”healpix”.  Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
 {“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
-<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”}. Defaults to “numpy”.</p></li>
 <li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
 conjugate symmetry is exploited to reduce computational costs.  Defaults to
 False.</p></li>
@@ -786,6 +812,49 @@ recover acceleration by the number of devices.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="s2fft.transforms.wigner.inverse_jax_ssht">
+<span class="sig-prename descclassname"><span class="pre">s2fft.transforms.wigner.</span></span><span class="sig-name descname"><span class="pre">inverse_jax_ssht</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flmn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_ssht_backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.transforms.wigner.inverse_jax_ssht" title="Link to this definition">#</a></dt>
+<dd><p>Compute the inverse Wigner transform (SSHT JAX).</p>
+<p>SSHT is a C library which implements the spin-spherical harmonic transform outlined
+in McEwen &amp; Wiaux 2011 [1]. We make use of their python bindings for which we
+provide custom JAX frontends, hence providing support for automatic differentiation.
+Currently these transforms can only be deployed on CPU, which is a limitation of the
+SSHT C package.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>flmn</strong> (<em>jnp.ndarray</em>) – Wigner coefficients with shape <span class="math notranslate nohighlight">\([2N-1, L, 2L-1]\)</span>.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit.</p></li>
+<li><p><strong>L_lower</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic lower-bound. Transform will only be computed
+for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt; \texttt{L}\)</span>. Defaults to 0.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “gl”}.  Defaults to “mw”.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.  Defaults to
+False.</p></li>
+<li><p><strong>_ssht_backend</strong> (<em>int</em><em>, </em><em>optional</em><em>, </em><em>experimental</em>) – Whether to default to SSHT core
+(set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
+backend. Use with caution.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Signal on the sphere.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<dl class="simple">
+<dt>[1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”</dt><dd><p>IEEE Transactions on Signal Processing 59 (2011): 5876-5887.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="s2fft.transforms.wigner.inverse_numpy">
 <span class="sig-prename descclassname"><span class="pre">s2fft.transforms.wigner.</span></span><span class="sig-name descname"><span class="pre">inverse_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flmn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.transforms.wigner.inverse_numpy" title="Link to this definition">#</a></dt>
 <dd><p>Compute the inverse Wigner transform (numpy).</p>
@@ -808,7 +877,6 @@ For a given <span class="math notranslate nohighlight">\(\gamma\)</span> we thus
 if sampling=”healpix”.  Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
 {“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
-<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”}. Defaults to “numpy”.</p></li>
 <li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
 conjugate symmetry is exploited to reduce computational costs.  Defaults to
 False.</p></li>
@@ -839,24 +907,6 @@ for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt;
                 <footer class="prev-next-footer">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="spin_spherical_transform.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Spherical Harmonic Transform</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="../precompute_transforms/index.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Precompute Functions</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
