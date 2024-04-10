@@ -1,0 +1,11 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+ColumnLimit: 110
+IndentWidth: 4
+AccessModifierOffset: -4
+SortIncludes: false # reordering may break existing code
+ConstructorInitializerIndentWidth: 8
+ContinuationIndentWidth: 8
+...
+# LSST C++ style guide: https://developer.lsst.io/cpp/clang-format.html#general

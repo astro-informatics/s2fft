@@ -21,3 +21,16 @@ resources/
 s2fft.code-workspace
 .tox
 s2fft/_version.py
+
+#c++/cuda/cmake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
