@@ -1,0 +1,66 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [
+    "setuptools",
+    "setuptools-scm",
+]
+
+[project]
+authors = [
+    {name = "Matthew A. Price"},
+    {name = "Jason D. McEwen"},
+    {name= "Contributors"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+]
+description = "Differentiable and accelerated spherical transforms with JAX"
+dynamic = [
+    "version",
+    "dependencies",
+    "optional-dependencies",
+]
+keywords = [
+]
+name = "s2fft"
+readme = ".pip_readme.rst"
+requires-python = ">=3.8"
+license.file = "LICENSE.txt"
+urls.homepage = "https://github.com/astro-informatics/s2fft"
+
+
+[tool.pytest.ini_options]
+addopts = "--color=yes -v"
+testpaths = [
+    "tests",
+]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+    "ignore:FutureWarning",
+]
+
+[tool.setuptools]
+packages = ["s2fft"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements/requirements-core.txt"]}
+optional-dependencies.docs = { file = ["requirements/requirements-docs.txt"] }
+optional-dependencies.plotting = { file = ["requirements/requirements-plotting.txt"] }
+optional-dependencies.tests = { file = ["requirements/requirements-tests.txt"] }
+
+[tool.setuptools.package-data]
+s2fft = ["default-logging-config.yaml"]
+
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
+write_to = "s2fft/_version.py"
