@@ -55,7 +55,7 @@ add_executable(_s2fft
                 ${CMAKE_CURRENT_LIST_DIR}/lib/src/extensions.cc
                 ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft.cu 
                 ${CMAKE_CURRENT_LIST_DIR}/lib/src/plan_cache.cc 
-                ${CMAKE_CURRENT_LIST_DIR}/lib/src/test.cc
+                ${CMAKE_CURRENT_LIST_DIR}/lib/src/test.cu
               )
 
 target_link_libraries(_s2fft PRIVATE CUDA::cudart CUDA::cufft)

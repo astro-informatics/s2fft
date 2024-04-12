@@ -23,14 +23,27 @@ typedef long HRESULT;
 #define E_NOTIMPL ((HRESULT)0x80004001L)
 
 // Macro to check for CUDA errors
-#define checkCudaErrors(call)                                 \
-  do {                                                        \
-    cudaError_t err = call;                                   \
-    if (err != cudaSuccess) {                                 \
-      printf("CUDA error at %s %d: %s\n", __FILE__, __LINE__, \
-             cudaGetErrorString(err));                        \
-      exit(EXIT_FAILURE);                                     \
-    }                                                         \
-  } while (0)
+#define checkCudaErrors(call)                                                                 \
+    do {                                                                                      \
+        cudaError_t err = call;                                                               \
+        if (err != cudaSuccess) {                                                             \
+            printf("CUDA error at %s %d: %s\n", __FILE__, __LINE__, cudaGetErrorString(err)); \
+            exit(EXIT_FAILURE);                                                               \
+        }                                                                                     \
+    } while (0)
 
-#endif // HRESULT_H
+// cufft API error chekcing
+#ifndef CUFFT_CALL
+#define CUFFT_CALL(call)                                                     \
+    {                                                                        \
+        auto status = static_cast<cufftResult>(call);                        \
+        if (status != CUFFT_SUCCESS)                                         \
+            fprintf(stderr,                                                  \
+                    "ERROR: CUFFT call \"%s\" in line %d of file %s failed " \
+                    "with "                                                  \
+                    "code (%d).\n",                                          \
+                    #call, __LINE__, __FILE__, status);                      \
+    }
+#endif  // CUFFT_CALL
+
+#endif  // HRESULT_H

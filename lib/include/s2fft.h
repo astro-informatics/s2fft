@@ -49,11 +49,16 @@ public:
     HRESULT Backward(const s2fftDescriptor &desc, cudaStream_t stream, void **buffers);
 
 private:
-    std::vector<cufftHandle> plans;
-    int nside;
-    int total_pixels;
-    int number_of_rings;
-    std::vector<int> ring_offsets;
+    std::vector<cufftHandle> m_polar_plans;
+    cufftHandle m_equator_plan;
+    std::vector<cufftHandle> m_inverse_polar_plans;
+    cufftHandle m_inverse_equator_plan;
+    int m_nside;
+    int m_total_pixels;
+    int equatorial_offset;
+    int equatorial_ring_num;
+    std::vector<int> m_upper_ring_offsets;
+    std::vector<int> m_lower_ring_offsets;
 };
 
 }  // namespace s2fft
