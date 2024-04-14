@@ -1,11 +1,35 @@
 import pytest
 import numpy as np
+import jax.numpy as jnp
 import pyssht as ssht
 import healpy as hp
 from s2fft.sampling import s2_samples as samples
+from s2fft.sampling import reindex
 
 
 nside_to_test = [16, 32]
+
+
+@pytest.mark.parametrize("L", [15, 16])
+def test_fast_reindexing_functions(L: int):
+    flm = np.random.randn(L, 2 * L - 1) + 1j * np.random.randn(L, 2 * L - 1)
+    flm_jax = jnp.array(flm)
+
+    flm_1d = samples.flm_2d_to_1d(flm, L)
+    flm_1d_jax = reindex.flm_2d_to_1d_fast(flm_jax, L)
+    np.testing.assert_allclose(flm_1d, flm_1d_jax)
+
+    flm_2d = samples.flm_1d_to_2d(flm_1d, L)
+    flm_2d_jax = reindex.flm_1d_to_2d_fast(flm_1d_jax, L)
+    np.testing.assert_allclose(flm_2d, flm_2d_jax)
+
+    flm_hp = samples.flm_2d_to_hp(flm_2d, L)
+    flm_hp_jax = reindex.flm_2d_to_hp_fast(flm_2d_jax, L)
+    np.testing.assert_allclose(flm_hp, flm_hp_jax)
+
+    flm_2d = samples.flm_hp_to_2d(flm_hp, L)
+    flm_2d_jax = reindex.flm_hp_to_2d_fast(flm_hp_jax, L)
+    np.testing.assert_allclose(flm_2d, flm_2d_jax)
 
 
 @pytest.mark.parametrize("L", [15, 16])

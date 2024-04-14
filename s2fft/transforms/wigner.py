@@ -392,38 +392,9 @@ def inverse_jax_ssht(
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
     """
-    ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
-    fban = jnp.zeros(samples.f_shape(L, N, sampling), dtype=jnp.complex128)
-
-    flmn = flmn.at[:, L_lower:].set(
-        jnp.einsum(
-            "...nlm,...l->...nlm",
-            flmn[:, L_lower:],
-            jnp.sqrt((2 * jnp.arange(L_lower, L) + 1) / (16 * jnp.pi**3)),
-            optimize=True,
-        )
-    )
-
-    n_start_ind = 0 if reality else -N + 1
-    for n in range(n_start_ind, N):
-        fban = fban.at[N - 1 + n].add(
-            (-1) ** jnp.abs(n)
-            * c_sph.ssht_inverse(
-                flmn[N - 1 + n],
-                L,
-                -n,
-                reality if n == 0 else False,
-                ssht_sampling,
-                _ssht_backend,
-            )
-        )
-
-    if reality:
-        f = jnp.fft.irfft(fban[N - 1 :], 2 * N - 1, axis=-3, norm="forward")
-    else:
-        f = jnp.fft.ifft(jnp.fft.ifftshift(fban, axes=-3), axis=-3, norm="forward")
-
-    return f
+    flmn, fban = _inverse_norm(flmn, L, N, L_lower, sampling)
+    fban = _flmn_to_fban(flmn, fban, L, N, sampling, reality, _ssht_backend)
+    return _fban_to_f(fban, L, N, reality)
 
 
 def forward(
@@ -823,7 +794,14 @@ def forward_jax_ssht(
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
     """
-    ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
+    flmn, fban = _f_to_fban(f, L, N, reality)
+    flmn = _fban_to_flmn(flmn, fban, L, N, sampling, reality, _ssht_backend)
+    return _reality_and_norm(flmn, L, N, L_lower, reality)
+
+
+@partial(jit, static_argnums=(1, 2, 3))
+def _f_to_fban(f: jnp.ndarray, L: int, N: int, reality: bool = False) -> jnp.ndarray:
+    """Private function which maps from f to fban (C backend)"""
     flmn = jnp.zeros(samples.flmn_shape(L, N), dtype=jnp.complex128)
 
     if reality:
@@ -833,19 +811,42 @@ def forward_jax_ssht(
 
     fban *= 2 * jnp.pi / (2 * N - 1)
 
+    return flmn, fban
+
+
+def _fban_to_flmn(
+    flmn: jnp.ndarray,
+    fban: jnp.ndarray,
+    L: int,
+    N: int,
+    sampling: str = "mw",
+    reality: bool = False,
+    _ssht_backend: int = 1,
+) -> jnp.ndarray:
+    """Private function which maps from fban to flmn (C backend)"""
+    ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
+    n_start_ind = 0 if reality else -N + 1
+    func = partial(
+        c_sph.ssht_forward,
+        L=L,
+        reality=False,
+        ssht_sampling=ssht_sampling,
+        _ssht_backend=_ssht_backend,
+    )
+    for n in range(n_start_ind, N):
+        flmn = flmn.at[N - 1 + n].add(
+            (-1) ** jnp.abs(n) * func(fban[int(n - n_start_ind)], spin=-n)
+        )
+    return flmn
+
+
+@partial(jit, static_argnums=(1, 2, 3, 4))
+def _reality_and_norm(
+    flmn: jnp.ndarray, L: int, N: int, L_lower: int = 0, reality: bool = False
+) -> jnp.ndarray:
+    """Private function which maps from f to fban (C backend)"""
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
-        flmn = flmn.at[N - 1 + n].set(
-            (-1) ** jnp.abs(n)
-            * c_sph.ssht_forward(
-                fban[jnp.int64(n - n_start_ind)],
-                L,
-                -n,
-                False,
-                ssht_sampling,
-                _ssht_backend,
-            )
-        )
         if reality and n != 0:
             sgn = (-1) ** abs(jnp.arange(-L + 1, L))
             flmn = flmn.at[N - 1 - n].set(
@@ -861,3 +862,105 @@ def forward_jax_ssht(
         )
     )
     return flmn
+
+
+@partial(jit, static_argnums=(1, 2, 3, 4))
+def _inverse_norm(
+    flmn: jnp.ndarray, L: int, N: int, L_lower: int = 0, sampling: str = "mw"
+):
+    """Private function which normalised flmn for inverse Wigner (C backend)"""
+    fban = jnp.zeros(samples.f_shape(L, N, sampling), dtype=jnp.complex128)
+
+    flmn = flmn.at[:, L_lower:].set(
+        jnp.einsum(
+            "...nlm,...l->...nlm",
+            flmn[:, L_lower:],
+            jnp.sqrt((2 * jnp.arange(L_lower, L) + 1) / (16 * jnp.pi**3)),
+            optimize=True,
+        )
+    )
+    return flmn, fban
+
+
+def _flmn_to_fban(
+    flmn: jnp.ndarray,
+    fban: jnp.ndarray,
+    L: int,
+    N: int,
+    sampling: str = "mw",
+    reality: bool = False,
+    _ssht_backend: int = 1,
+) -> jnp.ndarray:
+    """Private function which maps from flmn to fban (C backend)"""
+    ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
+    n_start_ind = 0 if reality else -N + 1
+    func = partial(
+        c_sph.ssht_inverse,
+        L=L,
+        reality=False,
+        ssht_sampling=ssht_sampling,
+        _ssht_backend=_ssht_backend,
+    )
+    for n in range(n_start_ind, N):
+        fban = fban.at[N - 1 + n].add(
+            (-1) ** jnp.abs(n) * func(flmn[N - 1 + n], spin=-n)
+        )
+    return fban
+
+
+@partial(jit, static_argnums=(1, 2, 3))
+def _fban_to_f(fban: jnp.ndarray, L: int, N: int, reality: bool = False) -> jnp.ndarray:
+    """Private function which maps from fban to f (C backend)"""
+    if reality:
+        f = jnp.fft.irfft(fban[N - 1 :], 2 * N - 1, axis=-3, norm="forward")
+    else:
+        f = jnp.fft.ifft(jnp.fft.ifftshift(fban, axes=-3), axis=-3, norm="forward")
+    return f
+
+
+from jax import vmap
+
+
+@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7))
+def inverse_jax_vect(
+    flmn: jnp.ndarray,
+    L: int,
+    N: int,
+    nside: int = None,
+    sampling: str = "mw",
+    reality: bool = False,
+    precomps: List = None,
+    L_lower: int = 0,
+) -> jnp.ndarray:
+    fban = jnp.zeros(samples.f_shape(L, N, sampling, nside), dtype=jnp.complex128)
+
+    flmn = flmn.at[:, L_lower:].set(
+        jnp.einsum(
+            "...nlm,...l->...nlm",
+            flmn[:, L_lower:],
+            jnp.sqrt((2 * jnp.arange(L_lower, L) + 1) / (16 * jnp.pi**3)),
+            optimize=True,
+        )
+    )
+
+    n_start_ind = 0 if reality else -N + 1
+    spins = jnp.arange(n_start_ind, N)
+
+    def new_func(flm, spin, p0, p1, p2, p3, p4):
+        precomps = [p0, p1, p2, p3, p4]
+        return (-1) ** jnp.abs(spin) * s2fft.inverse_jax(
+            flm, L, -spin, nside, sampling, False, precomps, False, L_lower
+        )
+
+    fban = fban.at[N - 1 + n_start_ind :].set(
+        vmap(
+            partial(new_func, p2=precomps[2][0], p3=precomps[3][0], p4=precomps[4][0]),
+            in_axes=(0, 0, 0, 0),
+        )(flmn[N - 1 + n_start_ind :], spins, precomps[0], precomps[1])
+    )
+    if reality:
+        fban = fban.at[: N - 1].set(jnp.flip(jnp.conj(fban[N:]), axis=0))
+    fban = jnp.conj(jnp.fft.ifftshift(fban, axes=0))
+    f = jnp.conj(jnp.fft.fft(fban, axis=0, norm="backward"))
+
+    return f
