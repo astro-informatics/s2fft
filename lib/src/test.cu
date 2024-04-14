@@ -13,16 +13,27 @@ using Type = cuComplex;
 
 int main() {
     Perfostep perfostep;
-    int nside = 512;
+    int nside = 4;
     int L = 2 * nside;
     int total_pixels = 12 * nside * nside;
+
+
+    // Compute the flm size
+    int polar_pixels = 4 * nside * (nside - 1);
+    int equator_rings_num = (total_pixels - polar_pixels) / (4 * nside);
+    int num_rings = equator_rings_num + 2 * (nside - 1);
+    int flm_size = num_rings * (4 * nside);
+
 
     std::cout << "Total pixels: " << total_pixels << std::endl;
 
     cuComplex *h_vec_in = new cuComplex[total_pixels];
     cuComplex *h_vec_out = new cuComplex[total_pixels];
     cuComplex *d_vec;
+    cuComplex *d_vec_out;
+    
     cudaMallocManaged(&d_vec, total_pixels * sizeof(cuComplex));
+    cudaMallocManaged(&d_vec_out, flm_size * sizeof(cuComplex));
 
     // Initialize host vectors using std::generate
     int start_index(0);
@@ -64,6 +75,7 @@ int main() {
     buffers[0] = d_vec;
     worksize = total_pixels * sizeof(cuComplex);
     buffers[1] = (void *)worksize;
+    buffers[2] = d_vec_out;
 
     //// ********************************************************
     //// Perform forward
