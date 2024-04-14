@@ -959,8 +959,73 @@ def inverse_jax_vect(
         )(flmn[N - 1 + n_start_ind :], spins, precomps[0], precomps[1])
     )
     if reality:
-        fban = fban.at[: N - 1].set(jnp.flip(jnp.conj(fban[N:]), axis=0))
-    fban = jnp.conj(jnp.fft.ifftshift(fban, axes=0))
-    f = jnp.conj(jnp.fft.fft(fban, axis=0, norm="backward"))
+        f = jnp.fft.irfft(fban[N - 1 :], 2 * N - 1, axis=0, norm="forward")
+    else:
+        f = jnp.fft.ifft(jnp.fft.ifftshift(fban, axes=0), axis=0, norm="forward")
 
     return f
+
+
+@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7))
+def forward_jax_vect(
+    f: jnp.ndarray,
+    L: int,
+    N: int,
+    nside: int = None,
+    sampling: str = "mw",
+    reality: bool = False,
+    precomps: List = None,
+    L_lower: int = 0,
+) -> jnp.ndarray:
+
+    flmn = jnp.zeros(samples.flmn_shape(L, N), dtype=jnp.complex128)
+
+    if reality:
+        fban = jnp.fft.rfft(jnp.real(f), axis=0, norm="backward")
+    else:
+        fban = jnp.fft.fftshift(jnp.fft.fft(f, axis=0, norm="backward"), axes=0)
+
+    fban *= 2 * jnp.pi / (2 * N - 1)
+    n_start_ind = 0 if reality else -N + 1
+    spins = jnp.arange(n_start_ind, N)
+
+    def new_func(fba, spin, p0, p1, p2, p3, p4):
+        precomps = [p0, p1, p2, p3, p4]
+        return (-1) ** jnp.abs(spin) * s2fft.forward_jax(
+            fba, L, -spin, nside, sampling, False, precomps, False, L_lower
+        )
+
+    flmn = flmn.at[N - 1 + n_start_ind :].set(
+        vmap(
+            partial(new_func, p2=precomps[2][0], p3=precomps[3][0], p4=precomps[4][0]),
+            in_axes=(0, 0, 0, 0),
+        )(fban, spins, precomps[0], precomps[1])
+    )
+
+    if reality:
+        nidx = jnp.arange(1, N)
+        sgn = (-1) ** abs(jnp.arange(-L + 1, L))
+        flmn = flmn.at[N - 1 - nidx].set(
+            jnp.conj(
+                jnp.flip(
+                    jnp.einsum(
+                        "nlm,m,n->nlm",
+                        flmn[N - 1 + nidx],
+                        sgn,
+                        (-1) ** nidx,
+                        optimize=True,
+                    ),
+                    axis=-1,
+                )
+            )
+        )
+
+    flmn = flmn.at[:, L_lower:].set(
+        jnp.einsum(
+            "...nlm,...l->...nlm",
+            flmn[:, L_lower:],
+            jnp.sqrt(4 * jnp.pi / (2 * jnp.arange(L_lower, L) + 1)),
+            optimize=True,
+        )
+    )
+    return flmn
