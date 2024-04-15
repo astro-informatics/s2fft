@@ -178,17 +178,25 @@ def inverse_transform_jax(
         )
     )
     ftm *= (-1) ** spin
-    if reality:
-        ftm = ftm.at[:, m_offset : m_start_ind + m_offset].set(
-            jnp.flip(jnp.conj(ftm[:, m_start_ind + m_offset + 1 :]), axis=-1)
-        )
-
     if sampling.lower() == "healpix":
+        if reality:
+            ftm = ftm.at[:, m_offset : m_start_ind + m_offset].set(
+                jnp.flip(jnp.conj(ftm[:, m_start_ind + m_offset + 1 :]), axis=-1)
+            )
         f = hp.healpix_ifft(ftm, L, nside, "jax", reality)
 
     else:
-        f = jnp.conj(jnp.fft.ifftshift(ftm, axes=-1))
-        f = jnp.conj(jnp.fft.fft(f, axis=-1, norm="backward"))
+        if reality:
+            f = jnp.fft.irfft(
+                ftm[:, m_start_ind + m_offset :],
+                samples.nphi_equiang(L, sampling),
+                axis=-1,
+                norm="forward",
+            )
+        else:
+            f = jnp.fft.ifftshift(ftm, axes=-1)
+            f = jnp.fft.ifft(f, axis=-1, norm="forward")
+
     return jnp.real(f) if reality else f
 
 
@@ -247,11 +255,24 @@ def inverse_transform_torch(
         )
 
     if sampling.lower() == "healpix":
+        if reality:
+            ftm[:, m_offset : m_start_ind + m_offset] = torch.flip(
+                torch.conj(ftm[:, m_start_ind + m_offset + 1 :]), dims=[-1]
+            )
         f = hp.healpix_ifft(ftm, L, nside, "torch", reality)
 
     else:
-        f = torch.conj(torch.fft.ifftshift(ftm, dim=[-1]))
-        f = torch.conj(torch.fft.fft(f, axis=-1, norm="backward"))
+        if reality:
+            f = torch.fft.irfft(
+                ftm[:, m_start_ind + m_offset :],
+                samples.nphi_equiang(L, sampling),
+                axis=-1,
+                norm="forward",
+            )
+        else:
+            f = torch.fft.ifftshift(ftm, dim=[-1])
+            f = torch.fft.ifft(f, axis=-1, norm="forward")
+
     return f.real if reality else f
 
 

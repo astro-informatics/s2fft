@@ -36,13 +36,11 @@ def test_inverse_wigner_custom_gradients(
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     flmn_target = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     f_target = wigner.inverse_jax(
-        flmn_target, L, N, None, sampling, reality, precomps, False, L_lower
+        flmn_target, L, N, None, sampling, reality, precomps, L_lower
     )
 
     def func(flmn):
-        f = wigner.inverse_jax(
-            flmn, L, N, None, sampling, reality, precomps, False, L_lower
-        )
+        f = wigner.inverse_jax(flmn, L, N, None, sampling, reality, precomps, L_lower)
         return jnp.sum(jnp.abs(f - f_target) ** 2)
 
     check_grads(func, (flmn,), order=1, modes=("rev"))
@@ -68,12 +66,10 @@ def test_forward_wigner_custom_gradients(
 
     flmn_target = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
-    f = wigner.inverse_jax(flmn, L, N, None, sampling, reality, None, False, L_lower)
+    f = wigner.inverse_jax(flmn, L, N, None, sampling, reality, None, L_lower)
 
     def func(f):
-        flmn = wigner.forward_jax(
-            f, L, N, None, sampling, reality, precomps, False, L_lower
-        )
+        flmn = wigner.forward_jax(f, L, N, None, sampling, reality, precomps, L_lower)
         return jnp.sum(jnp.abs(flmn - flmn_target) ** 2)
 
     check_grads(func, (f,), order=1, modes=("rev"))
@@ -102,7 +98,7 @@ def test_ssht_c_backend_inverse_wigner_custom_gradients(
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     flmn_target = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     f_target = wigner.inverse_jax(
-        flmn_target, L, N, None, sampling, reality, None, False, L_lower
+        flmn_target, L, N, None, sampling, reality, None, L_lower
     )
 
     def func(flmn):
@@ -144,7 +140,7 @@ def test_ssht_c_backend_forward_wigner_custom_gradients(
 
     flmn_target = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
-    f = wigner.inverse_jax(flmn, L, N, None, sampling, reality, None, False, L_lower)
+    f = wigner.inverse_jax(flmn, L, N, None, sampling, reality, None, L_lower)
 
     def func(f):
         flmn = wigner.forward(
