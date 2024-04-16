@@ -13,30 +13,9 @@
 #include <vector>
 #include "cufft.h"
 #include <cufftXt.h>
+#include "s2fft_callbacks.cuh"
 
 namespace s2fft {
-
-__device__ cufftComplex backward_norm_and_fftshift(void *dataIn, size_t offset, void *callerInfo,
-                                                   void *sharedPtr) {
-    cufftComplex *data = (cufftComplex *)dataIn;
-    int size = *((int *)callerInfo);  // Assuming callerInfo holds the size of the FFT
-
-    // Apply backward normalization
-    float norm_factor = 1.0f / size;
-    data[offset].x *= norm_factor;
-    data[offset].y *= norm_factor;
-
-    // Apply FFT shift
-    int half_size = size / 2;
-    int shifted_index = (offset + half_size) % size;
-    cufftComplex temp = data[offset];
-    data[offset] = data[shifted_index];
-    data[shifted_index] = temp;
-
-    return data[offset];
-}
-
-
 
 HRESULT s2fftExec::Initialize(const s2fftDescriptor &descriptor, size_t &worksize) {
     m_nside = descriptor.nside;
@@ -45,6 +24,7 @@ HRESULT s2fftExec::Initialize(const s2fftDescriptor &descriptor, size_t &worksiz
     int start_index(0);
     int end_index(12 * m_nside * m_nside);
     int nphi(0);
+    const bool &shift = descriptor.shift;
     m_upper_ring_offsets.reserve(m_nside - 1);
     m_lower_ring_offsets.reserve(m_nside - 1);
 
@@ -56,15 +36,8 @@ HRESULT s2fftExec::Initialize(const s2fftDescriptor &descriptor, size_t &worksiz
         start_index += nphi;
         end_index -= nphi;
     }
-    equatorial_offset = start_index;
+    m_equatorial_offset = start_index;
     equatorial_ring_num = (end_index - start_index) / (4 * m_nside);
-
-    // Initialize cufftCallbacks
-    cufftCallbackStoreC callbackPtr;
-    cudaError_t err = cudaMemcpyFromSymbol(&callbackPtr, backward_norm_and_fftshift, sizeof(callbackPtr));
-    if (err != cudaSuccess) {
-        // Handle error
-    }
 
     // Plan creation
     for (int i = 0; i < m_nside - 1; i++) {
@@ -79,21 +52,70 @@ HRESULT s2fftExec::Initialize(const s2fftDescriptor &descriptor, size_t &worksiz
         // Plans are done on upper and lower polar rings
         int rank = 1;             // 1D FFT  : In our case the rank is always 1
         int batch_size = 2;       // Number of rings to transform
-        int n[] = {4 * (i + 1)};  // Size of each FFT 4 times the ring number (first is 4, second is 8, third is 12, etc)
+        int n[] = {4 * (i + 1)};  // Size of each FFT 4 times the ring number (first is 4, second is 8,
+                                  // third is 12, etc)
         int inembed[] = {0};      // Stride of input data (meaningless but has to be set)
-        int istride = 1;          // Distance between consecutive elements in the same batch always 1 since we have contiguous data
+        int istride = 1;          // Distance between consecutive elements in the same batch always 1 since we
+                                  // have contiguous data
         int idist = lower_ring_offset -
-                    upper_ring_offset;  // Distance between the starting points of two consecutive batches, it is equal to the distance between the two rings
+                    upper_ring_offset;  // Distance between the starting points of two consecutive
+                                        // batches, it is equal to the distance between the two rings
         int onembed[] = {0};            // Stride of output data (meaningless but has to be set)
-        int ostride = 1;                // Distance between consecutive elements in the output batch, also 1 since everything is done in place
-        int odist = lower_ring_offset - upper_ring_offset; // Same as idist since we want to transform in place
+        int ostride = 1;  // Distance between consecutive elements in the output batch, also 1 since
+                          // everything is done in place
+        int odist =
+                lower_ring_offset - upper_ring_offset;  // Same as idist since we want to transform in place
 
         CUFFT_CALL(cufftMakePlanMany(plan, rank, n, inembed, istride, idist, onembed, ostride, odist,
                                      CUFFT_C2C, batch_size, &polar_worksize));
-        CUFFT_CALL(
-                cufftXtSetCallback(m_polar_plans[i], (void **)&callbackPtr, CUFFT_CB_LD_COMPLEX, (void **)n));
+
+        CUFFT_CALL(cufftMakePlanMany(inverse_plan, rank, n, inembed, istride, idist, onembed, ostride, odist,
+                                     CUFFT_C2C, batch_size, &polar_worksize));
+
+        int params[3];
+        int *params_dev;
+        params[0] = n[0];
+        params[1] = idist;
+        cudaMalloc(&params_dev, 2 * sizeof(int));
+        cudaMemcpy(params_dev, params, 2 * sizeof(int), cudaMemcpyHostToDevice);
+
+        // Backward shift is a load call back .. set it on its own
+        if (shift) {
+            CUFFT_CALL(cufftXtSetCallback(inverse_plan, (void **)&s2fftKernels::ifft_shift_ptr,
+                                          CUFFT_CB_LD_COMPLEX, (void **)&params_dev));
+        }
+        //  Set the callback for the forward and backward ffts
+        switch (descriptor.norm) {
+            case fft_norm::ORTHO:
+                CUFFT_CALL(cufftXtSetCallback(plan, (void **)&FFT_NORM_ORTHO(shift), CUFFT_CB_ST_COMPLEX,
+                                              (void **)&params_dev));
+                // For inverse plans the shifting is done in the load callback
+                CUFFT_CALL(cufftXtSetCallback(inverse_plan, (void **)&FFT_NORM_ORTHO(false),
+                                              CUFFT_CB_ST_COMPLEX, (void **)&params_dev));
+                break;
+            case fft_norm::BACKWARD:
+                // No normalization is done for the forward fft but the shifting is done if requested
+                if (shift) {
+                    CUFFT_CALL(cufftXtSetCallback(plan, (void **)&s2fftKernels::fft_shift_ptr,
+                                                  CUFFT_CB_ST_COMPLEX, (void **)&params_dev));
+                }
+                // For inverse plans the shifting is done in the load callback
+                CUFFT_CALL(cufftXtSetCallback(inverse_plan, (void **)&FFT_NORM(false), CUFFT_CB_ST_COMPLEX,
+                                              (void **)&params_dev));
+                break;
+            case fft_norm::FORWARD:
+                CUFFT_CALL(cufftXtSetCallback(plan, (void **)&FFT_NORM(shift), CUFFT_CB_ST_COMPLEX,
+                                              (void **)&params_dev));
+                break;
+            case fft_norm::NONE:
+                if (shift) {
+                    CUFFT_CALL(cufftXtSetCallback(plan, (void **)&s2fftKernels::fft_shift_ptr,
+                                                  CUFFT_CB_ST_COMPLEX, (void **)&params_dev));
+                }
+        }
 
         m_polar_plans.push_back(plan);
+        m_inverse_polar_plans.push_back(inverse_plan);
     }
     // Equator plan
 
@@ -101,9 +123,55 @@ HRESULT s2fftExec::Initialize(const s2fftDescriptor &descriptor, size_t &worksiz
     // cufftMakePlan1d is enough for this case
 
     size_t equator_worksize{0};
+    // Forward plan
     CUFFT_CALL(cufftCreate(&m_equator_plan));
     CUFFT_CALL(cufftMakePlan1d(m_equator_plan, (4 * m_nside), CUFFT_C2C, equatorial_ring_num,
                                &equator_worksize));
+    // Inverse plan
+    CUFFT_CALL(cufftCreate(&m_inverse_equator_plan));
+    CUFFT_CALL(cufftMakePlan1d(m_inverse_equator_plan, (4 * m_nside), CUFFT_C2C, equatorial_ring_num,
+                               &equator_worksize));
+
+    int equator_params[3];
+    equator_params[0] = 4 * m_nside;
+    equator_params[1] = m_equatorial_offset;
+    // Dummy param, the offset of any equator element is less than the offset of the last ring
+    equator_params[2] = m_equatorial_offset + 4 * m_nside * equatorial_ring_num + 1;
+    int *equator_params_dev;
+    cudaMalloc(&equator_params_dev, 3 * sizeof(int));
+    cudaMemcpy(equator_params_dev, equator_params, 3 * sizeof(int), cudaMemcpyHostToDevice);
+
+    if (shift) {
+        CUFFT_CALL(cufftXtSetCallback(m_inverse_equator_plan, (void **)&s2fftKernels::ifft_shift_eq_ptr,
+                                      CUFFT_CB_LD_COMPLEX, (void **)&equator_params_dev));
+    }
+
+    switch (descriptor.norm) {
+        case fft_norm::ORTHO:
+            CUFFT_CALL(cufftXtSetCallback(m_equator_plan, (void **)&FFT_NORM_ORTHO(shift),
+                                          CUFFT_CB_ST_COMPLEX, (void **)&equator_params_dev));
+            CUFFT_CALL(cufftXtSetCallback(m_inverse_equator_plan, (void **)&FFT_NORM_ORTHO(false),
+                                          CUFFT_CB_ST_COMPLEX, (void **)&equator_params_dev));
+            break;
+        case fft_norm::BACKWARD:
+            // No normalization is done for the forward fft but the shifting is done if requested
+            if (shift)
+                CUFFT_CALL(cufftXtSetCallback(m_equator_plan, (void **)&s2fftKernels::fft_shift_eq_ptr,
+                                              CUFFT_CB_ST_COMPLEX, (void **)&equator_params_dev));
+            // For inverse plans the shifting is done in the load callback
+            CUFFT_CALL(cufftXtSetCallback(m_inverse_equator_plan, (void **)&FFT_NORM(false),
+                                          CUFFT_CB_ST_COMPLEX, (void **)&equator_params_dev));
+            break;
+        case fft_norm::FORWARD:
+            CUFFT_CALL(cufftXtSetCallback(m_equator_plan, (void **)&FFT_NORM(shift), CUFFT_CB_ST_COMPLEX,
+                                          (void **)&equator_params_dev));
+            break;
+        case fft_norm::NONE:
+            if (shift) {
+                CUFFT_CALL(cufftXtSetCallback(m_equator_plan, (void **)&s2fftKernels::fft_shift_ptr,
+                                              CUFFT_CB_ST_COMPLEX, (void **)&equator_params_dev));
+            }
+    }
 
     return S_OK;
 }
@@ -111,10 +179,6 @@ HRESULT s2fftExec::Initialize(const s2fftDescriptor &descriptor, size_t &worksiz
 HRESULT s2fftExec::Forward(const s2fftDescriptor &desc, cudaStream_t stream, void **buffers) {
     void *data_d = buffers[0];
     cufftComplex *data_c_d = static_cast<cufftComplex *>(data_d);
-    // void *work_d = buffers[1];
-    // void *data_out_d = buffers[2];
-    // cufftComplex *data_c_o = static_cast<cufftComplex *>(data_out_d);
-
     // Polar rings ffts
     std::cout << "number of plans: " << m_polar_plans.size() << std::endl;
     for (int i = 0; i < m_nside - 1; i++) {
@@ -126,8 +190,9 @@ HRESULT s2fftExec::Forward(const s2fftDescriptor &desc, cudaStream_t stream, voi
     }
 
     // Equator fft
+    std::cout << "m_equatorial_offset " << m_equatorial_offset << std::endl;
     CUFFT_CALL(cufftSetStream(m_equator_plan, stream))
-    CUFFT_CALL(cufftExecC2C(m_equator_plan, data_c_d + equatorial_offset, data_c_d + equatorial_offset,
+    CUFFT_CALL(cufftExecC2C(m_equator_plan, data_c_d + m_equatorial_offset, data_c_d + m_equatorial_offset,
                             CUFFT_FORWARD));
 
     return S_OK;
@@ -141,15 +206,15 @@ HRESULT s2fftExec::Backward(const s2fftDescriptor &desc, cudaStream_t stream, vo
     for (int i = 0; i < m_nside - 1; i++) {
         int upper_ring_offset = m_upper_ring_offsets[i];
 
-        CUFFT_CALL(cufftSetStream(m_polar_plans[i], stream))
-        CUFFT_CALL(cufftExecC2C(m_polar_plans[i], data_c_d + upper_ring_offset, data_c_d + upper_ring_offset,
-                                CUFFT_INVERSE));
+        CUFFT_CALL(cufftSetStream(m_inverse_polar_plans[i], stream))
+        CUFFT_CALL(cufftExecC2C(m_inverse_polar_plans[i], data_c_d + upper_ring_offset,
+                                data_c_d + upper_ring_offset, CUFFT_INVERSE));
     }
-
     // Equator inverse FFT
-    CUFFT_CALL(cufftSetStream(m_equator_plan, stream))
-    CUFFT_CALL(cufftExecC2C(m_equator_plan, data_c_d + equatorial_offset, data_c_d + equatorial_offset,
-                            CUFFT_INVERSE));
+    std::cout << "m_equatorial_offset " << m_equatorial_offset << std::endl;
+    CUFFT_CALL(cufftSetStream(m_inverse_equator_plan, stream))
+    CUFFT_CALL(cufftExecC2C(m_inverse_equator_plan, data_c_d + m_equatorial_offset,
+                            data_c_d + m_equatorial_offset, CUFFT_INVERSE));
 
     return S_OK;
 }

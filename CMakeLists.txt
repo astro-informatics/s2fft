@@ -59,9 +59,11 @@ add_executable(_s2fft
                 ${CMAKE_CURRENT_LIST_DIR}/lib/src/test.cu
               )
 
-target_link_libraries(_s2fft PRIVATE CUDA::cudart CUDA::cufft)
+target_link_libraries(_s2fft PRIVATE CUDA::cudart_static CUDA::cufft_static CUDA::culibos)
 target_include_directories(_s2fft PUBLIC ${CMAKE_CURRENT_LIST_DIR}/lib/include) 
-set_target_properties(_s2fft PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(_s2fft PROPERTIES 
+                    LINKER_LANGUAGE CUDA
+                    CUDA_SEPARABLE_COMPILATION ON)
 message(STATUS "CUDA_ARCHITECTURES: ${CMAKE_CUDA_ARCHITECTURES}")
 set_target_properties(_s2fft PROPERTIES CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
 
