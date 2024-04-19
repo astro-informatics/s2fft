@@ -7,11 +7,11 @@
 
 namespace s2fftKernels {
 
-__device__ void spectral_extension_with_shared_mem(cufftComplex* data, cufftComplex* output,int nphi, int _nside, int _L,
-                                                   int equatorial_ring_num)
+__device__ void spectral_extension_with_shared_mem(cufftComplex* data, cufftComplex* output, int nphi,
+                                                   int _nside, int _L, int equatorial_ring_num)
 
 {
-     extern __shared__ cufftComplex ring[];
+    extern __shared__ cufftComplex ring[];
 
     // Load the ring into shared memory
     if (threadIdx.x > (_L - nphi) / 2 && threadIdx.x < (_L + nphi) / 2) {
@@ -49,8 +49,8 @@ __device__ void spectral_extension_with_shared_mem(cufftComplex* data, cufftComp
     }
 }
 
-__device__ void spectral_extension_from_global_mem(cufftComplex* data, cufftComplex* output, int nphi, int _nside, int _L,
-                                                  int equatorial_ring_num) {
+__device__ void spectral_extension_from_global_mem(cufftComplex* data, cufftComplex* output, int nphi,
+                                                   int _nside, int _L, int equatorial_ring_num) {
     // Spectral extension
     // The resulting array has size 2 * L and it has these indices :
 
@@ -63,7 +63,6 @@ __device__ void spectral_extension_from_global_mem(cufftComplex* data, cufftComp
     // The third part is the positive part of the spectrum
 
     // Compute the negative part of the spectrum
-
 
     if (threadIdx.x < (_L - nphi) / 2) {
         int index = (threadIdx.x + 1) % nphi;
@@ -83,7 +82,6 @@ __device__ void spectral_extension_from_global_mem(cufftComplex* data, cufftComp
 
 __global__ void spectral_extension(cufftComplex* data, cufftComplex* output, int nside, int L,
                                    int equatorial_ring_num) {
-
     // Kernel is launched with a block size of flm_size
     // the ftm size is 2 * L
     // In this case the block size is 2 * L and the blockId is the ring number
@@ -112,8 +110,6 @@ __global__ void spectral_extension(cufftComplex* data, cufftComplex* output, int
     } else {
         spectral_extension_with_shared_mem(data, output, nphi, nside, L, equatorial_ring_num);
     }
-
-   
 }
 
 HRESULT launch_spectral_extension(cufftComplex* data, cufftComplex* output, const int& nside, const int& L,
@@ -125,7 +121,7 @@ HRESULT launch_spectral_extension(cufftComplex* data, cufftComplex* output, cons
     std::cout << "Grid size: " << grid_size << std::endl;
     std::cout << "Block size: " << block_size << std::endl;
 
-    spectral_extension<<<grid_size, block_size, 0, stream>>>(
+    spectral_extension<<<grid_size, block_size, block_size * sizeof(cufftComplex), stream>>>(
             data, output, nside, L, equatorial_ring_num);
 
     checkCudaErrors(cudaGetLastError());

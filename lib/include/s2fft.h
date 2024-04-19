@@ -14,6 +14,7 @@
 #include <vector>
 #include "cufft.h"
 #include "thrust/device_vector.h"
+#include "s2fft_callbacks.cuh"
 
 namespace s2fft {
 
@@ -22,13 +23,6 @@ enum fft_norm { FORWARD = 1, BACKWARD = 2, ORTHO = 3, NONE = 4 };
 void s2fft_rings_2_nphi(float *data, int nside);
 
 void s2fft_nphi_2_rings(float *data, int nside);
-
-typedef struct _cb_params {
-    int norm;
-    int direction;
-    bool shift;
-    int size;
-} cb_params;
 
 class s2fftDescriptor {
 public:
@@ -78,14 +72,14 @@ private:
     std::vector<cufftHandle> m_inverse_polar_plans;
     cufftHandle m_inverse_equator_plan;
     int m_nside;
-    int m_total_pixels;
-    int m_equatorial_offset;
-    int equatorial_ring_num;
-    std::vector<int> m_upper_ring_offsets;
-    std::vector<int> m_lower_ring_offsets;
+    int m_equatorial_ring_num;
+    int64 m_total_pixels;
+    int64 m_equatorial_offset;
+    std::vector<int64> m_upper_ring_offsets;
+    std::vector<int64> m_lower_ring_offsets;
 
     // Callback params stored for cleanup purposes
-    thrust::device_vector<cb_params> m_cb_params;
+    //thrust::device_vector<cb_params> m_cb_params;
 };
 
 }  // namespace s2fft

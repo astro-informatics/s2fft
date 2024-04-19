@@ -14,7 +14,9 @@ using Type = cuComplex;
 
 int main() {
     Perfostep perfostep;
-    int nside = 4;
+    int nside = 128;
+    bool shift = true;
+    fft_norm norm = fft_norm::BACKWARD;
     int L = 2 * nside;
     int total_pixels = 12 * nside * nside;
 
@@ -28,12 +30,12 @@ int main() {
     std::cout << "Total pixels: " << total_pixels << std::endl;
 
     cuComplex *h_vec_in = new cuComplex[total_pixels];
-    cuComplex *h_vec_out = new cuComplex[flm_size];
+    cuComplex *h_vec_out = new cuComplex[total_pixels];
     cuComplex *d_vec_in;
     cuComplex *d_vec_out;
 
-    cudaMallocManaged(&d_vec_in, total_pixels * sizeof(cuComplex));
-    cudaMallocManaged(&d_vec_out, flm_size * sizeof(cuComplex));
+    cudaMalloc(&d_vec_in, total_pixels * sizeof(cuComplex));
+    cudaMalloc(&d_vec_out, flm_size * sizeof(cuComplex));
 
     // Initialize host vectors using std::generate
     int start_index(0);
@@ -55,8 +57,8 @@ int main() {
     cudaStreamCreate(&stream);
     
 
-    s2fftKernels::launch_spectral_extension(d_vec_in, d_vec_out, nside, L, total_pixels, stream);
-    cudaDeviceSynchronize();
+    //s2fftKernels::launch_spectral_extension(d_vec_in, d_vec_out, nside, L, total_pixels, stream);
+    //cudaDeviceSynchronize();
     //std::cout << "Original" << std::endl;
     //for (int i = 0; i < total_pixels; i++) {
     //    std::cout << "[" << i << "] " << h_vec_in[i].x << " + " << h_vec_in[i].y << "i" << std::endl;
@@ -64,66 +66,65 @@ int main() {
     //    //if (i == 3) break;
     //}
 
-   //s2fftDescriptor desc(nside, L, true, true, fft_norm::BACKWARD, true);
-   //s2fftExec exec;
-   //size_t worksize(0);
-   //perfostep.Start("Initialize");
-   //exec.Initialize(desc, worksize);
-   //perfostep.Stop();
-   //std::cout << "worksize: " << worksize << std::endl;
+   s2fftDescriptor desc(nside, L, true, true, norm, shift);
+   s2fftExec exec;
+   size_t worksize(0);
+   perfostep.Start("Initialize");
+   exec.Initialize(desc, worksize);
+   perfostep.Stop();
+   std::cout << "worksize: " << worksize << std::endl;
 
    ////
 
 
    ////// Set first buffer to the data
-   //void **buffers = (void **)malloc(2 * sizeof(void *));
-   //buffers[0] = d_vec;
-   //worksize = total_pixels * sizeof(cuComplex);
-   //buffers[1] = (void *)worksize;
-   //buffers[2] = d_vec_out;
+   void **buffers = (void **)malloc(2 * sizeof(void *));
+   buffers[0] = d_vec_in;
+   worksize = total_pixels * sizeof(cuComplex);
+   buffers[1] = (void *)worksize;
+   buffers[2] = d_vec_out;
 
    ////// ********************************************************
    ////// Perform forward
    ////// ********************************************************
-   //perfostep.Start("Forward");
-   //exec.Forward(desc, stream, buffers);
-   //cudaStreamSynchronize(stream);
-   //cudaDeviceSynchronize();
-   //perfostep.Stop();
-   //std::cout << "Executed Forward" << std::endl;
+   perfostep.Start("Forward");
+   exec.Forward(desc, stream, buffers);
+   cudaStreamSynchronize(stream);
+   cudaDeviceSynchronize();
+   perfostep.Stop();
+   std::cout << "Executed Forward" << std::endl;
 
    //// ********************************************************
    //// Perform Backward
    //// ********************************************************
-   //perfostep.Start("Backward");
-   //exec.Backward(desc, stream, buffers);
-   //cudaStreamSynchronize(stream);
-   //perfostep.Stop();
-   //std::cout << "Executed Backward" << std::endl;
-
-   //perfostep.Report();
+   perfostep.Start("Backward");
+   exec.Backward(desc, stream, buffers);
+   cudaStreamSynchronize(stream);
+   perfostep.Stop();
+   std::cout << "Executed Backward" << std::endl;
+   perfostep.Report();
 
    //// Copy device data to host
-   cudaMemcpy(h_vec_out, d_vec_out, flm_size * sizeof(cuComplex), cudaMemcpyDeviceToHost);
+   cudaMemcpy(h_vec_out, d_vec_in, total_pixels * sizeof(cuComplex), cudaMemcpyDeviceToHost);
 
-   std::cout << "Output" << std::endl;
-   for (int i = 0; i < flm_size; i++) {
+   //std::cout << "Output" << std::endl;
+   for (int i = 0; i < total_pixels; i++) {
        std::cout << "[" << i << "] " << h_vec_out[i].x << " + " << h_vec_out[i].y << "i" << std::endl;
 
        if (i == 3) break;
    }
 
-   //// Check Maximum reconstruction error
-   //float max_error = 0.0f;
-   //for (int i = 0; i < total_pixels; i++) {
-   //    float error =
-   //            std::max(std::abs(h_vec_in[i].x - h_vec_out[i].x), std::abs(h_vec_in[i].y - h_vec_out[i].y));
-   //    if (error > 0.5f) {
-   //        // std::cout << "Element: " << i << " Error: " << error << std::endl;
-   //    }
-   //    max_error = std::max(max_error, error);
-   //}
-   //std::cout << "Max error: " << max_error << std::endl;
+   // Check Maximum reconstruction error
+   float max_error = 0.0f;
+   for (int i = 0; i < total_pixels; i++) {
+       float error =
+               std::max(std::abs(h_vec_in[i].x - h_vec_out[i].x), std::abs(h_vec_in[i].y - h_vec_out[i].y));
+       if (error > 0.5f) {
+          std::cout << "Element: " << i << " Error: " << error << std::endl;
+       }
+       max_error = std::max(max_error, error);
+   }
+   std::cout << "Max error: " << max_error << std::endl;
 
     // Free memory
     delete[] h_vec_in;
