@@ -48,13 +48,13 @@ static __device__ void fft_shift_eq(void *dataOut, size_t offset, cufftComplex e
 }
 
 static __device__ void normalize(cufftComplex* element, int64 size) {
-    double norm_factor = 1.0 / (double)size;
+    float norm_factor = 1.0f / (float)size;
     element->x *= norm_factor;
     element->y *= norm_factor;
 }
 
 static __device__ void normalize_ortho(cufftComplex* element, int64 size) {
-    double norm_factor = 1.0 / sqrtf((double)size);
+    float norm_factor = 1.0 / sqrtf((float)size);
     element->x *= norm_factor;
     element->y *= norm_factor;
 }
@@ -104,7 +104,7 @@ static __device__ void fft_norm_ortho_shift_cb(void *dataOut, size_t offset, cuf
                                                void *callerInfo, void *sharedPointer) {
     int64 *params = (int64 *)callerInfo;
     cufftComplex *data = (cufftComplex *)dataOut;
-
+    
     normalize_ortho(&element, params[0]);
     fft_shift(data, offset, element, params);
 }

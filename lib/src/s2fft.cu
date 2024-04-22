@@ -200,9 +200,9 @@ HRESULT s2fftExec::Forward(const s2fftDescriptor &desc, cudaStream_t stream, voi
     }
 
     // Equator fft
-    CUFFT_CALL(cufftSetStream(m_equator_plan, stream))
-    CUFFT_CALL(cufftExecC2C(m_equator_plan, data_c_d + m_equatorial_offset, data_c_d + m_equatorial_offset,
-                            CUFFT_FORWARD));
+    //CUFFT_CALL(cufftSetStream(m_equator_plan, stream))
+    //CUFFT_CALL(cufftExecC2C(m_equator_plan, data_c_d + m_equatorial_offset, data_c_d + m_equatorial_offset,
+    //                        CUFFT_FORWARD));
 //
     return S_OK;
 }
@@ -224,9 +224,9 @@ HRESULT s2fftExec::Backward(const s2fftDescriptor &desc, cudaStream_t stream, vo
                                 data_c_d + upper_ring_offset, CUFFT_INVERSE));
     }
     // Equator inverse FFT
-   CUFFT_CALL(cufftSetStream(m_inverse_equator_plan, stream))
-   CUFFT_CALL(cufftExecC2C(m_inverse_equator_plan, data_c_d + m_equatorial_offset,
-                           data_c_d + m_equatorial_offset, CUFFT_INVERSE));
+   //CUFFT_CALL(cufftSetStream(m_inverse_equator_plan, stream))
+   //CUFFT_CALL(cufftExecC2C(m_inverse_equator_plan, data_c_d + m_equatorial_offset,
+   //                        data_c_d + m_equatorial_offset, CUFFT_INVERSE));
 //
     return S_OK;
 }

@@ -14,7 +14,7 @@ using Type = cuComplex;
 
 int main() {
     Perfostep perfostep;
-    int nside = 128;
+    int nside = 4;
     bool shift = true;
     fft_norm norm = fft_norm::BACKWARD;
     int L = 2 * nside;
@@ -57,14 +57,14 @@ int main() {
     cudaStreamCreate(&stream);
     
 
-    //s2fftKernels::launch_spectral_extension(d_vec_in, d_vec_out, nside, L, total_pixels, stream);
-    //cudaDeviceSynchronize();
-    //std::cout << "Original" << std::endl;
-    //for (int i = 0; i < total_pixels; i++) {
-    //    std::cout << "[" << i << "] " << h_vec_in[i].x << " + " << h_vec_in[i].y << "i" << std::endl;
-//
-    //    //if (i == 3) break;
-    //}
+    s2fftKernels::launch_spectral_extension(d_vec_in, d_vec_out, nside, L, total_pixels, stream);
+    cudaDeviceSynchronize();
+    std::cout << "Original" << std::endl;
+    for (int i = 0; i < total_pixels; i++) {
+        std::cout << "[" << i << "] " << h_vec_in[i].x << " + " << h_vec_in[i].y << "i" << std::endl;
+
+        if (i == 1) break;
+    }
 
    s2fftDescriptor desc(nside, L, true, true, norm, shift);
    s2fftExec exec;
@@ -111,7 +111,7 @@ int main() {
    for (int i = 0; i < total_pixels; i++) {
        std::cout << "[" << i << "] " << h_vec_out[i].x << " + " << h_vec_out[i].y << "i" << std::endl;
 
-       if (i == 3) break;
+       //if (i == 3) break;
    }
 
    // Check Maximum reconstruction error
