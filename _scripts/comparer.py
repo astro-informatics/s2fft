@@ -1,4 +1,5 @@
 import re
+import argparse
 
 def read_complex_numbers(file_path):
     numbers = []
@@ -13,30 +14,29 @@ def read_complex_numbers(file_path):
                 numbers.append(complex(real_part, imag_part))
     return numbers
 
-def compare_files(file1, file2):
+def compare_files(file1, file2, print_errors=False):
     numbers1 = read_complex_numbers(file1)
     numbers2 = read_complex_numbers(file2)
 
     max_abs_error = 0
     for i in range(min(len(numbers1), len(numbers2))):
+        #print(f"numbers1[{i}]: {numbers1[i]} numbers2[{i}]: {numbers2[i]}")
         abs_error = abs(numbers1[i] - numbers2[i])
         if abs_error > max_abs_error:
             max_abs_error = abs_error
+        if abs_error > 1 and print_errors:
+            print(f"Error at index {i}: {abs_error}")
     
     return max_abs_error
 
-file1 = 'fft_noshift.log'  # Path to the first file
-file2 = 'actual.log'  # Path to the second file#
-file3 = 'fft_shifted.log'  # Path to the second file
-file4 = 'actualshifted.log'  # Path to the second file
+if __name__ == "__main__":
 
-numbers1 = read_complex_numbers(file1)
-numbers2 = read_complex_numbers(file2)
+    parser = argparse.ArgumentParser(description='Comparer')
+    parser.add_argument('-f' , '--files' , nargs=2, help='Files to compare',required=True)
+    parser.add_argument('-p' , '--print', help='Print errors', action='store_true')
 
-print(numbers2[0])
-print(numbers1[0])
+    args = parser.parse_args()
 
-max_abs_error = compare_files(file1, file2)
-print("Max absolute error without:", max_abs_error)
-max_abs_error = compare_files(file3, file4)
-print("Max absolute error with shift:", max_abs_error)
+    max_abs_error = compare_files(args.files[0] , args.files[1], args.print)
+    print("Max absolute error without:", max_abs_error)
+        

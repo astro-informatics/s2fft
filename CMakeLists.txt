@@ -36,7 +36,7 @@ find_package(Python 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
 
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
@@ -48,7 +48,7 @@ find_package(CUDAToolkit REQUIRED)
 if(CUDAToolkit_VERSION_MAJOR GREATER_EQUAL 12 AND CUDAToolkit_VERSION_MINOR GREATER_EQUAL 2)
   message(STATUS "CUDA version is compatible (12.2 and above)")
 else()
-  message(FATAL_ERROR "CUDA version is not compatible (requires 12.2 and above)")
+  message(STATUS "CUDA version is not compatible (requires 12.2 and above)")
 endif()
 
 add_executable(_s2fft   
@@ -56,10 +56,11 @@ add_executable(_s2fft
                 ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft.cu 
                 ${CMAKE_CURRENT_LIST_DIR}/lib/src/plan_cache.cc 
                 ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft_kernels.cu 
-                ${CMAKE_CURRENT_LIST_DIR}/lib/src/test.cu
+                ${CMAKE_CURRENT_LIST_DIR}/lib/src/kernel_test.cu
               )
 
 target_link_libraries(_s2fft PRIVATE CUDA::cudart_static CUDA::cufft_static CUDA::culibos)
+#target_link_libraries(_s2fft PRIVATE CUDA::cudart CUDA::cufft)
 target_include_directories(_s2fft PUBLIC ${CMAKE_CURRENT_LIST_DIR}/lib/include) 
 set_target_properties(_s2fft PROPERTIES 
                     LINKER_LANGUAGE CUDA

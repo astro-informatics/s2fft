@@ -293,6 +293,7 @@ def healpix_fft_jax(f: jnp.ndarray, L: int, nside: int, reality: bool) -> jnp.nd
             fm_chunks = jnp.fft.fftshift(
                 jnp.fft.fft(f_chunks, norm="backward"), axes=-1
             )
+        
         return vmap(spectral_periodic_extension_jax, (0, None))(fm_chunks, L)
 
     # Process f chunks corresponding to pairs of polar theta rings with the same number

@@ -20,31 +20,29 @@ namespace s2fftKernels {
 
 // Fundamental Functions
 
-static __device__ void fft_shift(cufftComplex *data, size_t offset, cufftComplex element, int64* params) {
+static __device__ int64 fft_shift(size_t offset, int64* params) {
     int64 n = params[0];
     int64 dist = params[1];
-    int64 upper_ring_offset = params[2];
-    int64 lower_ring_offset = params[3];
     int64 first_element_offset = offset < dist ? 0 : dist;
 
-    double half_f = n / 2.0;
-    int64 half = ceil(half_f);
+    int64 half = n / 2;
+    //int64 half = ceil(half_f);
     int64 normalized_offset = offset - first_element_offset;
-    size_t indx = ((normalized_offset + half) % n) + first_element_offset;
+    int64 indx = ((normalized_offset + half) % n) + first_element_offset;
 
-    data[indx] = element;
+    return indx;
 }
 
-static __device__ void fft_shift_eq(void *dataOut, size_t offset, cufftComplex element, int64* params) {
-    cufftComplex *data = (cufftComplex *)dataOut;
+static __device__ int64 fft_shift_eq(size_t offset, int64* params) {
     int64 n = params[0];
-    int64 equator_offset = params[1];
-    int64 first_element_offset = ((offset - equator_offset) / n) * n + equator_offset;
+    int64 first_element_offset = (offset / n) * n;
+    int64 offset_in_ring = first_element_offset + offset % n;
 
-    double half_f = n / 2.0;
-    int64 half = ceil(half_f);
-    size_t indx = ((offset + half) % n) + first_element_offset;
-    data[indx] = element;
+    int64 half = n / 2;
+    //int64 half = ceil(half_f);
+    size_t indx = ((offset_in_ring + half) % n) + first_element_offset;
+
+    return indx;
 }
 
 static __device__ void normalize(cufftComplex* element, int64 size) {
@@ -54,7 +52,7 @@ static __device__ void normalize(cufftComplex* element, int64 size) {
 }
 
 static __device__ void normalize_ortho(cufftComplex* element, int64 size) {
-    float norm_factor = 1.0 / sqrtf((float)size);
+    float norm_factor = 1.0f / sqrtf((float)size);
     element->x *= norm_factor;
     element->y *= norm_factor;
 }
@@ -66,7 +64,8 @@ static __device__ void fft_shift_cb(void *dataOut, size_t offset, cufftComplex e
     int64 *params = (int64 *)callerInfo;
     cufftComplex *data = (cufftComplex *)dataOut;
 
-    fft_shift(data, offset, element, params);
+    int64 indx = fft_shift(offset, params);
+    data[indx] = element;
 }
 
 static __device__ void fft_shift_eq_cb(void *dataOut, size_t offset, cufftComplex element, void *callerInfo,
@@ -74,7 +73,8 @@ static __device__ void fft_shift_eq_cb(void *dataOut, size_t offset, cufftComple
     int64 *params = (int64 *)callerInfo;
     cufftComplex *data = (cufftComplex *)dataOut;
 
-    fft_shift_eq(data, offset, element, params);
+    int64 indx = fft_shift_eq(offset, params);
+    data[indx] = element;
 }
 
 static __device__ void fft_norm_ortho_cb(void *dataOut, size_t offset, cufftComplex element, void *callerInfo,
@@ -106,7 +106,9 @@ static __device__ void fft_norm_ortho_shift_cb(void *dataOut, size_t offset, cuf
     cufftComplex *data = (cufftComplex *)dataOut;
     
     normalize_ortho(&element, params[0]);
-    fft_shift(data, offset, element, params);
+    int64 indx = fft_shift(offset, params);
+
+    data[indx] = element;
 }
 
 static __device__ void fft_norm_shift_cb(void *dataOut, size_t offset, cufftComplex element, void *callerInfo,
@@ -115,7 +117,9 @@ static __device__ void fft_norm_shift_cb(void *dataOut, size_t offset, cufftComp
     cufftComplex *data = (cufftComplex *)dataOut;
 
     normalize(&element, params[0]);
-    fft_shift(data, offset, element, params);
+    int64 indx = fft_shift(offset, params);
+
+    data[indx] = element;
 }
 
 static __device__ void fft_norm_ortho_shift_eq_cb(void *dataOut, size_t offset, cufftComplex element,
@@ -124,7 +128,9 @@ static __device__ void fft_norm_ortho_shift_eq_cb(void *dataOut, size_t offset, 
     cufftComplex *data = (cufftComplex *)dataOut;
 
     normalize_ortho(&element, params[0]);
-    fft_shift_eq(data, offset, element, params);
+    int64 indx = fft_shift_eq(offset, params);
+
+    data[indx] = element;
 }
 
 static __device__ void fft_norm_shift_eq_cb(void *dataOut, size_t offset, cufftComplex element,
@@ -133,7 +139,9 @@ static __device__ void fft_norm_shift_eq_cb(void *dataOut, size_t offset, cufftC
     cufftComplex *data = (cufftComplex *)dataOut;
 
     normalize(&element, params[0]);
-    fft_shift_eq(data, offset, element, params);
+    int64 indx = fft_shift_eq(offset, params);
+
+    data[indx] = element;
 }
 
 // Inverse shifts
@@ -148,8 +156,7 @@ static __device__ cufftComplex ifft_shift_cb(void *dataIn, size_t offset, void *
     int64 first_element_offset = offset < dist ? 0 : dist;
     int64 normalized_offset = offset - first_element_offset;
 
-    double half_f = n / 2.0;
-    int64 half = floor(half_f);
+    int64 half = n / 2;
     size_t indx = ((normalized_offset + half) % n) + first_element_offset;
 
     return data[indx];
@@ -160,15 +167,14 @@ static __device__ cufftComplex ifft_shift_eq_cb(void *dataIn, size_t offset, voi
     int64 *params = (int64 *)callerInfo;
     cufftComplex *data = (cufftComplex *)dataIn;
     int64 n = params[0];
-    int64 equator_offset = params[1];
-    int64 first_element_offset = ((offset - equator_offset) / n) * n + equator_offset;
+    int64 first_element_offset = (offset / n) * n;
+    int64 offset_in_ring = first_element_offset + offset % n;
 
     // printf("offset: %lld, equator_offset: %lld, first_element_offset: %lld\n", offset, equator_offset,
     //        first_element_offset);
 
-    double half_f = n / 2.0;
-    int64 half = floor(half_f);
-    size_t indx = ((offset + half) % n) + first_element_offset;
+    int64 half = n / 2;
+    size_t indx = ((offset_in_ring + half) % n) + first_element_offset;
 
     return data[indx];
 }

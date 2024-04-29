@@ -1,3 +1,4 @@
+#include <__clang_cuda_builtin_vars.h>
 #include "s2fft_kernels.h"
 #include "hresult.h"
 #include <cmath>  // has to be included before cuda/std/complex
@@ -50,7 +51,7 @@ __device__ void spectral_extension_with_shared_mem(cufftComplex* data, cufftComp
 }
 
 __device__ void spectral_extension_from_global_mem(cufftComplex* data, cufftComplex* output, int nphi,
-                                                   int _nside, int _L, int equatorial_ring_num) {
+                                                   int _nside, int L, int equatorial_ring_num) {
     // Spectral extension
     // The resulting array has size 2 * L and it has these indices :
 
@@ -63,20 +64,29 @@ __device__ void spectral_extension_from_global_mem(cufftComplex* data, cufftComp
     // The third part is the positive part of the spectrum
 
     // Compute the negative part of the spectrum
-
-    if (threadIdx.x < (_L - nphi) / 2) {
-        int index = (threadIdx.x + 1) % nphi;
-        index = nphi - index;
-        output[blockIdx.x * _L + threadIdx.x] = data[blockIdx.x * _L + index];
+    // L is equal to blockDim.x
+    int current_index = blockIdx.x * L + threadIdx.x; 
+    int ftm_size = 2 * L;
+    if (threadIdx.x < L - nphi / 2) {
+        // L - nphi // 2 + offset
+        int indx = (- (L - nphi / 2 + threadIdx.x)) % nphi;
+        // Make sure that python % and C % are the same 
+        // https://stackoverflow.com/questions/3883004/how-does-the-modulo-operator-work-on-negative-numbers-in-python
+        //indx = indx < 0 ? nphi + indx : indx;
+        //output[current_index] = data[indx];
+        printf("Negative part: %d element at offset %d came from %d\n", threadIdx.x  , indx , current_index);
     }
     // Compute the central part of the spectrum
-    else if (threadIdx.x >= (_L - nphi) / 2 && threadIdx.x < (_L + nphi) / 2) {
+    else if (threadIdx.x >= L - nphi / 2 && threadIdx.x < L + nphi / 2) {
+        // -6
         output[blockIdx.x * _L + threadIdx.x] = data[blockIdx.x * _L + threadIdx.x - (_L - nphi) / 2];
+        printf("Central part: %d element at offset %d came from %d\n", threadIdx.x  , (blockIdx.x * _L + threadIdx.x) , (blockIdx.x * _L + threadIdx.x - (_L - nphi) / 2));
     }
     // Compute the positive part of the spectrum
     else {
         int index = (threadIdx.x - (_L + nphi) / 2) % nphi;
         output[blockIdx.x * _L + threadIdx.x] = data[blockIdx.x * _L + index];
+        printf("Positive part: %d element at offset %d came from %d\n", threadIdx.x  , (blockIdx.x * _L + threadIdx.x) , (blockIdx.x * _L + index));
     }
 }
 
@@ -88,6 +98,7 @@ __global__ void spectral_extension(cufftComplex* data, cufftComplex* output, int
 
     // Compute nphi of current ring
     int nphi(0);
+    int total_rings = 4 * nside - 2; // Starting with 0
 
     // Upper Polar rings
     if (blockIdx.x < nside - 1) {
@@ -95,8 +106,8 @@ __global__ void spectral_extension(cufftComplex* data, cufftComplex* output, int
 
     }
     // Lower Polar rings
-    else if (blockIdx.x < 2 * nside + equatorial_ring_num - 1) {
-        nphi = 4 * (nside - (blockIdx.x - nside));
+    else if (blockIdx.x > 3 * nside -1) {
+        nphi = 4 * (total_rings - blockIdx.x + 1);
     }
     // Equatorial ring
     else {
@@ -105,7 +116,7 @@ __global__ void spectral_extension(cufftComplex* data, cufftComplex* output, int
 
     // When nphi is equal or more than L, shared memory is not very useful
     // In this case we can use global memory
-    if (nphi >= L) {
+    if (nphi >= L || true) {
         spectral_extension_from_global_mem(data, output, nphi, nside, L, equatorial_ring_num);
     } else {
         spectral_extension_with_shared_mem(data, output, nphi, nside, L, equatorial_ring_num);
@@ -117,7 +128,7 @@ HRESULT launch_spectral_extension(cufftComplex* data, cufftComplex* output, cons
     // Launch the kernel
     std::cout << "Launching kernel" << std::endl;
     int block_size = 2 * L;
-    int grid_size = 2 * nside + equatorial_ring_num;
+    int grid_size = 4 * nside - 1;
     std::cout << "Grid size: " << grid_size << std::endl;
     std::cout << "Block size: " << block_size << std::endl;
 
