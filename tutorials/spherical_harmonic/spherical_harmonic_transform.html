@@ -45,7 +45,7 @@
     <script src="../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
     <script src="../../_static/documentation_options.js?v=58fbf978"></script>
-    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../_static/copybutton.js?v=f281be69"></script>
@@ -520,30 +520,53 @@ document.write(`
 <h1># <strong>Spherical harmonic transform</strong><a class="headerlink" href="##-Spherical-harmonic-transform" title="Link to this heading">#</a></h1>
 <p><a class="reference external" href="https://colab.research.google.com/github/astro-informatics/s2fft/blob/main/notebooks/spherical_harmonic_transform.ipynb"><img alt="colab image" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install s2fft</span>
-<span class="o">!</span>pip<span class="w"> </span>install<span class="w"> </span>s2fft<span class="w"> </span><span class="p">&amp;</span>&gt;<span class="w"> </span>/dev/null
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">IN_COLAB</span> <span class="o">=</span> <span class="s1">&#39;google.colab&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span>
+
+<span class="c1"># Install a spherical plotting package.</span>
+<span class="o">!</span>pip<span class="w"> </span>install<span class="w"> </span>cartopy<span class="w"> </span><span class="p">&amp;</span>&gt;<span class="w"> </span>/dev/null
+
+<span class="c1"># Install s2fft and data if running on google colab.</span>
+<span class="k">if</span> <span class="n">IN_COLAB</span><span class="p">:</span>
+    <span class="o">!</span>pip<span class="w"> </span>install<span class="w"> </span>s2fft<span class="w"> </span><span class="p">&amp;</span>&gt;<span class="w"> </span>/dev/null
+    <span class="o">!</span>mkdir<span class="w"> </span>data/
+    <span class="o">!</span>wget<span class="w"> </span>https://github.com/astro-informatics/s2fft/raw/main/notebooks/data/Gaia_EDR3_flux.npy<span class="w"> </span>-P<span class="w"> </span>data/<span class="w"> </span><span class="p">&amp;</span>&gt;<span class="w"> </span>/dev/null
 </pre></div>
 </div>
 </div>
 <p>This tutorial demonstrates how to use <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> to compute spherical harmonic transforms. Specifically, we will adopt the sampling scheme of <a class="reference external" href="https://arxiv.org/abs/1110.6298">McEwen &amp; Wiaux (2012)</a>.</p>
 <p>First let’s load an input signal that is sampled on the sphere with this sampling scheme.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">jax</span>
 <span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;jax_enable_x64&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span> <span class="nn">cartopy.crs</span> <span class="k">as</span> <span class="nn">ccrs</span>
 <span class="kn">import</span> <span class="nn">s2fft</span>
 
-<span class="n">L</span> <span class="o">=</span> <span class="mi">256</span>
 <span class="n">sampling</span> <span class="o">=</span> <span class="s2">&quot;mw&quot;</span>
-<span class="n">flm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">L</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">L</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">f</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">inverse_jax</span><span class="p">(</span><span class="n">flm</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;data/Gaia_EDR3_flux.npy&#39;</span><span class="p">)</span>
+<span class="n">L</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<p>Lets look at the input signal</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">Mollweide</span><span class="p">())</span>
+<span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">(),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;magma&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -552,7 +575,7 @@ document.write(`
 <hr class="docutils" />
 <p>Let’s now run the JAX function to compute the spherical harmonic transform of this map.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">flm</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">forward_jax</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
@@ -562,7 +585,7 @@ document.write(`
 <p>If you are planning on applying this transform many times (e.g. during training of a model) we recommend precomputing and storing some small arrays that are used every time. This trades off additional memory usage for enhanced speed and should be fine at small and moderate bandlimits <code class="docutils literal notranslate"><span class="pre">L</span></code>.</p>
 <p>To do this simply compute these and pass as a static argument.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">precomps</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">generate_precomputes_jax</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">forward</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -576,7 +599,7 @@ document.write(`
 <hr class="docutils" />
 <p>Let’s run the JAX function to cmpute the inverse spherical harmonic transform to get back to the input map.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f_recov</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">inverse_jax</span><span class="p">(</span><span class="n">flm</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
@@ -586,7 +609,7 @@ document.write(`
 <p>Again, if you are planning on applying this transform many times we recommend precomputing and storing some small arrays that are used every time. Recall, this trades off additional memory usage for enhanced speed and should be fine at small and moderate bandlimits <code class="docutils literal notranslate"><span class="pre">L</span></code>.</p>
 <p>To do this simply compute these and pass as a static argument.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">precomps</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">generate_precomputes_jax</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">forward</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -599,37 +622,21 @@ document.write(`
 <h2>Computing the error<a class="headerlink" href="#Computing-the-error" title="Link to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Let’s check the associated error, which should be close to machine precision for the sampling scheme used.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean absolute error = </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f_recov</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">f</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Mean absolute error = 8.478196507592078e-11
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean absolute error using precomputes = </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f_recov_pre</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">f</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Mean absolute error using precomputes = 8.478196507592078e-11
-</pre></div></div>
 </div>
 </section>
 </section>
