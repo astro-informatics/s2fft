@@ -38,16 +38,16 @@ def generate_flm(
 
     for el in range(max(L_lower, abs(spin)), L):
         if reality:
-            flm[el, 0 + L - 1] = rng.uniform()
+            flm[el, 0 + L - 1] = rng.normal()
         else:
-            flm[el, 0 + L - 1] = rng.uniform() + 1j * rng.uniform()
+            flm[el, 0 + L - 1] = rng.normal() + 1j * rng.normal()
 
         for m in range(1, el + 1):
-            flm[el, m + L - 1] = rng.uniform() + 1j * rng.uniform()
+            flm[el, m + L - 1] = rng.normal() + 1j * rng.normal()
             if reality:
                 flm[el, -m + L - 1] = (-1) ** m * np.conj(flm[el, m + L - 1])
             else:
-                flm[el, -m + L - 1] = rng.uniform() + 1j * rng.uniform()
+                flm[el, -m + L - 1] = rng.normal() + 1j * rng.normal()
 
     return torch.from_numpy(flm) if using_torch else flm
 
@@ -86,22 +86,22 @@ def generate_flmn(
     for n in range(-N + 1, N):
         for el in range(max(L_lower, abs(n)), L):
             if reality:
-                flmn[N - 1 + n, el, 0 + L - 1] = rng.uniform()
+                flmn[N - 1 + n, el, 0 + L - 1] = rng.normal()
                 flmn[N - 1 - n, el, 0 + L - 1] = (-1) ** n * flmn[
                     N - 1 + n,
                     el,
                     0 + L - 1,
                 ]
             else:
-                flmn[N - 1 + n, el, 0 + L - 1] = rng.uniform() + 1j * rng.uniform()
+                flmn[N - 1 + n, el, 0 + L - 1] = rng.normal() + 1j * rng.normal()
 
             for m in range(1, el + 1):
-                flmn[N - 1 + n, el, m + L - 1] = rng.uniform() + 1j * rng.uniform()
+                flmn[N - 1 + n, el, m + L - 1] = rng.normal() + 1j * rng.normal()
                 if reality:
                     flmn[N - 1 - n, el, -m + L - 1] = (-1) ** (m + n) * np.conj(
                         flmn[N - 1 + n, el, m + L - 1]
                     )
                 else:
-                    flmn[N - 1 + n, el, -m + L - 1] = rng.uniform() + 1j * rng.uniform()
+                    flmn[N - 1 + n, el, -m + L - 1] = rng.normal() + 1j * rng.normal()
 
     return torch.from_numpy(flmn) if using_torch else flmn
