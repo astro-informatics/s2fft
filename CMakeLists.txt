@@ -40,7 +40,7 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/ext/nanobind)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanobind)
 
 find_package(CUDAToolkit REQUIRED)
 
