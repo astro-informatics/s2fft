@@ -1,5 +1,5 @@
 #!/bin/bash
-powers_of_2=(256)
+powers_of_2=(4)
 normalizations=(fwd)
 directions=(bwd)
 

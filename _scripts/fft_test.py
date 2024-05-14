@@ -117,15 +117,21 @@ def healpix_ifft(array, nside, total_pixels, shift, norm):
 
     for upper_ring in upper_rings_offset:
         start_offset, end_offset = upper_ring
-        print(f"start_offset: {start_offset} end_offset: {end_offset}")
+        print(
+            f"start_offset: {start_offset} end_offset: {end_offset} size of array: {end_offset - start_offset} at {i}"
+        )
         k_a = array[start_offset:end_offset]
         list_of_iffts.append(ifft(ifshift(k_a, shift), norm=norm))
 
     print(f"equator")
 
     for equator_ring in range(equator_ring_number):
+
         start_offset = equator_offset + equator_ring * equator_size
-        print(f"start_offset: {start_offset} end_offset: {end_offset}")
+        end_offset = start_offset + equator_size
+        print(
+            f"start_offset: {start_offset} end_offset: {end_offset} size of array: {end_offset - start_offset} at {(equator_ring + nside - 1)}"
+        )
         end_offset = start_offset + equator_size
         k_a = array[start_offset:end_offset]
         #list_of_iffts.append(ifft(ifshift(k_a, shift), norm=norm))
@@ -135,7 +141,9 @@ def healpix_ifft(array, nside, total_pixels, shift, norm):
 
     for lower_ring in lower_rings_offset:
         start_offset, end_offset = lower_ring
-        print(f"start_offset: {start_offset} end_offset: {end_offset}")
+        print(
+            f"start_offset: {start_offset} end_offset: {end_offset} size of array: {end_offset - start_offset} at {(i + 3*nside)}"
+        )
         k_a = array[start_offset:end_offset]
         list_of_iffts.append(ifft(ifshift(k_a, shift), norm=norm))
 
