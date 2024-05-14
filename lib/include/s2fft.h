@@ -66,7 +66,7 @@ public:
 
     HRESULT Backward(const s2fftDescriptor &desc, cudaStream_t stream, void **buffers);
 
-private:
+public:
     std::vector<cufftHandle> m_polar_plans;
     cufftHandle m_equator_plan;
     std::vector<cufftHandle> m_inverse_polar_plans;
@@ -74,7 +74,8 @@ private:
     int m_nside;
     int m_equatorial_ring_num;
     int64 m_total_pixels;
-    int64 m_equatorial_offset;
+    int64 m_equatorial_offset_start;
+    int64 m_equatorial_offset_end;
     std::vector<int64> m_upper_ring_offsets;
     std::vector<int64> m_lower_ring_offsets;
 

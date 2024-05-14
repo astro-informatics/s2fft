@@ -36,7 +36,8 @@ HRESULT s2fftExec::Initialize(const s2fftDescriptor &descriptor, size_t &worksiz
         start_index += nphi;
         end_index -= nphi;
     }
-    m_equatorial_offset = start_index;
+    m_equatorial_offset_start = start_index;
+    m_equatorial_offset_end = end_index;
     m_equatorial_ring_num = (end_index - start_index) / (4 * m_nside);
 
     // Plan creation
@@ -137,9 +138,9 @@ HRESULT s2fftExec::Initialize(const s2fftDescriptor &descriptor, size_t &worksiz
 
     int64 equator_params[3];
     equator_params[0] = equator_size;
-    equator_params[1] = m_equatorial_offset;
+    equator_params[1] = m_equatorial_offset_start;
     // Dummy param, the offset of any equator element is less than the offset of the last ring
-    equator_params[2] = m_equatorial_offset + 4 * m_nside * m_equatorial_ring_num + 1;
+    equator_params[2] = m_equatorial_offset_end;
     int64 *equator_params_dev;
     cudaMalloc(&equator_params_dev, 3 * sizeof(int64));
     cudaMemcpy(equator_params_dev, equator_params, 3 * sizeof(int64), cudaMemcpyHostToDevice);
@@ -192,9 +193,9 @@ HRESULT s2fftExec::Forward(const s2fftDescriptor &desc, cudaStream_t stream, voi
     }
 
     // Equator fft
-    //CUFFT_CALL(cufftSetStream(m_equator_plan, stream))
-    //CUFFT_CALL(cufftExecC2C(m_equator_plan, data_c_d + m_equatorial_offset, data_c_d + m_equatorial_offset,
-    //                        CUFFT_FORWARD));
+    CUFFT_CALL(cufftSetStream(m_equator_plan, stream))
+    CUFFT_CALL(cufftExecC2C(m_equator_plan, data_c_d + m_equatorial_offset_start,
+                            data_c_d + m_equatorial_offset_start, CUFFT_FORWARD));
     //
     return S_OK;
 }
@@ -214,9 +215,9 @@ HRESULT s2fftExec::Backward(const s2fftDescriptor &desc, cudaStream_t stream, vo
                                 data_c_d + upper_ring_offset, CUFFT_INVERSE));
     }
     // Equator inverse FFT
-    //CUFFT_CALL(cufftSetStream(m_inverse_equator_plan, stream))
-    //CUFFT_CALL(cufftExecC2C(m_inverse_equator_plan, data_c_d + m_equatorial_offset,
-    //                        data_c_d + m_equatorial_offset, CUFFT_INVERSE));
+    CUFFT_CALL(cufftSetStream(m_inverse_equator_plan, stream))
+    CUFFT_CALL(cufftExecC2C(m_inverse_equator_plan, data_c_d + m_equatorial_offset_start,
+                            data_c_d + m_equatorial_offset_start, CUFFT_INVERSE));
     //
     return S_OK;
 }

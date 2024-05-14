@@ -47,7 +47,13 @@ void run_test(int nside) {
     cudaStream_t stream;
     cudaStreamCreate(&stream);
 
-    s2fftKernels::launch_spectral_extension(d_vec_in, d_vec_out, nside, L, equator_rings_num, stream);
+    s2fftDescriptor desc(nside, L, true, true, fft_norm::BACKWARD, false);
+    s2fftExec exec;
+    size_t worksize(0);
+    exec.Initialize(desc, worksize);
+
+    s2fftKernels::launch_spectral_extension(d_vec_in, d_vec_out, nside
+    , L, exec.m_equatorial_offset_start, exec.m_equatorial_offset_end, stream);
     cudaStreamSynchronize(stream);
     checkCudaErrors(cudaGetLastError());
 
