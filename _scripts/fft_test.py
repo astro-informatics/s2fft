@@ -72,8 +72,8 @@ def healpix_fft(array, nside, total_pixels, shift, norm):
             f"start_offset: {start_offset} end_offset: {end_offset} Size of array: {end_offset - start_offset} at {(equator_ring + nside - 1)}"
         )
         k_a = array[start_offset:end_offset]
-        list_of_ffts.append(fshift(fft(k_a, norm=norm), shift))
-        #list_of_ffts.append(k_a)
+        #list_of_ffts.append(fshift(fft(k_a, norm=norm), shift))
+        list_of_ffts.append(k_a)
 
     print(f"lower")
 
@@ -128,8 +128,8 @@ def healpix_ifft(array, nside, total_pixels, shift, norm):
         print(f"start_offset: {start_offset} end_offset: {end_offset}")
         end_offset = start_offset + equator_size
         k_a = array[start_offset:end_offset]
-        list_of_iffts.append(ifft(ifshift(k_a, shift), norm=norm))
-        #list_of_iffts.append(k_a)
+        #list_of_iffts.append(ifft(ifshift(k_a, shift), norm=norm))
+        list_of_iffts.append(k_a)
 
     print(f"lower")
 

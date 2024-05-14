@@ -26,9 +26,9 @@ static __device__ int64 fft_shift(size_t offset, int64* params) {
     int64 first_element_offset = offset < dist ? 0 : dist;
 
     int64 half = n / 2;
-    //int64 half = ceil(half_f);
     int64 normalized_offset = offset - first_element_offset;
-    int64 indx = ((normalized_offset + half) % n) + first_element_offset;
+    int64 shifted_index = normalized_offset + half;
+    int64 indx = (shifted_index % n) + first_element_offset;
 
     return indx;
 }
@@ -39,8 +39,8 @@ static __device__ int64 fft_shift_eq(size_t offset, int64* params) {
     int64 offset_in_ring = first_element_offset + offset % n;
 
     int64 half = n / 2;
-    //int64 half = ceil(half_f);
-    size_t indx = ((offset_in_ring + half) % n) + first_element_offset;
+    int64 shifted_index = offset_in_ring + half;
+    int64 indx = (shifted_index % n) + first_element_offset;
 
     return indx;
 }
@@ -157,7 +157,10 @@ static __device__ cufftComplex ifft_shift_cb(void *dataIn, size_t offset, void *
     int64 normalized_offset = offset - first_element_offset;
 
     int64 half = n / 2;
-    size_t indx = ((normalized_offset + half) % n) + first_element_offset;
+    int64 shifted_index = normalized_offset - half;
+    // Make sure that python % and C % are the same
+    shifted_index = shifted_index < 0 ? n + shifted_index : shifted_index;
+    int64 indx = (shifted_index % n) + first_element_offset;
 
     return data[indx];
 }
@@ -170,11 +173,11 @@ static __device__ cufftComplex ifft_shift_eq_cb(void *dataIn, size_t offset, voi
     int64 first_element_offset = (offset / n) * n;
     int64 offset_in_ring = first_element_offset + offset % n;
 
-    // printf("offset: %lld, equator_offset: %lld, first_element_offset: %lld\n", offset, equator_offset,
-    //        first_element_offset);
 
     int64 half = n / 2;
-    size_t indx = ((offset_in_ring + half) % n) + first_element_offset;
+    int64 shifted_index = offset_in_ring - half;
+    shifted_index = shifted_index < 0 ? n + shifted_index : shifted_index;
+    int64 indx = (shifted_index % n) + first_element_offset;
 
     return data[indx];
 }

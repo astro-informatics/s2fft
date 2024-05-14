@@ -23,6 +23,7 @@ s2fft.code-workspace
 s2fft/_version.py
 
 #c++/cuda/cmake
+venv
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles

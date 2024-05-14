@@ -1,7 +1,7 @@
 #!/bin/bash
-powers_of_2=(4 8 16 32 64 128 256)
-normalizations=(bwd fwd ortho)
-directions=("fwd" "bwd")
+powers_of_2=(256)
+normalizations=(fwd)
+directions=(bwd)
 
 for nside in "${powers_of_2[@]}"; do
     echo "*****************************************"
