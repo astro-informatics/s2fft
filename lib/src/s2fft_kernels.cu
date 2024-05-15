@@ -7,62 +7,103 @@
 
 namespace s2fftKernels {
 
-__global__ void spectral_folding(cufftComplex* data, cufftComplex* output, int nside, int L,
-                                 int equatorial_offset_start, int equatorial_offset_end) {}
-
-__global__ void spectral_extension(cufftComplex* data, cufftComplex* output, int nside, int L,
-                                   int equatorial_offset_start, int equatorial_offset_end) {
+__global__ void spectral_folding(int* data, int* output, int nside, int L, int equatorial_offset_start,
+                                 int equatorial_offset_end) {
     // few inits
-    int polar_rings(nside - 1);
-    int equator_rings(3 * nside + 1);
-    int total_rings(4 * nside - 1);
-    int total_pixels(12 * nside * nside);
+    int polar_rings = nside - 1;
+    int equator_rings = 3 * nside + 1;
+    int total_rings = 4 * nside - 1;
+    int ftm_size = 2 * L;
+    // Compute number of pixels
+    int total_pixels = 12 * nside * nside;
+    int upper_pixels = nside * (nside - 1) * 2;
+    int equator_pixels = 4 * nside * equator_rings;
     // Which ring are we working on
-    int current_indx(blockIdx.x * blockDim.x + threadIdx.x);
-    int ring_index(0);
-    int offset(0);
+    int current_indx = blockIdx.x * blockDim.x + threadIdx.x;
     int pos(0);
-
-    // Upper Polar rings
-    // if (current_indx < equatorial_offset_start) {
-    //    ring_index = current_indx / 4;
-    //    pos = 1;
-    //    // Lower Polar rings
-    //} else if (current_indx >= equatorial_offset_end) {
-    //    // Compute ring_index from the end
-    //    ring_index = (total_pixels - current_indx) / 4;
-    //    // Compute ring_index from the start
-    //    ring_index = total_rings - ring_index;
-    //    pos = -1;
-    //    // Equatorial ring
-    //} else {
-    //    int offset_in_equator_matrix = current_indx - equatorial_offset_start;
-    //    // Ring index in the equator matrix
-    //    ring_index = offset_in_equator_matrix / (4 * nside);
-    //    // Ring index in the total Healspix array
-    //    ring_index = ring_index + polar_rings;
-    //    pos = 0;
-    //}
-    ring_index = current_indx / (2 * L);
-    offset = current_indx % (2 * L);
-
+    int indx(0);
     // Compute nphi of current ring
     int nphi(0);
+
+    // ring index
+    int ring_index = current_indx / (2 * L);
+    // offset for the FTM slice
+    int offset = current_indx % (2 * L);
+    // offset for original healpix ring
+    // Sum of all elements from 0 to n is  n * (n + 1) / 2 in o(1) time .. times 4 to get the number of
+    // elements before current ring
+    int offset_ring(0);
 
     // Upper Polar rings
     if (ring_index < nside - 1) {
         nphi = 4 * (ring_index + 1);
+        offset_ring = ring_index * (ring_index + 1) * 2;
         pos = 1;
-
     }
     // Lower Polar rings
     else if (ring_index > 3 * nside - 1) {
         nphi = 4 * (total_rings - ring_index);
+        // Compute lower pixel offset
+        int reverse_ring_index = total_rings - ring_index;
+        offset_ring = total_pixels - (reverse_ring_index * (reverse_ring_index + 1) * 2);
         pos = -1;
     }
     // Equatorial ring
     else {
         nphi = 4 * nside;
+        offset_ring = upper_pixels + (ring_index - nside + 1) * 4 * nside;
+        pos = 0;
+    }
+
+    int slice_start = offset + (L - nphi / 2);
+    int slice_end = offset + nphi;
+}
+
+__global__ void spectral_extension(int* data, int* output, int nside, int L, int equatorial_offset_start,
+                                   int equatorial_offset_end) {
+    // few inits
+    int polar_rings = nside - 1;
+    int equator_rings = 3 * nside + 1;
+    int total_rings = 4 * nside - 1;
+    int ftm_size = 2 * L;
+    // Compute number of pixels
+    int total_pixels = 12 * nside * nside;
+    int upper_pixels = nside * (nside - 1) * 2;
+    int equator_pixels = 4 * nside * equator_rings;
+    // Which ring are we working on
+    int current_indx = blockIdx.x * blockDim.x + threadIdx.x;
+    int pos(0);
+    int indx(0);
+    // Compute nphi of current ring
+    int nphi(0);
+
+    // ring index
+    int ring_index = current_indx / (2 * L);
+    // offset for the FTM slice
+    int offset = current_indx % (2 * L);
+    // offset for original healpix ring
+    // Sum of all elements from 0 to n is  n * (n + 1) / 2 in o(1) time .. times 4 to get the number of
+    // elements before current ring
+    int offset_ring(0);
+
+    // Upper Polar rings
+    if (ring_index < nside - 1) {
+        nphi = 4 * (ring_index + 1);
+        offset_ring = ring_index * (ring_index + 1) * 2;
+        pos = 1;
+    }
+    // Lower Polar rings
+    else if (ring_index > 3 * nside - 1) {
+        nphi = 4 * (total_rings - ring_index);
+        // Compute lower pixel offset
+        int reverse_ring_index = total_rings - ring_index;
+        offset_ring = total_pixels - (reverse_ring_index * (reverse_ring_index + 1) * 2);
+        pos = -1;
+    }
+    // Equatorial ring
+    else {
+        nphi = 4 * nside;
+        offset_ring = upper_pixels + (ring_index - nside + 1) * 4 * nside;
         pos = 0;
     }
 
@@ -74,36 +115,63 @@ __global__ void spectral_extension(cufftComplex* data, cufftComplex* output, int
     // fm[jnp.arange(L - (nphi + 1) // 2) % nphi],
 
     // Compute the negative part of the spectrum
+    // printf("Offset %d (L + nphi / 2) %d \n", offset, (L + nphi / 2));
+    int ring_print = 12;
     if (offset < L - nphi / 2) {
-        int indx = (-(L - nphi / 2 + offset)) % nphi;
+        indx = (-(L - nphi / 2 - offset)) % nphi;
         indx = indx < 0 ? nphi + indx : indx;
+        indx = indx + offset_ring;
         output[current_indx] = data[indx];
-        printf("Negative part: element at offset %d  came from %d\n", current_indx, indx);
+        if (ring_index == ring_print)
+            printf("Negative part: current thread %d, offset %d, ring index %d, ring offset %d, nphi %d , "
+                   "target index %d, input element %d output element %d\n",
+                   current_indx, offset, ring_index, offset_ring, nphi, indx, data[indx],
+                   output[current_indx]);
     }
+
     // Compute the central part of the spectrum
     else if (offset >= L - nphi / 2 && offset < L + nphi / 2) {
-        int center_offset = (L - nphi / 2);
-        int indx = current_indx - (L - nphi) / 2;
+        int center_offset = offset - /*negative part offset*/ (L - nphi / 2);
+        indx = center_offset + offset_ring;
         output[current_indx] = data[indx];
-        printf("Central part: element at offset %d came from %d\n", current_indx, indx);
+        if (ring_index == ring_print)
+            printf("Center part: current thread %d, offset %d, center offset %d, ring index %d, ring offset "
+                   "%d, nphi %d "
+                   "target index %d, input element %d output element %d\n",
+                   current_indx, offset, center_offset, ring_index, offset_ring, nphi, indx, data[indx],
+                   output[current_indx]);
     }
     // Compute the positive part of the spectrum
     else {
-        int indx = (offset - (L + nphi) / 2) % nphi;
+        int reverse_offset = ftm_size - offset;
+        indx = (L - (int)((nphi + 1) / 2) - reverse_offset) % nphi;
+        indx = indx < 0 ? nphi + indx : indx;
+        indx = indx + offset_ring;
         output[current_indx] = data[indx];
-        printf("Positive part: element at offset %d came from %d\n", current_indx, indx);
+        if (ring_index == ring_print)
+            printf("Positive part: current thread %d, offset %d, ring index %d, ring offset "
+                   "%d, nphi %d  "
+                   "target index %d, input element %d output element %d\n",
+                   current_indx, offset, ring_index, offset_ring, nphi, indx, data[indx],
+                   output[current_indx]);
+        // printf("Positive part: element at offset %d came from %d\n", current_indx, indx);
     }
 
     // Only use global memory for now
-    printf("For current index %d, ring index is %d and nphi is %d and pos is %d\n", current_indx, ring_index,
-           nphi, pos);
+    // printf("For current index %d,data index %d ring index is %d and nphi is %d and pos is %d, output is
+    // [%d] "
+    //        "and original is [%d]\n",
+    //        current_indx, indx, ring_index, nphi, pos, output[current_indx], data[indx]);
+    //}
 }
 
-HRESULT launch_spectral_folding(cufftComplex* data, cufftComplex* output, const int& nside, const int& L,
+HRESULT launch_spectral_folding(int* data, int* output, const int& nside, const int& L,
                                 const int64& equatorial_offset_start, const int64& equatorial_offset_end,
-                                cudaStream_t stream) {}
+                                cudaStream_t stream) {
+    return E_NOTIMPL;
+}
 
-HRESULT launch_spectral_extension(cufftComplex* data, cufftComplex* output, const int& nside, const int& L,
+HRESULT launch_spectral_extension(int* data, int* output, const int& nside, const int& L,
                                   const int64& equatorial_offset_start, const int64& equatorial_offset_end,
                                   cudaStream_t stream) {
     // Launch the kernel
