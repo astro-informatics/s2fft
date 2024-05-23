@@ -12,7 +12,7 @@
 #include <numeric>
 
 #include <vector>
-#include "s2fft_callbacks.cuh"
+#include "s2fft_callbacks.h"
 
 namespace s2fft {
 
@@ -23,6 +23,7 @@ HRESULT s2fftExec<Complex>::Initialize(const s2fftDescriptor &descriptor, size_t
     size_t start_index(0);
     size_t end_index(12 * m_nside * m_nside);
     size_t nphi(0);
+    const cufftType C2C_TYPE = get_cufft_type_c2c(Complex({0.0, 0.0}));
     const s2fftKernels::fft_norm &norm = descriptor.norm;
     const bool &shift = descriptor.shift;
     const bool &isDouble = descriptor.double_precision;
@@ -70,10 +71,10 @@ HRESULT s2fftExec<Complex>::Initialize(const s2fftDescriptor &descriptor, size_t
 
         // TODO CUFFT_C2C
         CUFFT_CALL(cufftMakePlanMany64(plan, rank, n, inembed, istride, idist, onembed, ostride, odist,
-                                       CUFFT_C2C, batch_size, &polar_worksize));
+                                       C2C_TYPE, batch_size, &polar_worksize));
 
         CUFFT_CALL(cufftMakePlanMany64(inverse_plan, rank, n, inembed, istride, idist, onembed, ostride,
-                                       odist, CUFFT_C2C, batch_size, &polar_worksize));
+                                       odist, C2C_TYPE, batch_size, &polar_worksize));
         int64 params[2];
         int64 *params_dev;
         params[0] = n[0];
@@ -96,12 +97,12 @@ HRESULT s2fftExec<Complex>::Initialize(const s2fftDescriptor &descriptor, size_t
     // TODO CUFFT_C2C
     // Forward plan
     CUFFT_CALL(cufftCreate(&m_equator_plan));
-    CUFFT_CALL(cufftMakePlanMany64(m_equator_plan, 1, &equator_size, nullptr, 1, 1, nullptr, 1, 1, CUFFT_C2C,
+    CUFFT_CALL(cufftMakePlanMany64(m_equator_plan, 1, &equator_size, nullptr, 1, 1, nullptr, 1, 1, C2C_TYPE,
                                    m_equatorial_ring_num, &equator_worksize));
     // Inverse plan
     CUFFT_CALL(cufftCreate(&m_inverse_equator_plan));
     CUFFT_CALL(cufftMakePlanMany64(m_inverse_equator_plan, 1, &equator_size, nullptr, 1, 1, nullptr, 1, 1,
-                                   CUFFT_C2C, m_equatorial_ring_num, &equator_worksize));
+                                   C2C_TYPE, m_equatorial_ring_num, &equator_worksize));
 
     int64 equator_params[1];
     equator_params[0] = equator_size;

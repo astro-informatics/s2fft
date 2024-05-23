@@ -13,10 +13,14 @@
 #include <iostream>
 #include <vector>
 #include "cufft.h"
+#include "cufftXt.h"
 #include "thrust/device_vector.h"
-#include "s2fft_callbacks.cuh"
+#include "s2fft_callbacks.h"
 
 namespace s2fft {
+
+static cufftType get_cufft_type_c2c(cufftDoubleComplex) { return CUFFT_Z2Z; }
+static cufftType get_cufft_type_c2c(cufftComplex) { return CUFFT_C2C; }
 
 void s2fft_rings_2_nphi(float *data, int nside);
 
