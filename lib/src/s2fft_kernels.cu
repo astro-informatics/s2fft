@@ -37,8 +37,14 @@ __device__ void computeNphi(int nside, int ring_index, int L, int& nphi, int& of
     }
 }
 
+template <typename T>
+__device__ void inline swap(T& a, T& b) {
+    T c(a);
+    a = b;
+    b = c;
+}
 template <typename complex>
-__global__ void spectral_folding(complex* data, complex* output, int nside, int L) {
+__global__ void spectral_folding(complex* data, complex* output, int nside, int L, bool shift) {
     // Which ring are we working on
     int current_indx = blockIdx.x * blockDim.x + threadIdx.x;
     if (current_indx >= (4 * nside - 1)) {
@@ -89,6 +95,16 @@ __global__ void spectral_folding(complex* data, complex* output, int nside, int 
         target_index = target_index + ftm_offset;
         output[folded_index].x += data[target_index].x;
         output[folded_index].y += data[target_index].y;
+    }
+
+    if (shift) {
+        int half_nphi = nphi / 2;
+        // Shift the spectrum
+        for (int i = 0; i < half_nphi; i++) {
+            int origin_index = i + ring_offset;
+            int shifted_index = origin_index + half_nphi;
+            swap(output[origin_index], output[shifted_index]);
+        }
     }
 }
 template <typename complex>
@@ -194,12 +210,12 @@ __global__ void spectral_extension(complex* data, complex* output, int nside, in
 
 template <typename complex>
 HRESULT launch_spectral_folding(complex* data, complex* output, const int& nside, const int& L,
-                                cudaStream_t stream) {
+                                const bool& shift, cudaStream_t stream) {
     int block_size = 128;
     int ftm_elements = (4 * nside - 1);
     int grid_size = (ftm_elements + block_size - 1) / block_size;
 
-    spectral_folding<complex><<<grid_size, block_size, 0, stream>>>(data, output, nside, L);
+    spectral_folding<complex><<<grid_size, block_size, 0, stream>>>(data, output, nside, L, shift);
     checkCudaErrors(cudaGetLastError());
     return S_OK;
 }
@@ -220,10 +236,12 @@ HRESULT launch_spectral_extension(complex* data, complex* output, const int& nsi
 
 // Specializations
 template HRESULT launch_spectral_folding<cufftComplex>(cufftComplex* data, cufftComplex* output,
-                                                       const int& nside, const int& L, cudaStream_t stream);
+                                                       const int& nside, const int& L, const bool& shift,
+                                                       cudaStream_t stream);
 template HRESULT launch_spectral_folding<cufftDoubleComplex>(cufftDoubleComplex* data,
                                                              cufftDoubleComplex* output, const int& nside,
-                                                             const int& L, cudaStream_t stream);
+                                                             const int& L, const bool& shift,
+                                                             cudaStream_t stream);
 
 template HRESULT launch_spectral_extension<cufftComplex>(cufftComplex* data, cufftComplex* output,
                                                          const int& nside, const int& L, cudaStream_t stream);

@@ -13,7 +13,7 @@ namespace s2fftKernels {
 
 template <typename complex>
 HRESULT launch_spectral_folding(complex* data, complex* output, const int& nside, const int& L,
-                                cudaStream_t stream);
+                                const bool& shift, cudaStream_t stream);
 template <typename complex>
 HRESULT launch_spectral_extension(complex* data, complex* output, const int& nside, const int& L,
                                   cudaStream_t stream);

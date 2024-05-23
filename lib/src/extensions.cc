@@ -27,8 +27,8 @@ void healpix_forward(cudaStream_t stream, void** buffers, s2fftDescriptor descri
         // Run the fft part
         executor->Forward(descriptor, stream, data_c);
         // Run the spectral extension part
-        s2fftKernels::launch_spectral_extension<cufftDoubleComplex>(data_c, out_c, descriptor.nside,
-                                                                    descriptor.harmonic_band_limit, stream);
+        s2fftKernels::launch_spectral_extension(data_c, out_c, descriptor.nside,
+                                                descriptor.harmonic_band_limit, stream);
 
     } else {
         auto executor = std::make_shared<s2fftExec<cufftComplex>>();
@@ -57,8 +57,8 @@ void healpix_backward(cudaStream_t stream, void** buffers, s2fftDescriptor descr
 
         PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
         // Run the spectral folding part
-        s2fftKernels::launch_spectral_folding<cufftDoubleComplex>(data_c, out_c, descriptor.nside,
-                                                                  descriptor.harmonic_band_limit, stream);
+        s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside, descriptor.harmonic_band_limit,
+                                              descriptor.shift, stream);
         // Run the fft part
         executor->Backward(descriptor, stream, out_c);
 
@@ -69,8 +69,8 @@ void healpix_backward(cudaStream_t stream, void** buffers, s2fftDescriptor descr
 
         PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
         // Run the spectral folding part
-        s2fftKernels::launch_spectral_folding<cufftComplex>(data_c, out_c, descriptor.nside,
-                                                            descriptor.harmonic_band_limit, stream);
+        s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside, descriptor.harmonic_band_limit,
+                                              descriptor.shift, stream);
         // Run the fft part
         executor->Backward(descriptor, stream, out_c);
     }

@@ -335,15 +335,6 @@ static auto getfftShiftFloat(bool equator) {
 static HRESULT setCallback(cufftHandle forwardPlan, cufftHandle backwardPlan, int64 *params_dev, bool shift,
                            bool equator, bool doublePrecision, fft_norm norm) {
     //  Set the callback for the forward and backward
-    if (shift) {
-        if (doublePrecision) {
-            CUFFT_CALL(cufftXtSetCallback(backwardPlan, getIfftShiftDoubleCallback(equator),
-                                          CUFFT_CB_LD_COMPLEX_DOUBLE, (void **)&params_dev));
-        } else {
-            CUFFT_CALL(cufftXtSetCallback(backwardPlan, getIfftShiftFloatCallback(equator),
-                                          CUFFT_CB_LD_COMPLEX, (void **)&params_dev));
-        }
-    }
     switch (norm) {
         case fft_norm::ORTHO:
             // ORTHO double shift

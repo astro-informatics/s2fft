@@ -71,7 +71,7 @@ void run_test(int nside, FFTType ffttype, bool shift, fft_norm norm, bool test, 
         s2fftKernels::launch_spectral_extension(d_vec_in, d_vec_out, nside, L, stream);
     }
     if (ffttype == FFTType::BACKWARD || ffttype == FFTType::BOTH) {
-        s2fftKernels::launch_spectral_folding(d_vec_in, d_vec_out, nside, L, stream);
+        s2fftKernels::launch_spectral_folding(d_vec_in, d_vec_out, nside, L, shift, stream);
 
         // exec.Backward(desc, stream, d_vec_out);
         cudaStreamSynchronize(stream);
