@@ -1,83 +1,96 @@
 cmake_minimum_required(VERSION 3.19...3.25)
+project(s2fft LANGUAGES CXX)
 
-# NVCC 12 does not support C++20
-set(CMAKE_CXX_STANDARD  17)
+message(STATUS "Using CMake version: ${CMAKE_VERSION}")
+
+# Set standards
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CUDA_STANDARD 17)
-# 70 for V100, 80 for A100, 89 for my laptop RTX 4060
-set(CMAKE_CUDA_ARCHITECTURES "70;80;89" CACHE STRING "List of CUDA compute capabilities to build cuDecomp for.")
-project(s2fft LANGUAGES CXX CUDA)
 
-find_package(CUDAToolkit REQUIRED)
-
-
-if(CUDAToolkit_VERSION_MAJOR GREATER_EQUAL 12 AND CUDAToolkit_VERSION_MINOR GREATER_EQUAL 2)
-  message(STATUS "CUDA version is compatible (12.2 and above)")
-else()
-  message(STATUS "CUDA version is not compatible (requires 12.2 and above)")
+# Set default build type to Release
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
+# Include directories
+include_directories(${CMAKE_CURRENT_LIST_DIR}/lib)
 
+# Check for CUDA
+include(CheckLanguage)
+check_language(CUDA)
 
-if (NOT SKBUILD)
+if(CMAKE_CUDA_COMPILER)
+  enable_language(CUDA)
+  message(STATUS "CUDA compiler found: ${CMAKE_CUDA_COMPILER}")
 
-  message(WARNING "This is being compiled as a standalone project (without pip install)"
-                  "\nTo compile as a python package, use the command: \n\tpython -m pip install s2fft"
-                  "\nThis will create the testing executable only and is meant only for s2fft developpers")
+  if(NOT SKBUILD)
+    message(WARNING "This is being compiled as a standalone project (without pip install)"
+                    "\nTo compile as a python package, use the command: \n\tpython -m pip install s2fft"
+                    "\nThis will create the testing executable only and is meant only for s2fft developers")
 
+    add_executable(_s2fftExe   
+                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft.cu 
+                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/plan_cache.cc 
+                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft_kernels.cu 
+                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft_callbacks.cu
+                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/fft_test.cu
+                  )
 
-  add_executable(_s2fftExe   
-                  ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft.cu 
-                  ${CMAKE_CURRENT_LIST_DIR}/lib/src/plan_cache.cc 
-                  ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft_kernels.cu 
-                  ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft_callbacks.cu
-                  ${CMAKE_CURRENT_LIST_DIR}/lib/src/fft_test.cu
-                )
+    target_link_libraries(_s2fftExe PRIVATE CUDA::cudart_static CUDA::cufft_static CUDA::culibos)
+    target_include_directories(_s2fftExe PUBLIC ${CMAKE_CURRENT_LIST_DIR}/lib/include) 
+    set_target_properties(_s2fftExe PROPERTIES 
+                        LINKER_LANGUAGE CUDA
+                        CUDA_SEPARABLE_COMPILATION ON)
+    set(CMAKE_CUDA_ARCHITECTURES "70;80;89" CACHE STRING "List of CUDA compute capabilities to build cuDecomp for.")
+    message(STATUS "CUDA_ARCHITECTURES: ${CMAKE_CUDA_ARCHITECTURES}")
+    set_target_properties(_s2fftExe PROPERTIES CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
 
-  target_link_libraries(_s2fftExe PRIVATE CUDA::cudart_static CUDA::cufft_static CUDA::culibos)
-  target_include_directories(_s2fftExe PUBLIC ${CMAKE_CURRENT_LIST_DIR}/lib/include) 
-  set_target_properties(_s2fftExe PROPERTIES 
-                      LINKER_LANGUAGE CUDA
-                      CUDA_SEPARABLE_COMPILATION ON)
-  message(STATUS "CUDA_ARCHITECTURES: ${CMAKE_CUDA_ARCHITECTURES}")
-  set_target_properties(_s2fftExe PROPERTIES CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
-  
+  else()
+    find_package(Python 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
 
-else()
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanobind)
 
-  # Print in green
-  string(ASCII 27 Esc)
-  message(STATUS "${Esc}[32mCompiling and installing s2fft primitives${Esc}[m")
+    nanobind_add_module(_s2fft STABLE_ABI  
+                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/extensions.cc
+                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft.cu 
+                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft_callbacks.cu
+                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/plan_cache.cc 
+                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft_kernels.cu 
+                  )
 
-  find_package(Python 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
+    target_link_libraries(_s2fft PRIVATE CUDA::cudart_static CUDA::cufft_static CUDA::culibos)
+    target_include_directories(_s2fft PUBLIC ${CMAKE_CURRENT_LIST_DIR}/lib/include) 
+    set_target_properties(_s2fft PROPERTIES 
+                        LINKER_LANGUAGE CUDA
+                        CUDA_SEPARABLE_COMPILATION ON)
+    set(CMAKE_CUDA_ARCHITECTURES "70;80;89" CACHE STRING "List of CUDA compute capabilities to build cuDecomp for.")
+    message(STATUS "CUDA_ARCHITECTURES: ${CMAKE_CUDA_ARCHITECTURES}")
+    set_target_properties(_s2fft PROPERTIES CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
 
-
-  if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+    install(TARGETS _s2fft LIBRARY DESTINATION s2fft_lib)
   endif()
 
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanobind)
+else()
+  if(SKBUILD)
+    message(WARNING "CUDA compiler not found, building without CUDA support")
 
+    find_package(Python 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
 
-  nanobind_add_module(_s2fft STABLE_ABI  
-                  ${CMAKE_CURRENT_LIST_DIR}/lib/src/extensions.cc
-                  ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft.cu 
-                  ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft_callbacks.cu
-                  ${CMAKE_CURRENT_LIST_DIR}/lib/src/plan_cache.cc 
-                  ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft_kernels.cu 
-                )
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanobind)
 
+    nanobind_add_module(_s2fft STABLE_ABI  
+                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/extensions.cc
+                  )
 
-  target_link_libraries(_s2fft PRIVATE CUDA::cudart_static CUDA::cufft_static CUDA::culibos)
-  target_include_directories(_s2fft PUBLIC ${CMAKE_CURRENT_LIST_DIR}/lib/include) 
-  set_target_properties(_s2fft PROPERTIES 
-                      LINKER_LANGUAGE CUDA
-                      CUDA_SEPARABLE_COMPILATION ON)
-  message(STATUS "CUDA_ARCHITECTURES: ${CMAKE_CUDA_ARCHITECTURES}")
-  set_target_properties(_s2fft PROPERTIES CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
+    target_compile_definitions(_s2fft PRIVATE NO_CUDA_COMPILER)
+    target_include_directories(_s2fft PUBLIC ${CMAKE_CURRENT_LIST_DIR}/lib/include) 
 
+    install(TARGETS _s2fft LIBRARY DESTINATION s2fft_lib)
 
-  install(TARGETS _s2fft LIBRARY DESTINATION s2fft_lib)
-
-
+  else()
+    message(FATAL_ERROR "Building standalone project without CUDA support is not supported.")
+    message(FATAL_ERROR "Please install CUDA and run CMake again.")
+  endif()
 endif()
+
