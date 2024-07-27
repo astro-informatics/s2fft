@@ -3,15 +3,26 @@
 #include "kernel_helpers.h"
 #include <nanobind/nanobind.h>
 #include <cstddef>
+
+#ifndef NO_CUDA_COMPILER
 #include "cuda_runtime.h"
 #include "plan_cache.h"
 #include "s2fft_kernels.h"
 #include "s2fft.h"
+#else
+void print_error() {
+  
+    throw std::runtime_error("This extension was compiled without CUDA support. Cuda functions are not supported.");
+}
+#endif
 
 namespace nb = nanobind;
 
 namespace s2fft {
 
+#ifdef NO_CUDA_COMPILER
+void healpix_fft_cuda() { print_error(); }
+#else
 void healpix_forward(cudaStream_t stream, void** buffers, s2fftDescriptor descriptor) {
     void* data = buffers[0];
     void* output = buffers[1];
@@ -88,27 +99,7 @@ void healpix_fft_cuda(cudaStream_t stream, void** buffers, const char* opaque, s
     }
 }
 
-std::pair<int64_t, nb::bytes> build_healpix_fft_descriptor(int nside, int harmonic_band_limit, bool reality,
-                                                           bool forward, bool double_precision) {
-    size_t work_size;
-    // Only backward for now
-    s2fftKernels::fft_norm norm = s2fftKernels::fft_norm::BACKWARD;
-    // Always shift
-    bool shift = true;
-    s2fftDescriptor descriptor(nside, harmonic_band_limit, reality, forward, norm, shift, double_precision);
-
-    if (double_precision) {
-        auto executor = std::make_shared<s2fftExec<cufftDoubleComplex>>();
-        PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
-        executor->Initialize(descriptor, work_size);
-        return std::pair<int64_t, nb::bytes>(work_size, PackDescriptor(descriptor));
-    } else {
-        auto executor = std::make_shared<s2fftExec<cufftComplex>>();
-        PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
-        executor->Initialize(descriptor, work_size);
-        return std::pair<int64_t, nb::bytes>(work_size, PackDescriptor(descriptor));
-    }
-}
+#endif  // NO_CUDA_COMPILER
 
 nb::dict Registration() {
     nb::dict dict;
@@ -123,6 +114,7 @@ NB_MODULE(_s2fft, m) {
 
     m.def("build_healpix_fft_descriptor",
           [](int nside, int harmonic_band_limit, bool reality, bool forward, bool double_precision) {
+#ifndef NO_CUDA_COMPILER
               size_t work_size;
               // Only backward for now
               s2fftKernels::fft_norm norm = s2fftKernels::fft_norm::BACKWARD;
@@ -142,5 +134,8 @@ NB_MODULE(_s2fft, m) {
                   executor->Initialize(descriptor, work_size);
                   return PackDescriptor(descriptor);
               }
+#else
+              print_error();
+#endif
           });
 }
