@@ -9,15 +9,10 @@ from s2fft.utils.jax_pritimive import BasePrimitive, register_primitive
 import jaxlib.mlir.ir as ir
 from s2fft_lib import _s2fft
 from jaxlib.hlo_helpers import custom_call
-from jax._src.lib.mlir.dialects import hlo
-from jax._src.interpreters import mlir
-from jax.core import Primitive, ShapedArray
-from jax.interpreters import ad, xla
-from jax.sharding import Mesh, NamedSharding
-from jax.sharding import PartitionSpec as P
+from jax.core import  ShapedArray
 from typing import Tuple
-from jax._src.api import ShapeDtypeStruct
-from math import prod
+from jax import ShapeDtypeStruct
+# did not find promote_dtypes_complex outside _src
 from jax._src.numpy.util import promote_dtypes_complex
 
 
@@ -709,8 +704,10 @@ class HealpixFFTPrimitive(BasePrimitive):
         # operand_output_aliases={0: 0},
         backend_config=opaque,
     )
-
-    return hlo.ReshapeOp(mlir.aval_to_ir_type(aval_out), result).results
+    # For multi GPU healpix fft, I will be using XLA buffer donation functionality
+    # Which will return the same shape as the input in the CUDA primitive then it will be reshaped to the output shape
+    # return hlo.ReshapeOp(mlir.aval_to_ir_type(aval_out), result).results
+    return result.results
 
   @staticmethod
   def impl(f, L, nside, reality, fft_type):
@@ -719,21 +716,21 @@ class HealpixFFTPrimitive(BasePrimitive):
 
   # Multi GPU part
 
-  @staticmethod
-  def per_shard_impl():
-    return NotImplemented
-
-  @staticmethod
-  def infer_sharding_from_operands(L, nside, reality, fft_type, mesh: Mesh,
-                                   arg_infos: Tuple[ShapeDtypeStruct],
-                                   result_infos: Tuple[ShapedArray]):
-    return NotImplemented
-
-  @staticmethod
-  def partition(L, nside, reality, fft_type, mesh: Mesh,
-                arg_shapes: Tuple[Tuple[int]], result_shape: Tuple[int]):
-    return NotImplemented
-
+  # @staticmethod
+  # def per_shard_impl():
+  #   return NotImplemented
+  #
+  # @staticmethod
+  # def infer_sharding_from_operands(L, nside, reality, fft_type, mesh: Mesh,
+  #                                  arg_infos: Tuple[ShapeDtypeStruct],
+  #                                  result_infos: Tuple[ShapedArray]):
+  #   return NotImplemented
+  #
+  # @staticmethod
+  # def partition(L, nside, reality, fft_type, mesh: Mesh,
+  #               arg_shapes: Tuple[Tuple[int]], result_shape: Tuple[int]):
+  #   return NotImplemented
+  #
 
 register_primitive(HealpixFFTPrimitive)
 

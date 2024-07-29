@@ -1,33 +1,10 @@
 from abc import ABCMeta, abstractmethod
-from dataclasses import dataclass
 from functools import partial
-from typing import Tuple
-
-import jax.numpy as jnp
-from jax import jit, lax
-from jax._src.api import ShapeDtypeStruct
-from jax._src.core import ShapedArray
-from jax._src.typing import Array, ArrayLike
 from jax.experimental.custom_partitioning import custom_partitioning
-from jax.lax import dynamic_slice
-from jax.sharding import Mesh, NamedSharding
-from jax.sharding import PartitionSpec as P
-from abc import ABCMeta, abstractmethod
-from dataclasses import dataclass
-from typing import Tuple, Sequence, Union, Callable
-from functools import partial, reduce
-import operator
-import os
-import warnings
-
-import numpy as np
-import jax.numpy as jnp
-from jax.lib import xla_client
-from jax import core, dtypes
+from jax import core
 from jax.interpreters import xla, mlir
-from jax.experimental.custom_partitioning import custom_partitioning
-from jax.interpreters.mlir import ir, dtype_to_ir_type
-from jax._src.interpreters import batching
+from jax.interpreters import batching
+# dispatch is not exposed outside of jax._src
 from jax._src import dispatch
 
 # Inspired by https://github.com/NVIDIA/TransformerEngine/blob/main/transformer_engine/jax/cpp_extensions.py
