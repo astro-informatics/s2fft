@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19...3.25)
-project(s2fft LANGUAGES CXX CUDA)
+project(s2fft LANGUAGES CXX)
 
 message(STATUS "Using CMake version: ${CMAKE_VERSION}")
 
