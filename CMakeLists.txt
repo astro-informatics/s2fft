@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19...3.25)
-project(s2fft LANGUAGES CXX)
+project(s2fft LANGUAGES CXX CUDA)
 
 message(STATUS "Using CMake version: ${CMAKE_VERSION}")
 
@@ -13,15 +13,13 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-# Include directories
-include_directories(${CMAKE_CURRENT_LIST_DIR}/lib)
-
 # Check for CUDA
 include(CheckLanguage)
 check_language(CUDA)
 
 if(CMAKE_CUDA_COMPILER)
   enable_language(CUDA)
+  find_package(CUDAToolkit REQUIRED)
   message(STATUS "CUDA compiler found: ${CMAKE_CUDA_COMPILER}")
 
   if(NOT SKBUILD)
@@ -47,9 +45,15 @@ if(CMAKE_CUDA_COMPILER)
     set_target_properties(_s2fftExe PROPERTIES CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
 
   else()
+    find_package(CUDAToolkit REQUIRED)
+
     find_package(Python 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
 
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanobind)
+    # Detect the installed nanobind package and import it into CMake
+    execute_process(
+      COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+      OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
+    find_package(nanobind CONFIG REQUIRED) 
 
     nanobind_add_module(_s2fft STABLE_ABI  
                     ${CMAKE_CURRENT_LIST_DIR}/lib/src/extensions.cc
@@ -77,7 +81,10 @@ else()
 
     find_package(Python 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
 
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanobind)
+    execute_process(
+      COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+      OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
+    find_package(nanobind CONFIG REQUIRED)  
 
     nanobind_add_module(_s2fft STABLE_ABI  
                     ${CMAKE_CURRENT_LIST_DIR}/lib/src/extensions.cc
@@ -93,4 +100,5 @@ else()
     message(FATAL_ERROR "Please install CUDA and run CMake again.")
   endif()
 endif()
+
 

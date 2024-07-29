@@ -8,3 +8,4 @@ torch # Remove when subpackage functionality is fixed.
 pyssht
 healpy
 ducc0
+nanobind >=2.0.0
