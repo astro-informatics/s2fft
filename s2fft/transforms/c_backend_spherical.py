@@ -1,8 +1,8 @@
 from jax import custom_vjp
 import numpy as np
 import jax.numpy as jnp
-from s2fft.sampling import s2_samples as samples
 from s2fft.utils import quadrature_jax
+from s2fft.sampling import reindex
 
 # C backend functions for which to provide JAX frontend.
 import pyssht
@@ -51,15 +51,17 @@ def ssht_inverse(
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
     """
     sampling_str = ["MW", "MWSS", "DH", "GL"]
-    flm_1d = samples.flm_2d_to_1d(flm, L)
+    flm_1d = reindex.flm_2d_to_1d_fast(flm, L)
     _backend = "SSHT" if _ssht_backend == 0 else "ducc0"
-    return pyssht.inverse(
-        flm_1d,
-        L,
-        spin,
-        Method=sampling_str[ssht_sampling],
-        Reality=reality,
-        backend=_backend,
+    return jnp.array(
+        pyssht.inverse(
+            np.array(flm_1d),
+            L,
+            spin,
+            Method=sampling_str[ssht_sampling],
+            Reality=reality,
+            backend=_backend,
+        )
     )
 
 
@@ -82,14 +84,16 @@ def _ssht_inverse_bwd(res, f):
     sampling_str = ["MW", "MWSS", "DH", "GL"]
     _backend = "SSHT" if _ssht_backend == 0 else "ducc0"
     if ssht_sampling < 2:  # MW or MWSS sampling
-        flm = np.conj(
-            pyssht.inverse_adjoint(
-                np.conj(f),
-                L,
-                spin,
-                Method=sampling_str[ssht_sampling],
-                Reality=reality,
-                backend=_backend,
+        flm = jnp.array(
+            np.conj(
+                pyssht.inverse_adjoint(
+                    np.conj(np.array(f)),
+                    L,
+                    spin,
+                    Method=sampling_str[ssht_sampling],
+                    Reality=reality,
+                    backend=_backend,
+                )
             )
         )
     else:  # DH or GL samping
@@ -97,23 +101,27 @@ def _ssht_inverse_bwd(res, f):
             L, sampling_str[ssht_sampling].lower()
         )
         f = jnp.einsum("tp,t->tp", f, 1 / quad_weights, optimize=True)
-        flm = np.conj(
-            pyssht.forward(
-                np.conj(f),
-                L,
-                spin,
-                Method=sampling_str[ssht_sampling],
-                Reality=reality,
-                backend=_backend,
+        flm = jnp.array(
+            np.conj(
+                pyssht.forward(
+                    np.conj(np.array(f)),
+                    L,
+                    spin,
+                    Method=sampling_str[ssht_sampling],
+                    Reality=reality,
+                    backend=_backend,
+                )
             )
         )
 
-    flm_out = samples.flm_1d_to_2d(flm, L)
+    flm_out = reindex.flm_1d_to_2d_fast(flm, L)
 
     if reality:
-        m_conj = (-1) ** (np.arange(1, L) % 2)
-        flm_out[..., L:] += np.flip(m_conj * np.conj(flm_out[..., : L - 1]), axis=-1)
-        flm_out[..., : L - 1] = 0
+        m_conj = (-1) ** (jnp.arange(1, L) % 2)
+        flm_out = flm_out.at[..., L:].add(
+            jnp.flip(m_conj * jnp.conj(flm_out[..., : L - 1]), axis=-1)
+        )
+        flm_out = flm_out.at[..., : L - 1].set(0)
 
     return flm_out, None, None, None, None, None
 
@@ -161,15 +169,17 @@ def ssht_forward(
     """
     sampling_str = ["MW", "MWSS", "DH", "GL"]
     _backend = "SSHT" if _ssht_backend == 0 else "ducc0"
-    flm = pyssht.forward(
-        np.array(f),
-        L,
-        spin,
-        Method=sampling_str[ssht_sampling],
-        Reality=reality,
-        backend=_backend,
+    flm = jnp.array(
+        pyssht.forward(
+            np.array(f),
+            L,
+            spin,
+            Method=sampling_str[ssht_sampling],
+            Reality=reality,
+            backend=_backend,
+        )
     )
-    return samples.flm_1d_to_2d(flm, L)
+    return reindex.flm_1d_to_2d_fast(flm, L)
 
 
 def _ssht_forward_fwd(
@@ -190,31 +200,35 @@ def _ssht_forward_bwd(res, flm):
     _, L, spin, reality, ssht_sampling, _ssht_backend = res
     sampling_str = ["MW", "MWSS", "DH", "GL"]
     _backend = "SSHT" if _ssht_backend == 0 else "ducc0"
-    flm_1d = samples.flm_2d_to_1d(flm, L)
+    flm_1d = reindex.flm_2d_to_1d_fast(flm, L)
 
     if ssht_sampling < 2:  # MW or MWSS sampling
-        f = np.conj(
-            pyssht.forward_adjoint(
-                np.conj(flm_1d),
-                L,
-                spin,
-                Method=sampling_str[ssht_sampling],
-                Reality=reality,
-                backend=_backend,
+        f = jnp.array(
+            np.conj(
+                pyssht.forward_adjoint(
+                    np.conj(np.array(flm_1d)),
+                    L,
+                    spin,
+                    Method=sampling_str[ssht_sampling],
+                    Reality=reality,
+                    backend=_backend,
+                )
             )
         )
     else:  # DH or GL sampling
         quad_weights = quadrature_jax.quad_weights_transform(
             L, sampling_str[ssht_sampling].lower()
         )
-        f = np.conj(
-            pyssht.inverse(
-                np.conj(flm_1d),
-                L,
-                spin,
-                Method=sampling_str[ssht_sampling],
-                Reality=reality,
-                backend=_backend,
+        f = jnp.array(
+            np.conj(
+                pyssht.inverse(
+                    np.conj(np.array(flm_1d)),
+                    L,
+                    spin,
+                    Method=sampling_str[ssht_sampling],
+                    Reality=reality,
+                    backend=_backend,
+                )
             )
         )
         f = jnp.einsum("tp,t->tp", f, quad_weights, optimize=True)
@@ -247,8 +261,8 @@ def healpy_inverse(flm: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
         discretization and fast analysis of data distributed on the sphere." The
         Astrophysical Journal 622.2 (2005): 759
     """
-    flm = samples.flm_2d_to_hp(flm, L)
-    f = healpy.alm2map(flm, lmax=L - 1, nside=nside)
+    flm = reindex.flm_2d_to_hp_fast(flm, L)
+    f = jnp.array(healpy.alm2map(np.array(flm), lmax=L - 1, nside=nside))
     return f
 
 
@@ -261,13 +275,17 @@ def _healpy_inverse_fwd(flm: jnp.ndarray, L: int, nside: int):
 def _healpy_inverse_bwd(res, f):
     """Private function which implements the backward pass for inverse jax_healpy"""
     _, L, nside = res
-    f_new = f * (12 * nside**2) / (4 * np.pi)
-    flm_out = np.conj(healpy.map2alm(np.conj(f_new), lmax=L - 1, iter=0))
+    f_new = f * (12 * nside**2) / (4 * jnp.pi)
+    flm_out = jnp.array(
+        np.conj(healpy.map2alm(np.conj(np.array(f_new)), lmax=L - 1, iter=0))
+    )
     # iter MUST be zero otherwise gradient propagation is incorrect (JDM).
-    flm_out = samples.flm_hp_to_2d(flm_out, L)
-    m_conj = (-1) ** (np.arange(1, L) % 2)
-    flm_out[..., L:] += np.flip(m_conj * np.conj(flm_out[..., : L - 1]), axis=-1)
-    flm_out[..., : L - 1] = 0
+    flm_out = reindex.flm_hp_to_2d_fast(flm_out, L)
+    m_conj = (-1) ** (jnp.arange(1, L) % 2)
+    flm_out = flm_out.at[..., L:].add(
+        jnp.flip(m_conj * jnp.conj(flm_out[..., : L - 1]), axis=-1)
+    )
+    flm_out = flm_out.at[..., : L - 1].set(0)
 
     return flm_out, None, None
 
@@ -301,8 +319,8 @@ def healpy_forward(f: jnp.ndarray, L: int, nside: int, iter: int = 3) -> jnp.nda
         discretization and fast analysis of data distributed on the sphere." The
         Astrophysical Journal 622.2 (2005): 759
     """
-    flm = healpy.map2alm(np.array(f), lmax=L - 1, iter=iter)
-    return samples.flm_hp_to_2d(flm, L)
+    flm = jnp.array(healpy.map2alm(np.array(f), lmax=L - 1, iter=iter))
+    return reindex.flm_hp_to_2d_fast(flm, L)
 
 
 def _healpy_forward_fwd(f: jnp.ndarray, L: int, nside: int, iter: int = 3):
@@ -314,9 +332,11 @@ def _healpy_forward_fwd(f: jnp.ndarray, L: int, nside: int, iter: int = 3):
 def _healpy_forward_bwd(res, flm):
     """Private function which implements the backward pass for forward jax_healpy"""
     _, L, nside, _ = res
-    flm_new = samples.flm_2d_to_hp(np.array(flm), L)
-    f = np.conj(healpy.alm2map(np.conj(flm_new), lmax=L - 1, nside=nside))
-    return f * (4 * np.pi) / (12 * nside**2), None, None, None
+    flm_new = reindex.flm_2d_to_hp_fast(flm, L)
+    f = jnp.array(
+        np.conj(healpy.alm2map(np.conj(np.array(flm_new)), lmax=L - 1, nside=nside))
+    )
+    return f * (4 * jnp.pi) / (12 * nside**2), None, None, None
 
 
 # Link JAX gradients for C backend functions

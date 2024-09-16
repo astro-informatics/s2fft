@@ -749,7 +749,6 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
 
     Returns:
         np.ndarray: 2D indexed harmonic coefficients.
-    
     """
     flm_2d = np.zeros(flm_shape(L), dtype=np.complex128)
 

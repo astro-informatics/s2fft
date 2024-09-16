@@ -1,9 +1,7 @@
-from jax import jit, pmap, local_device_count
-
+from jax import jit, vmap
 
 import numpy as np
 import jax.numpy as jnp
-import jax.lax as lax
 from functools import partial
 from typing import List
 import s2fft
@@ -20,7 +18,6 @@ def inverse(
     method: str = "numpy",
     reality: bool = False,
     precomps: List = None,
-    spmd: bool = False,
     L_lower: int = 0,
     _ssht_backend: int = 1,
 ) -> np.ndarray:
@@ -61,10 +58,6 @@ def inverse(
         precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
 
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
-            only maps over all available devices, and is only valid for JAX implementations.
-            Defaults to False.
-
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
@@ -81,12 +74,6 @@ def inverse(
         angle :math:`\xi`.
 
     Note:
-        The single-program multiple-data (SPMD) optional variable determines whether
-        the transform is run over a single device or all available devices. For very low
-        harmonic bandlimits L this is inefficient as the I/O overhead for communication
-        between devices is noticable, however as L increases one will asymptotically
-        recover acceleration by the number of devices.
-
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
     """
@@ -97,9 +84,7 @@ def inverse(
     if method == "numpy":
         return inverse_numpy(flmn, L, N, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
-        return inverse_jax(
-            flmn, L, N, nside, sampling, reality, precomps, spmd, L_lower
-        )
+        return inverse_jax(flmn, L, N, nside, sampling, reality, precomps, L_lower)
     elif method == "jax_ssht":
         if sampling.lower() == "healpix":
             raise ValueError("SSHT does not support healpix sampling.")
@@ -193,7 +178,7 @@ def inverse_numpy(
     return f
 
 
-@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7, 8))
+@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7))
 def inverse_jax(
     flmn: jnp.ndarray,
     L: int,
@@ -202,7 +187,6 @@ def inverse_jax(
     sampling: str = "mw",
     reality: bool = False,
     precomps: List = None,
-    spmd: bool = False,
     L_lower: int = 0,
 ) -> jnp.ndarray:
     r"""Compute the inverse Wigner transform (JAX).
@@ -238,26 +222,17 @@ def inverse_jax(
         precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
 
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
-            only maps over all available devices. Defaults to False.
-
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         jnp.ndarray: Signal on the sphere.
-
-    Note:
-        The single-program multiple-data (SPMD) optional variable determines whether
-        the transform is run over a single device or all available devices. For very low
-        harmonic bandlimits L this is inefficient as the I/O overhead for communication
-        between devices is noticable, however as L increases one will asymptotically
-        recover acceleration by the number of devices.
     """
     if precomps is None:
         precomps = s2fft.generate_precomputes_wigner_jax(
             L, N, sampling, nside, False, reality, L_lower
         )
+
     fban = jnp.zeros(samples.f_shape(L, N, sampling, nside), dtype=jnp.complex128)
 
     flmn = flmn.at[:, L_lower:].set(
@@ -272,77 +247,22 @@ def inverse_jax(
     n_start_ind = 0 if reality else -N + 1
     spins = jnp.arange(n_start_ind, N)
 
-    def spherical_loop(n, args):
-        fban, flmn, lrenorm, vsign, spins = args
-        fban = fban.at[n].add(
-            (-1) ** jnp.abs(spins[n])
-            * s2fft.inverse_jax(
-                flmn[n],
-                L,
-                -spins[n],
-                nside,
-                sampling,
-                False,
-                [
-                    lrenorm[n],
-                    vsign[n],
-                    precomps[2][0],
-                    precomps[3][0],
-                    precomps[4][0],
-                ],
-                False,
-                L_lower,
-            )
-        )
-        return fban, flmn, lrenorm, vsign, spins
-
-    if spmd:
-        # TODO: Generalise this to optional device counts.
-        ndevices = local_device_count()
-        opsdevice = int(N / ndevices) if reality else int((2 * N - 1) / ndevices)
-
-        def eval_spherical_loop(fban, flmn, lrenorm, vsign, spins):
-            return lax.fori_loop(
-                0,
-                opsdevice,
-                spherical_loop,
-                (fban, flmn, lrenorm, vsign, spins),
-            )[0]
-
-        # Reshape inputs
-        spmd_shape = (ndevices, opsdevice)
-        lrenorm = precomps[0].reshape(spmd_shape + precomps[0].shape[1:])
-        vsign = precomps[1].reshape(spmd_shape + precomps[1].shape[1:])
-        vin = flmn[N - 1 + n_start_ind :].reshape(spmd_shape + flmn.shape[1:])
-        vout = fban[N - 1 + n_start_ind :].reshape(spmd_shape + fban.shape[1:])
-        spins = spins.reshape(spmd_shape)
-
-        fban = fban.at[N - 1 + n_start_ind :].add(
-            pmap(eval_spherical_loop, in_axes=(0, 0, 0, 0, 0))(
-                vout, vin, lrenorm, vsign, spins
-            ).reshape((ndevices * opsdevice,) + fban.shape[1:])
-        )
-    else:
-        opsdevice = N if reality else 2 * N - 1
-        fban = fban.at[N - 1 + n_start_ind :].add(
-            lax.fori_loop(
-                0,
-                opsdevice,
-                spherical_loop,
-                (
-                    fban[N - 1 + n_start_ind :],
-                    flmn[N - 1 + n_start_ind :],
-                    precomps[0],
-                    precomps[1],
-                    spins,
-                ),
-            )[0]
+    def func(flm, spin, p0, p1, p2, p3, p4):
+        precomps = [p0, p1, p2, p3, p4]
+        return (-1) ** jnp.abs(spin) * s2fft.inverse_jax(
+            flm, L, -spin, nside, sampling, False, precomps, False, L_lower
         )
 
+    fban = fban.at[N - 1 + n_start_ind :].set(
+        vmap(
+            partial(func, p2=precomps[2][0], p3=precomps[3][0], p4=precomps[4][0]),
+            in_axes=(0, 0, 0, 0),
+        )(flmn[N - 1 + n_start_ind :], spins, precomps[0], precomps[1])
+    )
     if reality:
-        fban = fban.at[: N - 1].set(jnp.flip(jnp.conj(fban[N:]), axis=0))
-    fban = jnp.conj(jnp.fft.ifftshift(fban, axes=0))
-    f = jnp.conj(jnp.fft.fft(fban, axis=0, norm="backward"))
+        f = jnp.fft.irfft(fban[N - 1 :], 2 * N - 1, axis=0, norm="forward")
+    else:
+        f = jnp.fft.ifft(jnp.fft.ifftshift(fban, axes=0), axis=0, norm="forward")
 
     return f
 
@@ -392,38 +312,9 @@ def inverse_jax_ssht(
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
     """
-    ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
-    fban = jnp.zeros(samples.f_shape(L, N, sampling), dtype=jnp.complex128)
-
-    flmn = flmn.at[:, L_lower:].set(
-        jnp.einsum(
-            "...nlm,...l->...nlm",
-            flmn[:, L_lower:],
-            jnp.sqrt((2 * jnp.arange(L_lower, L) + 1) / (16 * jnp.pi**3)),
-            optimize=True,
-        )
-    )
-
-    n_start_ind = 0 if reality else -N + 1
-    for n in range(n_start_ind, N):
-        fban = fban.at[N - 1 + n].add(
-            (-1) ** jnp.abs(n)
-            * c_sph.ssht_inverse(
-                flmn[N - 1 + n],
-                L,
-                -n,
-                reality if n == 0 else False,
-                ssht_sampling,
-                _ssht_backend,
-            )
-        )
-
-    if reality:
-        f = jnp.fft.irfft(fban[N - 1 :], 2 * N - 1, axis=-3, norm="forward")
-    else:
-        f = jnp.fft.ifft(jnp.fft.ifftshift(fban, axes=-3), axis=-3, norm="forward")
-
-    return f
+    flmn, fban = _inverse_norm(flmn, L, N, L_lower, sampling)
+    fban = _flmn_to_fban(flmn, fban, L, N, sampling, reality, _ssht_backend)
+    return _fban_to_f(fban, L, N, reality)
 
 
 def forward(
@@ -435,7 +326,6 @@ def forward(
     method: str = "numpy",
     reality: bool = False,
     precomps: List = None,
-    spmd: bool = False,
     L_lower: int = 0,
     _ssht_backend: int = 1,
 ) -> np.ndarray:
@@ -478,10 +368,6 @@ def forward(
         precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
 
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
-            only maps over all available devices, and is only valid for JAX implementations.
-            Defaults to False.
-
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
@@ -496,12 +382,6 @@ def forward(
         np.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
 
     Note:
-        The single-program multiple-data (SPMD) optional variable determines whether
-        the transform is run over a single device or all available devices. For very low
-        harmonic bandlimits L this is inefficient as the I/O overhead for communication
-        between devices is noticable, however as L increases one will asymptotically
-        recover acceleration by the number of devices.
-
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
     """
@@ -512,7 +392,7 @@ def forward(
     if method == "numpy":
         return forward_numpy(f, L, N, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
-        return forward_jax(f, L, N, nside, sampling, reality, precomps, spmd, L_lower)
+        return forward_jax(f, L, N, nside, sampling, reality, precomps, L_lower)
     elif method == "jax_ssht":
         if sampling.lower() == "healpix":
             raise ValueError("SSHT does not support healpix sampling.")
@@ -615,7 +495,7 @@ def forward_numpy(
     return flmn
 
 
-@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7, 8))
+@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7))
 def forward_jax(
     f: jnp.ndarray,
     L: int,
@@ -624,7 +504,6 @@ def forward_jax(
     sampling: str = "mw",
     reality: bool = False,
     precomps: List = None,
-    spmd: bool = False,
     L_lower: int = 0,
 ) -> jnp.ndarray:
     r"""Compute the forward Wigner transform (JAX).
@@ -662,10 +541,6 @@ def forward_jax(
         precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
 
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
-            only maps over all available devices, and is only valid for JAX implementations.
-            Defaults to False.
-
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
@@ -676,6 +551,7 @@ def forward_jax(
         precomps = s2fft.generate_precomputes_wigner_jax(
             L, N, sampling, nside, True, reality, L_lower
         )
+
     flmn = jnp.zeros(samples.flmn_shape(L, N), dtype=jnp.complex128)
 
     if reality:
@@ -684,86 +560,39 @@ def forward_jax(
         fban = jnp.fft.fftshift(jnp.fft.fft(f, axis=0, norm="backward"), axes=0)
 
     fban *= 2 * jnp.pi / (2 * N - 1)
-
-    if reality:
-        sgn = (-1) ** abs(jnp.arange(-L + 1, L))
-
     n_start_ind = 0 if reality else -N + 1
     spins = jnp.arange(n_start_ind, N)
 
-    def spherical_loop(n, args):
-        flmn, fban, lrenorm, vsign, spins = args
-        flmn = flmn.at[n].add(
-            (-1) ** spins[n]
-            * s2fft.forward_jax(
-                fban[n],
-                L,
-                -spins[n],
-                nside,
-                sampling,
-                False,
-                [
-                    lrenorm[n],
-                    vsign[n],
-                    precomps[2][0],
-                    precomps[3][0],
-                    precomps[4][0],
-                ],
-                False,
-                L_lower,
+    def func(fba, spin, p0, p1, p2, p3, p4):
+        precomps = [p0, p1, p2, p3, p4]
+        return (-1) ** jnp.abs(spin) * s2fft.forward_jax(
+            fba, L, -spin, nside, sampling, False, precomps, False, L_lower
+        )
+
+    flmn = flmn.at[N - 1 + n_start_ind :].set(
+        vmap(
+            partial(func, p2=precomps[2][0], p3=precomps[3][0], p4=precomps[4][0]),
+            in_axes=(0, 0, 0, 0),
+        )(fban, spins, precomps[0], precomps[1])
+    )
+
+    if reality:
+        nidx = jnp.arange(1, N)
+        sgn = (-1) ** abs(jnp.arange(-L + 1, L))
+        flmn = flmn.at[N - 1 - nidx].set(
+            jnp.conj(
+                jnp.flip(
+                    jnp.einsum(
+                        "nlm,m,n->nlm",
+                        flmn[N - 1 + nidx],
+                        sgn,
+                        (-1) ** nidx,
+                        optimize=True,
+                    ),
+                    axis=-1,
+                )
             )
         )
-        return flmn, fban, lrenorm, vsign, spins
-
-    if spmd:
-        # TODO: Generalise this to optional device counts.
-        ndevices = local_device_count()
-        opsdevice = int(N / ndevices) if reality else int((2 * N - 1) / ndevices)
-
-        def eval_spherical_loop(fban, flmn, lrenorm, vsign, spins):
-            return lax.fori_loop(
-                0,
-                opsdevice,
-                spherical_loop,
-                (fban, flmn, lrenorm, vsign, spins),
-            )[0]
-
-        # Reshape inputs
-        spmd_shape = (ndevices, opsdevice)
-        lrenorm = precomps[0].reshape(spmd_shape + precomps[0].shape[1:])
-        vsign = precomps[1].reshape(spmd_shape + precomps[1].shape[1:])
-        fban = fban.reshape(spmd_shape + fban.shape[1:])
-        vout = flmn[N - 1 + n_start_ind :].reshape(spmd_shape + flmn.shape[1:])
-        spins = spins.reshape(spmd_shape)
-
-        flmn = flmn.at[N - 1 + n_start_ind :].add(
-            pmap(eval_spherical_loop, in_axes=(0, 0, 0, 0, 0))(
-                vout, fban, lrenorm, vsign, spins
-            ).reshape((ndevices * opsdevice,) + flmn.shape[1:])
-        )
-    else:
-        opsdevice = N if reality else 2 * N - 1
-        flmn = flmn.at[N - 1 + n_start_ind :].add(
-            lax.fori_loop(
-                0,
-                opsdevice,
-                spherical_loop,
-                (
-                    flmn[N - 1 + n_start_ind :],
-                    fban,
-                    precomps[0],
-                    precomps[1],
-                    spins,
-                ),
-            )[0]
-        )
-
-    # Fill out Wigner coefficients steerability of real signals
-    for n in range(n_start_ind, N):
-        if reality and n != 0:
-            flmn = flmn.at[N - 1 - n].set(
-                jnp.conj(jnp.flip(flmn[N - 1 + n] * sgn * (-1) ** n, axis=-1))
-            )
 
     flmn = flmn.at[:, L_lower:].set(
         jnp.einsum(
@@ -823,7 +652,14 @@ def forward_jax_ssht(
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
     """
-    ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
+    flmn, fban = _f_to_fban(f, L, N, reality)
+    flmn = _fban_to_flmn(flmn, fban, L, N, sampling, reality, _ssht_backend)
+    return _reality_and_norm(flmn, L, N, L_lower, reality)
+
+
+@partial(jit, static_argnums=(1, 2, 3))
+def _f_to_fban(f: jnp.ndarray, L: int, N: int, reality: bool = False) -> jnp.ndarray:
+    """Private function which maps from f to fban (C backend)"""
     flmn = jnp.zeros(samples.flmn_shape(L, N), dtype=jnp.complex128)
 
     if reality:
@@ -833,24 +669,57 @@ def forward_jax_ssht(
 
     fban *= 2 * jnp.pi / (2 * N - 1)
 
+    return flmn, fban
+
+
+def _fban_to_flmn(
+    flmn: jnp.ndarray,
+    fban: jnp.ndarray,
+    L: int,
+    N: int,
+    sampling: str = "mw",
+    reality: bool = False,
+    _ssht_backend: int = 1,
+) -> jnp.ndarray:
+    """Private function which maps from fban to flmn (C backend)"""
+    ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
     n_start_ind = 0 if reality else -N + 1
+    func = partial(
+        c_sph.ssht_forward,
+        L=L,
+        reality=False,
+        ssht_sampling=ssht_sampling,
+        _ssht_backend=_ssht_backend,
+    )
     for n in range(n_start_ind, N):
-        flmn = flmn.at[N - 1 + n].set(
-            (-1) ** jnp.abs(n)
-            * c_sph.ssht_forward(
-                fban[jnp.int64(n - n_start_ind)],
-                L,
-                -n,
-                False,
-                ssht_sampling,
-                _ssht_backend,
+        flmn = flmn.at[N - 1 + n].add(
+            (-1) ** jnp.abs(n) * func(fban[int(n - n_start_ind)], spin=-n)
+        )
+    return flmn
+
+
+@partial(jit, static_argnums=(1, 2, 3, 4))
+def _reality_and_norm(
+    flmn: jnp.ndarray, L: int, N: int, L_lower: int = 0, reality: bool = False
+) -> jnp.ndarray:
+    """Private function which maps from f to fban (C backend)"""
+    if reality:
+        nidx = jnp.arange(1, N)
+        sgn = (-1) ** abs(jnp.arange(-L + 1, L))
+        flmn = flmn.at[N - 1 - nidx].set(
+            jnp.conj(
+                jnp.flip(
+                    jnp.einsum(
+                        "nlm,m,n->nlm",
+                        flmn[N - 1 + nidx],
+                        sgn,
+                        (-1) ** nidx,
+                        optimize=True,
+                    ),
+                    axis=-1,
+                )
             )
         )
-        if reality and n != 0:
-            sgn = (-1) ** abs(jnp.arange(-L + 1, L))
-            flmn = flmn.at[N - 1 - n].set(
-                jnp.conj(jnp.flip(flmn[N - 1 + n] * sgn * (-1) ** n, axis=-1))
-            )
 
     flmn = flmn.at[:, L_lower:].set(
         jnp.einsum(
@@ -861,3 +730,57 @@ def forward_jax_ssht(
         )
     )
     return flmn
+
+
+@partial(jit, static_argnums=(1, 2, 3, 4))
+def _inverse_norm(
+    flmn: jnp.ndarray, L: int, N: int, L_lower: int = 0, sampling: str = "mw"
+):
+    """Private function which normalised flmn for inverse Wigner (C backend)"""
+    fban = jnp.zeros(samples.f_shape(L, N, sampling), dtype=jnp.complex128)
+
+    flmn = flmn.at[:, L_lower:].set(
+        jnp.einsum(
+            "...nlm,...l->...nlm",
+            flmn[:, L_lower:],
+            jnp.sqrt((2 * jnp.arange(L_lower, L) + 1) / (16 * jnp.pi**3)),
+            optimize=True,
+        )
+    )
+    return flmn, fban
+
+
+def _flmn_to_fban(
+    flmn: jnp.ndarray,
+    fban: jnp.ndarray,
+    L: int,
+    N: int,
+    sampling: str = "mw",
+    reality: bool = False,
+    _ssht_backend: int = 1,
+) -> jnp.ndarray:
+    """Private function which maps from flmn to fban (C backend)"""
+    ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
+    n_start_ind = 0 if reality else -N + 1
+    func = partial(
+        c_sph.ssht_inverse,
+        L=L,
+        reality=False,
+        ssht_sampling=ssht_sampling,
+        _ssht_backend=_ssht_backend,
+    )
+    for n in range(n_start_ind, N):
+        fban = fban.at[N - 1 + n].add(
+            (-1) ** jnp.abs(n) * func(flmn[N - 1 + n], spin=-n)
+        )
+    return fban
+
+
+@partial(jit, static_argnums=(1, 2, 3))
+def _fban_to_f(fban: jnp.ndarray, L: int, N: int, reality: bool = False) -> jnp.ndarray:
+    """Private function which maps from fban to f (C backend)"""
+    if reality:
+        f = jnp.fft.irfft(fban[N - 1 :], 2 * N - 1, axis=-3, norm="forward")
+    else:
+        f = jnp.fft.ifft(jnp.fft.ifftshift(fban, axes=-3), axis=-3, norm="forward")
+    return f
