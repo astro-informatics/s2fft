@@ -293,7 +293,7 @@ def upsample_by_two_mwss(f: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(1))
 def upsample_by_two_mwss_ext(f_ext: jnp.ndarray, L: int) -> jnp.ndarray:
-    """Upsample an extended MWSS sampled signal on the sphere defined on domain
+    r"""Upsample an extended MWSS sampled signal on the sphere defined on domain
     :math:`[0,2\pi]` by a factor of two.
 
     Upsampling is performed by zero-padding in harmonic space. JAX implementation of

@@ -126,7 +126,7 @@ def upsample_by_two_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
 
 
 def upsample_by_two_mwss_ext(f_ext: np.ndarray, L: int) -> np.ndarray:
-    """Upsample an extended MWSS sampled signal on the sphere defined on domain
+    r"""Upsample an extended MWSS sampled signal on the sphere defined on domain
     :math:`[0,2\pi]` by a factor of two.
 
     Upsampling is performed by zero-padding in harmonic space.
@@ -153,7 +153,7 @@ def upsample_by_two_mwss_ext(f_ext: np.ndarray, L: int) -> np.ndarray:
 
 
 def downsample_by_two_mwss(f_ext: np.ndarray, L: int) -> np.ndarray:
-    """Downsample an MWSS sampled signal on the sphere.
+    r"""Downsample an MWSS sampled signal on the sphere.
 
     Can be applied to either MWSS signal sampled on original domain :math:`[0,\pi]`
     or extended domain :math:`[0,2\pi]`.

@@ -278,7 +278,7 @@ def upsample_by_two_mwss(f: torch.tensor, L: int, spin: int = 0) -> torch.tensor
 
 
 def upsample_by_two_mwss_ext(f_ext: torch.tensor, L: int) -> torch.tensor:
-    """Upsample an extended MWSS sampled signal on the sphere defined on domain
+    r"""Upsample an extended MWSS sampled signal on the sphere defined on domain
     :math:`[0,2\pi]` by a factor of two.
 
     Upsampling is performed by zero-padding in harmonic space. Torch implementation of

@@ -760,7 +760,7 @@ def compute_full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
 
 
 def _arg_checks(dl: np.ndarray, L: int, el: int):
-    """Check arguments of Trapani functions.
+    r"""Check arguments of Trapani functions.
 
     Args:
         dl (np.ndarray): Wigner-d plane of which to check shape.
