@@ -1,5 +1,5 @@
 # Packages required for core functionality 
-numpy>=1.20
+numpy>=1.20,<2
 colorlog
 pyyaml
 jax>=0.3.13
