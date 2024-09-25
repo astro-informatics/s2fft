@@ -3,7 +3,10 @@ from numpy.testing import assert_allclose
 import healpy as hp
 import pytest
 import jax
-from jax.extend.backend import get_backend
+if jax.__version__ < "0.4.32":
+  from jax.lib.xla_bridge import get_backend
+else:
+  from jax.extend.backend import get_backend
 gpu_available = get_backend().platform == "gpu"
 
 jax.config.update("jax_enable_x64", True)
