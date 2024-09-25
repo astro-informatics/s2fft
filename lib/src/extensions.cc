@@ -113,11 +113,20 @@ NB_MODULE(_s2fft, m) {
     m.def("registration", &s2fft::Registration);
 
     m.def("build_healpix_fft_descriptor",
-          [](int nside, int harmonic_band_limit, bool reality, bool forward, bool double_precision) {
+          [](int nside, int harmonic_band_limit, bool reality, bool forward,bool normalize, bool double_precision) {
 #ifndef NO_CUDA_COMPILER
               size_t work_size;
               // Only backward for now
-              s2fftKernels::fft_norm norm = s2fftKernels::fft_norm::BACKWARD;
+              s2fftKernels::fft_norm norm = s2fftKernels::fft_norm::NONE;
+              if (forward && normalize) {
+                  norm = s2fftKernels::fft_norm::FORWARD;
+              } else if (!forward && normalize) {
+                  norm = s2fftKernels::fft_norm::BACKWARD;
+              } else if (forward && !normalize) {
+                  norm = s2fftKernels::fft_norm::BACKWARD;
+              } else if (!forward && !normalize) {
+                  norm = s2fftKernels::fft_norm::FORWARD;
+              }
               // Always shift
               bool shift = true;
               s2fft::s2fftDescriptor descriptor(nside, harmonic_band_limit, reality, forward, norm, shift,

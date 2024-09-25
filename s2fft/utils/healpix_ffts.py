@@ -487,7 +487,7 @@ def healpix_ifft_jax(
         if reality and nphi == 2 * L:
             return jnp.fft.irfft(fm_chunks[:, nphi // 2 :], nphi, norm="forward")
         else:
-            return jnp.fft.ifft(jnp.fft.ifftshift(fm_chunks , axes=-1), norm="backward")
+            return jnp.fft.ifft(jnp.fft.ifftshift(fm_chunks , axes=-1), norm="forward")
 
     # Process ftm rows corresponding to pairs of polar theta rings with the same number
     # of phi samples together to reduce size of unrolled traced computational graph
@@ -667,7 +667,7 @@ class HealpixFFTPrimitive(BasePrimitive):
   outer_primitive = None
 
   @staticmethod
-  def abstract(f, L, nside, reality, fft_type):
+  def abstract(f, L, nside, reality, fft_type , norm):
 
     # For the forward pass, the input is a HEALPix pixel-space array of size nside^2 * 12 and the output is
     # a FTM array of shape (number of rings , width of FTM slice) which is (4 * nside - 1 , 2 * L  )
@@ -684,7 +684,7 @@ class HealpixFFTPrimitive(BasePrimitive):
       raise ValueError(f"fft_type {fft_type} not recognised.")
 
   @staticmethod
-  def lowering(ctx, f, *, L, nside, reality, fft_type):
+  def lowering(ctx, f, *, L, nside, reality, fft_type , norm):
     (x_aval,) = ctx.avals_in
     (aval_out,) = ctx.avals_out
     dtype = x_aval.dtype
@@ -703,10 +703,20 @@ class HealpixFFTPrimitive(BasePrimitive):
     out_type = ir.RankedTensorType.get(aval_out.shape, out_type)
 
     forward = fft_type == 'forward'
+    if forward and norm == 'backward':
+      normalize = False
+    elif not forward and norm == 'forward':
+      normalize = False
+    elif forward and norm == 'forward':
+      normalize = True
+    elif not forward and norm == 'backward':
+      normalize = True
+    else:
+      raise ValueError(f'Unknown norm {norm}')
 
     # std::pair<size_t, nb::bytes> build_healpix_fft_descriptor(int nside, int harmonic_band_limit, bool reality,
     #                                                   bool forward, bool double_precision)
-    opaque = _s2fft.build_healpix_fft_descriptor(nside, L, reality, forward,
+    opaque = _s2fft.build_healpix_fft_descriptor(nside, L, reality, forward, normalize,
                                                  is_double)
 
     layout = tuple(range(len(a_type.shape) - 1, -1, -1))
@@ -729,7 +739,7 @@ class HealpixFFTPrimitive(BasePrimitive):
     return result.results
 
   @staticmethod
-  def impl(f, L, nside, reality, fft_type):
+  def impl(f, L, nside, reality, fft_type , norm):
     return HealpixFFTPrimitive.inner_primitive.bind(f, L, nside, reality,
                                                     fft_type)
 
@@ -755,14 +765,14 @@ register_primitive(HealpixFFTPrimitive)
 
 
 @partial(jit, static_argnums=(1, 2, 3))
-def healpix_fft_cuda(f, L, nside, reality):
+def healpix_fft_cuda(f, L, nside, reality , norm='backward'):
   (f,) = promote_dtypes_complex(f)
   return HealpixFFTPrimitive.inner_primitive.bind(
-      f, L=L, nside=nside, reality=reality, fft_type='forward')
+      f, L=L, nside=nside, reality=reality, fft_type='forward', norm=norm)
 
 
 @partial(jit, static_argnums=(1, 2, 3))
-def healpix_ifft_cuda(f, L, nside, reality):
+def healpix_ifft_cuda(f, L, nside, reality , norm='forward'):
   (f,) = promote_dtypes_complex(f)
   return HealpixFFTPrimitive.inner_primitive.bind(
-      f, L=L, nside=nside, reality=reality, fft_type='backward')
+      f, L=L, nside=nside, reality=reality, fft_type='backward', norm=norm)
