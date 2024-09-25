@@ -3,6 +3,8 @@ from numpy.testing import assert_allclose
 import healpy as hp
 import pytest
 import jax
+from jax.extend.backend import get_backend
+gpu_available = get_backend().platform == "gpu"
 
 jax.config.update("jax_enable_x64", True)
 from s2fft.sampling import s2_samples as samples
@@ -49,7 +51,7 @@ def test_healpix_ifft_jax_numpy_consistency(flm_generator, nside, reality):
       healpix_ifft_jax(ftm_copy, L, nside, reality),
   )
 
-
+@pytest.mark.skipif(not gpu_available, reason="GPU not available")
 @pytest.mark.parametrize("nside", nside_to_test)
 def test_healpix_fft_cuda(flm_generator, nside):
   L = 2 * nside
@@ -64,7 +66,7 @@ def test_healpix_fft_cuda(flm_generator, nside):
       atol=1,
       rtol=1)
 
-
+@pytest.mark.skipif(not gpu_available, reason="GPU not available")
 @pytest.mark.parametrize("nside", nside_to_test)
 def test_healpix_ifft_cuda(flm_generator, nside):
   L = 2 * nside
