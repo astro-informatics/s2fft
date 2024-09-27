@@ -65,10 +65,10 @@ def test_healpix_fft_cuda(flm_generator, nside):
   f = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
   # Test consistency
   assert_allclose(
-      healpix_fft_jax(f, L, nside, True),
-      healpix_fft_cuda(f, L, nside, True),
-      atol=1,
-      rtol=1)
+      healpix_fft_jax(f, L, nside, False),
+      healpix_fft_cuda(f, L, nside, False),
+      atol=1e-7 ,
+      rtol=1e-7)
 
 @pytest.mark.skipif(not gpu_available, reason="GPU not available")
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -83,5 +83,6 @@ def test_healpix_ifft_cuda(flm_generator, nside):
   assert_allclose(
       healpix_ifft_jax(ftm, L, nside, False).flatten(),
       healpix_ifft_cuda(ftm, L, nside, False).flatten(),
-      atol=1e-2,
-      rtol=1e-2)
+      atol=1e-7,
+      rtol=1e-7)
+
