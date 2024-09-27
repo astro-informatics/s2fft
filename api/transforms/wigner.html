@@ -704,7 +704,8 @@ cases this approach may be desirable to mitigate e.g. memory i/o cost.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>flmn</strong> (<em>np.ndarray</em>) – Wigner coefficients with shape <span class="math notranslate nohighlight">\([2N-1, L, 2L-1]\)</span>.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit.</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit. For high precision beyond <span class="math notranslate nohighlight">\(N \approx 8\)</span>,
+one should use <cite>method=”jax_ssht”</cite>.</p></li>
 <li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
 if sampling=”healpix”.  Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
@@ -762,7 +763,8 @@ For a given <span class="math notranslate nohighlight">\(\gamma\)</span> we thus
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>flmn</strong> (<em>jnp.ndarray</em>) – Wigner coefficients with shape <span class="math notranslate nohighlight">\([2N-1, L, 2L-1]\)</span>.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit.</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit. Recursive transform will have lower precision
+beyond <span class="math notranslate nohighlight">\(N \approx 8\)</span>.</p></li>
 <li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
 if sampling=”healpix”.  Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
@@ -846,7 +848,8 @@ For a given <span class="math notranslate nohighlight">\(\gamma\)</span> we thus
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>flmn</strong> (<em>np.ndarray</em>) – Wigner coefficients with shape <span class="math notranslate nohighlight">\([2N-1, L, 2L-1]\)</span>.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit.</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit. Recursive transform will have lower precision
+beyond <span class="math notranslate nohighlight">\(N \approx 8\)</span>.</p></li>
 <li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
 if sampling=”healpix”.  Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
