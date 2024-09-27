@@ -4,6 +4,7 @@ colorlog
 pyyaml
 jax>=0.3.13
 jaxlib
+scipy==1.13.1
 torch # Remove when subpackage functionality is fixed.
 pyssht
 healpy
