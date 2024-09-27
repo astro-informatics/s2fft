@@ -398,8 +398,13 @@ def forward(
         return forward_numpy(f, L, spin, nside, sampling, reality, precomps, L_lower)
     elif method == "jax":
         return forward_jax(
-            f, L, spin, nside, sampling, reality, precomps, spmd, L_lower
+            f, L, spin, nside, sampling, reality, precomps, spmd, L_lower , use_cuda=False
         )
+    elif method == "cuda":
+       return forward_jax(
+            f, L, spin, nside, sampling, reality, precomps, spmd, L_lower, use_cuda=True
+        )
+ 
     elif method == "jax_ssht":
         if sampling.lower() == "healpix":
             raise ValueError("SSHT does not support healpix sampling.")
@@ -537,7 +542,7 @@ def forward_numpy(
     return flm * (-1) ** spin
 
 
-@partial(jit, static_argnums=(1, 3, 4, 5, 7, 8))
+@partial(jit, static_argnums=(1, 3, 4, 5, 7, 8,9))
 def forward_jax(
     f: jnp.ndarray,
     L: int,
@@ -548,6 +553,7 @@ def forward_jax(
     precomps: List = None,
     spmd: bool = False,
     L_lower: int = 0,
+    use_cuda: bool = False,
 ) -> jnp.ndarray:
     r"""Compute the forward spin-spherical harmonic transform (JAX).
 
@@ -582,6 +588,8 @@ def forward_jax(
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
+        use_cuda (bool, optional): Whether to use the CUDA backend. Defaults to False.
+
     Returns:
         jnp.ndarray: Spherical harmonic coefficients
 
@@ -609,7 +617,10 @@ def forward_jax(
 
     # Perform longitundal Fast Fourier Transforms
     if sampling.lower() == "healpix":
-        ftm = hp.healpix_fft(f, L, nside, "jax", reality)
+        if use_cuda:
+          ftm = hp.healpix_fft(f, L, nside, "cuda", reality)
+        else:
+          ftm = hp.healpix_fft(f, L, nside, "jax", reality)
     else:
         if reality:
             t = jnp.fft.rfft(jnp.real(f), axis=1, norm="backward")
