@@ -3,7 +3,8 @@ from numpy.testing import assert_allclose
 import healpy as hp
 import pytest
 import jax
-if jax.__version__ < "0.4.32":
+from packaging.version import Version as _Version
+if _Version(jax.__version__) < _Version("0.4.32"):
   from jax.lib.xla_bridge import get_backend
 else:
   from jax.extend.backend import get_backend
