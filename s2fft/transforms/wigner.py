@@ -40,7 +40,8 @@ def inverse(
 
         L (int): Harmonic band-limit.
 
-        N (int): Azimuthal band-limit.
+        N (int): Azimuthal band-limit. For high precision beyond :math:`N \approx 8`,
+            one should use `method="jax_ssht"`.
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -123,7 +124,8 @@ def inverse_numpy(
 
         L (int): Harmonic band-limit.
 
-        N (int): Azimuthal band-limit.
+        N (int): Azimuthal band-limit. Recursive transform will have lower precision
+            beyond :math:`N \approx 8`.
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -207,7 +209,8 @@ def inverse_jax(
 
         L (int): Harmonic band-limit.
 
-        N (int): Azimuthal band-limit.
+        N (int): Azimuthal band-limit. Recursive transform will have lower precision
+            beyond :math:`N \approx 8`.
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
