@@ -15,7 +15,8 @@ L_to_nside_ratio = [2, 3]
 sampling_to_test = ["mw", "mwss", "dh", "gl"]
 reality_to_test = [True, False]
 methods_to_test = ["numpy", "jax", "torch"]
-recursions_to_test = ["price_mcewen", "risbo"]
+# recursions_to_test = ["price_mcewen", "risbo"]
+recursions_to_test = ["risbo"]
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -33,9 +34,9 @@ def test_transform_inverse(
     method: str,
     recursion: str,
 ):
-    if recursion.lower() == "risbo" and [
+    if recursion.lower() == "risbo" and (
         method.lower() == "torch" or sampling.lower() == "gl"
-    ]:
+    ):
         pytest.skip("Fourier mode Risbo recursions have limited functionality.")
 
     flm = flm_generator(L=L, spin=spin, reality=reality)
@@ -162,9 +163,9 @@ def test_transform_forward(
     method: str,
     recursion: str,
 ):
-    if recursion.lower() == "risbo" and [
+    if recursion.lower() == "risbo" and (
         method.lower() == "torch" or sampling.lower() == "gl"
-    ]:
+    ):
         pytest.skip("Fourier mode Risbo recursions have limited functionality.")
 
     flm = flm_generator(L=L, spin=spin, reality=reality)

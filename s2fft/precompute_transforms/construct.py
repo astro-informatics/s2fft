@@ -65,9 +65,9 @@ def spin_spherical_kernel(
     dl = np.zeros((len(thetas), L, m_dim), dtype=np.float64)
     for t, theta in enumerate(thetas):
         for el in range(abs(spin), L):
-            dl[t, el] = recursions.turok.compute_slice(theta, el, L, -spin, reality)[
-                m_start_ind:
-            ]
+            dl[t, el] = recursions.turok.compute_slice(
+                theta, el, L, -spin, reality
+            )[m_start_ind:]
             dl[t, el] *= np.sqrt((2 * el + 1) / (4 * np.pi))
 
     if forward:
@@ -117,6 +117,13 @@ def spin_spherical_kernel_jax(
     Returns:
         jnp.ndarray: Transform kernel for spin-spherical harmonic transform.
     """
+    if reality and spin != 0:
+        reality = False
+        warn(
+            "Reality acceleration only supports spin 0 fields. "
+            + "Defering to complex transform."
+        )
+
     m_start_ind = L - 1 if reality else 0
 
     if forward and sampling.lower() in ["mw", "mwss"]:
@@ -135,7 +142,7 @@ def spin_spherical_kernel_jax(
     # North pole singularity
     if sampling.lower() == "mwss":
         dl = dl.at[0].set(0)
-        dl = dl = dl.at[0, :, L - 1 - spin].set(1)
+        dl = dl.at[0, :, L - 1 - spin].set(1)
 
     # South pole singularity
     if sampling.lower() in ["mw", "mwss"]:
@@ -212,7 +219,9 @@ def wigner_kernel(
         for t, theta in enumerate(thetas):
             for el in range(abs(n), L):
                 ind = n if reality else N - 1 + n
-                dl[ind, t, el] = recursions.turok.compute_slice(theta, el, L, n, False)
+                dl[ind, t, el] = recursions.turok.compute_slice(
+                    theta, el, L, n, False
+                )
 
     if forward:
         weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
@@ -345,7 +354,7 @@ def healpix_phase_shifts(
     """
     thetas = samples.thetas(L, "healpix", nside)
     phase_array = np.zeros((len(thetas), 2 * L - 1), dtype=np.complex128)
-    for t, theta in enumerate(thetas):
+    for t, _ in enumerate(thetas):
         phase_array[t] = samples.ring_phase_shift_hp(L, t, nside, forward)
 
     return phase_array

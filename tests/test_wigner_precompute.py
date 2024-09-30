@@ -34,9 +34,9 @@ def test_inverse_wigner_transform(
     method: str,
     recursion: str,
 ):
-    if recursion.lower() == "risbo" and [
+    if recursion.lower() == "risbo" and (
         method.lower() == "torch" or sampling.lower() == "gl"
-    ]:
+    ):
         pytest.skip("Fourier mode Risbo recursions have limited functionality.")
 
     flmn = flmn_generator(L=L, N=N, reality=reality)
@@ -99,9 +99,9 @@ def test_forward_wigner_transform(
     method: str,
     recursion: str,
 ):
-    if recursion.lower() == "risbo" and [
+    if recursion.lower() == "risbo" and (
         method.lower() == "torch" or sampling.lower() == "gl"
-    ]:
+    ):
         pytest.skip("Fourier mode Risbo recursions have limited functionality.")
 
     flmn = flmn_generator(L=L, N=N, reality=reality)

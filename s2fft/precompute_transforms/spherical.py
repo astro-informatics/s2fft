@@ -61,9 +61,13 @@ def inverse(
     if method == "numpy":
         return inverse_transform(flm, kernel, L, sampling, reality, spin, nside)
     elif method == "jax":
-        return inverse_transform_jax(flm, kernel, L, sampling, reality, spin, nside)
+        return inverse_transform_jax(
+            flm, kernel, L, sampling, reality, spin, nside
+        )
     elif method == "torch":
-        return inverse_transform_torch(flm, kernel, L, sampling, reality, spin, nside)
+        return inverse_transform_torch(
+            flm, kernel, L, sampling, reality, spin, nside
+        )
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -181,7 +185,9 @@ def inverse_transform_jax(
     if sampling.lower() == "healpix":
         if reality:
             ftm = ftm.at[:, m_offset : m_start_ind + m_offset].set(
-                jnp.flip(jnp.conj(ftm[:, m_start_ind + m_offset + 1 :]), axis=-1)
+                jnp.flip(
+                    jnp.conj(ftm[:, m_start_ind + m_offset + 1 :]), axis=-1
+                )
             )
         f = hp.healpix_ifft(ftm, L, nside, "jax", reality)
 
@@ -236,7 +242,9 @@ def inverse_transform_torch(
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     m_start_ind = L - 1 if reality else 0
 
-    ftm = torch.zeros(samples.ftm_shape(L, sampling, nside), dtype=torch.complex128)
+    ftm = torch.zeros(
+        samples.ftm_shape(L, sampling, nside), dtype=torch.complex128
+    )
     if sampling.lower() == "healpix":
         ftm[:, m_start_ind + m_offset :] += torch.einsum(
             "...tlm, ...lm -> ...tm", kernel, flm[:, m_start_ind:]
@@ -327,9 +335,13 @@ def forward(
     if method == "numpy":
         return forward_transform(f, kernel, L, sampling, reality, spin, nside)
     elif method == "jax":
-        return forward_transform_jax(f, kernel, L, sampling, reality, spin, nside)
+        return forward_transform_jax(
+            f, kernel, L, sampling, reality, spin, nside
+        )
     elif method == "torch":
-        return forward_transform_torch(f, kernel, L, sampling, reality, spin, nside)
+        return forward_transform_torch(
+            f, kernel, L, sampling, reality, spin, nside
+        )
     else:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -466,7 +478,8 @@ def forward_transform_jax(
     if reality:
         flm = flm.at[:, :m_start_ind].set(
             jnp.flip(
-                (-1) ** (jnp.arange(1, L) % 2) * jnp.conj(flm[:, m_start_ind + 1 :]),
+                (-1) ** (jnp.arange(1, L) % 2)
+                * jnp.conj(flm[:, m_start_ind + 1 :]),
                 axis=-1,
             )
         )
@@ -532,7 +545,9 @@ def forward_transform_torch(
 
     flm = torch.zeros(samples.flm_shape(L), dtype=torch.complex128)
     if sampling.lower() == "healpix":
-        flm[:, m_start_ind:] = torch.einsum("...tlm, ...tm -> ...lm", kernel, ftm)
+        flm[:, m_start_ind:] = torch.einsum(
+            "...tlm, ...tm -> ...lm", kernel, ftm
+        )
     else:
         flm[:, m_start_ind:].real = torch.einsum(
             "...tlm, ...tm -> ...lm", kernel, ftm.real
@@ -543,7 +558,8 @@ def forward_transform_torch(
 
     if reality:
         flm[:, :m_start_ind] = torch.flip(
-            (-1) ** (torch.arange(1, L) % 2) * torch.conj(flm[:, m_start_ind + 1 :]),
+            (-1) ** (torch.arange(1, L) % 2)
+            * torch.conj(flm[:, m_start_ind + 1 :]),
             dims=[-1],
         )
 

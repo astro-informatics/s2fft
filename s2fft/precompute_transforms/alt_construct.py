@@ -17,9 +17,11 @@ def spin_spherical_kernel(
     sampling: str = "mw",
     forward: bool = True,
 ):
-    r"""Precompute the wigner-d kernel for spin-spherical transform. This can be
-    drastically faster but comes at a :math:`\mathcal{O}(L^3)` memory overhead, making
-    it infeasible for :math:`L\geq 512`.
+    r"""Precompute the wigner-d kernel for spin-spherical transform.
+
+    This implementation is typically faster than computing these elements on-the-fly but
+    comes at a :math:`\mathcal{O}(L^3)` memory overhead, making it infeasible for large
+    bandlimits :math:`L\geq 512`.
 
     Args:
         L (int): Harmonic band-limit.
@@ -109,9 +111,11 @@ def spin_spherical_kernel_jax(
     sampling: str = "mw",
     forward: bool = True,
 ):
-    r"""Precompute the wigner-d kernel for spin-spherical transform. This can be
-    drastically faster but comes at a :math:`\mathcal{O}(L^3)` memory overhead, making
-    it infeasible for :math:`L\geq 512`.
+    r"""Precompute the wigner-d kernel for spin-spherical transform.
+
+    This implementation is typically faster than computing these elements on-the-fly but
+    comes at a :math:`\mathcal{O}(L^3)` memory overhead, making it infeasible for large
+    bandlimits :math:`L\geq 512`.
 
     Args:
         L (int): Harmonic band-limit.
@@ -136,6 +140,13 @@ def spin_spherical_kernel_jax(
         Fourier decomposition of Wigner D-functions. This involves (minor) additional
         precomputations, but is stable to effectively arbitrarily large spin numbers.
     """
+    if reality and spin != 0:
+        reality = False
+        warn(
+            "Reality acceleration only supports spin 0 fields. "
+            + "Defering to complex transform."
+        )
+
     m_start_ind = L - 1 if reality else 0
     m_dim = L if reality else 2 * L - 1
 
@@ -194,9 +205,11 @@ def wigner_kernel(
     sampling: str = "mw",
     forward: bool = False,
 ):
-    r"""Precompute the wigner-d kernels required for a Wigner transform. This can be
-    drastically faster but comes at a :math:`\mathcal{O}(NL^3)` memory overhead, making
-    it infeasible for :math:`L \geq 512`.
+    r"""Precompute the wigner-d kernel for Wigner transform.
+
+    This implementation is typically faster than computing these elements on-the-fly but
+    comes at a :math:`\mathcal{O}(NL^3)` memory overhead, making it infeasible for large
+    bandlimits :math:`L\geq 512`.
 
     Args:
         L (int): Harmonic band-limit.
@@ -242,7 +255,7 @@ def wigner_kernel(
         raise ValueError("Sampling in supported list [mw, mwss, dh]")
 
     # Compute Wigner d-functions from their Fourier decomposition.
-    if N <= int(L / np.log(L)):
+    if N >= int(L / np.log(L)):
         delta = np.zeros((len(thetas), 2 * L - 1, 2 * L - 1), dtype=np.float64)
     else:
         delta = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
@@ -254,7 +267,7 @@ def wigner_kernel(
 
     # If N <= L/LogL more efficient to manually compute over FFT
     for el in range(L):
-        if N <= int(L / np.log(L)):
+        if N >= int(L / np.log(L)):
             delta = recursions.risbo.compute_full_vect(delta, thetas, L, el)
             dl[:, :, el] = np.moveaxis(delta, -1, 0)[L - 1 + n]
         else:
@@ -294,9 +307,11 @@ def wigner_kernel_jax(
     sampling: str = "mw",
     forward: bool = False,
 ):
-    r"""Precompute the wigner-d kernels required for a Wigner transform. This can be
-    drastically faster but comes at a :math:`\mathcal{O}(NL^3)` memory overhead, making
-    it infeasible for :math:`L \geq 512`.
+    r"""Precompute the wigner-d kernel for Wigner transform.
+
+    This implementation is typically faster than computing these elements on-the-fly but
+    comes at a :math:`\mathcal{O}(NL^3)` memory overhead, making it infeasible for large
+    bandlimits :math:`L\geq 512`.
 
     Args:
         L (int): Harmonic band-limit.
@@ -343,7 +358,7 @@ def wigner_kernel_jax(
         raise ValueError("Sampling in supported list [mw, mwss, dh]")
 
     # Compute Wigner d-functions from their Fourier decomposition.
-    if N <= int(L / np.log(L)):
+    if N >= int(L / np.log(L)):
         delta = jnp.zeros(
             (len(thetas), 2 * L - 1, 2 * L - 1), dtype=jnp.float64
         )
@@ -360,7 +375,7 @@ def wigner_kernel_jax(
 
     # If N <= L/LogL more efficient to manually compute over FFT
     for el in range(L):
-        if N <= int(L / np.log(L)):
+        if N >= int(L / np.log(L)):
             delta = vfunc(delta, thetas, L, el)
             dl = dl.at[:, :, el].set(jnp.moveaxis(delta, -1, 0)[L - 1 + n])
         else:
