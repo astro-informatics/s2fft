@@ -84,11 +84,7 @@ def spin_spherical_kernel(
             delta[:, L - 1 - spin],
             1j ** (-spin - m_value[m_start_ind:]),
         )
-        if sampling.lower() in ["mw", "dh"]:
-            temp = np.einsum("am,a->am", temp, np.exp(1j * m_value * thetas[0]))
-        else:
-            temp_new = np.zeros((L + 1, m_dim), dtype=temp.dtype)
-            temp_new[:-1] = temp[L - 1 :]
+        temp = np.einsum("am,a->am", temp, np.exp(1j * m_value * thetas[0]))
         temp = np.fft.irfft(temp[L - 1 :], n=nsamps, axis=0, norm="forward")
 
         dl[:, el] = temp[: len(thetas)]
@@ -173,14 +169,7 @@ def spin_spherical_kernel_jax(
             delta[:, L - 1 - spin],
             1j ** (-spin - m_value[m_start_ind:]),
         )
-        if sampling.lower() in ["mw", "dh"]:
-            temp = jnp.einsum(
-                "am,a->am", temp, jnp.exp(1j * m_value * thetas[0])
-            )
-        else:
-            temp_new = jnp.zeros((L + 1, m_dim), dtype=temp.dtype)
-            temp_new = temp_new.at[:-1].set(temp[L - 1 :])
-
+        temp = jnp.einsum("am,a->am", temp, jnp.exp(1j * m_value * thetas[0]))
         temp = jnp.fft.irfft(temp[L - 1 :], n=nsamps, axis=0, norm="forward")
 
         dl = dl.at[:, el].set(temp[: len(thetas)])
@@ -253,32 +242,35 @@ def wigner_kernel(
         raise ValueError("Sampling in supported list [mw, mwss, dh]")
 
     # Compute Wigner d-functions from their Fourier decomposition.
-    delta = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    if N <= int(L / np.log(L)):
+        delta = np.zeros((len(thetas), 2 * L - 1, 2 * L - 1), dtype=np.float64)
+    else:
+        delta = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
     dl = np.zeros((n_dim, len(thetas), L, 2 * L - 1), dtype=np.float64)
 
     # Range values which need only be defined once.
     m_value = np.arange(-L + 1, L)
     n = np.arange(n_start_ind - N + 1, N)
 
+    # If N <= L/LogL more efficient to manually compute over FFT
     for el in range(L):
-        delta = recursions.risbo.compute_full(delta, np.pi / 2, L, el)
-        temp = np.einsum(
-            "am,an,m,n->amn",
-            delta,
-            delta[:, L - 1 + n],
-            1j ** (-m_value),
-            1j ** (n),
-        )
-        if sampling.lower() in ["mw", "dh"]:
+        if N <= int(L / np.log(L)):
+            delta = recursions.risbo.compute_full_vect(delta, thetas, L, el)
+            dl[:, :, el] = np.moveaxis(delta, -1, 0)[L - 1 + n]
+        else:
+            delta = recursions.risbo.compute_full(delta, np.pi / 2, L, el)
+            temp = np.einsum(
+                "am,an,m,n->amn",
+                delta,
+                delta[:, L - 1 + n],
+                1j ** (-m_value),
+                1j ** (n),
+            )
             temp = np.einsum(
                 "amn,a->amn", temp, np.exp(1j * m_value * thetas[0])
             )
-
-        else:
-            temp_new = np.zeros((L + 1, 2 * L - 1, len(n)), dtype=temp.dtype)
-            temp_new[:-1] = temp[L - 1 :]
-        temp = np.fft.irfft(temp[L - 1 :], n=nsamps, axis=0, norm="forward")
-        dl[:, :, el] = np.moveaxis(temp[: len(thetas)], -1, 0)
+            temp = np.fft.irfft(temp[L - 1 :], n=nsamps, axis=0, norm="forward")
+            dl[:, :, el] = np.moveaxis(temp[: len(thetas)], -1, 0)
 
     if forward:
         weights = quadrature.quad_weights_transform(L, sampling)
@@ -351,32 +343,42 @@ def wigner_kernel_jax(
         raise ValueError("Sampling in supported list [mw, mwss, dh]")
 
     # Compute Wigner d-functions from their Fourier decomposition.
-    delta = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
+    if N <= int(L / np.log(L)):
+        delta = jnp.zeros(
+            (len(thetas), 2 * L - 1, 2 * L - 1), dtype=jnp.float64
+        )
+        vfunc = jax.vmap(
+            recursions.risbo_jax.compute_full, in_axes=(0, 0, None, None)
+        )
+    else:
+        delta = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
     dl = jnp.zeros((n_dim, len(thetas), L, 2 * L - 1), dtype=jnp.float64)
 
     # Range values which need only be defined once.
     m_value = jnp.arange(-L + 1, L)
     n = jnp.arange(n_start_ind - N + 1, N)
 
+    # If N <= L/LogL more efficient to manually compute over FFT
     for el in range(L):
-        delta = recursions.risbo_jax.compute_full(delta, jnp.pi / 2, L, el)
-        temp = jnp.einsum(
-            "am,an,m,n->amn",
-            delta,
-            delta[:, L - 1 + n],
-            1j ** (-m_value),
-            1j ** (n),
-        )
-        if sampling.lower() in ["mw", "dh"]:
+        if N <= int(L / np.log(L)):
+            delta = vfunc(delta, thetas, L, el)
+            dl = dl.at[:, :, el].set(jnp.moveaxis(delta, -1, 0)[L - 1 + n])
+        else:
+            delta = recursions.risbo_jax.compute_full(delta, jnp.pi / 2, L, el)
+            temp = jnp.einsum(
+                "am,an,m,n->amn",
+                delta,
+                delta[:, L - 1 + n],
+                1j ** (-m_value),
+                1j ** (n),
+            )
             temp = jnp.einsum(
                 "amn,a->amn", temp, jnp.exp(1j * m_value * thetas[0])
             )
-
-        else:
-            temp_new = jnp.zeros((L + 1, 2 * L - 1, len(n)), dtype=temp.dtype)
-            temp_new = temp_new.at[:-1].set(temp[L - 1 :])
-        temp = jnp.fft.irfft(temp[L - 1 :], n=nsamps, axis=0, norm="forward")
-        dl = dl.at[:, :, el].set(jnp.moveaxis(temp[: len(thetas)], -1, 0))
+            temp = jnp.fft.irfft(
+                temp[L - 1 :], n=nsamps, axis=0, norm="forward"
+            )
+            dl = dl.at[:, :, el].set(jnp.moveaxis(temp[: len(thetas)], -1, 0))
 
     if forward:
         weights = quadrature_jax.quad_weights_transform(L, sampling)

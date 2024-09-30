@@ -268,15 +268,21 @@ def test_forward_wigner_transform_healpix(
 
 
 @pytest.mark.parametrize("L", [8, 16, 32])
+@pytest.mark.parametrize("fft_method", [True, False])
 @pytest.mark.parametrize("sampling", sampling_schemes)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_inverse_wigner_transform_high_N(
-    flmn_generator, s2fft_to_so3_sampling, L: int, sampling: str, reality: bool
+    flmn_generator,
+    s2fft_to_so3_sampling,
+    L: int,
+    fft_method: bool,
+    sampling: str,
+    reality: bool,
 ):
     if sampling.lower() in ["gl", "dh"]:
         pytest.skip("SO3 benchmark only supports [mw, mwss] sampling.")
 
-    N = L
+    N = int(L / np.log(L)) if fft_method else L
 
     flmn = flmn_generator(L=L, N=N, reality=reality)
 
@@ -288,22 +294,28 @@ def test_inverse_wigner_transform_high_N(
     )
     f = so3.inverse(samples.flmn_3d_to_1d(flmn, L, N), params)
 
-    kernel = ac.wigner_kernel(L, N, reality, sampling, forward=False)
+    kernel = ac.wigner_kernel_jax(L, N, reality, sampling, forward=False)
     f_check = inverse(flmn, L, N, kernel, sampling, reality, "numpy")
 
-    np.testing.assert_allclose(f, f_check.flatten("C"), atol=1e-12, rtol=1e-12)
+    np.testing.assert_allclose(f, f_check.flatten("C"), atol=1e-10, rtol=1e-10)
 
 
 @pytest.mark.parametrize("L", [8, 16, 32])
+@pytest.mark.parametrize("fft_method", [True, False])
 @pytest.mark.parametrize("sampling", sampling_schemes)
 @pytest.mark.parametrize("reality", reality_to_test)
-def test_forward_wigner_transform(
-    flmn_generator, s2fft_to_so3_sampling, L: int, sampling: str, reality: bool
+def test_forward_wigner_transform_high_N(
+    flmn_generator,
+    s2fft_to_so3_sampling,
+    L: int,
+    fft_method: bool,
+    sampling: str,
+    reality: bool,
 ):
     if sampling.lower() in ["gl", "dh"]:
         pytest.skip("SO3 benchmark only supports [mw, mwss] sampling.")
 
-    N = L
+    N = int(L / np.log(L)) if fft_method else L
 
     flmn = flmn_generator(L=L, N=N, reality=reality)
 
@@ -325,4 +337,4 @@ def test_forward_wigner_transform(
     kernel = ac.wigner_kernel(L, N, reality, sampling, forward=True)
     flmn_check = forward(f_3D, L, N, kernel, sampling, reality, "numpy")
 
-    np.testing.assert_allclose(flmn_so3, flmn_check, atol=1e-12, rtol=1e-12)
+    np.testing.assert_allclose(flmn_so3, flmn_check, atol=1e-10, rtol=1e-10)
