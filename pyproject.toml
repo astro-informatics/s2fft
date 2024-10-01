@@ -39,15 +39,13 @@ dependencies = [
 ]
 dynamic = [
     "version",
-    "dependencies",
-    "optional-dependencies",
 ]
 keywords = [
 ]
 name = "s2fft"
 readme = ".pip_readme.rst"
 requires-python = ">=3.8"
-license.file = "LICENSE.txt"
+license.file = "LICENCE.txt"
 urls.homepage = "https://github.com/astro-informatics/s2fft"
 
 [project.optional-dependencies]
@@ -103,7 +101,6 @@ filterwarnings = [
 
 [tool.setuptools]
 packages = ["s2fft"]
-write_to = "s2fft/_version.py"
 
 [tool.setuptools.package-data]
 s2fft = ["default-logging-config.yaml"]

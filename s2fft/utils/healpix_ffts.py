@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import torch
 from s2fft.sampling import s2_samples as samples
 from functools import partial
-from s2fft.utils.jax_pritimive import BasePrimitive, register_primitive
+from s2fft.utils.jax_primitive import BasePrimitive, register_primitive
 import jaxlib.mlir.ir as ir
 from s2fft_lib import _s2fft
 from jaxlib.hlo_helpers import custom_call
