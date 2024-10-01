@@ -7,79 +7,80 @@ from jax.interpreters import batching
 # dispatch is not exposed outside of jax._src
 from jax._src import dispatch
 
+
 class BasePrimitive(metaclass=ABCMeta):
   """
-    jax primitive
-    """
+  jax primitive
+  """
 
   @staticmethod
   @abstractmethod
   def abstract():
     """
-        to describe computing graph
-        """
+    to describe computing graph
+    """
     return NotImplemented
 
   @classmethod
   def outer_abstract(cls, *args, **kwargs):
     """
-        optional abstract wrapper to eliminate workspace tensors
-        """
+    optional abstract wrapper to eliminate workspace tensors
+    """
     return cls.abstract(*args, **kwargs)
 
   @staticmethod
   @abstractmethod
   def lowering():
     """
-        to describe MLIR
-        """
+    to describe MLIR
+    """
     return NotImplemented
 
   @staticmethod
   @abstractmethod
   def impl():
     """
-        to describe implementation
-        """
+    to describe implementation
+    """
     return NotImplemented
 
   @staticmethod
   @abstractmethod
   def per_shard_impl():
     """
-        to describe per_shard_impl for custom_partitioning
-        """
+    to describe per_shard_impl for custom_partitioning
+    """
     return NotImplemented
 
   @staticmethod
   @abstractmethod
   def batcher():
     """
-        to describe batch rules for vmap
-        """
+    to describe batch rules for vmap
+    """
     return NotImplemented
 
   @staticmethod
   @abstractmethod
   def infer_sharding_from_operands():
     """
-        to describe infer_sharding_from_operands for custom_partitioning
-        """
+    to describe infer_sharding_from_operands for custom_partitioning
+    """
     return NotImplemented
 
   @staticmethod
   @abstractmethod
   def partition():
     """
-        to describe partition for custom_partitioning
-        """
+    to describe partition for custom_partitioning
+    """
     return NotImplemented
 
 
 def register_primitive(cls):
   """
-    register jax primitive
-    """
+  register jax primitive
+  """
 
   def name_of_wrapper_p():
     return cls.name + "_wrapper"
