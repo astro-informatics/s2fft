@@ -405,7 +405,7 @@ def forward(
         precomps,
         spmd,
         L_lower,
-        use_cuda=False)
+        use_healpix_custom_primitive=False)
   elif method == "cuda":
     return forward_jax(
         f,
@@ -417,7 +417,7 @@ def forward(
         precomps,
         spmd,
         L_lower,
-        use_cuda=True)
+        use_healpix_custom_primitive=True)
 
   elif method == "jax_ssht":
     if sampling.lower() == "healpix":
