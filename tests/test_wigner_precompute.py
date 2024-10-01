@@ -4,19 +4,18 @@ import numpy as np
 import torch
 from s2fft.precompute_transforms.wigner import inverse, forward
 from s2fft.precompute_transforms import construct as c
-from s2fft.precompute_transforms import alt_construct as ac
 from s2fft.base_transforms import wigner as base
 from s2fft.sampling import so3_samples as samples
 import so3
 
-L_to_test = [8, 10]
-N_to_test = [2, 3]
-nside_to_test = [4, 6]
+L_to_test = [6]
+N_to_test = [2, 6]
+nside_to_test = [4]
 L_to_nside_ratio = [2]
 reality_to_test = [False, True]
 sampling_schemes = ["mw", "mwss", "dh", "gl"]
 methods_to_test = ["numpy", "jax", "torch"]
-recursions_to_test = ["price_mcewen", "risbo"]
+recursions_to_test = ["auto", "fft", "manual"]
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -34,21 +33,12 @@ def test_inverse_wigner_transform(
     method: str,
     recursion: str,
 ):
-    if recursion.lower() == "risbo" and (
-        method.lower() == "torch" or sampling.lower() == "gl"
-    ):
-        pytest.skip("Fourier mode Risbo recursions have limited functionality.")
-
     flmn = flmn_generator(L=L, N=N, reality=reality)
 
     f = base.inverse(flmn, L, N, 0, sampling, reality)
 
-    if recursion.lower() == "price_mcewen":
-        kfunc = c.wigner_kernel_jax if method == "jax" else c.wigner_kernel
-        kernel = kfunc(L, N, reality, sampling, forward=False)
-    elif recursion.lower() == "risbo":
-        kfunc = ac.wigner_kernel_jax if method == "jax" else ac.wigner_kernel
-        kernel = kfunc(L, N, reality, sampling, forward=False)
+    kfunc = c.wigner_kernel_jax if method == "jax" else c.wigner_kernel
+    kernel = kfunc(L, N, reality, sampling, forward=False, mode=recursion)
 
     if method.lower() == "torch":
         # Test Transform
@@ -99,22 +89,13 @@ def test_forward_wigner_transform(
     method: str,
     recursion: str,
 ):
-    if recursion.lower() == "risbo" and (
-        method.lower() == "torch" or sampling.lower() == "gl"
-    ):
-        pytest.skip("Fourier mode Risbo recursions have limited functionality.")
-
     flmn = flmn_generator(L=L, N=N, reality=reality)
 
     f = base.inverse(flmn, L, N, sampling=sampling, reality=reality)
     flmn = base.forward(f, L, N, sampling=sampling, reality=reality)
 
-    if recursion.lower() == "price_mcewen":
-        kfunc = c.wigner_kernel_jax if method == "jax" else c.wigner_kernel
-        kernel = kfunc(L, N, reality, sampling, forward=True)
-    elif recursion.lower() == "risbo":
-        kfunc = ac.wigner_kernel_jax if method == "jax" else ac.wigner_kernel
-        kernel = kfunc(L, N, reality, sampling, forward=True)
+    kfunc = c.wigner_kernel_jax if method == "jax" else c.wigner_kernel
+    kernel = kfunc(L, N, reality, sampling, forward=True, mode=recursion)
 
     if method.lower() == "torch":
         # Test Transform
@@ -168,9 +149,8 @@ def test_inverse_wigner_transform_healpix(
 
     f = base.inverse(flmn, L, N, 0, sampling, reality, nside)
 
-    kernel = c.wigner_kernel(
-        L, N, reality, sampling, nside=nside, forward=False
-    )
+    kfunc = c.wigner_kernel_jax if method == "jax" else c.wigner_kernel
+    kernel = kfunc(L, N, reality, sampling, nside, forward=False)
 
     if method.lower() == "torch":
         # Test Transform
@@ -230,7 +210,9 @@ def test_forward_wigner_transform_healpix(
     f = base.inverse(flmn, L, N, 0, sampling, reality, nside)
     flmn_check = base.forward(f, L, N, 0, sampling, reality, nside)
 
-    kernel = c.wigner_kernel(L, N, reality, sampling, nside=nside, forward=True)
+    kfunc = c.wigner_kernel_jax if method == "jax" else c.wigner_kernel
+    kernel = kfunc(L, N, reality, sampling, nside, forward=True)
+
     if method.lower() == "torch":
         # Test Transform
         flmn = forward(
@@ -294,7 +276,7 @@ def test_inverse_wigner_transform_high_N(
     )
     f = so3.inverse(samples.flmn_3d_to_1d(flmn, L, N), params)
 
-    kernel = ac.wigner_kernel_jax(L, N, reality, sampling, forward=False)
+    kernel = c.wigner_kernel_jax(L, N, reality, sampling, forward=False)
     f_check = inverse(flmn, L, N, kernel, sampling, reality, "numpy")
 
     np.testing.assert_allclose(f, f_check.flatten("C"), atol=1e-10, rtol=1e-10)
@@ -334,7 +316,7 @@ def test_forward_wigner_transform_high_N(
     )
     flmn_so3 = samples.flmn_1d_to_3d(so3.forward(f_1D, params), L, N)
 
-    kernel = ac.wigner_kernel(L, N, reality, sampling, forward=True)
+    kernel = c.wigner_kernel(L, N, reality, sampling, forward=True)
     flmn_check = forward(f_3D, L, N, kernel, sampling, reality, "numpy")
 
     np.testing.assert_allclose(flmn_so3, flmn_check, atol=1e-10, rtol=1e-10)

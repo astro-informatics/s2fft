@@ -60,10 +60,10 @@ Precompute Functions
      - Builds a kernel including quadrature weights and Wigner-D coefficients for spherical harmonic transform.
    * - :func:`~s2fft.precompute_transforms.construct.wigner_kernel`
      - Builds a kernel including quadrature weights and Wigner-D coefficients for Wigner transform.
-   * - :func:`~s2fft.precompute_transforms.alt_construct.spin_spherical_kernel`
-     - Builds a high-spin stable kernel including quadrature weights and Wigner-D coefficients for spherical harmonic transform.
-   * - :func:`~s2fft.precompute_transforms.alt_construct.wigner_kernel`
-     - Builds a high-spin stable kernel including quadrature weights and Wigner-D coefficients for Wigner transform.
+   * - :func:`~s2fft.precompute_transforms.construct.spin_spherical_kernel_jax`
+     - Builds a kernel including quadrature weights and Wigner-D coefficients for spherical harmonic transform (JAX).
+   * - :func:`~s2fft.precompute_transforms.construct.wigner_kernel_jax`
+     - Builds a kernel including quadrature weights and Wigner-D coefficients for Wigner transform (JAX).
    * - :func:`~s2fft.precompute_transforms.construct.healpix_phase_shifts`
      - Builds a vector of corresponding phase shifts for each HEALPix latitudinal ring.
 
