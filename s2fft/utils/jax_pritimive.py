@@ -7,10 +7,6 @@ from jax.interpreters import batching
 # dispatch is not exposed outside of jax._src
 from jax._src import dispatch
 
-# Inspired by https://github.com/NVIDIA/TransformerEngine/blob/main/transformer_engine/jax/cpp_extensions.py
-# and by the tweaked version in https://github.com/DifferentiableUniverseInitiative/jaxDecomp/blob/main/jaxdecomp/_src/spmd_ops.py
-
-
 class BasePrimitive(metaclass=ABCMeta):
   """
     jax primitive
