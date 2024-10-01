@@ -23,27 +23,8 @@ if(CMAKE_CUDA_COMPILER)
   message(STATUS "CUDA compiler found: ${CMAKE_CUDA_COMPILER}")
 
   if(NOT SKBUILD)
-    message(WARNING "This is being compiled as a standalone project (without pip install)"
-                    "\nTo compile as a python package, use the command: \n\tpython -m pip install s2fft"
-                    "\nThis will create the testing executable only and is meant only for s2fft developers")
-
-    add_executable(_s2fftExe   
-                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft.cu 
-                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/plan_cache.cc 
-                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft_kernels.cu 
-                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft_callbacks.cu
-                    ${CMAKE_CURRENT_LIST_DIR}/lib/src/fft_test.cu
-                  )
-
-    target_link_libraries(_s2fftExe PRIVATE CUDA::cudart_static CUDA::cufft_static CUDA::culibos)
-    target_include_directories(_s2fftExe PUBLIC ${CMAKE_CURRENT_LIST_DIR}/lib/include) 
-    set_target_properties(_s2fftExe PROPERTIES 
-                        LINKER_LANGUAGE CUDA
-                        CUDA_SEPARABLE_COMPILATION ON)
-    set(CMAKE_CUDA_ARCHITECTURES "70;80;89" CACHE STRING "List of CUDA compute capabilities to build cuDecomp for.")
-    message(STATUS "CUDA_ARCHITECTURES: ${CMAKE_CUDA_ARCHITECTURES}")
-    set_target_properties(_s2fftExe PROPERTIES CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
-
+    message(FATAL_ERROR "Building standalone project directly without pip install is not supported"
+                        "Please use pip install to build the project")
   else()
     find_package(CUDAToolkit REQUIRED)
 
@@ -96,8 +77,8 @@ else()
     install(TARGETS _s2fft LIBRARY DESTINATION s2fft_lib)
 
   else()
-    message(FATAL_ERROR "Building standalone project without CUDA support is not supported.")
-    message(FATAL_ERROR "Please install CUDA and run CMake again.")
+    message(FATAL_ERROR "Building standalone project directly without pip install is not supported"
+                        "Please use pip install to build the project")
   endif()
 endif()
 
