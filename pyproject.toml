@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
@@ -37,7 +38,9 @@ dependencies = [
     "ducc0",
 ]
 dynamic = [
-    "version"
+    "version",
+    "dependencies",
+    "optional-dependencies",
 ]
 keywords = [
 ]
@@ -108,4 +111,3 @@ s2fft = ["default-logging-config.yaml"]
 [tool.setuptools_scm]
 local_scheme = "no-local-version"
 write_to = "s2fft/_version.py"
-
