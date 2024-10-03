@@ -1,6 +1,5 @@
 graft s2fft
 graft tests
-graft requirements
 graft docs
 
 include .pip_readme.rst
