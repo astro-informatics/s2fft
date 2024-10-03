@@ -1,19 +1,19 @@
-from jax import jit, vmap
+from functools import partial
 
 import numpy as np
 import jax.numpy as jnp
-import torch
-from s2fft.sampling import s2_samples as samples
-from functools import partial
-from s2fft.utils.jax_primitive import BasePrimitive, register_primitive
 import jaxlib.mlir.ir as ir
-from s2fft_lib import _s2fft
+import torch
+from jax import jit, vmap
+from jax.lib import xla_client
 from jaxlib.hlo_helpers import custom_call
-from jax.core import  ShapedArray
-from typing import Tuple
-from jax import ShapeDtypeStruct
+
 # did not find promote_dtypes_complex outside _src
 from jax._src.numpy.util import promote_dtypes_complex
+
+from s2fft.utils.jax_primitive import register_primitive
+from s2fft.sampling import s2_samples as samples
+from s2fft_lib import _s2fft
 
 
 def spectral_folding(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
@@ -204,7 +204,7 @@ def healpix_fft(
 
         nside (int): HEALPix Nside resolution parameter.
 
-        method (str, optional): Evaluation method in {"numpy", "jax", "torch"}.
+        method (str, optional): Evaluation method in {"numpy", "jax", "torch", "cuda"}.
             Defaults to "numpy".
 
         reality (bool): Whether the signal on the sphere is real.  If so,
@@ -212,7 +212,7 @@ def healpix_fft(
             Defaults to False.
 
     Raises:
-        ValueError: Deployment method not in {"numpy", "jax", "torch"}.
+        ValueError: Deployment method not in {"numpy", "jax", "torch", "cuda"}.
 
     Returns:
         np.ndarray: Array of Fourier coefficients for all latitudes.
@@ -487,7 +487,7 @@ def healpix_ifft_jax(
         if reality and nphi == 2 * L:
             return jnp.fft.irfft(fm_chunks[:, nphi // 2 :], nphi, norm="forward")
         else:
-            return jnp.fft.ifft(jnp.fft.ifftshift(fm_chunks , axes=-1), norm="forward")
+            return jnp.fft.ifft(jnp.fft.ifftshift(fm_chunks, axes=-1), norm="forward")
 
     # Process ftm rows corresponding to pairs of polar theta rings with the same number
     # of phi samples together to reduce size of unrolled traced computational graph
@@ -653,71 +653,55 @@ def ring_phase_shifts_hp_jax(
         "t, m->tm", phi_offsets, jnp.arange(m_start_ind, L), optimize=True
     )
     return jnp.exp(sign * 1j * exponent)
-            
 
 
-## Cuda primitive ##
+# Custom healpix_fft_cuda primitive
 
-class HealpixFFTPrimitive(BasePrimitive):
 
-  name = "HealpixFFT"
-  multiple_results = False
-  impl_static_args = (1, 2, 3, 4)
-  inner_primitive = None
-  outer_primitive = None
-
-  @staticmethod
-  def abstract(f, L, nside, reality, fft_type , norm):
-
-    # For the forward pass, the input is a HEALPix pixel-space array of size nside^2 * 12 and the output is
-    # a FTM array of shape (number of rings , width of FTM slice) which is (4 * nside - 1 , 2 * L  )
+def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm):
+    # For the forward pass, the input is a HEALPix pixel-space array of size nside^2 *
+    # 12 and the output is a FTM array of shape (number of rings , width of FTM slice)
+    # which is (4 * nside - 1 , 2 * L  )
     healpix_size = (nside**2 * 12,)
     ftm_size = (4 * nside - 1, 2 * L)
-    if fft_type == 'forward':
-      assert f.shape == healpix_size
-      return f.update(shape=ftm_size, dtype=f.dtype)
-    elif fft_type == 'backward':
-      print(f"f.shape {f.shape}")
-      assert f.shape == ftm_size
-      return f.update(shape=healpix_size, dtype=f.dtype)
+    if fft_type == "forward":
+        assert f.shape == healpix_size
+        return f.update(shape=ftm_size, dtype=f.dtype)
+    elif fft_type == "backward":
+        print(f"f.shape {f.shape}")
+        assert f.shape == ftm_size
+        return f.update(shape=healpix_size, dtype=f.dtype)
     else:
-      raise ValueError(f"fft_type {fft_type} not recognised.")
+        raise ValueError(f"fft_type {fft_type} not recognised.")
 
-  @staticmethod
-  def lowering(ctx, f, *, L, nside, reality, fft_type , norm):
-    (x_aval,) = ctx.avals_in
+
+def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm):
     (aval_out,) = ctx.avals_out
-    dtype = x_aval.dtype
     a_type = ir.RankedTensorType(f.type)
 
     out_dtype = aval_out.dtype
     if out_dtype == np.complex64:
-      out_type = ir.ComplexType.get(ir.F32Type.get())
-      is_double = False
+        out_type = ir.ComplexType.get(ir.F32Type.get())
+        is_double = False
     elif out_dtype == np.complex128:
-      out_type = ir.ComplexType.get(ir.F64Type.get())
-      is_double = True
+        out_type = ir.ComplexType.get(ir.F64Type.get())
+        is_double = True
     else:
-      raise ValueError(f'Unknown output type {out_dtype}')
+        raise ValueError(f"Unknown output type {out_dtype}")
 
     out_type = ir.RankedTensorType.get(aval_out.shape, out_type)
 
-    forward = fft_type == 'forward'
-    if forward and norm == 'backward':
-      normalize = False
-    elif not forward and norm == 'forward':
-      normalize = False
-    elif forward and norm == 'forward':
-      normalize = True
-    elif not forward and norm == 'backward':
-      normalize = True
+    forward = fft_type == "forward"
+    if (forward and norm == "backward") or (not forward and norm == "forward"):
+        normalize = False
+    elif (forward and norm == "forward") or (not forward and norm == "backward"):
+        normalize = True
     else:
-      raise ValueError(f'Unknown norm {norm}')
+        raise ValueError(f"Unknown norm {norm}")
 
-    # std::pair<size_t, nb::bytes> build_healpix_fft_descriptor(int nside, int harmonic_band_limit, bool reality,
-    #                                                   bool forward, bool double_precision)
-    opaque = _s2fft.build_healpix_fft_descriptor(nside, L, reality, forward, normalize,
-                                                 is_double)
+    descriptor = _s2fft.build_healpix_fft_descriptor(
+        nside, L, reality, forward, normalize, is_double
+    )
 
     layout = tuple(range(len(a_type.shape) - 1, -1, -1))
     out_layout = tuple(range(len(out_type.shape) - 1, -1, -1))
@@ -729,50 +713,74 @@ class HealpixFFTPrimitive(BasePrimitive):
         operand_layouts=[layout],
         result_layouts=[out_layout],
         has_side_effect=True,
-        # For the future, this will be used in multi GPU healpix fft
-        # operand_output_aliases={0: 0},
-        backend_config=opaque,
+        backend_config=descriptor,
     )
-    # For multi GPU healpix fft, I will be using XLA buffer donation functionality
-    # Which will return the same shape as the input in the CUDA primitive then it will be reshaped to the output shape
-    # return hlo.ReshapeOp(mlir.aval_to_ir_type(aval_out), result).results
     return result.results
 
-  @staticmethod
-  def impl(f, L, nside, reality, fft_type , norm):
-    return HealpixFFTPrimitive.inner_primitive.bind(f, L, nside, reality,
-                                                    fft_type)
 
-  # Multi GPU part
+# Register healpfix_fft_cuda custom call target
+for name, fn in _s2fft.registration().items():
+    xla_client.register_custom_call_target(name, fn, platform="gpu")
 
-  # @staticmethod
-  # def per_shard_impl():
-  #   return NotImplemented
-  #
-  # @staticmethod
-  # def infer_sharding_from_operands(L, nside, reality, fft_type, mesh: Mesh,
-  #                                  arg_infos: Tuple[ShapeDtypeStruct],
-  #                                  result_infos: Tuple[ShapedArray]):
-  #   return NotImplemented
-  #
-  # @staticmethod
-  # def partition(L, nside, reality, fft_type, mesh: Mesh,
-  #               arg_shapes: Tuple[Tuple[int]], result_shape: Tuple[int]):
-  #   return NotImplemented
-  #
-
-register_primitive(HealpixFFTPrimitive)
+_healpix_fft_cuda_primitive = register_primitive(
+    "healpix_fft_cuda",
+    multiple_results=False,
+    abstract_evaluation=_healpix_fft_cuda_abstract,
+    lowering_per_platform={None: _healpix_fft_cuda_lowering},
+)
 
 
 @partial(jit, static_argnums=(1, 2, 3))
-def healpix_fft_cuda(f, L, nside, reality , norm='backward'):
-  (f,) = promote_dtypes_complex(f)
-  return HealpixFFTPrimitive.inner_primitive.bind(
-      f, L=L, nside=nside, reality=reality, fft_type='forward', norm=norm)
+def healpix_fft_cuda(
+    f: jnp.ndarray, L: int, nside: int, reality: bool, norm: str = "backward"
+) -> jnp.ndarray:
+    """Healpix FFT JAX implementation using custom CUDA primitive.
+    
+    Computes the Forward Fast Fourier Transform with spectral back-projection
+    in the polar regions to manually enforce Fourier periodicity.
+
+    Args:
+        f (jnp.ndarray): HEALPix pixel-space array.
+
+        L (int): Harmonic band-limit.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
+    Returns:
+        jnp.ndarray: Array of Fourier coefficients for all latitudes.
+    """
+    (f,) = promote_dtypes_complex(f)
+    return _healpix_fft_cuda_primitive.bind(
+        f, L=L, nside=nside, reality=reality, fft_type="forward", norm=norm
+    )
 
 
 @partial(jit, static_argnums=(1, 2, 3))
-def healpix_ifft_cuda(f, L, nside, reality , norm='forward'):
-  (f,) = promote_dtypes_complex(f)
-  return HealpixFFTPrimitive.inner_primitive.bind(
-      f, L=L, nside=nside, reality=reality, fft_type='backward', norm=norm)
+def healpix_ifft_cuda(
+    ftm: jnp.ndarray, L: int, nside: int, reality: bool, norm: str = "forward"
+) -> jnp.ndarray:
+    """Healpix IFFT JAX implementation using custom CUDA primitive.
+    
+    Computes the inverse fast Fourier transform with spectral folding in the polar
+    regions to mitigate aliasing.
+
+    Args:
+        ftm (jnp.ndarray): Array of Fourier coefficients for all latitudes.
+
+        L (int): Harmonic band-limit.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
+    Returns:
+        jnp.ndarray: HEALPix pixel-space array.
+    """
+    (ftm,) = promote_dtypes_complex(ftm)
+    return _healpix_fft_cuda_primitive.bind(
+        ftm, L=L, nside=nside, reality=reality, fft_type="backward", norm=norm
+    )
