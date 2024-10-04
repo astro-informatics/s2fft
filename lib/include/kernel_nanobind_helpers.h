@@ -1,3 +1,6 @@
+// Adapted from code by JAX authors
+// https://github.com/jax-ml/jax/blob/3d389a7fb440c412d/jaxlib/kernel_nanobind_helpers.h
+
 /* Copyright 2019 The JAX Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
