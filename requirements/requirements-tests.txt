@@ -1,7 +1,6 @@
 # Testing
 pytest 
 pytest-cov
-codecov
 
 # Benchmarking for Wigner transforms
 so3
