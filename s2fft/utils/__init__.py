@@ -7,3 +7,4 @@ from . import resampling_torch
 from . import healpix_ffts
 from . import signal_generator
 from . import rotation
+from . import jax_primitive

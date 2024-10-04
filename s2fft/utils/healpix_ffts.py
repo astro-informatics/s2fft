@@ -1,10 +1,19 @@
-from jax import jit, vmap
+from functools import partial
 
 import numpy as np
 import jax.numpy as jnp
+import jaxlib.mlir.ir as ir
 import torch
+from jax import jit, vmap
+from jax.lib import xla_client
+from jaxlib.hlo_helpers import custom_call
+
+# did not find promote_dtypes_complex outside _src
+from jax._src.numpy.util import promote_dtypes_complex
+
+from s2fft.utils.jax_primitive import register_primitive
 from s2fft.sampling import s2_samples as samples
-from functools import partial
+from s2fft_lib import _s2fft
 
 
 def spectral_folding(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
@@ -195,7 +204,7 @@ def healpix_fft(
 
         nside (int): HEALPix Nside resolution parameter.
 
-        method (str, optional): Evaluation method in {"numpy", "jax", "torch"}.
+        method (str, optional): Evaluation method in {"numpy", "jax", "torch", "cuda"}.
             Defaults to "numpy".
 
         reality (bool): Whether the signal on the sphere is real.  If so,
@@ -203,7 +212,7 @@ def healpix_fft(
             Defaults to False.
 
     Raises:
-        ValueError: Deployment method not in {"numpy", "jax", "torch"}.
+        ValueError: Deployment method not in {"numpy", "jax", "torch", "cuda"}.
 
     Returns:
         np.ndarray: Array of Fourier coefficients for all latitudes.
@@ -212,6 +221,8 @@ def healpix_fft(
         return healpix_fft_numpy(f, L, nside, reality)
     elif method.lower() == "jax":
         return healpix_fft_jax(f, L, nside, reality)
+    elif method.lower() == "cuda":
+        return healpix_fft_cuda(f, L, nside, reality)
     elif method.lower() == "torch":
         return healpix_fft_torch(f, L, nside, reality)
     else:
@@ -400,6 +411,8 @@ def healpix_ifft(
         return healpix_ifft_numpy(ftm, L, nside, reality)
     elif method.lower() == "jax":
         return healpix_ifft_jax(ftm, L, nside, reality)
+    elif method.lower() == "cuda":
+        return healpix_ifft_cuda(ftm, L, nside, reality)
     elif method.lower() == "torch":
         return healpix_ifft_torch(ftm, L, nside, reality)
     else:
@@ -474,11 +487,7 @@ def healpix_ifft_jax(
         if reality and nphi == 2 * L:
             return jnp.fft.irfft(fm_chunks[:, nphi // 2 :], nphi, norm="forward")
         else:
-            return jnp.conj(
-                jnp.fft.fft(
-                    jnp.fft.ifftshift(jnp.conj(fm_chunks), axes=-1), norm="backward"
-                )
-            )
+            return jnp.fft.ifft(jnp.fft.ifftshift(fm_chunks, axes=-1), norm="forward")
 
     # Process ftm rows corresponding to pairs of polar theta rings with the same number
     # of phi samples together to reduce size of unrolled traced computational graph
@@ -644,3 +653,134 @@ def ring_phase_shifts_hp_jax(
         "t, m->tm", phi_offsets, jnp.arange(m_start_ind, L), optimize=True
     )
     return jnp.exp(sign * 1j * exponent)
+
+
+# Custom healpix_fft_cuda primitive
+
+
+def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm):
+    # For the forward pass, the input is a HEALPix pixel-space array of size nside^2 *
+    # 12 and the output is a FTM array of shape (number of rings , width of FTM slice)
+    # which is (4 * nside - 1 , 2 * L  )
+    healpix_size = (nside**2 * 12,)
+    ftm_size = (4 * nside - 1, 2 * L)
+    if fft_type == "forward":
+        assert f.shape == healpix_size
+        return f.update(shape=ftm_size, dtype=f.dtype)
+    elif fft_type == "backward":
+        print(f"f.shape {f.shape}")
+        assert f.shape == ftm_size
+        return f.update(shape=healpix_size, dtype=f.dtype)
+    else:
+        raise ValueError(f"fft_type {fft_type} not recognised.")
+
+
+def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm):
+    (aval_out,) = ctx.avals_out
+    a_type = ir.RankedTensorType(f.type)
+
+    out_dtype = aval_out.dtype
+    if out_dtype == np.complex64:
+        out_type = ir.ComplexType.get(ir.F32Type.get())
+        is_double = False
+    elif out_dtype == np.complex128:
+        out_type = ir.ComplexType.get(ir.F64Type.get())
+        is_double = True
+    else:
+        raise ValueError(f"Unknown output type {out_dtype}")
+
+    out_type = ir.RankedTensorType.get(aval_out.shape, out_type)
+
+    forward = fft_type == "forward"
+    if (forward and norm == "backward") or (not forward and norm == "forward"):
+        normalize = False
+    elif (forward and norm == "forward") or (not forward and norm == "backward"):
+        normalize = True
+    else:
+        raise ValueError(f"Unknown norm {norm}")
+
+    descriptor = _s2fft.build_healpix_fft_descriptor(
+        nside, L, reality, forward, normalize, is_double
+    )
+
+    layout = tuple(range(len(a_type.shape) - 1, -1, -1))
+    out_layout = tuple(range(len(out_type.shape) - 1, -1, -1))
+
+    result = custom_call(
+        "healpix_fft_cuda",
+        result_types=[out_type],
+        operands=[f],
+        operand_layouts=[layout],
+        result_layouts=[out_layout],
+        has_side_effect=True,
+        backend_config=descriptor,
+    )
+    return result.results
+
+
+# Register healpfix_fft_cuda custom call target
+for name, fn in _s2fft.registration().items():
+    xla_client.register_custom_call_target(name, fn, platform="gpu")
+
+_healpix_fft_cuda_primitive = register_primitive(
+    "healpix_fft_cuda",
+    multiple_results=False,
+    abstract_evaluation=_healpix_fft_cuda_abstract,
+    lowering_per_platform={None: _healpix_fft_cuda_lowering},
+)
+
+
+@partial(jit, static_argnums=(1, 2, 3))
+def healpix_fft_cuda(
+    f: jnp.ndarray, L: int, nside: int, reality: bool, norm: str = "backward"
+) -> jnp.ndarray:
+    """Healpix FFT JAX implementation using custom CUDA primitive.
+    
+    Computes the Forward Fast Fourier Transform with spectral back-projection
+    in the polar regions to manually enforce Fourier periodicity.
+
+    Args:
+        f (jnp.ndarray): HEALPix pixel-space array.
+
+        L (int): Harmonic band-limit.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
+    Returns:
+        jnp.ndarray: Array of Fourier coefficients for all latitudes.
+    """
+    (f,) = promote_dtypes_complex(f)
+    return _healpix_fft_cuda_primitive.bind(
+        f, L=L, nside=nside, reality=reality, fft_type="forward", norm=norm
+    )
+
+
+@partial(jit, static_argnums=(1, 2, 3))
+def healpix_ifft_cuda(
+    ftm: jnp.ndarray, L: int, nside: int, reality: bool, norm: str = "forward"
+) -> jnp.ndarray:
+    """Healpix IFFT JAX implementation using custom CUDA primitive.
+    
+    Computes the inverse fast Fourier transform with spectral folding in the polar
+    regions to mitigate aliasing.
+
+    Args:
+        ftm (jnp.ndarray): Array of Fourier coefficients for all latitudes.
+
+        L (int): Harmonic band-limit.
+
+        nside (int): HEALPix Nside resolution parameter.
+
+        reality (bool): Whether the signal on the sphere is real.  If so,
+            conjugate symmetry is exploited to reduce computational costs.
+
+    Returns:
+        jnp.ndarray: HEALPix pixel-space array.
+    """
+    (ftm,) = promote_dtypes_complex(ftm)
+    return _healpix_fft_cuda_primitive.bind(
+        ftm, L=L, nside=nside, reality=reality, fft_type="backward", norm=norm
+    )
