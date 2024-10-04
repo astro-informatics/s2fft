@@ -290,7 +290,7 @@ it will be of use to a wider community.
 Copyright 2023 Matthew Price, Jason McEwen and contributors.
 
 `S2FFT` is free software made available under the MIT License. For
-details see the [`LICENSE.txt`](LICENSE.txt) file.
+details see the [`LICENCE.txt`](LICENCE.txt) file.
 
 The file [`lib/include/kernel_helpers.h`](lib/include/kernel_helpers.h) is adapted from
 [code](https://github.com/dfm/extending-jax/blob/c33869665236877a2ae281f3f5dbff579e8f5b00/lib/kernel_helpers.h) in [a tutorial on extending JAX](https://github.com/dfm/extending-jax) by 
