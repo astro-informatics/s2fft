@@ -100,7 +100,7 @@ filterwarnings = [
 ]
 
 [tool.ruff]
-# fix = true
+fix = true
 force-exclude = true
 format.exclude = ["*.ipynb"]
 lint.exclude = ["*.ipynb"]
