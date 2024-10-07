@@ -1,7 +1,7 @@
 """Collection of shared fixtures"""
 from functools import partial
-import pytest
 
+import pytest
 
 DEFAULT_SEED = 8966433580120847635
 
@@ -38,7 +38,6 @@ def rng(seed):
 def flm_generator(rng):
     # Import s2fft (and indirectly numpy) locally to avoid
     # `RuntimeWarning: numpy.ndarray size changed` when importing at module level
-    import s2fft as s2f
     from s2fft.utils import signal_generator
 
     return partial(signal_generator.generate_flm, rng)

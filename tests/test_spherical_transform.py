@@ -1,14 +1,14 @@
-import jax
-
-jax.config.update("jax_enable_x64", True)
-import pytest
-import pyssht as ssht
-import numpy as np
 import healpy as hp
+import jax
+import numpy as np
+import pyssht as ssht
+import pytest
 
+from s2fft.recursions.price_mcewen import generate_precomputes
 from s2fft.sampling import s2_samples as samples
 from s2fft.transforms import spherical
-from s2fft.recursions.price_mcewen import generate_precomputes
+
+jax.config.update("jax_enable_x64", True)
 
 L_to_test = [6, 7]
 L_lower_to_test = [0, 2]
@@ -190,10 +190,10 @@ def test_spin_exceptions(flm_generator):
     flm = flm_generator(L=L, reality=False)
     f = spherical.inverse(flm, L, spin=0, sampling=sampling, method="jax_ssht")
 
-    with pytest.raises(Warning) as e:
+    with pytest.raises(Warning):
         spherical.inverse(flm, L, spin=spin, sampling=sampling, method="jax")
 
-    with pytest.raises(Warning) as e:
+    with pytest.raises(Warning):
         spherical.forward(f, L, spin=spin, sampling=sampling, method="jax")
 
 
@@ -205,10 +205,10 @@ def test_sampling_ssht_backend_exceptions(flm_generator):
     flm = flm_generator(L=L, reality=False)
     f = spherical.inverse(flm, L, 0, nside, sampling, "jax_healpy")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         spherical.inverse(flm, L, 0, nside, sampling, "jax_ssht")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         spherical.forward(f, L, 0, nside, sampling, "jax_ssht")
 
 
@@ -219,16 +219,16 @@ def test_sampling_healpy_backend_exceptions(flm_generator):
     flm = flm_generator(L=L, reality=False)
     f = spherical.inverse(flm, L, 0, None, sampling, "jax_ssht")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         spherical.inverse(flm, L, 0, None, sampling, "jax_healpy")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         spherical.forward(f, L, 0, None, sampling, "jax_healpy")
 
 
 def test_sampling_exceptions(flm_generator):
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         spherical.inverse(None, 0, 0, None, method="incorrect")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         spherical.forward(None, 0, 0, None, method="incorrect")

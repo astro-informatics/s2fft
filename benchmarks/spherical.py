@@ -2,11 +2,11 @@
 
 import numpy as np
 import pyssht
+from benchmarking import benchmark, parse_args_collect_and_run_benchmarks, skip
+
 import s2fft
 from s2fft.recursions.price_mcewen import generate_precomputes
 from s2fft.sampling import s2_samples as samples
-from benchmarking import benchmark, skip, parse_args_collect_and_run_benchmarks
-
 
 L_VALUES = [8, 16, 32, 64, 128, 256]
 L_LOWER_VALUES = [0]

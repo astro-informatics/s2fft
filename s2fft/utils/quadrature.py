@@ -1,12 +1,14 @@
 import numpy as np
 import numpy.fft as fft
+
 from s2fft.sampling import s2_samples as samples
 
 
 def quad_weights_transform(
     L: int, sampling: str = "mwss", spin: int = 0, nside: int = 0
 ) -> np.ndarray:
-    r"""Compute quadrature weights for :math:`\theta` and :math:`\phi`
+    r"""
+    Compute quadrature weights for :math:`\theta` and :math:`\phi`
     integration *to use in transform* for various sampling schemes.
 
     Quadrature weights to use in transform for MWSS correspond to quadrature weights
@@ -30,8 +32,8 @@ def quad_weights_transform(
         np.ndarray: Quadrature weights *to use in transform* for sampling scheme for
         each :math:`\theta` (weights are identical as :math:`\phi` varies for given
         :math:`\theta`).
-    """
 
+    """
     if sampling.lower() == "mwss":
         return quad_weights_mwss_theta_only(2 * L, spin=0) * 2 * np.pi / (2 * L)
 
@@ -51,7 +53,8 @@ def quad_weights_transform(
 def quad_weights(
     L: int = None, sampling: str = "mw", spin: int = 0, nside: int = None
 ) -> np.ndarray:
-    r"""Compute quadrature weights for :math:`\theta` and :math:`\phi`
+    r"""
+    Compute quadrature weights for :math:`\theta` and :math:`\phi`
     integration for various sampling schemes.
 
     Args:
@@ -72,8 +75,8 @@ def quad_weights(
     Returns:
         np.ndarray: Quadrature weights for sampling scheme for each :math:`\theta`
         (weights are identical as :math:`\phi` varies for given :math:`\theta`).
-    """
 
+    """
     if sampling.lower() == "mw":
         return quad_weights_mw(L, spin)
 
@@ -94,7 +97,8 @@ def quad_weights(
 
 
 def quad_weights_hp(nside: int) -> np.ndarray:
-    r"""Compute HEALPix quadrature weights for :math:`\theta` and :math:`\phi`
+    r"""
+    Compute HEALPix quadrature weights for :math:`\theta` and :math:`\phi`
     integration.
 
     Note:
@@ -108,8 +112,8 @@ def quad_weights_hp(nside: int) -> np.ndarray:
     Returns:
         np.ndarray: Weights computed for each :math:`\theta` (all weights in array are
         identical).
-    """
 
+    """
     npix = 12 * nside**2
     rings = samples.ntheta(sampling="healpix", nside=nside)
     hp_weights = np.zeros(rings, dtype=np.float64)
@@ -119,7 +123,8 @@ def quad_weights_hp(nside: int) -> np.ndarray:
 
 
 def quad_weights_gl(L: int) -> np.ndarray:
-    r"""Compute GL quadrature weights for :math:`\theta` and :math:`\phi` integration.
+    r"""
+    Compute GL quadrature weights for :math:`\theta` and :math:`\phi` integration.
 
     Args:
         L (int): Harmonic band-limit.
@@ -127,6 +132,7 @@ def quad_weights_gl(L: int) -> np.ndarray:
     Returns:
         np.ndarray: Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
+
     """
     x1, x2 = -1.0, 1.0
     ntheta = samples.ntheta(L, "gl")
@@ -156,7 +162,8 @@ def quad_weights_gl(L: int) -> np.ndarray:
 
 
 def quad_weights_dh(L: int) -> np.ndarray:
-    r"""Compute DH quadrature weights for :math:`\theta` and :math:`\phi` integration.
+    r"""
+    Compute DH quadrature weights for :math:`\theta` and :math:`\phi` integration.
 
     Args:
         L (int): Harmonic band-limit.
@@ -164,15 +171,16 @@ def quad_weights_dh(L: int) -> np.ndarray:
     Returns:
         np.ndarray: Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
-    """
 
+    """
     q = quad_weight_dh_theta_only(samples.thetas(L, sampling="dh"), L)
 
     return q * 2 * np.pi / (2 * L - 1)
 
 
 def quad_weight_dh_theta_only(theta: float, L: int) -> float:
-    r"""Compute DH quadrature weight for :math:`\theta` integration (only), for given
+    r"""
+    Compute DH quadrature weight for :math:`\theta` integration (only), for given
     :math:`\theta`.
 
     Args:
@@ -182,8 +190,8 @@ def quad_weight_dh_theta_only(theta: float, L: int) -> float:
 
     Returns:
         float: Weight computed for each :math:`\theta`.
-    """
 
+    """
     w = 0.0
     for k in range(0, L):
         w += np.sin((2 * k + 1) * theta) / (2 * k + 1)
@@ -194,7 +202,8 @@ def quad_weight_dh_theta_only(theta: float, L: int) -> float:
 
 
 def quad_weights_mw(L: int, spin: int = 0) -> np.ndarray:
-    r"""Compute MW quadrature weights for :math:`\theta` and :math:`\phi` integration.
+    r"""
+    Compute MW quadrature weights for :math:`\theta` and :math:`\phi` integration.
 
     Args:
         L (int): Harmonic band-limit.
@@ -204,13 +213,14 @@ def quad_weights_mw(L: int, spin: int = 0) -> np.ndarray:
     Returns:
         np.ndarray: Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
-    """
 
+    """
     return quad_weights_mw_theta_only(L, spin) * 2 * np.pi / (2 * L - 1)
 
 
 def quad_weights_mwss(L: int, spin: int = 0) -> np.ndarray:
-    r"""Compute MWSS quadrature weights for :math:`\theta` and :math:`\phi` integration.
+    r"""
+    Compute MWSS quadrature weights for :math:`\theta` and :math:`\phi` integration.
 
     Args:
         L (int): Harmonic band-limit.
@@ -220,13 +230,14 @@ def quad_weights_mwss(L: int, spin: int = 0) -> np.ndarray:
     Returns:
         np.ndarray: Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
-    """
 
+    """
     return quad_weights_mwss_theta_only(L, spin) * 2 * np.pi / (2 * L)
 
 
 def quad_weights_mwss_theta_only(L: int, spin: int = 0) -> np.ndarray:
-    r"""Compute MWSS quadrature weights for :math:`\theta` integration (only).
+    r"""
+    Compute MWSS quadrature weights for :math:`\theta` integration (only).
 
     Args:
         L (int): Harmonic band-limit.
@@ -235,8 +246,8 @@ def quad_weights_mwss_theta_only(L: int, spin: int = 0) -> np.ndarray:
 
     Returns:
         np.ndarray: Weights computed for each :math:`\theta`.
-    """
 
+    """
     w = np.zeros(2 * L, dtype=np.complex128)
     # Extra negative m, so logically -el-1 <= m <= el.
     for i in range(-(L - 1) + 1, L + 1):
@@ -252,7 +263,8 @@ def quad_weights_mwss_theta_only(L: int, spin: int = 0) -> np.ndarray:
 
 
 def quad_weights_mw_theta_only(L: int, spin: int = 0) -> np.ndarray:
-    r"""Compute MW quadrature weights for :math:`\theta` integration (only).
+    r"""
+    Compute MW quadrature weights for :math:`\theta` integration (only).
 
     Args:
         L (int): Harmonic band-limit.
@@ -261,8 +273,8 @@ def quad_weights_mw_theta_only(L: int, spin: int = 0) -> np.ndarray:
 
     Returns:
         np.ndarray: Weights computed for each :math:`\theta`.
-    """
 
+    """
     w = np.zeros(2 * L - 1, dtype=np.complex128)
     for i in range(-(L - 1), L):
         w[i + L - 1] = mw_weights(i)
@@ -277,7 +289,8 @@ def quad_weights_mw_theta_only(L: int, spin: int = 0) -> np.ndarray:
 
 
 def mw_weights(m: int) -> float:
-    r"""Compute MW weights given as a function of index m.
+    r"""
+    Compute MW weights given as a function of index m.
 
     MW weights are defined by
 
@@ -292,8 +305,8 @@ def mw_weights(m: int) -> float:
 
     Returns:
         float: MW weight.
-    """
 
+    """
     if m == 1:
         return 1j * np.pi / 2
 

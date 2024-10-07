@@ -1,6 +1,7 @@
+import numpy as np
 import pytest
 import so3
-import numpy as np
+
 from s2fft.sampling import so3_samples as samples
 
 L_to_test = [8, 16]
@@ -59,7 +60,7 @@ def test_elmn2ind(s2fft_to_so3_sampling, L: int, N: int, sampling: str):
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
-def test_so3_samples(flmn_generator, L: int, N: int):
+def test_so3_samples_2(flmn_generator, L: int, N: int):
     flmn_3D = flmn_generator(L=L, N=N, reality=False)
     flmn_1D = samples.flmn_3d_to_1d(flmn_3D, L, N)
     flmn_3D_test = samples.flmn_1d_to_3d(flmn_1D, L, N)

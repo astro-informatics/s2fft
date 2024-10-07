@@ -1,9 +1,11 @@
-import numpy as np
 from warnings import warn
+
+import numpy as np
 
 
 def compute_full(beta: float, el: int, L: int) -> np.ndarray:
-    r"""Compute the complete Wigner-d matrix at polar angle :math:`\beta` using
+    r"""
+    Compute the complete Wigner-d matrix at polar angle :math:`\beta` using
     Turok & Bucher recursion.
 
     The Wigner-d plane for a given :math:`\ell` (`el`) and :math:`\beta`
@@ -28,6 +30,7 @@ def compute_full(beta: float, el: int, L: int) -> np.ndarray:
 
     Returns:
         np.ndarray: Wigner-d matrix of dimension [2L-1, 2L-1].
+
     """
     if el >= L:
         raise ValueError(
@@ -41,7 +44,8 @@ def compute_full(beta: float, el: int, L: int) -> np.ndarray:
 def compute_slice(
     beta: float, el: int, L: int, mm: int, positive_m_only: bool = False
 ) -> np.ndarray:
-    r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
+    r"""
+    Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
     of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok & Bucher
     recursion.
 
@@ -82,6 +86,7 @@ def compute_slice(
 
     Returns:
         np.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
+
     """
     if el < mm:
         raise ValueError(f"Wigner-D not valid for l={el} < mm={mm}.")
@@ -95,7 +100,8 @@ def compute_slice(
         positive_m_only = False
         warn(
             "Reality acceleration only supports spin 0 fields. "
-            + "Defering to complex transform."
+            + "Defering to complex transform.",
+            stacklevel=2,
         )
 
     dl = np.zeros(2 * L - 1, dtype=np.float64)
@@ -110,7 +116,8 @@ def compute_quarter_slice(
     mm: int,
     positive_m_only: bool = False,
 ) -> np.ndarray:
-    r"""Compute a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated
+    r"""
+    Compute a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated
     at :math:`\beta`.
 
     Args:
@@ -129,6 +136,7 @@ def compute_quarter_slice(
 
     Returns:
         np.ndarray: Wigner-d matrix slice of dimension [2L-1] populated only on the mm slice.
+
     """
     # Analytically evaluate singularities
     if np.isclose(beta, 0, atol=1e-8):
@@ -227,8 +235,9 @@ def compute_quarter_slice(
     return dl
 
 
-def compute_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
-    """Compute the left quarter triangle of the Wigner-d matrix via Turok & Bucher
+def compute_quarter(dl: np.ndarray, beta: float, ell: int, L: int) -> np.ndarray:  # noqa: C901
+    """
+    Compute the left quarter triangle of the Wigner-d matrix via Turok & Bucher
     recursion.
 
     Args:
@@ -236,32 +245,33 @@ def compute_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
 
         beta (float): Polar angle in radians.
 
-        l (int): Harmonic degree of Wigner-d matrix.
+        ell (int): Harmonic degree of Wigner-d matrix.
 
         L (int): Harmonic band-limit.
 
     Returns:
         np.ndarray: Wigner-d matrix of dimension [2L-1, 2L-1] with left quarter
         triangle populated.
+
     """
     # Analytically evaluate singularities
     if np.isclose(beta, 0, atol=1e-8):
-        dl[L - 1 - l : L + l, L - 1 - l : L + l] = np.identity(
-            2 * l + 1, dtype=np.float64
+        dl[L - 1 - ell : L + ell, L - 1 - ell : L + ell] = np.identity(
+            2 * ell + 1, dtype=np.float64
         )
         return dl
 
     if np.isclose(beta, np.pi, atol=1e-8):
-        for m in range(-l, l + 1):
-            dl[L - 1 - m, L - 1 + m] = (-1) ** (l + m)
+        for m in range(-ell, ell + 1):
+            dl[L - 1 - m, L - 1 + m] = (-1) ** (ell + m)
         return dl
 
-    if l == 0:
+    if ell == 0:
         dl[L - 1, L - 1] = 1
         return dl
 
     # Define constants adopted throughout
-    lp1 = 1 - (L - 1 - l)  # Offset for indexing (currently -L < m < L in 2D)
+    lp1 = 1 - (L - 1 - ell)  # Offset for indexing (currently -L < m < L in 2D)
 
     # These constants handle overflow by retrospectively renormalising
     big_const = 1e10
@@ -277,43 +287,43 @@ def compute_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
     omc = 1.0 - c
 
     # Vectors with indexing -L < m < L adopted throughout
-    lrenorm = np.zeros(2 * l + 1, dtype=np.float64)
-    cp = np.zeros(2 * l + 1, dtype=np.float64)
-    cpi = np.zeros(2 * l + 1, dtype=np.float64)
-    cp2 = np.zeros(2 * l + 1, dtype=np.float64)
-    log_first_row = np.zeros(2 * l + 1, dtype=np.float64)
-    sign = np.zeros(2 * l + 1, dtype=np.float64)
+    lrenorm = np.zeros(2 * ell + 1, dtype=np.float64)
+    cp = np.zeros(2 * ell + 1, dtype=np.float64)
+    cpi = np.zeros(2 * ell + 1, dtype=np.float64)
+    cp2 = np.zeros(2 * ell + 1, dtype=np.float64)
+    log_first_row = np.zeros(2 * ell + 1, dtype=np.float64)
+    sign = np.zeros(2 * ell + 1, dtype=np.float64)
 
     # Populate vectors for first row
-    log_first_row[0] = 2.0 * l * np.log(np.abs(c2))
+    log_first_row[0] = 2.0 * ell * np.log(np.abs(c2))
     sign[0] = 1.0
 
-    for i in range(2, 2 * l + 2):
-        m = l + 1 - i
-        ratio = np.sqrt((m + l + 1) / (l - m))
+    for i in range(2, 2 * ell + 2):
+        m = ell + 1 - i
+        ratio = np.sqrt((m + ell + 1) / (ell - m))
         log_first_row[i - 1] = log_first_row[i - 2] + np.log(ratio) + np.log(np.abs(t))
         sign[i - 1] = sign[i - 2] * t / np.abs(t)
 
     # Initialising coefficients cp(m)= cplus(l-m).
-    for m in range(1, l + 2):
-        xm = l - m
-        cpi[m - 1] = 2.0 / np.sqrt(l * (l + 1) - xm * (xm + 1))
+    for m in range(1, ell + 2):
+        xm = ell - m
+        cpi[m - 1] = 2.0 / np.sqrt(ell * (ell + 1) - xm * (xm + 1))
         cp[m - 1] = 1.0 / cpi[m - 1]
 
-    for m in range(2, l + 2):
+    for m in range(2, ell + 2):
         cp2[m - 1] = cpi[m - 1] * cp[m - 2]
 
     dl[1 - lp1, 1 - lp1] = 1.0
-    dl[2 * l + 1 - lp1, 1 - lp1] = 1.0
+    dl[2 * ell + 1 - lp1, 1 - lp1] = 1.0
 
     # Use Turok & Bucher recursion to fill from diagonal to horizontal (lower left eight)
-    for index in range(2, l + 2):
+    for index in range(2, ell + 2):
         dl[index - lp1, 1 - lp1] = 1.0
-        lamb = ((l + 1) * omc - index + c) / s
+        lamb = ((ell + 1) * omc - index + c) / s
         dl[index - lp1, 2 - lp1] = lamb * dl[index - lp1, 1 - lp1] * cpi[0]
         if index > 2:
             for m in range(2, index):
-                lamb = ((l + 1) * omc - index + m * c) / s
+                lamb = ((ell + 1) * omc - index + m * c) / s
                 dl[index - lp1, m + 1 - lp1] = (
                     lamb * cpi[m - 1] * dl[index - lp1, m - lp1]
                     - cp2[m - 1] * dl[index - lp1, m - 1 - lp1]
@@ -325,13 +335,13 @@ def compute_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
                         dl[index - lp1, im - lp1] = dl[index - lp1, im - lp1] * bigi
 
     # Use Turok & Bucher recursion to fill horizontal to anti-diagonal (upper left eight)
-    for index in range(l + 2, 2 * l + 1):
+    for index in range(ell + 2, 2 * ell + 1):
         dl[index - lp1, 1 - lp1] = 1.0
-        lamb = ((l + 1) * omc - index + c) / s
+        lamb = ((ell + 1) * omc - index + c) / s
         dl[index - lp1, 2 - lp1] = lamb * dl[index - lp1, 1 - lp1] * cpi[0]
-        if index < 2 * l:
-            for m in range(2, 2 * l - index + 2):
-                lamb = ((l + 1) * omc - index + m * c) / s
+        if index < 2 * ell:
+            for m in range(2, 2 * ell - index + 2):
+                lamb = ((ell + 1) * omc - index + m * c) / s
                 dl[index - lp1, m + 1 - lp1] = (
                     lamb * cpi[m - 1] * dl[index - lp1, m - lp1]
                     - cp2[m - 1] * dl[index - lp1, m - 1 - lp1]
@@ -342,60 +352,62 @@ def compute_quarter(dl: np.ndarray, beta: float, l: int, L: int) -> np.ndarray:
                         dl[index - lp1, im - lp1] = dl[index - lp1, im - lp1] * bigi
 
     # Apply renormalisation
-    for i in range(1, l + 2):
+    for i in range(1, ell + 2):
         renorm = sign[i - 1] * np.exp(log_first_row[i - 1] - lrenorm[i - 1])
         for j in range(1, i + 1):
             dl[i - lp1, j - lp1] = dl[i - lp1, j - lp1] * renorm
 
-    for i in range(l + 2, 2 * l + 2):
+    for i in range(ell + 2, 2 * ell + 2):
         renorm = sign[i - 1] * np.exp(log_first_row[i - 1] - lrenorm[i - 1])
-        for j in range(1, 2 * l + 2 - i + 1):
+        for j in range(1, 2 * ell + 2 - i + 1):
             dl[i - lp1, j - lp1] = dl[i - lp1, j - lp1] * renorm
 
     return dl
 
 
-def fill(dl: np.ndarray, l: int, L: int) -> np.ndarray:
-    """Reflects Wigner-d quarter plane to complete full matrix by using symmetry
+def fill(dl: np.ndarray, ell: int, L: int) -> np.ndarray:
+    """
+    Reflects Wigner-d quarter plane to complete full matrix by using symmetry
     properties of the Wigner-d matrices.
 
     Args:
         dl (np.ndarray): Wigner-d matrix to populate by symmetry.
 
-        l (int): Harmonic degree of Wigner-d matrix.
+        ell (int): Harmonic degree of Wigner-d matrix.
 
         L (int): Harmonic band-limit.
 
     Returns:
         np.ndarray: A complete Wigner-d matrix of dimension [2L-1, 2L-1].
+
     """
-    lp1 = 1 - (L - 1 - l)  # Offset for indexing (currently -L < m < L in 2D)
+    lp1 = 1 - (L - 1 - ell)  # Offset for indexing (currently -L < m < L in 2D)
 
     # Reflect across anti-diagonal
-    for i in range(1, l + 1):
-        for j in range(l + 1, 2 * l + 1 - i + 1):
-            dl[2 * l + 2 - i - lp1, 2 * l + 2 - j - lp1] = dl[j - lp1, i - lp1]
+    for i in range(1, ell + 1):
+        for j in range(ell + 1, 2 * ell + 1 - i + 1):
+            dl[2 * ell + 2 - i - lp1, 2 * ell + 2 - j - lp1] = dl[j - lp1, i - lp1]
 
     # Reflect across diagonal
-    for i in range(1, l + 2):
+    for i in range(1, ell + 2):
         sgn = -1
-        for j in range(i + 1, l + 2):
+        for j in range(i + 1, ell + 2):
             dl[i - lp1, j - lp1] = dl[j - lp1, i - lp1] * sgn
             sgn = sgn * (-1)
 
     # Fill right matrix
-    for i in range(l + 2, 2 * l + 2):
+    for i in range(ell + 2, 2 * ell + 2):
         sgn = (-1) ** (i + 1)
 
-        for j in range(1, 2 * l + 2 - i + 1):
+        for j in range(1, 2 * ell + 2 - i + 1):
             dl[j - lp1, i - lp1] = dl[i - lp1, j - lp1] * sgn
             sgn = sgn * (-1)
 
-        for j in range(i, 2 * l + 2):
-            dl[j - lp1, i - lp1] = dl[2 * l + 2 - i - lp1, 2 * l + 2 - j - lp1]
+        for j in range(i, 2 * ell + 2):
+            dl[j - lp1, i - lp1] = dl[2 * ell + 2 - i - lp1, 2 * ell + 2 - j - lp1]
 
-    for i in range(l + 2, 2 * l + 2):
-        for j in range(2 * l + 3 - i, i - 1 + 1):
-            dl[j - lp1, i - lp1] = dl[2 * l + 2 - i - lp1, 2 * l + 2 - j - lp1]
+    for i in range(ell + 2, 2 * ell + 2):
+        for j in range(2 * ell + 3 - i, i - 1 + 1):
+            dl[j - lp1, i - lp1] = dl[2 * ell + 2 - i - lp1, 2 * ell + 2 - j - lp1]
 
     return dl

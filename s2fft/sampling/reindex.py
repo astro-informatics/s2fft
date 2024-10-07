@@ -1,11 +1,13 @@
-from jax import jit
-import jax.numpy as jnp
 from functools import partial
+
+import jax.numpy as jnp
+from jax import jit
 
 
 @partial(jit, static_argnums=(1))
 def flm_1d_to_2d_fast(flm_1d: jnp.ndarray, L: int) -> jnp.ndarray:
-    r"""Convert from 1D indexed harmnonic coefficients to 2D indexed coefficients (JAX).    
+    r"""
+    Convert from 1D indexed harmnonic coefficients to 2D indexed coefficients (JAX).
     
     Note:
         Storage conventions for harmonic coefficients :math:`flm_{(\ell,m)}`, for 
@@ -31,6 +33,7 @@ def flm_1d_to_2d_fast(flm_1d: jnp.ndarray, L: int) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: 2D indexed harmonic coefficients.
+
     """
     flm_2d = jnp.zeros((L, 2 * L - 1), dtype=jnp.complex128)
     els = jnp.arange(L)
@@ -43,7 +46,8 @@ def flm_1d_to_2d_fast(flm_1d: jnp.ndarray, L: int) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(1))
 def flm_2d_to_1d_fast(flm_2d: jnp.ndarray, L: int) -> jnp.ndarray:
-    r"""Convert from 2D indexed harmonic coefficients to 1D indexed coefficients (JAX).
+    r"""
+    Convert from 2D indexed harmonic coefficients to 1D indexed coefficients (JAX).
     
     Note:
         Storage conventions for harmonic coefficients :math:`flm_{(\ell,m)}`, for 
@@ -69,6 +73,7 @@ def flm_2d_to_1d_fast(flm_2d: jnp.ndarray, L: int) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: 1D indexed harmonic coefficients.
+
     """
     flm_1d = jnp.zeros(L**2, dtype=jnp.complex128)
     els = jnp.arange(L)
@@ -81,7 +86,8 @@ def flm_2d_to_1d_fast(flm_2d: jnp.ndarray, L: int) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(1))
 def flm_hp_to_2d_fast(flm_hp: jnp.ndarray, L: int) -> jnp.ndarray:
-    r"""Converts from HEALPix (healpy) indexed harmonic coefficients to 2D indexed
+    r"""
+    Converts from HEALPix (healpy) indexed harmonic coefficients to 2D indexed
     coefficients (JAX).
     
     Notes:
@@ -119,6 +125,7 @@ def flm_hp_to_2d_fast(flm_hp: jnp.ndarray, L: int) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: 2D indexed harmonic coefficients.
+
     """
     flm_2d = jnp.zeros((L, 2 * L - 1), dtype=jnp.complex128)
 
@@ -136,7 +143,8 @@ def flm_hp_to_2d_fast(flm_hp: jnp.ndarray, L: int) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(1))
 def flm_2d_to_hp_fast(flm_2d: jnp.ndarray, L: int) -> jnp.ndarray:
-    r"""Converts from 2D indexed harmonic coefficients to HEALPix (healpy) indexed
+    r"""
+    Converts from 2D indexed harmonic coefficients to HEALPix (healpy) indexed
     coefficients (JAX).
     
     Note:
@@ -175,6 +183,7 @@ def flm_2d_to_hp_fast(flm_2d: jnp.ndarray, L: int) -> jnp.ndarray:
         
     Returns:
         jnp.ndarray: HEALPix indexed harmonic coefficients.
+
     """
     flm_hp = jnp.zeros(int(L * (L + 1) / 2), dtype=jnp.complex128)
 

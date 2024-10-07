@@ -1,23 +1,24 @@
 from functools import partial
 
-import numpy as np
 import jax.numpy as jnp
 import jaxlib.mlir.ir as ir
+import numpy as np
 import torch
 from jax import jit, vmap
-from jax.lib import xla_client
-from jaxlib.hlo_helpers import custom_call
 
 # did not find promote_dtypes_complex outside _src
 from jax._src.numpy.util import promote_dtypes_complex
-
-from s2fft.utils.jax_primitive import register_primitive
-from s2fft.sampling import s2_samples as samples
+from jax.lib import xla_client
+from jaxlib.hlo_helpers import custom_call
 from s2fft_lib import _s2fft
+
+from s2fft.sampling import s2_samples as samples
+from s2fft.utils.jax_primitive import register_primitive
 
 
 def spectral_folding(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
-    """Folds higher frequency Fourier coefficients back onto lower frequency
+    """
+    Folds higher frequency Fourier coefficients back onto lower frequency
     coefficients, i.e. aliasing high frequencies.
 
     Args:
@@ -29,6 +30,7 @@ def spectral_folding(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
 
     Returns:
         np.ndarray: Lower resolution set of aliased Fourier coefficients.
+
     """
     assert nphi <= 2 * L
 
@@ -49,7 +51,8 @@ def spectral_folding(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
 
 
 def spectral_folding_jax(fm: jnp.ndarray, nphi: int, L: int) -> jnp.ndarray:
-    """Folds higher frequency Fourier coefficients back onto lower frequency
+    """
+    Folds higher frequency Fourier coefficients back onto lower frequency
     coefficients, i.e. aliasing high frequencies. JAX specific implementation of
     :func:`~spectral_folding`.
 
@@ -62,6 +65,7 @@ def spectral_folding_jax(fm: jnp.ndarray, nphi: int, L: int) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: Lower resolution set of aliased Fourier coefficients.
+
     """
     slice_start = L - nphi // 2
     slice_stop = slice_start + nphi
@@ -76,7 +80,8 @@ def spectral_folding_jax(fm: jnp.ndarray, nphi: int, L: int) -> jnp.ndarray:
 
 
 def spectral_folding_torch(fm: torch.tensor, nphi: int, L: int) -> torch.tensor:
-    """Folds higher frequency Fourier coefficients back onto lower frequency
+    """
+    Folds higher frequency Fourier coefficients back onto lower frequency
     coefficients, i.e. aliasing high frequencies. Torch specific implementation of
     :func:`~spectral_folding`.
 
@@ -89,6 +94,7 @@ def spectral_folding_torch(fm: torch.tensor, nphi: int, L: int) -> torch.tensor:
 
     Returns:
         torch.tensor: Lower resolution set of aliased Fourier coefficients.
+
     """
     slice_start = L - nphi // 2
     slice_stop = slice_start + nphi
@@ -109,7 +115,8 @@ def spectral_folding_torch(fm: torch.tensor, nphi: int, L: int) -> torch.tensor:
 
 
 def spectral_periodic_extension(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
-    """Extends lower frequency Fourier coefficients onto higher frequency
+    """
+    Extends lower frequency Fourier coefficients onto higher frequency
     coefficients, i.e. imposed periodicity in Fourier space.
 
     Args:
@@ -121,6 +128,7 @@ def spectral_periodic_extension(fm: np.ndarray, nphi: int, L: int) -> np.ndarray
 
     Returns:
         np.ndarray: Higher resolution set of periodic Fourier coefficients.
+
     """
     assert nphi <= 2 * L
 
@@ -142,7 +150,8 @@ def spectral_periodic_extension(fm: np.ndarray, nphi: int, L: int) -> np.ndarray
 
 
 def spectral_periodic_extension_jax(fm: jnp.ndarray, L: int) -> jnp.ndarray:
-    """Extends lower frequency Fourier coefficients onto higher frequency
+    """
+    Extends lower frequency Fourier coefficients onto higher frequency
     coefficients, i.e. imposed periodicity in Fourier space. Based on
     :func:`~spectral_periodic_extension`, modified to be JIT-compilable.
 
@@ -153,6 +162,7 @@ def spectral_periodic_extension_jax(fm: jnp.ndarray, L: int) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: Higher resolution set of periodic Fourier coefficients.
+
     """
     nphi = fm.shape[0]
     return jnp.concatenate(
@@ -165,7 +175,8 @@ def spectral_periodic_extension_jax(fm: jnp.ndarray, L: int) -> jnp.ndarray:
 
 
 def spectral_periodic_extension_torch(fm: torch.tensor, L: int) -> torch.tensor:
-    """Extends lower frequency Fourier coefficients onto higher frequency
+    """
+    Extends lower frequency Fourier coefficients onto higher frequency
     coefficients, i.e. imposed periodicity in Fourier space. Based on
     :func:`~spectral_periodic_extension`.
 
@@ -176,6 +187,7 @@ def spectral_periodic_extension_torch(fm: torch.tensor, L: int) -> torch.tensor:
 
     Returns:
         torch.tensor: Higher resolution set of periodic Fourier coefficients.
+
     """
     nphi = fm.shape[0]
     return torch.concatenate(
@@ -194,7 +206,8 @@ def healpix_fft(
     method: str = "numpy",
     reality: bool = False,
 ) -> np.ndarray:
-    """Wrapper function for the Forward Fast Fourier Transform with spectral
+    """
+    Wrapper function for the Forward Fast Fourier Transform with spectral
     back-projection in the polar regions to manually enforce Fourier periodicity.
 
     Args:
@@ -216,6 +229,7 @@ def healpix_fft(
 
     Returns:
         np.ndarray: Array of Fourier coefficients for all latitudes.
+
     """
     if method.lower() == "numpy":
         return healpix_fft_numpy(f, L, nside, reality)
@@ -230,7 +244,8 @@ def healpix_fft(
 
 
 def healpix_fft_numpy(f: np.ndarray, L: int, nside: int, reality: bool) -> np.ndarray:
-    """Computes the Forward Fast Fourier Transform with spectral back-projection
+    """
+    Computes the Forward Fast Fourier Transform with spectral back-projection
     in the polar regions to manually enforce Fourier periodicity.
 
     Args:
@@ -245,6 +260,7 @@ def healpix_fft_numpy(f: np.ndarray, L: int, nside: int, reality: bool) -> np.nd
 
     Returns:
         np.ndarray: Array of Fourier coefficients for all latitudes.
+
     """
     index = 0
     ftm = np.zeros(samples.ftm_shape(L, "healpix", nside), dtype=np.complex128)
@@ -289,6 +305,7 @@ def healpix_fft_jax(f: jnp.ndarray, L: int, nside: int, reality: bool) -> jnp.nd
 
     Returns:
         jnp.ndarray: Array of Fourier coefficients for all latitudes.
+
     """
 
     def f_chunks_to_ftm_rows(f_chunks, nphi):
@@ -336,7 +353,8 @@ def healpix_fft_jax(f: jnp.ndarray, L: int, nside: int, reality: bool) -> jnp.nd
 def healpix_fft_torch(
     f: torch.tensor, L: int, nside: int, reality: bool
 ) -> torch.tensor:
-    """Computes the Forward Fast Fourier Transform with spectral back-projection
+    """
+    Computes the Forward Fast Fourier Transform with spectral back-projection
     in the polar regions to manually enforce Fourier periodicity. Torch specific
     implementation of :func:`~healpix_fft_numpy`.
 
@@ -352,6 +370,7 @@ def healpix_fft_torch(
 
     Returns:
         torch.tensor: Array of Fourier coefficients for all latitudes.
+
     """
     index = 0
     ftm = torch.zeros(samples.ftm_shape(L, "healpix", nside), dtype=torch.complex128)
@@ -383,7 +402,8 @@ def healpix_ifft(
     method: str = "numpy",
     reality: bool = False,
 ) -> np.ndarray:
-    """Wrapper function for the Inverse Fast Fourier Transform with spectral folding
+    """
+    Wrapper function for the Inverse Fast Fourier Transform with spectral folding
     in the polar regions to mitigate aliasing.
 
     Args:
@@ -405,6 +425,7 @@ def healpix_ifft(
 
     Returns:
         np.ndarray: HEALPix pixel-space array.
+
     """
     assert L >= 2 * nside
     if method.lower() == "numpy":
@@ -422,7 +443,8 @@ def healpix_ifft(
 def healpix_ifft_numpy(
     ftm: np.ndarray, L: int, nside: int, reality: bool
 ) -> np.ndarray:
-    """Computes the Inverse Fast Fourier Transform with spectral folding in the polar
+    """
+    Computes the Inverse Fast Fourier Transform with spectral folding in the polar
     regions to mitigate aliasing.
 
     Args:
@@ -437,6 +459,7 @@ def healpix_ifft_numpy(
 
     Returns:
         np.ndarray: HEALPix pixel-space array.
+
     """
     f = np.zeros(samples.f_shape(sampling="healpix", nside=nside), dtype=np.complex128)
     ntheta = ftm.shape[0]
@@ -460,7 +483,8 @@ def healpix_ifft_numpy(
 def healpix_ifft_jax(
     ftm: jnp.ndarray, L: int, nside: int, reality: bool
 ) -> jnp.ndarray:
-    """Computes the Inverse Fast Fourier Transform with spectral folding in the polar
+    """
+    Computes the Inverse Fast Fourier Transform with spectral folding in the polar
     regions to mitigate aliasing, using JAX. JAX specific implementation of
     :func:`~healpix_ifft_numpy`.
 
@@ -476,6 +500,7 @@ def healpix_ifft_jax(
 
     Returns:
         jnp.ndarray: HEALPix pixel-space array.
+
     """
 
     def ftm_rows_to_f_chunks(ftm_rows, nphi):
@@ -509,7 +534,8 @@ def healpix_ifft_jax(
 def healpix_ifft_torch(
     ftm: torch.tensor, L: int, nside: int, reality: bool
 ) -> torch.tensor:
-    """Computes the Inverse Fast Fourier Transform with spectral folding in the polar
+    """
+    Computes the Inverse Fast Fourier Transform with spectral folding in the polar
     regions to mitigate aliasing. Torch specific implementation of
     :func:`~healpix_ifft_numpy`.
 
@@ -525,6 +551,7 @@ def healpix_ifft_torch(
 
     Returns:
         torch.tensor: HEALPix pixel-space array.
+
     """
     f = torch.zeros(
         samples.f_shape(sampling="healpix", nside=nside), dtype=torch.complex128
@@ -547,7 +574,8 @@ def healpix_ifft_torch(
 
 
 def p2phi_rings(t: np.ndarray, nside: int) -> np.ndarray:
-    r"""Convert index to :math:`\phi` angle for HEALPix for all :math:`\theta` rings.
+    r"""
+    Convert index to :math:`\phi` angle for HEALPix for all :math:`\theta` rings.
     Vectorised implementation of :func:`~samples.p2phi_ring`.
 
     Args:
@@ -557,6 +585,7 @@ def p2phi_rings(t: np.ndarray, nside: int) -> np.ndarray:
 
     Returns:
         np.ndarray: :math:`\phi` offset for each ring index.
+
     """
     shift = 1 / 2
     tt = np.zeros_like(t)
@@ -572,7 +601,8 @@ def p2phi_rings(t: np.ndarray, nside: int) -> np.ndarray:
 
 @partial(jit, static_argnums=(1))
 def p2phi_rings_jax(t: jnp.ndarray, nside: int) -> jnp.ndarray:
-    r"""Convert index to :math:`\phi` angle for HEALPix for all :math:`\theta` rings.
+    r"""
+    Convert index to :math:`\phi` angle for HEALPix for all :math:`\theta` rings.
     JAX implementation of :func:`~p2phi_rings`.
 
     Args:
@@ -582,6 +612,7 @@ def p2phi_rings_jax(t: jnp.ndarray, nside: int) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: :math:`\phi` offset for each ring index.
+
     """
     shift = 1 / 2
     tt = jnp.zeros_like(t)
@@ -598,7 +629,8 @@ def p2phi_rings_jax(t: jnp.ndarray, nside: int) -> jnp.ndarray:
 def ring_phase_shifts_hp(
     L: int, nside: int, forward: bool = False, reality: bool = False
 ) -> np.ndarray:
-    r"""Generates a phase shift vector for HEALPix for all :math:`\theta` rings.
+    r"""
+    Generates a phase shift vector for HEALPix for all :math:`\theta` rings.
 
     Args:
         L (int, optional): Harmonic band-limit.
@@ -614,6 +646,7 @@ def ring_phase_shifts_hp(
 
     Returns:
         np.ndarray: Vector of phase shifts with shape :math:`[n_{\theta}, 2L-1]`.
+
     """
     t = np.arange(samples.ntheta(L, "healpix", nside))
     phi_offsets = p2phi_rings(t, nside)
@@ -627,7 +660,8 @@ def ring_phase_shifts_hp(
 def ring_phase_shifts_hp_jax(
     L: int, nside: int, forward: bool = False, reality: bool = False
 ) -> jnp.ndarray:
-    r"""Generates a phase shift vector for HEALPix for all :math:`\theta` rings. JAX
+    r"""
+    Generates a phase shift vector for HEALPix for all :math:`\theta` rings. JAX
     implementation of :func:`~ring_phase_shifts_hp`.
 
     Args:
@@ -644,6 +678,7 @@ def ring_phase_shifts_hp_jax(
 
     Returns:
         jnp.ndarray: Vector of phase shifts with shape :math:`[n_{\theta}, 2L-1]`.
+
     """
     t = jnp.arange(samples.ntheta(L, "healpix", nside))
     phi_offsets = p2phi_rings_jax(t, nside)
@@ -734,7 +769,8 @@ _healpix_fft_cuda_primitive = register_primitive(
 def healpix_fft_cuda(
     f: jnp.ndarray, L: int, nside: int, reality: bool, norm: str = "backward"
 ) -> jnp.ndarray:
-    """Healpix FFT JAX implementation using custom CUDA primitive.
+    """
+    Healpix FFT JAX implementation using custom CUDA primitive.
     
     Computes the Forward Fast Fourier Transform with spectral back-projection
     in the polar regions to manually enforce Fourier periodicity.
@@ -751,6 +787,7 @@ def healpix_fft_cuda(
 
     Returns:
         jnp.ndarray: Array of Fourier coefficients for all latitudes.
+
     """
     (f,) = promote_dtypes_complex(f)
     return _healpix_fft_cuda_primitive.bind(
@@ -762,7 +799,8 @@ def healpix_fft_cuda(
 def healpix_ifft_cuda(
     ftm: jnp.ndarray, L: int, nside: int, reality: bool, norm: str = "forward"
 ) -> jnp.ndarray:
-    """Healpix IFFT JAX implementation using custom CUDA primitive.
+    """
+    Healpix IFFT JAX implementation using custom CUDA primitive.
     
     Computes the inverse fast Fourier transform with spectral folding in the polar
     regions to mitigate aliasing.
@@ -779,6 +817,7 @@ def healpix_ifft_cuda(
 
     Returns:
         jnp.ndarray: HEALPix pixel-space array.
+
     """
     (ftm,) = promote_dtypes_complex(ftm)
     return _healpix_fft_cuda_primitive.bind(

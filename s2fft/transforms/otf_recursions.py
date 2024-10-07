@@ -1,14 +1,16 @@
-import numpy as np
-import jax.numpy as jnp
-import jax.lax as lax
-from jax import jit, pmap, local_device_count
 from functools import partial
 from typing import List
-from s2fft.sampling import s2_samples as samples
+
+import jax.lax as lax
+import jax.numpy as jnp
+import numpy as np
+from jax import jit, local_device_count, pmap
+
 from s2fft.recursions.price_mcewen import (
     generate_precomputes,
     generate_precomputes_jax,
 )
+from s2fft.sampling import s2_samples as samples
 
 
 def inverse_latitudinal_step(
@@ -22,7 +24,8 @@ def inverse_latitudinal_step(
     precomps: List = None,
     L_lower: int = 0,
 ) -> np.ndarray:
-    r"""Evaluate the wigner-d recursion inverse latitundinal step over :math:`\theta`.
+    r"""
+    Evaluate the wigner-d recursion inverse latitundinal step over :math:`\theta`.
     This approach is a heavily engineerd version of the Price & McEwen recursion found in
     :func:`~s2fft.wigner.price_mcewen`, which has at most of :math:`\mathcal{O}(L^2)`
     memory footprint.
@@ -60,6 +63,7 @@ def inverse_latitudinal_step(
 
     Returns:
         np.ndarray: Coefficients ftm with indexing :math:`[\theta, m]`.
+
     """
     mm = -spin
     ntheta = len(beta)
@@ -171,7 +175,8 @@ def inverse_latitudinal_step_jax(
     spmd: bool = False,
     L_lower: int = 0,
 ) -> jnp.ndarray:
-    r"""Evaluate the wigner-d recursion inverse latitundinal step over :math:`\theta`.
+    r"""
+    Evaluate the wigner-d recursion inverse latitundinal step over :math:`\theta`.
     This approach is a heavily engineerd version of the Price & McEwen recursion found in
     :func:`~s2fft.wigner.price_mcewen`, which has at most of :math:`\mathcal{O}(L^2)`
     memory footprint. This is a JAX implementation of :func:`~inverse_latitudinal_step`.
@@ -219,8 +224,8 @@ def inverse_latitudinal_step_jax(
         harmonic bandlimits L this is inefficient as the I/O overhead for communication
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
-    """
 
+    """
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
     m_count = 2 * L if sampling.lower() in ["mwss", "healpix"] else 2 * L - 1
@@ -417,7 +422,8 @@ def forward_latitudinal_step(
     precomps: List = None,
     L_lower: int = 0,
 ) -> np.ndarray:
-    r"""Evaluate the wigner-d recursion forward latitundinal step over :math:`\theta`.
+    r"""
+    Evaluate the wigner-d recursion forward latitundinal step over :math:`\theta`.
     This approach is a heavily engineerd version of the Price & McEwen recursion found in
     :func:`~s2fft.wigner.price_mcewen`, which has at most of :math:`\mathcal{O}(L^2)`
     memory footprint.
@@ -455,6 +461,7 @@ def forward_latitudinal_step(
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
+
     """
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
@@ -573,7 +580,8 @@ def forward_latitudinal_step_jax(
     spmd: bool = False,
     L_lower: int = 0,
 ) -> jnp.ndarray:
-    r"""Evaluate the wigner-d recursion forward latitundinal step over :math:`\theta`.
+    r"""
+    Evaluate the wigner-d recursion forward latitundinal step over :math:`\theta`.
     This approach is a heavily engineerd version of the Price & McEwen recursion found in
     :func:`~s2fft.wigner.price_mcewen`, which has at most of :math:`\mathcal{O}(L^2)`
     memory footprint. This is a JAX implementation of :func:`~forward_latitudinal_step`.
@@ -621,6 +629,7 @@ def forward_latitudinal_step_jax(
         harmonic bandlimits L this is inefficient as the I/O overhead for communication
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
+
     """
     # Avoid pole-singularities for MWSS sampling
     if sampling.lower() == "mwss":

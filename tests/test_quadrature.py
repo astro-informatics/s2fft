@@ -1,11 +1,12 @@
+import numpy as np
+import pytest
 from jax import config
 
-config.update("jax_enable_x64", True)
-import pytest
-import numpy as np
+from s2fft.base_transforms import spherical
 from s2fft.sampling import s2_samples as samples
 from s2fft.utils import quadrature, quadrature_jax, quadrature_torch
-from s2fft.base_transforms import spherical
+
+config.update("jax_enable_x64", True)
 
 
 @pytest.mark.parametrize("L", [5, 6])
@@ -42,8 +43,8 @@ def test_quadrature_mw_weights(flm_generator, L: int, sampling: str, method: str
 def test_quadrature_exceptions():
     L = 10
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         quadrature.quad_weights_transform(L, sampling="foo")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         quadrature.quad_weights(L, sampling="foo")

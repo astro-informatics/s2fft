@@ -1,9 +1,11 @@
 import torch
+
 from s2fft.sampling import s2_samples as samples
 
 
 def mw_to_mwss(f_mw: torch.tensor, L: int, spin: int = 0) -> torch.tensor:
-    r"""Convert signal on the sphere from MW sampling to MWSS sampling.
+    r"""
+    Convert signal on the sphere from MW sampling to MWSS sampling.
 
     Conversion is performed by first performing a period extension in
     :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space.  The
@@ -22,6 +24,7 @@ def mw_to_mwss(f_mw: torch.tensor, L: int, spin: int = 0) -> torch.tensor:
 
     Returns:
         torch.tensor: Signal on the sphere sampled with MWSS sampling.
+
     """
     if f_mw.ndim == 2:
         return torch.squeeze(
@@ -32,7 +35,8 @@ def mw_to_mwss(f_mw: torch.tensor, L: int, spin: int = 0) -> torch.tensor:
 
 
 def mw_to_mwss_theta(f_mw: torch.tensor, L: int, spin: int = 0) -> torch.tensor:
-    r"""Convert :math:`\theta` component of signal on the sphere from MW sampling to
+    r"""
+    Convert :math:`\theta` component of signal on the sphere from MW sampling to
     MWSS sampling.
 
     Conversion is performed by first performing a period extension in
@@ -56,6 +60,7 @@ def mw_to_mwss_theta(f_mw: torch.tensor, L: int, spin: int = 0) -> torch.tensor:
     Returns:
         torch.tensor: Signal on the sphere with MWSS sampling in :math:`\theta` and MW
         sampling in :math:`\phi`.
+
     """
     f_mw_ext = periodic_extension(f_mw, L, spin=spin, sampling="mw")
     fmp_mwss_ext = torch.zeros(
@@ -89,7 +94,8 @@ def mw_to_mwss_theta(f_mw: torch.tensor, L: int, spin: int = 0) -> torch.tensor:
 
 
 def mw_to_mwss_phi(f_mw: torch.tensor, L: int) -> torch.tensor:
-    r"""Convert :math:`\phi` component of signal on the sphere from MW sampling to
+    r"""
+    Convert :math:`\phi` component of signal on the sphere from MW sampling to
     MWSS sampling.
 
     Conversion is performed by zero padding in harmonic space.
@@ -116,6 +122,7 @@ def mw_to_mwss_phi(f_mw: torch.tensor, L: int) -> torch.tensor:
     Returns:
         torch.tensor: Signal on the sphere with MWSS sampling in :math:`\phi` and
         sampling in :math:`\theta` of the input signal.
+
     """
     f_mwss = torch.zeros((f_mw.shape[0], L + 1, 2 * L), dtype=torch.complex128)
     f_mwss[:, :, 1:] = torch.fft.fftshift(
@@ -134,7 +141,8 @@ def mw_to_mwss_phi(f_mw: torch.tensor, L: int) -> torch.tensor:
 def periodic_extension(
     f: torch.tensor, L: int, spin: int = 0, sampling: str = "mw"
 ) -> torch.tensor:
-    r"""Perform period extension of MW/MWSS signal on the sphere in harmonic
+    r"""
+    Perform period extension of MW/MWSS signal on the sphere in harmonic
     domain, extending :math:`\theta` domain from :math:`[0,\pi]` to :math:`[0,2\pi]`.
     Torch implementation of :func:`~s2fft.resampling.periodic_extension`.
 
@@ -154,6 +162,7 @@ def periodic_extension(
     Returns:
         torch.tensor: Signal on the sphere extended to :math:`\theta` domain
         :math:`[0,2\pi]`, in same scheme (MW/MWSS) as input.
+
     """
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
@@ -213,7 +222,8 @@ def periodic_extension(
 
 
 def unextend(f_ext: torch.tensor, L: int, sampling: str = "mw") -> torch.tensor:
-    r"""Unextend MW/MWSS sampled signal from :math:`\theta` domain
+    r"""
+    Unextend MW/MWSS sampled signal from :math:`\theta` domain
     :math:`[0,2\pi]` to :math:`[0,\pi]`.
 
     Args:
@@ -233,6 +243,7 @@ def unextend(f_ext: torch.tensor, L: int, sampling: str = "mw") -> torch.tensor:
     Returns:
         torch.tensor: Signal on the sphere sampled on :math:`\theta` domain
         :math:`[0,\pi]`.
+
     """
     if sampling.lower() == "mw":
         return f_ext[:, 0:L, :]
@@ -248,7 +259,8 @@ def unextend(f_ext: torch.tensor, L: int, sampling: str = "mw") -> torch.tensor:
 
 
 def upsample_by_two_mwss(f: torch.tensor, L: int, spin: int = 0) -> torch.tensor:
-    r"""Upsample MWSS sampled signal on the sphere defined on domain :math:`[0,\pi]`
+    r"""
+    Upsample MWSS sampled signal on the sphere defined on domain :math:`[0,\pi]`
     by a factor of two.
 
     Upsampling is performed by a periodic extension in :math:`\theta` to
@@ -268,6 +280,7 @@ def upsample_by_two_mwss(f: torch.tensor, L: int, spin: int = 0) -> torch.tensor
     Returns:
         torch.tensor: Signal on the sphere sampled with MWSS sampling scheme, sampling at
         resolution 2*L.
+
     """
     if f.ndim == 2:
         f = torch.unsqueeze(f, 0)
@@ -278,7 +291,8 @@ def upsample_by_two_mwss(f: torch.tensor, L: int, spin: int = 0) -> torch.tensor
 
 
 def upsample_by_two_mwss_ext(f_ext: torch.tensor, L: int) -> torch.tensor:
-    """Upsample an extended MWSS sampled signal on the sphere defined on domain
+    r"""
+    Upsample an extended MWSS sampled signal on the sphere defined on domain
     :math:`[0,2\pi]` by a factor of two.
 
     Upsampling is performed by zero-padding in harmonic space. Torch implementation of
@@ -293,6 +307,7 @@ def upsample_by_two_mwss_ext(f_ext: torch.tensor, L: int) -> torch.tensor:
     Returns:
         torch.tensor: Signal on the sphere sampled on extended MWSS sampling scheme on
         domain :math:`[0,2\pi]`, sampling at resolution 2*L.
+
     """
     nphi = 2 * L
     ntheta_ext = 2 * L
@@ -316,7 +331,8 @@ def upsample_by_two_mwss_ext(f_ext: torch.tensor, L: int) -> torch.tensor:
 def periodic_extension_spatial_mwss(
     f: torch.tensor, L: int, spin: int = 0
 ) -> torch.tensor:
-    r"""Perform period extension of MWSS signal on the sphere in spatial domain,
+    r"""
+    Perform period extension of MWSS signal on the sphere in spatial domain,
     extending :math:`\theta` domain from :math:`[0,\pi]` to :math:`[0,2\pi]`.
 
     For the MWSS sampling scheme, it is possible to do the period extension in
@@ -335,6 +351,7 @@ def periodic_extension_spatial_mwss(
     Returns:
         torch.tensor: Signal on the sphere extended to :math:`\theta` domain
         :math:`[0,2\pi]`, in MWSS sampling scheme.
+
     """
     ntheta = L + 1
     nphi = 2 * L

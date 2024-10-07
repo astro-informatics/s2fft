@@ -1,12 +1,12 @@
 import jax
-
-jax.config.update("jax_enable_x64", True)
-import pytest
 import jax.numpy as jnp
+import pytest
 from jax.test_util import check_grads
 
-from s2fft.transforms import wigner
 from s2fft.recursions.price_mcewen import generate_precomputes_wigner_jax
+from s2fft.transforms import wigner
+
+jax.config.update("jax_enable_x64", True)
 
 L_to_test = [6]
 N_to_test = [3]

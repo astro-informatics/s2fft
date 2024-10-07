@@ -1,12 +1,13 @@
-from jax import custom_vjp
-import numpy as np
+import healpy
 import jax.numpy as jnp
-from s2fft.utils import quadrature_jax
-from s2fft.sampling import reindex
+import numpy as np
 
 # C backend functions for which to provide JAX frontend.
 import pyssht
-import healpy
+from jax import custom_vjp
+
+from s2fft.sampling import reindex
+from s2fft.utils import quadrature_jax
 
 
 @custom_vjp
@@ -18,7 +19,8 @@ def ssht_inverse(
     ssht_sampling: int = 0,
     _ssht_backend: int = 1,
 ) -> jnp.ndarray:
-    r"""Compute the inverse spin-spherical harmonic transform (SSHT JAX).
+    r"""
+    Compute the inverse spin-spherical harmonic transform (SSHT JAX).
 
     SSHT is a C library which implements the spin-spherical harmonic transform outlined in
     McEwen & Wiaux 2011 [1]. We make use of their python bindings for which we provide
@@ -49,6 +51,7 @@ def ssht_inverse(
     Note:
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
+
     """
     sampling_str = ["MW", "MWSS", "DH", "GL"]
     flm_1d = reindex.flm_2d_to_1d_fast(flm, L)
@@ -73,13 +76,13 @@ def _ssht_inverse_fwd(
     ssht_sampling: int = 0,
     _ssht_backend: int = 1,
 ):
-    """Private function which implements the forward pass for inverse jax_ssht"""
+    """Private function which implements the forward pass for inverse jax_ssht."""
     res = ([], L, spin, reality, ssht_sampling, _ssht_backend)
     return ssht_inverse(flm, L, spin, reality, ssht_sampling, _ssht_backend), res
 
 
 def _ssht_inverse_bwd(res, f):
-    """Private function which implements the backward pass for inverse jax_ssht"""
+    """Private function which implements the backward pass for inverse jax_ssht."""
     _, L, spin, reality, ssht_sampling, _ssht_backend = res
     sampling_str = ["MW", "MWSS", "DH", "GL"]
     _backend = "SSHT" if _ssht_backend == 0 else "ducc0"
@@ -135,7 +138,8 @@ def ssht_forward(
     ssht_sampling: int = 0,
     _ssht_backend: int = 1,
 ) -> jnp.ndarray:
-    r"""Compute the forward spin-spherical harmonic transform (SSHT JAX).
+    r"""
+    Compute the forward spin-spherical harmonic transform (SSHT JAX).
 
     SSHT is a C library which implements the spin-spherical harmonic transform outlined in
     McEwen & Wiaux 2011 [1]. We make use of their python bindings for which we provide
@@ -166,6 +170,7 @@ def ssht_forward(
     Note:
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
+
     """
     sampling_str = ["MW", "MWSS", "DH", "GL"]
     _backend = "SSHT" if _ssht_backend == 0 else "ducc0"
@@ -190,13 +195,13 @@ def _ssht_forward_fwd(
     ssht_sampling: int = 0,
     _ssht_backend: int = 1,
 ):
-    """Private function which implements the forward pass for forward jax_ssht"""
+    """Private function which implements the forward pass for forward jax_ssht."""
     res = ([], L, spin, reality, ssht_sampling, _ssht_backend)
     return ssht_forward(f, L, spin, reality, ssht_sampling, _ssht_backend), res
 
 
 def _ssht_forward_bwd(res, flm):
-    """Private function which implements the backward pass for forward jax_ssht"""
+    """Private function which implements the backward pass for forward jax_ssht."""
     _, L, spin, reality, ssht_sampling, _ssht_backend = res
     sampling_str = ["MW", "MWSS", "DH", "GL"]
     _backend = "SSHT" if _ssht_backend == 0 else "ducc0"
@@ -238,7 +243,8 @@ def _ssht_forward_bwd(res, flm):
 
 @custom_vjp
 def healpy_inverse(flm: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
-    r"""Compute the inverse scalar real spherical harmonic transform (HEALPix JAX).
+    r"""
+    Compute the inverse scalar real spherical harmonic transform (HEALPix JAX).
 
     HEALPix is a C++ library which implements the scalar spherical harmonic transform
     outlined in [1]. We make use of their healpy python bindings for which we provide
@@ -260,6 +266,7 @@ def healpy_inverse(flm: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
         [1] Gorski, Krzysztof M., et al. "HEALPix: A framework for high-resolution
         discretization and fast analysis of data distributed on the sphere." The
         Astrophysical Journal 622.2 (2005): 759
+
     """
     flm = reindex.flm_2d_to_hp_fast(flm, L)
     f = jnp.array(healpy.alm2map(np.array(flm), lmax=L - 1, nside=nside))
@@ -267,13 +274,13 @@ def healpy_inverse(flm: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
 
 
 def _healpy_inverse_fwd(flm: jnp.ndarray, L: int, nside: int):
-    """Private function which implements the forward pass for inverse jax_healpy"""
+    """Private function which implements the forward pass for inverse jax_healpy."""
     res = ([], L, nside)
     return healpy_inverse(flm, L, nside), res
 
 
 def _healpy_inverse_bwd(res, f):
-    """Private function which implements the backward pass for inverse jax_healpy"""
+    """Private function which implements the backward pass for inverse jax_healpy."""
     _, L, nside = res
     f_new = f * (12 * nside**2) / (4 * jnp.pi)
     flm_out = jnp.array(
@@ -292,7 +299,8 @@ def _healpy_inverse_bwd(res, f):
 
 @custom_vjp
 def healpy_forward(f: jnp.ndarray, L: int, nside: int, iter: int = 3) -> jnp.ndarray:
-    r"""Compute the forward scalar spherical harmonic transform (healpy JAX).
+    r"""
+    Compute the forward scalar spherical harmonic transform (healpy JAX).
 
     HEALPix is a C++ library which implements the scalar spherical harmonic transform
     outlined in [1]. We make use of their healpy python bindings for which we provide
@@ -318,19 +326,20 @@ def healpy_forward(f: jnp.ndarray, L: int, nside: int, iter: int = 3) -> jnp.nda
         [1] Gorski, Krzysztof M., et al. "HEALPix: A framework for high-resolution
         discretization and fast analysis of data distributed on the sphere." The
         Astrophysical Journal 622.2 (2005): 759
+
     """
     flm = jnp.array(healpy.map2alm(np.array(f), lmax=L - 1, iter=iter))
     return reindex.flm_hp_to_2d_fast(flm, L)
 
 
 def _healpy_forward_fwd(f: jnp.ndarray, L: int, nside: int, iter: int = 3):
-    """Private function which implements the forward pass for forward jax_healpy"""
+    """Private function which implements the forward pass for forward jax_healpy."""
     res = ([], L, nside, iter)
     return healpy_forward(f, L, nside, iter), res
 
 
 def _healpy_forward_bwd(res, flm):
-    """Private function which implements the backward pass for forward jax_healpy"""
+    """Private function which implements the backward pass for forward jax_healpy."""
     _, L, nside, _ = res
     flm_new = reindex.flm_2d_to_hp_fast(flm, L)
     f = jnp.array(

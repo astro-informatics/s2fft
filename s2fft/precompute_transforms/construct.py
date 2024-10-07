@@ -1,14 +1,12 @@
-import jax
+from warnings import warn
 
-jax.config.update("jax_enable_x64", True)
-
-import numpy as np
 import jax.numpy as jnp
+import numpy as np
 import torch
+
+from s2fft import recursions
 from s2fft.sampling import s2_samples as samples
 from s2fft.utils import quadrature, quadrature_jax
-from s2fft import recursions
-from warnings import warn
 
 
 def spin_spherical_kernel(
@@ -20,7 +18,8 @@ def spin_spherical_kernel(
     forward: bool = False,
     using_torch: bool = False,
 ):
-    r"""Precompute the wigner-d kernel for spin-spherical transform. This can be
+    r"""
+    Precompute the wigner-d kernel for spin-spherical transform. This can be
     drastically faster but comes at a :math:`\mathcal{O}(L^3)` memory overhead, making
     it infeasible for :math:`L\geq 512`.
 
@@ -46,12 +45,14 @@ def spin_spherical_kernel(
 
     Returns:
         np.ndarray: Transform kernel for spin-spherical harmonic transform.
+
     """
     if reality and spin != 0:
         reality = False
         warn(
             "Reality acceleration only supports spin 0 fields. "
-            + "Defering to complex transform."
+            + "Defering to complex transform.",
+            stacklevel=2,
         )
     m_start_ind = L - 1 if reality else 0
     m_dim = L if reality else 2 * L - 1
@@ -92,7 +93,8 @@ def spin_spherical_kernel_jax(
     nside: int = None,
     forward: bool = False,
 ):
-    r"""Precompute the wigner-d kernel for spin-spherical transform. This can be
+    r"""
+    Precompute the wigner-d kernel for spin-spherical transform. This can be
     drastically faster but comes at a :math:`\mathcal{O}(L^3)` memory overhead, making
     it infeasible for :math:`L\geq 512`.
 
@@ -116,6 +118,7 @@ def spin_spherical_kernel_jax(
 
     Returns:
         jnp.ndarray: Transform kernel for spin-spherical harmonic transform.
+
     """
     m_start_ind = L - 1 if reality else 0
 
@@ -171,7 +174,8 @@ def wigner_kernel(
     forward: bool = False,
     using_torch: bool = False,
 ):
-    r"""Precompute the wigner-d kernels required for a Wigner transform. This can be
+    r"""
+    Precompute the wigner-d kernels required for a Wigner transform. This can be
     drastically faster but comes at a :math:`\mathcal{O}(NL^3)` memory overhead, making
     it infeasible for :math:`L \geq 512`.
 
@@ -197,6 +201,7 @@ def wigner_kernel(
 
     Returns:
         np.ndarray: Transform kernel for Wigner transform.
+
     """
     n_start_ind = N - 1 if reality else 0
     n_dim = N if reality else 2 * N - 1
@@ -244,7 +249,8 @@ def wigner_kernel_jax(
     nside: int = None,
     forward: bool = False,
 ):
-    r"""Precompute the wigner-d kernels required for a Wigner transform. This can be
+    r"""
+    Precompute the wigner-d kernels required for a Wigner transform. This can be
     drastically faster but comes at a :math:`\mathcal{O}(NL^3)` memory overhead, making
     it infeasible for :math:`L \geq 512`.
 
@@ -268,6 +274,7 @@ def wigner_kernel_jax(
 
     Returns:
         jnp.ndarray: Transform kernel for Wigner transform.
+
     """
     n_start_ind = N - 1 if reality else 0
     n_dim = N if reality else 2 * N - 1
@@ -330,7 +337,8 @@ def healpix_phase_shifts(
     nside: int,
     forward: bool = False,
 ) -> np.ndarray:
-    r"""Generates a phase shift vector for HEALPix for all :math:`\theta` rings.
+    r"""
+    Generates a phase shift vector for HEALPix for all :math:`\theta` rings.
 
     Args:
         L (int, optional): Harmonic band-limit.
@@ -342,10 +350,11 @@ def healpix_phase_shifts(
 
     Returns:
         np.ndarray: Vector of phase shifts with shape :math:`[thetas, 2L-1]`.
+
     """
     thetas = samples.thetas(L, "healpix", nside)
     phase_array = np.zeros((len(thetas), 2 * L - 1), dtype=np.complex128)
-    for t, theta in enumerate(thetas):
+    for t in range(len(thetas)):
         phase_array[t] = samples.ring_phase_shift_hp(L, t, nside, forward)
 
     return phase_array

@@ -1,6 +1,7 @@
 import numpy as np
-from s2fft.sampling import so3_samples as samples
+
 from s2fft.base_transforms import spherical
+from s2fft.sampling import so3_samples as samples
 
 
 def inverse(
@@ -12,7 +13,8 @@ def inverse(
     reality: bool = False,
     nside: int = None,
 ) -> np.ndarray:
-    r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
+    r"""
+    Compute the inverse Wigner transform, i.e. inverse Fourier transform on
     :math:`SO(3)`.
 
     Note:
@@ -49,6 +51,7 @@ def inverse(
         np.ndarray:  Signal on the on :math:`SO(3)` with shape :math:`[n_{\gamma},
         n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the number of samples for
         angle :math:`\xi`.
+
     """
     assert flmn.shape == samples.flmn_shape(L, N)
 
@@ -90,7 +93,8 @@ def forward(
     reality: bool = False,
     nside: int = None,
 ) -> np.ndarray:
-    r"""Compute the forward Wigner transform, i.e. Fourier transform on
+    r"""
+    Compute the forward Wigner transform, i.e. Fourier transform on
     :math:`SO(3)`.
 
     Note:
@@ -127,6 +131,7 @@ def forward(
 
     Returns:
         np.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
+
     """
     assert f.shape == samples.f_shape(L, N, sampling, nside)
 
