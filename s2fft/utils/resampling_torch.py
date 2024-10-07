@@ -185,9 +185,11 @@ def periodic_extension(
         ],
         dims=[-2],
     )
-    f_ext[:, L + m_offset : 2 * L - 1 + m_offset, m_offset : 2 * L - 1 + m_offset,] *= (
-        -1
-    ) ** (torch.arange(-(L - 1), L))
+    f_ext[
+        :,
+        L + m_offset : 2 * L - 1 + m_offset,
+        m_offset : 2 * L - 1 + m_offset,
+    ] *= (-1) ** (torch.arange(-(L - 1), L))
     if hasattr(spin, "size"):
         f_ext[
             :,

@@ -1,4 +1,5 @@
 """Collection of shared fixtures"""
+
 from functools import partial
 
 import pytest

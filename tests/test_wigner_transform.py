@@ -93,7 +93,6 @@ def test_forward_wigner_transform(
 def test_ssht_c_backend_inverse_wigner_transform(
     flmn_generator, L: int, N: int, L_lower: int, sampling: str, reality: bool
 ):
-
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     f_check = base_wigner.inverse(flmn, L, N, L_lower, sampling, reality)
 
@@ -111,7 +110,6 @@ def test_ssht_c_backend_inverse_wigner_transform(
 def test_ssht_c_backend_forward_wigner_transform(
     flmn_generator, L: int, N: int, L_lower: int, sampling: str, reality: bool
 ):
-
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     f = base_wigner.inverse(flmn, L, N, L_lower, sampling, reality)
 

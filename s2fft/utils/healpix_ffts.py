@@ -771,7 +771,7 @@ def healpix_fft_cuda(
 ) -> jnp.ndarray:
     """
     Healpix FFT JAX implementation using custom CUDA primitive.
-    
+
     Computes the Forward Fast Fourier Transform with spectral back-projection
     in the polar regions to manually enforce Fourier periodicity.
 
@@ -801,7 +801,7 @@ def healpix_ifft_cuda(
 ) -> jnp.ndarray:
     """
     Healpix IFFT JAX implementation using custom CUDA primitive.
-    
+
     Computes the inverse fast Fourier transform with spectral folding in the polar
     regions to mitigate aliasing.
 

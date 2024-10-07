@@ -616,7 +616,7 @@ def forward_jax(
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
-        use_healpix_custom_primitive (bool, optional): Whether to use a custom CUDA 
+        use_healpix_custom_primitive (bool, optional): Whether to use a custom CUDA
             primitive for computing HEALPix fast fourier transform when `sampling =
             "healpix"` and running on a cuda compatible gpu device. using a custom
             primitive reduces long compilation times when jit compiling. defaults to

@@ -384,7 +384,16 @@ def inverse_latitudinal_step_jax(
                 ).reshape(ntheta, ftm.shape[-1])
 
             else:
-                (ftm, dl_entry, dl_iter, lrenorm, indices, omc, c, s,) = lax.fori_loop(
+                (
+                    ftm,
+                    dl_entry,
+                    dl_iter,
+                    lrenorm,
+                    indices,
+                    omc,
+                    c,
+                    s,
+                ) = lax.fori_loop(
                     2,
                     L - 1 + i,
                     pm_recursion_step,
@@ -818,7 +827,10 @@ def forward_latitudinal_step_jax(
                 opsdevice = int((L - L_lower) / ndevices)
 
                 flm = flm.at[L_lower:].set(
-                    pmap(eval_recursion_step, in_axes=(0, 1, 2, 2, 1, 1, 1, 1),)(
+                    pmap(
+                        eval_recursion_step,
+                        in_axes=(0, 1, 2, 2, 1, 1, 1, 1),
+                    )(
                         flm[L_lower:].reshape(ndevices, opsdevice, 2 * L - 1),
                         dl_entry.reshape(ntheta, ndevices, opsdevice),
                         dl_iter.reshape(2, ntheta, ndevices, opsdevice),
