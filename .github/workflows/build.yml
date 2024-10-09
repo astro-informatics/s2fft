@@ -44,6 +44,8 @@ jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    env:
+      CIBW_SKIP: cp38-macosx_x86_64
     strategy:
       fail-fast: false
       matrix:
