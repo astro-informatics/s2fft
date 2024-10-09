@@ -109,9 +109,12 @@ article is referenced. A BibTeX entry for this reference may look like:
     @article{price:s2fft, 
         author      = "Matthew A. Price and Jason D. McEwen",
         title       = "Differentiable and accelerated spherical harmonic and Wigner transforms",
-        journal     = "Journal of Computational Physics, submitted",
-        year        = "2023",
-        eprint      = "arXiv:2311.14670"        
+        journal     = "Journal of Computational Physics",
+        year        = "2024",
+        volume      = "510",
+        pages       = "113109",
+        eprint      = "arXiv:2311.14670",
+        doi         = "10.1016/j.jcp.2024.113109"
     }
 
 You might also like to consider citing our related papers on which this code builds:
