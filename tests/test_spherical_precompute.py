@@ -14,7 +14,9 @@ L_to_nside_ratio = [2, 3]
 sampling_to_test = ["mw", "mwss", "dh", "gl"]
 reality_to_test = [True, False]
 methods_to_test = ["numpy", "jax", "torch"]
-recursions_to_test = ["price_mcewen", "risbo", "auto"]
+recursions_to_test = ["price-mcewen", "risbo", "auto"]
+
+PM_MAX_STABLE_SPIN = 5
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -32,6 +34,11 @@ def test_transform_inverse(
     method: str,
     recursion: str,
 ):
+    if recursion.lower() == "price-mcewen" and abs(spin) >= PM_MAX_STABLE_SPIN:
+        pytest.skip(
+            f"price-mcewen recursion not accurate above |spin| = {PM_MAX_STABLE_SPIN}"
+        )
+
     flm = flm_generator(L=L, spin=spin, reality=reality)
     f_check = base.inverse(flm, L, spin, sampling, reality=reality)
 
@@ -40,7 +47,9 @@ def test_transform_inverse(
         if method.lower() == "jax"
         else c.spin_spherical_kernel
     )
-    kernel = kfunc(L, spin, reality, sampling, forward=False, mode=recursion)
+    kernel = kfunc(
+        L, spin, reality, sampling, forward=False, recursion=recursion
+    )
 
     tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
     if method.lower() == "torch":
@@ -101,7 +110,7 @@ def test_transform_inverse_healpix(
         if method.lower() == "jax"
         else c.spin_spherical_kernel
     )
-    kernel = kfunc(L, 0, reality, sampling, nside, False, mode=recursion)
+    kernel = kfunc(L, 0, reality, sampling, nside, False, recursion=recursion)
 
     tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
     if method.lower() == "torch":
@@ -154,6 +163,11 @@ def test_transform_forward(
     method: str,
     recursion: str,
 ):
+    if recursion.lower() == "price-mcewen" and abs(spin) >= PM_MAX_STABLE_SPIN:
+        pytest.skip(
+            f"price-mcewen recursion not accurate above |spin| = {PM_MAX_STABLE_SPIN}"
+        )
+
     flm = flm_generator(L=L, spin=spin, reality=reality)
 
     f = base.inverse(flm, L, spin, sampling, reality=reality)
@@ -164,7 +178,9 @@ def test_transform_forward(
         if method.lower() == "jax"
         else c.spin_spherical_kernel
     )
-    kernel = kfunc(L, spin, reality, sampling, forward=True, mode=recursion)
+    kernel = kfunc(
+        L, spin, reality, sampling, forward=True, recursion=recursion
+    )
 
     tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
     if method.lower() == "torch":
@@ -225,7 +241,7 @@ def test_transform_forward_healpix(
         if method.lower() == "jax"
         else c.spin_spherical_kernel
     )
-    kernel = kfunc(L, 0, reality, sampling, nside, True, mode=recursion)
+    kernel = kfunc(L, 0, reality, sampling, nside, True, recursion=recursion)
 
     tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
     if method.lower() == "torch":

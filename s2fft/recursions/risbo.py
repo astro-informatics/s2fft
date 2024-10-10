@@ -120,10 +120,10 @@ def _arg_checks(dl: np.ndarray, beta: float, L: int, el: int):
     assert 0 <= beta <= np.pi
 
 
-def compute_full_vect(
+def compute_full_vectorised(
     dl: np.ndarray, beta: np.ndarray, L: int, el: int
 ) -> np.ndarray:
-    r"""Compute Wigner-d at argument :math:`\beta` for full plane using
+    r"""Compute Wigner-d at all arguments :math:`\beta` for full plane using
     Risbo recursion.
 
     The Wigner-d plane is computed by recursion over :math:`\ell`.
@@ -131,7 +131,7 @@ def compute_full_vect(
     :math:`\ell - 1`. At present, for :math:`\ell = 0` the recusion is initialised.
 
     Args:
-        dl (np.ndarray): Wigner-d plane for :math:`\ell - 1` at :math:`\beta`.
+        dl (np.ndarray): Wigner-d plane for :math:`\ell - 1` and for all :math:`\beta`.
 
         beta (np.ndarray): Arguments :math:`\beta` at which to compute Wigner-d plane.
 
@@ -140,7 +140,12 @@ def compute_full_vect(
         el (int): Spherical harmonic degree :math:`\ell`.
 
     Returns:
-        np.ndarray: Plane of Wigner-d for :math:`\ell` and :math:`\beta`, with full plane computed.
+        np.ndarray: Plane of Wigner-d for :math:`\ell` and all angles :math:`\beta`,
+            with full plane computed.
+
+    Notes:
+        This function is an implementation of the risbo recursion vectorised to explicitly
+        evaluate the recursion for all betas simultaneously.
     """
     if el == 0:
         el = 0

@@ -10,6 +10,10 @@ from s2fft.utils import quadrature, quadrature_jax
 from s2fft import recursions
 from warnings import warn
 
+# Maximum spin number at which Price-McEwen recursion is sufficiently accurate.
+# For spins > PM_MAX_STABLE_SPIN one should default to the Risbo recursion.
+PM_MAX_STABLE_SPIN = 5
+
 
 def spin_spherical_kernel(
     L: int,
@@ -19,7 +23,7 @@ def spin_spherical_kernel(
     nside: int = None,
     forward: bool = True,
     using_torch: bool = False,
-    mode: str = "auto",
+    recursion: str = "auto",
 ) -> np.ndarray:
     r"""Precompute the wigner-d kernel for spin-spherical transform.
 
@@ -47,8 +51,8 @@ def spin_spherical_kernel(
 
         using_torch (bool, optional): Desired frontend functionality. Defaults to False.
 
-        mode (str, optional): Recursion to adopt. Supported recursion schemes include
-            {"auto", "price_mcewen", "risbo"}. Defaults to "auto" which will detect the
+        recursion (str, optional): Recursion to adopt. Supported recursion schemes include
+            {"auto", "price-mcewen", "risbo"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
 
     Returns:
@@ -58,19 +62,19 @@ def spin_spherical_kernel(
         reality = False
         warn(
             "Reality acceleration only supports spin 0 fields. "
-            + "Defering to complex transform."
+            + "Defaulting to complex transform."
         )
-    if mode.lower() == "price_mcewen" and abs(spin) >= 5:
-        mode = "risbo"
-        warn(
-            "The Price-McEwen can become unstable for spins >= 5. "
-            + "Defaulting to slower but more stable Risbo recursions."
+    if recursion.lower() == "price-mcewen" and abs(spin) >= PM_MAX_STABLE_SPIN:
+        raise ValueError(
+            f"The Price-McEwen can become unstable for spins >= {PM_MAX_STABLE_SPIN}."
         )
 
-    if mode.lower() == "auto":
+    if recursion.lower() == "auto":
         # This mode automatically determines which recursion is best suited for the
         # current parameter configuration.
-        mode = "risbo" if abs(spin) >= 5 else "price_mcewen"
+        recursion = (
+            "risbo" if abs(spin) >= PM_MAX_STABLE_SPIN else "price-mcewen"
+        )
 
     dl = []
     m_start_ind = L - 1 if reality else 0
@@ -86,7 +90,7 @@ def spin_spherical_kernel(
     # Calculate Wigner d-function elements through the Price-McEwen recursion.
     # - The complexity of this approach is O(L^3).
     # - This approach becomes inaccurate for abs(spins) >= 5.
-    if mode.lower() == "price_mcewen":
+    if recursion.lower() == "price-mcewen":
         dl = np.zeros((len(thetas), L, m_dim), dtype=np.float64)
         for t, theta in enumerate(thetas):
             for el in range(abs(spin), L):
@@ -96,7 +100,7 @@ def spin_spherical_kernel(
                 dl[t, el] *= np.sqrt((2 * el + 1) / (4 * np.pi))
 
     # Calculate Wigner d-function elements through the Risbo recursion.
-    elif mode.lower() == "risbo":
+    elif recursion.lower() == "risbo":
         dl = np.zeros((len(thetas), L, m_dim), dtype=np.float64)
 
         # GL and HP sampling ARE NOT uniform in theta therefore CANNOT be calculated
@@ -109,7 +113,9 @@ def spin_spherical_kernel(
                 (len(thetas), 2 * L - 1, 2 * L - 1), dtype=np.float64
             )
             for el in range(L):
-                delta = recursions.risbo.compute_full_vect(delta, thetas, L, el)
+                delta = recursions.risbo.compute_full_vectorised(
+                    delta, thetas, L, el
+                )
                 dl[:, el] = delta[:, m_start_ind:, L - 1 - spin]
 
         # MW, MWSS, and DH sampling ARE uniform in theta therefore CAN be calculated
@@ -150,6 +156,9 @@ def spin_spherical_kernel(
             "tlm,l->tlm", dl, np.sqrt((2 * np.arange(L) + 1) / (4 * np.pi))
         )
 
+    else:
+        raise ValueError(f"Recursion method {recursion} not recognised.")
+
     # Fold in quadrature to avoid recomputation at run-time.
     if forward:
         weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
@@ -173,7 +182,7 @@ def spin_spherical_kernel_jax(
     sampling: str = "mw",
     nside: int = None,
     forward: bool = True,
-    mode: str = "auto",
+    recursion: str = "auto",
 ) -> jnp.ndarray:
     r"""Precompute the wigner-d kernel for spin-spherical transform.
 
@@ -199,8 +208,8 @@ def spin_spherical_kernel_jax(
         forward (bool, optional): Whether to provide forward or inverse shift.
             Defaults to False.
 
-        mode (str, optional): Recursion to adopt. Supported recursion schemes include
-            {"auto", "price_mcewen", "risbo"}. Defaults to "auto" which will detect the
+        recursion (str, optional): Recursion to adopt. Supported recursion schemes include
+            {"auto", "price-mcewen", "risbo"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
 
     Returns:
@@ -210,19 +219,19 @@ def spin_spherical_kernel_jax(
         reality = False
         warn(
             "Reality acceleration only supports spin 0 fields. "
-            + "Defering to complex transform."
+            + "Defaulting to complex transform."
         )
-    if mode.lower() == "price_mcewen" and abs(spin) >= 5:
-        mode = "risbo"
-        warn(
-            "The Price-McEwen can become unstable for spins >= 5. "
-            + "Defaulting to slower but more stable Risbo recursions."
+    if recursion.lower() == "price-mcewen" and abs(spin) >= PM_MAX_STABLE_SPIN:
+        raise ValueError(
+            f"The Price-McEwen can become unstable for spins >= {PM_MAX_STABLE_SPIN}."
         )
 
-    if mode.lower() == "auto":
+    if recursion.lower() == "auto":
         # This mode automatically determines which recursion is best suited for the
         # current parameter configuration.
-        mode = "risbo" if abs(spin) >= 5 else "price_mcewen"
+        recursion = (
+            "risbo" if abs(spin) >= PM_MAX_STABLE_SPIN else "price-mcewen"
+        )
 
     dl = []
     m_start_ind = L - 1 if reality else 0
@@ -238,7 +247,7 @@ def spin_spherical_kernel_jax(
     # Calculate Wigner d-function elements through the Price-McEwen recursion.
     # - The complexity of this approach is O(L^3).
     # - This approach becomes inaccurate for abs(spins) >= 5.
-    if mode.lower() == "price_mcewen":
+    if recursion.lower() == "price-mcewen":
         dl = recursions.price_mcewen.compute_all_slices_jax(
             thetas, L, spin, sampling, forward, nside
         )
@@ -260,7 +269,7 @@ def spin_spherical_kernel_jax(
         dl = dl[:, :, m_start_ind:]
 
     # Calculate Wigner d-function elements through the Risbo recursion.
-    if mode.lower() == "risbo":
+    elif recursion.lower() == "risbo":
         dl = jnp.zeros((len(thetas), L, m_dim), dtype=jnp.float64)
 
         # GL and HP sampling ARE NOT uniform in theta therefore CANNOT be calculated
@@ -313,6 +322,9 @@ def spin_spherical_kernel_jax(
                 )
 
                 dl = dl.at[:, el].set(temp[: len(thetas)])
+
+    else:
+        raise ValueError(f"Recursion method {recursion} not recognised.")
 
     # Fold in normalisation to avoid recomputation at run-time.
     dl = jnp.einsum(
@@ -370,7 +382,7 @@ def wigner_kernel(
             Defaults to False.
 
         mode (str, optional): Whether to use FFT approach or manually compute each element.
-            {"auto", "manual", "irfft"}. Defaults to "auto" which will detect the
+            {"auto", "direct", "fft"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
 
         using_torch (bool, optional): Desired frontend functionality. Defaults to False.
@@ -379,19 +391,17 @@ def wigner_kernel(
         np.ndarray: Transform kernel for Wigner transform.
     """
     if mode.lower() == "fft" and sampling.lower() not in ["mw", "mwss", "dh"]:
-        mode = "manual"
-        warn(
-            f"Fourier based recursion is not valid for {sampling} sampling. "
-            + "Defaulting to auto mode."
+        raise ValueError(
+            f"Fourier based recursion is not valid for {sampling} sampling."
         )
     # Determine operational mode automatically.
     # - Can only use the FFT approach when uniformly sampling in theta.
     # - FFT approach is only more efficient when N <= L/Log(L) roughly.
     if mode.lower() == "auto":
         if sampling.lower() in ["mw", "mwss", "dh"]:
-            mode = "fft" if N <= int(L / np.log(L)) else "manual"
+            mode = "fft" if N <= int(L / np.log(L)) else "direct"
         else:
-            mode = "manual"
+            mode = "direct"
 
     n_start_ind = N - 1 if reality else 0
     n_dim = N if reality else 2 * N - 1
@@ -410,13 +420,15 @@ def wigner_kernel(
 
     # GL and HP sampling ARE NOT uniform in theta therefore CANNOT be calculated
     # using the Fourier decomposition of Wigner d-functions. Instead they must be
-    # manually bootstrapped from the recursion.
+    # manually calculated from the recursion.
     # - The complexity of this approach is ALWAYS O(L^4).
     # - This approach is stable for arbitrary abs(spins) <= L.
-    if mode.lower() == "manual":
+    if mode.lower() == "direct":
         delta = np.zeros((len(thetas), 2 * L - 1, 2 * L - 1), dtype=np.float64)
         for el in range(L):
-            delta = recursions.risbo.compute_full_vect(delta, thetas, L, el)
+            delta = recursions.risbo.compute_full_vectorised(
+                delta, thetas, L, el
+            )
             dl[:, :, el] = np.moveaxis(delta, -1, 0)[L - 1 + n]
 
     # MW, MWSS, and DH sampling ARE uniform in theta therefore CAN be calculated
@@ -425,7 +437,7 @@ def wigner_kernel(
     # - This approach is stable for arbitrary abs(spins) <= L.
     # Therefore when NL^3LogL <= L^4 i.e. when N <= L/LogL, the Fourier based approach
     # is more efficient. This can be a large difference for large L >> N.
-    else:
+    elif mode.lower() == "fft":
         # Number of samples for inverse FFT over Wigner Fourier coefficients.
         if sampling.lower() == "mw":
             nsamps = 2 * len(thetas) - 1
@@ -450,6 +462,9 @@ def wigner_kernel(
             )
             temp = np.fft.irfft(temp[L - 1 :], n=nsamps, axis=0, norm="forward")
             dl[:, :, el] = np.moveaxis(temp[: len(thetas)], -1, 0)
+
+    else:
+        raise ValueError(f"Recursion method {mode} not recognised.")
 
     # Fold in quadrature to avoid recomputation at run-time (forward).
     if forward:
@@ -510,26 +525,24 @@ def wigner_kernel_jax(
             Defaults to False.
 
         mode (str, optional): Whether to use FFT approach or manually compute each element.
-            {"auto", "manual", "irfft"}. Defaults to "auto" which will detect the
+            {"auto", "direct", "fft"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
 
     Returns:
         jnp.ndarray: Transform kernel for Wigner transform.
     """
     if mode.lower() == "fft" and sampling.lower() not in ["mw", "mwss", "dh"]:
-        mode = "manual"
-        warn(
-            f"Fourier based recursion is not valid for {sampling} sampling. "
-            + "Defaulting to auto mode."
+        raise ValueError(
+            f"Fourier based recursion is not valid for {sampling} sampling."
         )
     # Determine operational mode automatically.
     # - Can only use the FFT approach when uniformly sampling in theta.
     # - FFT approach is only more efficient when N <= L/Log(L) roughly.
     if mode.lower() == "auto":
         if sampling.lower() in ["mw", "mwss", "dh"]:
-            mode = "fft" if N <= int(L / np.log(L)) else "manual"
+            mode = "fft" if N <= int(L / np.log(L)) else "direct"
         else:
-            mode = "manual"
+            mode = "direct"
 
     n_start_ind = N - 1 if reality else 0
     n_dim = N if reality else 2 * N - 1
@@ -548,10 +561,10 @@ def wigner_kernel_jax(
 
     # GL and HP sampling ARE NOT uniform in theta therefore CANNOT be calculated
     # using the Fourier decomposition of Wigner d-functions. Instead they must be
-    # manually bootstrapped from the recursion.
+    # manually calculated from the recursion.
     # - The complexity of this approach is ALWAYS O(L^4).
     # - This approach is stable for arbitrary abs(spins) <= L.
-    if mode.lower() == "manual":
+    if mode.lower() == "direct":
         delta = jnp.zeros(
             (len(thetas), 2 * L - 1, 2 * L - 1), dtype=jnp.float64
         )
@@ -568,7 +581,7 @@ def wigner_kernel_jax(
     # - This approach is stable for arbitrary abs(spins) <= L.
     # Therefore when NL^3LogL <= L^4 i.e. when N <= L/LogL, the Fourier based approach
     # is more efficient. This can be a large difference for large L >> N.
-    else:
+    elif mode.lower() == "fft":
         # Number of samples for inverse FFT over Wigner Fourier coefficients.
         if sampling.lower() == "mw":
             nsamps = 2 * len(thetas) - 1
@@ -595,6 +608,9 @@ def wigner_kernel_jax(
                 temp[L - 1 :], n=nsamps, axis=0, norm="forward"
             )
             dl = dl.at[:, :, el].set(jnp.moveaxis(temp[: len(thetas)], -1, 0))
+
+    else:
+        raise ValueError(f"Recursion method {mode} not recognised.")
 
     # Fold in quadrature to avoid recomputation at run-time (forward).
     if forward:

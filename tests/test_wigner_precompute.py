@@ -15,7 +15,7 @@ L_to_nside_ratio = [2]
 reality_to_test = [False, True]
 sampling_schemes = ["mw", "mwss", "dh", "gl"]
 methods_to_test = ["numpy", "jax", "torch"]
-recursions_to_test = ["auto", "fft", "manual"]
+modes_to_test = ["auto", "fft", "direct"]
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -23,7 +23,7 @@ recursions_to_test = ["auto", "fft", "manual"]
 @pytest.mark.parametrize("sampling", sampling_schemes)
 @pytest.mark.parametrize("reality", reality_to_test)
 @pytest.mark.parametrize("method", methods_to_test)
-@pytest.mark.parametrize("recursion", recursions_to_test)
+@pytest.mark.parametrize("mode", modes_to_test)
 def test_inverse_wigner_transform(
     flmn_generator,
     L: int,
@@ -31,14 +31,19 @@ def test_inverse_wigner_transform(
     sampling: str,
     reality: bool,
     method: str,
-    recursion: str,
+    mode: str,
 ):
+    if mode.lower() == "fft" and sampling.lower() not in ["mw", "mwss", "dh"]:
+        pytest.skip(
+            f"Fourier based Wigner computation not valid for sampling={sampling}"
+        )
+
     flmn = flmn_generator(L=L, N=N, reality=reality)
 
     f = base.inverse(flmn, L, N, 0, sampling, reality)
 
     kfunc = c.wigner_kernel_jax if method == "jax" else c.wigner_kernel
-    kernel = kfunc(L, N, reality, sampling, forward=False, mode=recursion)
+    kernel = kfunc(L, N, reality, sampling, forward=False, mode=mode)
 
     if method.lower() == "torch":
         # Test Transform
@@ -79,7 +84,7 @@ def test_inverse_wigner_transform(
 @pytest.mark.parametrize("sampling", sampling_schemes)
 @pytest.mark.parametrize("reality", reality_to_test)
 @pytest.mark.parametrize("method", methods_to_test)
-@pytest.mark.parametrize("recursion", recursions_to_test)
+@pytest.mark.parametrize("mode", modes_to_test)
 def test_forward_wigner_transform(
     flmn_generator,
     L: int,
@@ -87,15 +92,19 @@ def test_forward_wigner_transform(
     sampling: str,
     reality: bool,
     method: str,
-    recursion: str,
+    mode: str,
 ):
+    if mode.lower() == "fft" and sampling.lower() not in ["mw", "mwss", "dh"]:
+        pytest.skip(
+            f"Fourier based Wigner computation not valid for sampling={sampling}"
+        )
     flmn = flmn_generator(L=L, N=N, reality=reality)
 
     f = base.inverse(flmn, L, N, sampling=sampling, reality=reality)
     flmn = base.forward(f, L, N, sampling=sampling, reality=reality)
 
     kfunc = c.wigner_kernel_jax if method == "jax" else c.wigner_kernel
-    kernel = kfunc(L, N, reality, sampling, forward=True, mode=recursion)
+    kernel = kfunc(L, N, reality, sampling, forward=True, mode=mode)
 
     if method.lower() == "torch":
         # Test Transform
