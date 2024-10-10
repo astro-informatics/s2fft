@@ -125,7 +125,8 @@ def _arg_checks(dl: np.ndarray, beta: float, L: int, el: int):
 def compute_full_vectorised(
     dl: np.ndarray, beta: np.ndarray, L: int, el: int
 ) -> np.ndarray:
-    r"""Compute Wigner-d at all arguments :math:`\beta` for full plane using
+    r"""
+    Compute Wigner-d at all arguments :math:`\beta` for full plane using
     Risbo recursion.
 
     The Wigner-d plane is computed by recursion over :math:`\ell`.
@@ -148,6 +149,7 @@ def compute_full_vectorised(
     Notes:
         This function is an implementation of the risbo recursion vectorised to explicitly
         evaluate the recursion for all betas simultaneously.
+
     """
     if el == 0:
         el = 0

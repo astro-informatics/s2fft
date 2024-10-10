@@ -25,6 +25,7 @@ def compute_full(dl: jnp.ndarray, beta: float, L: int, el: int) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: Plane of Wigner-d for `el` and `beta`, with full plane computed.
+
     """
     if el == 0:
         dl = dl.at[el + L - 1, el + L - 1].set(1.0)

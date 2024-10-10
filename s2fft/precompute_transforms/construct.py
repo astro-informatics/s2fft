@@ -1,6 +1,6 @@
-import jax
 from warnings import warn
 
+import jax
 import jax.numpy as jnp
 import numpy as np
 import torch
@@ -24,7 +24,8 @@ def spin_spherical_kernel(
     using_torch: bool = False,
     recursion: str = "auto",
 ) -> np.ndarray:
-    r"""Precompute the wigner-d kernel for spin-spherical transform.
+    r"""
+    Precompute the wigner-d kernel for spin-spherical transform.
 
     This implementation is typically faster than computing these elements on-the-fly but
     comes at a :math:`\mathcal{O}(L^3)` memory overhead, making it infeasible for large
@@ -185,7 +186,8 @@ def spin_spherical_kernel_jax(
     forward: bool = True,
     recursion: str = "auto",
 ) -> jnp.ndarray:
-    r"""Precompute the wigner-d kernel for spin-spherical transform.
+    r"""
+    Precompute the wigner-d kernel for spin-spherical transform.
 
     This implementation is typically faster than computing these elements on-the-fly but
     comes at a :math:`\mathcal{O}(L^3)` memory overhead, making it infeasible for large
@@ -360,7 +362,8 @@ def wigner_kernel(
     mode: str = "auto",
     using_torch: bool = False,
 ) -> np.ndarray:
-    r"""Precompute the wigner-d kernel for Wigner transform.
+    r"""
+    Precompute the wigner-d kernel for Wigner transform.
 
     This implementation is typically faster than computing these elements on-the-fly but
     comes at a :math:`\mathcal{O}(NL^3)` memory overhead, making it infeasible for large
@@ -504,7 +507,8 @@ def wigner_kernel_jax(
     forward: bool = False,
     mode: str = "auto",
 ) -> jnp.ndarray:
-    r"""Precompute the wigner-d kernel for Wigner transform.
+    r"""
+    Precompute the wigner-d kernel for Wigner transform.
 
     This implementation is typically faster than computing these elements on-the-fly but
     comes at a :math:`\mathcal{O}(NL^3)` memory overhead, making it infeasible for large
