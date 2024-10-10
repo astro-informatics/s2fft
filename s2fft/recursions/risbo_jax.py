@@ -68,29 +68,21 @@ def compute_full(dl: jnp.ndarray, beta: float, L: int, el: int) -> jnp.ndarray:
         dlj = dl[k - (el - 1) + L - 1][:, i - (el - 1) + L - 1]
 
         dd = dd.at[:j, :j].add(
-            jnp.einsum("i,k->ki", sqrt_jmi, sqrt_jmk, optimize=True)
-            * dlj
-            * coshb
+            jnp.einsum("i,k->ki", sqrt_jmi, sqrt_jmk, optimize=True) * dlj * coshb
         )
         dd = dd.at[:j, 1 : j + 1].add(
-            jnp.einsum("i,k->ki", -sqrt_ip1, sqrt_jmk, optimize=True)
-            * dlj
-            * sinhb
+            jnp.einsum("i,k->ki", -sqrt_ip1, sqrt_jmk, optimize=True) * dlj * sinhb
         )
         dd = dd.at[1 : j + 1, :j].add(
-            jnp.einsum("i,k->ki", sqrt_jmi, sqrt_kp1, optimize=True)
-            * dlj
-            * sinhb
+            jnp.einsum("i,k->ki", sqrt_jmi, sqrt_kp1, optimize=True) * dlj * sinhb
         )
         dd = dd.at[1 : j + 1, 1 : j + 1].add(
-            jnp.einsum("i,k->ki", sqrt_ip1, sqrt_kp1, optimize=True)
-            * dlj
-            * coshb
+            jnp.einsum("i,k->ki", sqrt_ip1, sqrt_kp1, optimize=True) * dlj * coshb
         )
 
-        dl = dl.at[
-            -el + L - 1 : el + 1 + L - 1, -el + L - 1 : el + 1 + L - 1
-        ].multiply(0.0)
+        dl = dl.at[-el + L - 1 : el + 1 + L - 1, -el + L - 1 : el + 1 + L - 1].multiply(
+            0.0
+        )
 
         j = 2 * el
         i = jnp.arange(j)

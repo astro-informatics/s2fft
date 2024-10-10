@@ -89,9 +89,7 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
 
                 ddj = dd[i, k] / j
 
-                dl[k - el + L - 1, i - el + L - 1] += (
-                    sqrt_jmi * sqrt_jmk * ddj * coshb
-                )
+                dl[k - el + L - 1, i - el + L - 1] += sqrt_jmi * sqrt_jmk * ddj * coshb
                 dl[k - el + L - 1, i + 1 - el + L - 1] -= (
                     sqrt_ip1 * sqrt_jmk * ddj * sinhb
                 )

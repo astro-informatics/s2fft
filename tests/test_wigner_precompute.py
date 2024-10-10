@@ -1,11 +1,12 @@
 import numpy as np
 import pytest
-import torch
-from s2fft.precompute_transforms.wigner import inverse, forward
-from s2fft.precompute_transforms import construct as c
-from s2fft.base_transforms import wigner as base
-from s2fft.sampling import so3_samples as samples
 import so3
+import torch
+
+from s2fft.base_transforms import wigner as base
+from s2fft.precompute_transforms import construct as c
+from s2fft.precompute_transforms.wigner import forward, inverse
+from s2fft.sampling import so3_samples as samples
 
 L_to_test = [6]
 N_to_test = [2, 6]
@@ -172,9 +173,7 @@ def test_inverse_wigner_transform_healpix(
             method,
             nside,
         )
-        np.testing.assert_allclose(
-            np.real(f), np.real(f_check), atol=1e-5, rtol=1e-5
-        )
+        np.testing.assert_allclose(np.real(f), np.real(f_check), atol=1e-5, rtol=1e-5)
 
         # Test Gradients
         flmn_grad_test = torch.from_numpy(flmn)

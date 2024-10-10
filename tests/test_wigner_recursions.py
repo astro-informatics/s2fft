@@ -102,15 +102,11 @@ def test_trapani_interfaces():
     dl_jax = recursions.trapani.init(dl_jax, L, implementation="jax")
 
     for el in range(1, L):
-        dl_loop = recursions.trapani.compute_full(
-            dl_loop, L, el, implementation="loop"
-        )
+        dl_loop = recursions.trapani.compute_full(dl_loop, L, el, implementation="loop")
         dl_vect = recursions.trapani.compute_full(
             dl_vect, L, el, implementation="vectorized"
         )
-        dl_jax = recursions.trapani.compute_full(
-            dl_jax, L, el, implementation="jax"
-        )
+        dl_jax = recursions.trapani.compute_full(dl_jax, L, el, implementation="jax")
         np.testing.assert_allclose(
             dl_loop[
                 -el + (L - 1) : el + (L - 1) + 1,
@@ -134,13 +130,11 @@ def test_trapani_interfaces():
             atol=1e-10,
         )
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError) as _:
         recursions.trapani.init(dl_loop, L, implementation="unexpected")
 
-    with pytest.raises(ValueError) as e:
-        recursions.trapani.compute_full(
-            dl_jax, L, el, implementation="unexpected"
-        )
+    with pytest.raises(ValueError) as _:
+        recursions.trapani.compute_full(dl_jax, L, el, implementation="unexpected")
 
 
 def test_risbo_with_ssht():
@@ -240,10 +234,8 @@ def test_turok_slice_jax_with_ssht(L: int, spin: int, sampling: str):
 
         for el in range(L):
             if el >= np.abs(spin):
-                print("beta {}, el {}, spin {}".format(beta, el, spin))
-                dl_turok = recursions.turok_jax.compute_slice(
-                    beta, el, L, -spin
-                )
+                print(f"beta {beta}, el {el}, spin {spin}")
+                dl_turok = recursions.turok_jax.compute_slice(beta, el, L, -spin)
 
                 np.testing.assert_allclose(
                     dl_turok[L - 1 - el : L - 1 + el + 1],
@@ -256,11 +248,11 @@ def test_turok_slice_jax_with_ssht(L: int, spin: int, sampling: str):
 def test_turok_exceptions():
     L = 10
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError) as _:
         recursions.turok.compute_full(np.pi / 2, L, L)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError) as _:
         recursions.turok.compute_slice(beta=np.pi / 2, el=L - 1, L=L, mm=L)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError) as _:
         recursions.turok.compute_slice(beta=np.pi / 2, el=L, L=L, mm=0)

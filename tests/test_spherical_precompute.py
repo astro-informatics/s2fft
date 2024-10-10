@@ -1,10 +1,11 @@
 import numpy as np
+import pyssht as ssht
 import pytest
 import torch
-from s2fft.precompute_transforms.spherical import inverse, forward
-from s2fft.precompute_transforms import construct as c
+
 from s2fft.base_transforms import spherical as base
-import pyssht as ssht
+from s2fft.precompute_transforms import construct as c
+from s2fft.precompute_transforms.spherical import forward, inverse
 from s2fft.sampling import s2_samples as samples
 
 L_to_test = [12]
@@ -47,9 +48,7 @@ def test_transform_inverse(
         if method.lower() == "jax"
         else c.spin_spherical_kernel
     )
-    kernel = kfunc(
-        L, spin, reality, sampling, forward=False, recursion=recursion
-    )
+    kernel = kfunc(L, spin, reality, sampling, forward=False, recursion=recursion)
 
     tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
     if method.lower() == "torch":
@@ -178,9 +177,7 @@ def test_transform_forward(
         if method.lower() == "jax"
         else c.spin_spherical_kernel
     )
-    kernel = kfunc(
-        L, spin, reality, sampling, forward=True, recursion=recursion
-    )
+    kernel = kfunc(L, spin, reality, sampling, forward=True, recursion=recursion)
 
     tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
     if method.lower() == "torch":

@@ -74,9 +74,7 @@ def spin_spherical_kernel(
     if recursion.lower() == "auto":
         # This mode automatically determines which recursion is best suited for the
         # current parameter configuration.
-        recursion = (
-            "risbo" if abs(spin) >= PM_MAX_STABLE_SPIN else "price-mcewen"
-        )
+        recursion = "risbo" if abs(spin) >= PM_MAX_STABLE_SPIN else "price-mcewen"
 
     dl = []
     m_start_ind = L - 1 if reality else 0
@@ -111,13 +109,9 @@ def spin_spherical_kernel(
         # - The complexity of this approach is O(L^4).
         # - This approach is stable for arbitrary abs(spins) <= L.
         if sampling.lower() in ["healpix", "gl"]:
-            delta = np.zeros(
-                (len(thetas), 2 * L - 1, 2 * L - 1), dtype=np.float64
-            )
+            delta = np.zeros((len(thetas), 2 * L - 1, 2 * L - 1), dtype=np.float64)
             for el in range(L):
-                delta = recursions.risbo.compute_full_vectorised(
-                    delta, thetas, L, el
-                )
+                delta = recursions.risbo.compute_full_vectorised(delta, thetas, L, el)
                 dl[:, el] = delta[:, m_start_ind:, L - 1 - spin]
 
         # MW, MWSS, and DH sampling ARE uniform in theta therefore CAN be calculated
@@ -144,19 +138,13 @@ def spin_spherical_kernel(
                     delta[:, L - 1 - spin],
                     1j ** (-spin - m_value[m_start_ind:]),
                 )
-                temp = np.einsum(
-                    "am,a->am", temp, np.exp(1j * m_value * thetas[0])
-                )
-                temp = np.fft.irfft(
-                    temp[L - 1 :], n=nsamps, axis=0, norm="forward"
-                )
+                temp = np.einsum("am,a->am", temp, np.exp(1j * m_value * thetas[0]))
+                temp = np.fft.irfft(temp[L - 1 :], n=nsamps, axis=0, norm="forward")
 
                 dl[:, el] = temp[: len(thetas)]
 
         # Fold in normalisation to avoid recomputation at run-time.
-        dl = np.einsum(
-            "tlm,l->tlm", dl, np.sqrt((2 * np.arange(L) + 1) / (4 * np.pi))
-        )
+        dl = np.einsum("tlm,l->tlm", dl, np.sqrt((2 * np.arange(L) + 1) / (4 * np.pi)))
 
     else:
         raise ValueError(f"Recursion method {recursion} not recognised.")
@@ -234,9 +222,7 @@ def spin_spherical_kernel_jax(
     if recursion.lower() == "auto":
         # This mode automatically determines which recursion is best suited for the
         # current parameter configuration.
-        recursion = (
-            "risbo" if abs(spin) >= PM_MAX_STABLE_SPIN else "price-mcewen"
-        )
+        recursion = "risbo" if abs(spin) >= PM_MAX_STABLE_SPIN else "price-mcewen"
 
     dl = []
     m_start_ind = L - 1 if reality else 0
@@ -283,9 +269,7 @@ def spin_spherical_kernel_jax(
         # - The complexity of this approach is O(L^4).
         # - This approach is stable for arbitrary abs(spins) <= L.
         if sampling.lower() in ["healpix", "gl"]:
-            delta = jnp.zeros(
-                (len(thetas), 2 * L - 1, 2 * L - 1), dtype=jnp.float64
-            )
+            delta = jnp.zeros((len(thetas), 2 * L - 1, 2 * L - 1), dtype=jnp.float64)
             vfunc = jax.vmap(
                 recursions.risbo_jax.compute_full, in_axes=(0, 0, None, None)
             )
@@ -309,9 +293,7 @@ def spin_spherical_kernel_jax(
 
             # Calculate the Fourier coefficients of the Wigner d-functions, delta(pi/2).
             for el in range(L):
-                delta = recursions.risbo_jax.compute_full(
-                    delta, jnp.pi / 2, L, el
-                )
+                delta = recursions.risbo_jax.compute_full(delta, jnp.pi / 2, L, el)
                 m_value = jnp.arange(-L + 1, L)
                 temp = jnp.einsum(
                     "am,a,m->am",
@@ -319,12 +301,8 @@ def spin_spherical_kernel_jax(
                     delta[:, L - 1 - spin],
                     1j ** (-spin - m_value[m_start_ind:]),
                 )
-                temp = jnp.einsum(
-                    "am,a->am", temp, jnp.exp(1j * m_value * thetas[0])
-                )
-                temp = jnp.fft.irfft(
-                    temp[L - 1 :], n=nsamps, axis=0, norm="forward"
-                )
+                temp = jnp.einsum("am,a->am", temp, jnp.exp(1j * m_value * thetas[0]))
+                temp = jnp.fft.irfft(temp[L - 1 :], n=nsamps, axis=0, norm="forward")
 
                 dl = dl.at[:, el].set(temp[: len(thetas)])
 
@@ -332,9 +310,7 @@ def spin_spherical_kernel_jax(
         raise ValueError(f"Recursion method {recursion} not recognised.")
 
     # Fold in normalisation to avoid recomputation at run-time.
-    dl = jnp.einsum(
-        "tlm,l->tlm", dl, jnp.sqrt((2 * jnp.arange(L) + 1) / (4 * jnp.pi))
-    )
+    dl = jnp.einsum("tlm,l->tlm", dl, jnp.sqrt((2 * jnp.arange(L) + 1) / (4 * jnp.pi)))
 
     # Fold in quadrature to avoid recomputation at run-time.
     if forward:
@@ -433,9 +409,7 @@ def wigner_kernel(
     if mode.lower() == "direct":
         delta = np.zeros((len(thetas), 2 * L - 1, 2 * L - 1), dtype=np.float64)
         for el in range(L):
-            delta = recursions.risbo.compute_full_vectorised(
-                delta, thetas, L, el
-            )
+            delta = recursions.risbo.compute_full_vectorised(delta, thetas, L, el)
             dl[:, :, el] = np.moveaxis(delta, -1, 0)[L - 1 + n]
 
     # MW, MWSS, and DH sampling ARE uniform in theta therefore CAN be calculated
@@ -464,9 +438,7 @@ def wigner_kernel(
                 1j ** (-m_value),
                 1j ** (n),
             )
-            temp = np.einsum(
-                "amn,a->amn", temp, np.exp(1j * m_value * thetas[0])
-            )
+            temp = np.einsum("amn,a->amn", temp, np.exp(1j * m_value * thetas[0]))
             temp = np.fft.irfft(temp[L - 1 :], n=nsamps, axis=0, norm="forward")
             dl[:, :, el] = np.moveaxis(temp[: len(thetas)], -1, 0)
 
@@ -574,12 +546,8 @@ def wigner_kernel_jax(
     # - The complexity of this approach is ALWAYS O(L^4).
     # - This approach is stable for arbitrary abs(spins) <= L.
     if mode.lower() == "direct":
-        delta = jnp.zeros(
-            (len(thetas), 2 * L - 1, 2 * L - 1), dtype=jnp.float64
-        )
-        vfunc = jax.vmap(
-            recursions.risbo_jax.compute_full, in_axes=(0, 0, None, None)
-        )
+        delta = jnp.zeros((len(thetas), 2 * L - 1, 2 * L - 1), dtype=jnp.float64)
+        vfunc = jax.vmap(recursions.risbo_jax.compute_full, in_axes=(0, 0, None, None))
         for el in range(L):
             delta = vfunc(delta, thetas, L, el)
             dl = dl.at[:, :, el].set(jnp.moveaxis(delta, -1, 0)[L - 1 + n])
@@ -610,12 +578,8 @@ def wigner_kernel_jax(
                 1j ** (-m_value),
                 1j ** (n),
             )
-            temp = jnp.einsum(
-                "amn,a->amn", temp, jnp.exp(1j * m_value * thetas[0])
-            )
-            temp = jnp.fft.irfft(
-                temp[L - 1 :], n=nsamps, axis=0, norm="forward"
-            )
+            temp = jnp.einsum("amn,a->amn", temp, jnp.exp(1j * m_value * thetas[0]))
+            temp = jnp.fft.irfft(temp[L - 1 :], n=nsamps, axis=0, norm="forward")
             dl = dl.at[:, :, el].set(jnp.moveaxis(temp[: len(thetas)], -1, 0))
 
     else:
@@ -646,9 +610,7 @@ def wigner_kernel_jax(
     return dl
 
 
-def healpix_phase_shifts(
-    L: int, nside: int, forward: bool = False
-) -> np.ndarray:
+def healpix_phase_shifts(L: int, nside: int, forward: bool = False) -> np.ndarray:
     r"""
     Generates a phase shift vector for HEALPix for all :math:`\theta` rings.
 
