@@ -7,6 +7,13 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - .github/workflows/tests.yml
+      - pyproject.toml
+      - s2fft/**
+      - tests/**
+      - .coveragerc
+      - CMakesLists.txt
   schedule:
     - cron: 0 0 * * 0
     
