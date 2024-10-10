@@ -8,10 +8,12 @@ authors:
   - given-names: Matthew A.
     family-names: Price
     affiliation: University College London
+    website: 'https://cosmomatt.github.io/'
   - given-names: Jason
     orcid: 'https://orcid.org/0000-0002-5852-8890'
     family-names: McEwen
     affiliation: University College London
+    website: 'http://www.jasonmcewen.org/'
 repository-code: 'https://github.com/astro-informatics/s2fft'
 url: 'https://astro-informatics.github.io/s2fft'
 license: MIT
@@ -21,9 +23,11 @@ preferred-citation:
   - family-names: Matthew A.
     given-names: Price
     affiliation: University College London
+    website: 'https://cosmomatt.github.io/''
   - family-names: Jason
     given-names: McEwen
     orcid: 'https://orcid.org/0000-0002-5852-8890'
+    website: 'http://www.jasonmcewen.org/''
   doi: 10.1016/j.jcp.2024.113109
   journal: Journal of Computational Physics
   month: 8
