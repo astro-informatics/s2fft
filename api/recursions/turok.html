@@ -589,7 +589,7 @@ Symmetry relations are used to fill in the remainder of the plane (see
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.recursions.turok.compute_quarter">
-<span class="sig-prename descclassname"><span class="pre">s2fft.recursions.turok.</span></span><span class="sig-name descname"><span class="pre">compute_quarter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.recursions.turok.compute_quarter" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.recursions.turok.</span></span><span class="sig-name descname"><span class="pre">compute_quarter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ell</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.recursions.turok.compute_quarter" title="Link to this definition">#</a></dt>
 <dd><p>Compute the left quarter triangle of the Wigner-d matrix via Turok &amp; Bucher
 recursion.</p>
 <dl class="field-list simple">
@@ -597,7 +597,7 @@ recursion.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dl</strong> (<em>np.ndarray</em>) – Wigner-d matrix slice to populate (shape: 2L-1, 2L-1).</p></li>
 <li><p><strong>beta</strong> (<em>float</em>) – Polar angle in radians.</p></li>
-<li><p><strong>l</strong> (<em>int</em>) – Harmonic degree of Wigner-d matrix.</p></li>
+<li><p><strong>ell</strong> (<em>int</em>) – Harmonic degree of Wigner-d matrix.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 </ul>
 </dd>
@@ -684,14 +684,14 @@ than zero only.  Defaults to False.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.recursions.turok.fill">
-<span class="sig-prename descclassname"><span class="pre">s2fft.recursions.turok.</span></span><span class="sig-name descname"><span class="pre">fill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.recursions.turok.fill" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.recursions.turok.</span></span><span class="sig-name descname"><span class="pre">fill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ell</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.recursions.turok.fill" title="Link to this definition">#</a></dt>
 <dd><p>Reflects Wigner-d quarter plane to complete full matrix by using symmetry
 properties of the Wigner-d matrices.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dl</strong> (<em>np.ndarray</em>) – Wigner-d matrix to populate by symmetry.</p></li>
-<li><p><strong>l</strong> (<em>int</em>) – Harmonic degree of Wigner-d matrix.</p></li>
+<li><p><strong>ell</strong> (<em>int</em>) – Harmonic degree of Wigner-d matrix.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 </ul>
 </dd>
