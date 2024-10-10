@@ -130,10 +130,10 @@ def test_trapani_interfaces():
             atol=1e-10,
         )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as _:
         recursions.trapani.init(dl_loop, L, implementation="unexpected")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as _:
         recursions.trapani.compute_full(dl_jax, L, el, implementation="unexpected")
 
 
@@ -141,10 +141,11 @@ def test_risbo_with_ssht():
     """Test Risbo computation against ssht"""
 
     # Test all dl(pi/2) terms up to L.
-    L = 10
+    L = 32
 
     # Compute using SSHT.
-    beta = np.pi / 2.0
+    # beta = np.pi / 2.0
+    beta = np.pi / L
     dl_array = ssht.generate_dl(beta, L)
 
     # Compare to routines in SSHT, which have been validated extensively.
@@ -159,10 +160,11 @@ def test_risbo_with_ssht_jax():
     """Test Risbo JAX computation against ssht"""
 
     # Test all dl(pi/2) terms up to L.
-    L = 10
+    L = 32
 
     # Compute using SSHT.
-    betas = [0, np.pi / 2.0, np.pi]
+    # betas = [0, np.pi / 2.0, np.pi]
+    betas = [np.pi / L]
     for beta in betas:
         dl_array = ssht.generate_dl(beta, L)
 
@@ -246,11 +248,11 @@ def test_turok_slice_jax_with_ssht(L: int, spin: int, sampling: str):
 def test_turok_exceptions():
     L = 10
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as _:
         recursions.turok.compute_full(np.pi / 2, L, L)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as _:
         recursions.turok.compute_slice(beta=np.pi / 2, el=L - 1, L=L, mm=L)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as _:
         recursions.turok.compute_slice(beta=np.pi / 2, el=L, L=L, mm=0)

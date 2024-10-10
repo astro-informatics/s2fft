@@ -4,7 +4,7 @@ import jax.numpy as jnp
 from jax import jit
 
 
-@partial(jit, static_argnums=(1, 2, 3))
+@partial(jit, static_argnums=(2, 3))
 def compute_full(dl: jnp.ndarray, beta: float, L: int, el: int) -> jnp.ndarray:
     r"""
     Compute Wigner-d at argument :math:`\beta` for full plane using
@@ -15,7 +15,7 @@ def compute_full(dl: jnp.ndarray, beta: float, L: int, el: int) -> jnp.ndarray:
     :math:`\ell - 1`. At present, for :math:`\ell = 0` the recusion is initialised.
 
     Args:
-        dl (np.ndarray): Wigner-d plane for :math:`\ell - 1` at :math:`\beta`.
+        dl (jnp.ndarray): Wigner-d plane for :math:`\ell - 1` at :math:`\beta`.
 
         beta (float): Argument :math:`\beta` at which to compute Wigner-d plane.
 
@@ -24,7 +24,7 @@ def compute_full(dl: jnp.ndarray, beta: float, L: int, el: int) -> jnp.ndarray:
         el (int): Spherical harmonic degree :math:`\ell`.
 
     Returns:
-        np.ndarray: Plane of Wigner-d for `el` and `beta`, with full plane computed.
+        jnp.ndarray: Plane of Wigner-d for `el` and `beta`, with full plane computed.
 
     """
     if el == 0:
