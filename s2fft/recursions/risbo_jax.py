@@ -1,12 +1,14 @@
+from functools import partial
+
 import jax.numpy as jnp
 from jax import jit
-from functools import partial
 
 
 @partial(jit, static_argnums=(2, 3))
 def compute_full(dl: jnp.ndarray, beta: float, L: int, el: int) -> jnp.ndarray:
-    r"""Compute Wigner-d at argument :math:`\beta` for full plane using
-    Risbo recursion (JAX implementation)
+    r"""
+    Compute Wigner-d at argument :math:`\beta` for full plane using
+    Risbo recursion (JAX implementation).
 
     The Wigner-d plane is computed by recursion over :math:`\ell` (`el`).
     Thus, for :math:`\ell > 0` the plane must be computed already for
@@ -24,7 +26,6 @@ def compute_full(dl: jnp.ndarray, beta: float, L: int, el: int) -> jnp.ndarray:
     Returns:
         jnp.ndarray: Plane of Wigner-d for `el` and `beta`, with full plane computed.
     """
-
     if el == 0:
         dl = dl.at[el + L - 1, el + L - 1].set(1.0)
         return dl

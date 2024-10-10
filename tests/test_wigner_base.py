@@ -1,9 +1,9 @@
+import numpy as np
 import pytest
 import so3
-import numpy as np
-from s2fft.sampling import so3_samples as samples
-from s2fft.base_transforms import wigner
 
+from s2fft.base_transforms import wigner
+from s2fft.sampling import so3_samples as samples
 
 L_to_test = [6, 7]
 N_to_test = [2, 3]

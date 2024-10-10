@@ -1,3 +1,1 @@
-from . import s2_samples
-from . import so3_samples
-from . import reindex
+from . import reindex, s2_samples, so3_samples

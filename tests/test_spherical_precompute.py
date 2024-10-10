@@ -1,5 +1,5 @@
-import pytest
 import numpy as np
+import pytest
 import torch
 from s2fft.precompute_transforms.spherical import inverse, forward
 from s2fft.precompute_transforms import construct as c

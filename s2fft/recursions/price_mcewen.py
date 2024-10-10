@@ -1,13 +1,13 @@
-import numpy as np
-import jax.numpy as jnp
-import jax.lax as lax
-from jax import jit
+import warnings
 from functools import partial
-
-from s2fft.sampling import s2_samples as samples
 from typing import List
 
-import warnings
+import jax.lax as lax
+import jax.numpy as jnp
+import numpy as np
+from jax import jit
+
+from s2fft.sampling import s2_samples as samples
 
 warnings.filterwarnings("ignore")
 
@@ -20,7 +20,8 @@ def generate_precomputes(
     forward: bool = False,
     L_lower: int = 0,
 ) -> List[np.ndarray]:
-    r"""Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
+    r"""
+    Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
     In practice one could compute these on-the-fly but the memory overhead is
     negligible and well worth the acceleration.
 
@@ -46,6 +47,7 @@ def generate_precomputes(
 
     Note:
         TODO: this function should be optimised.
+
     """
     mm = -spin
     L0 = L_lower
@@ -122,7 +124,8 @@ def generate_precomputes_jax(
     L_lower: int = 0,
     betas: jnp.ndarray = None,
 ) -> List[jnp.ndarray]:
-    r"""Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
+    r"""
+    Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
     In practice one could compute these on-the-fly but the memory overhead is
     negligible and well worth the acceleration. JAX implementation of
     :func:`~generate_precomputes`.
@@ -148,6 +151,7 @@ def generate_precomputes_jax(
 
     Returns:
         List[jnp.ndarray]: List of precomputed coefficient arrays.
+
     """
     mm = -spin
     L0 = L_lower
@@ -259,7 +263,8 @@ def generate_precomputes_wigner(
     reality: bool = False,
     L_lower: int = 0,
 ) -> List[List[np.ndarray]]:
-    r"""Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
+    r"""
+    Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
     In practice one could compute these on-the-fly but the memory overhead is
     negligible and well worth the acceleration. This is a wrapped extension of
     :func:`~generate_precomputes` for the case of multiple spins, i.e. the Wigner
@@ -291,6 +296,7 @@ def generate_precomputes_wigner(
 
     Note:
         TODO: this function should be optimised.
+
     """
     precomps = []
     n_start_ind = 0 if reality else -N + 1
@@ -309,7 +315,8 @@ def generate_precomputes_wigner_jax(
     reality: bool = False,
     L_lower: int = 0,
 ) -> List[List[jnp.ndarray]]:
-    r"""Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
+    r"""
+    Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
     In practice one could compute these on-the-fly but the memory overhead is
     negligible and well worth the acceleration. This is a wrapped extension of
     :func:`~generate_precomputes` for the case of multiple spins, i.e. the Wigner
@@ -338,6 +345,7 @@ def generate_precomputes_wigner_jax(
 
     Returns:
         List[List[jnp.ndarray]]: 2N-1 length List of Lists of precomputed coefficient arrays.
+
     """
     lrenorm = []
     vsign = []
@@ -368,7 +376,8 @@ def generate_precomputes_wigner_jax(
 def compute_all_slices(
     beta: np.ndarray, L: int, spin: int, precomps=None
 ) -> np.ndarray:
-    r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
+    r"""
+    Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
     of the complete Wigner-d matrix for all sampled polar angles
     :math:`\beta` and all :math:`\ell` using Price & McEwen recursion.
 
@@ -401,6 +410,7 @@ def compute_all_slices(
 
     Returns:
         np.ndarray: Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
+
     """
     # Indexing boundaries and constants
     mm = -spin
@@ -497,7 +507,8 @@ def compute_all_slices_jax(
     nside: int = None,
     precomps=None,
 ) -> jnp.ndarray:
-    r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
+    r"""
+    Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
     of the complete Wigner-d matrix for all sampled polar angles
     :math:`\beta` and all :math:`\ell` using Price & McEwen recursion.
 
@@ -530,6 +541,7 @@ def compute_all_slices_jax(
 
     Returns:
         jnp.ndarray: Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
+
     """
     # Indexing boundaries and constants
     mm = -spin

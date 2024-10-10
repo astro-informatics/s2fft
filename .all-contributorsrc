@@ -103,6 +103,17 @@
         "bug",
         "doc"
       ]
+    },
+    {
+      "login": "ASKabalan",
+      "name": "Wassim KABALAN",
+      "avatar_url": "https://avatars.githubusercontent.com/u/83787080?v=4",
+      "profile": "https://github.com/ASKabalan",
+      "contributions": [
+        "code",
+        "review",
+        "test"
+      ]
     }
   ],
   "contributorsPerLine": 7,

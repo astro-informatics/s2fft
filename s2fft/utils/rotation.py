@@ -1,7 +1,8 @@
-import jax.numpy as jnp
-from jax import jit
 from functools import partial
 from typing import Tuple
+
+import jax.numpy as jnp
+from jax import jit
 
 from s2fft.recursions.risbo_jax import compute_full
 
@@ -13,7 +14,8 @@ def rotate_flms(
     rotation: Tuple[float, float, float],
     dl_array: jnp.ndarray = None,
 ) -> jnp.ndarray:
-    """Rotates an array of spherical harmonic coefficients by angle rotation.
+    """
+    Rotates an array of spherical harmonic coefficients by angle rotation.
 
     Args:
         flm (jnp.ndarray): Array of spherical harmonic coefficients.
@@ -24,8 +26,8 @@ def rotate_flms(
 
     Returns:
         jnp.ndarray: Rotated spherical harmonic coefficients with shape [L,2L-1].
-    """
 
+    """
     # Split out angles
     alpha = __exp_array(L, rotation[0])
     gamma = __exp_array(L, rotation[2])
@@ -36,7 +38,7 @@ def rotate_flms(
 
     dl = (
         dl_array
-        if dl_array != None
+        if dl_array is not None
         else jnp.zeros((2 * L - 1, 2 * L - 1)).astype(jnp.float64)
     )
 
@@ -68,13 +70,14 @@ def rotate_flms(
 
 @partial(jit, static_argnums=(0, 1))
 def __exp_array(L: int, x: float) -> jnp.ndarray:
-    """Private function to generate rotation arrays for alpha/gamma rotations"""
+    """Private function to generate rotation arrays for alpha/gamma rotations."""
     return jnp.exp(-1j * jnp.arange(-L + 1, L) * x)
 
 
 @partial(jit, static_argnums=(0, 1))
 def generate_rotate_dls(L: int, beta: float) -> jnp.ndarray:
-    """Function which recursively generates the complete plane of reduced
+    """
+    Function which recursively generates the complete plane of reduced
         Wigner d-function coefficients at a given rotation beta.
 
     Args:
@@ -84,6 +87,7 @@ def generate_rotate_dls(L: int, beta: float) -> jnp.ndarray:
     Returns:
         jnp.ndarray: Complete array of [L, 2L-1,2L-1] Wigner d-function coefficients
             for a fixed rotation beta.
+
     """
     dl = jnp.zeros((L, 2 * L - 1, 2 * L - 1)).astype(jnp.float64)
     dl_iter = jnp.zeros((2 * L - 1, 2 * L - 1)).astype(jnp.float64)

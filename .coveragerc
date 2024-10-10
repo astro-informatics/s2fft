@@ -3,3 +3,6 @@ omit =
     *test_*
     *__init__*
     *plotting*
+exclude_also =
+    ; Exclude functions requiring CUDA from coverage
+    def \w+_cuda(?:|_\w+)\(

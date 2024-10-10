@@ -1,14 +1,13 @@
 import jax
+from warnings import warn
+
+import jax.numpy as jnp
+import numpy as np
 import torch
 
-jax.config.update("jax_enable_x64", True)
-
-import numpy as np
-import jax.numpy as jnp
+from s2fft import recursions
 from s2fft.sampling import s2_samples as samples
 from s2fft.utils import quadrature, quadrature_jax
-from s2fft import recursions
-from warnings import warn
 
 # Maximum spin number at which Price-McEwen recursion is sufficiently accurate.
 # For spins > PM_MAX_STABLE_SPIN one should default to the Risbo recursion.
@@ -57,12 +56,14 @@ def spin_spherical_kernel(
 
     Returns:
         np.ndarray: Transform kernel for spin-spherical harmonic transform.
+
     """
     if reality and spin != 0:
         reality = False
         warn(
             "Reality acceleration only supports spin 0 fields. "
-            + "Defaulting to complex transform."
+            + "Defering to complex transform.",
+            stacklevel=2,
         )
     if recursion.lower() == "price-mcewen" and abs(spin) >= PM_MAX_STABLE_SPIN:
         raise ValueError(
@@ -214,12 +215,14 @@ def spin_spherical_kernel_jax(
 
     Returns:
         jnp.ndarray: Transform kernel for spin-spherical harmonic transform.
+
     """
     if reality and spin != 0:
         reality = False
         warn(
             "Reality acceleration only supports spin 0 fields. "
-            + "Defaulting to complex transform."
+            + "Defaulting to complex transform.",
+            stacklevel=2,
         )
     if recursion.lower() == "price-mcewen" and abs(spin) >= PM_MAX_STABLE_SPIN:
         raise ValueError(
@@ -389,6 +392,7 @@ def wigner_kernel(
 
     Returns:
         np.ndarray: Transform kernel for Wigner transform.
+
     """
     if mode.lower() == "fft" and sampling.lower() not in ["mw", "mwss", "dh"]:
         raise ValueError(
@@ -530,6 +534,7 @@ def wigner_kernel_jax(
 
     Returns:
         jnp.ndarray: Transform kernel for Wigner transform.
+
     """
     if mode.lower() == "fft" and sampling.lower() not in ["mw", "mwss", "dh"]:
         raise ValueError(
@@ -640,7 +645,8 @@ def wigner_kernel_jax(
 def healpix_phase_shifts(
     L: int, nside: int, forward: bool = False
 ) -> np.ndarray:
-    r"""Generates a phase shift vector for HEALPix for all :math:`\theta` rings.
+    r"""
+    Generates a phase shift vector for HEALPix for all :math:`\theta` rings.
 
     Args:
         L (int, optional): Harmonic band-limit.
@@ -652,10 +658,11 @@ def healpix_phase_shifts(
 
     Returns:
         np.ndarray: Vector of phase shifts with shape :math:`[thetas, 2L-1]`.
+
     """
     thetas = samples.thetas(L, "healpix", nside)
     phase_array = np.zeros((len(thetas), 2 * L - 1), dtype=np.complex128)
-    for t, _ in enumerate(thetas):
+    for t in range(len(thetas)):
         phase_array[t] = samples.ring_phase_shift_hp(L, t, nside, forward)
 
     return phase_array

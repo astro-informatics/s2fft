@@ -1,12 +1,13 @@
 import numpy as np
-import numpy.fft as fft
+
 from s2fft.sampling import s2_samples as samples
 
 
 def periodic_extension(
     f: np.ndarray, L: int, spin: int = 0, sampling: str = "mw"
 ) -> np.ndarray:
-    r"""Perform period extension of MW/MWSS signal on the sphere in harmonic
+    r"""
+    Perform period extension of MW/MWSS signal on the sphere in harmonic
     domain, extending :math:`\theta` domain from :math:`[0,\pi]` to :math:`[0,2\pi]`.
 
     Args:
@@ -25,6 +26,7 @@ def periodic_extension(
     Returns:
         np.ndarray: Signal on the sphere extended to :math:`\theta` domain
         :math:`[0,2\pi]`, in same scheme (MW/MWSS) as input.
+
     """
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
@@ -60,7 +62,8 @@ def periodic_extension(
 
 
 def periodic_extension_spatial_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
-    r"""Perform period extension of MWSS signal on the sphere in spatial domain,
+    r"""
+    Perform period extension of MWSS signal on the sphere in spatial domain,
     extending :math:`\theta` domain from :math:`[0,\pi]` to :math:`[0,2\pi]`.
 
     For the MWSS sampling scheme, it is possible to do the period extension in
@@ -77,6 +80,7 @@ def periodic_extension_spatial_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.
     Returns:
         np.ndarray: Signal on the sphere extended to :math:`\theta` domain
         :math:`[0,2\pi]`, in MWSS sampling scheme.
+
     """
     ntheta = L + 1
     nphi = 2 * L
@@ -98,7 +102,8 @@ def periodic_extension_spatial_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.
 
 
 def upsample_by_two_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
-    r"""Upsample MWSS sampled signal on the sphere defined on domain :math:`[0,\pi]`
+    r"""
+    Upsample MWSS sampled signal on the sphere defined on domain :math:`[0,\pi]`
     by a factor of two.
 
     Upsampling is performed by a periodic extension in :math:`\theta` to
@@ -116,6 +121,7 @@ def upsample_by_two_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
     Returns:
         np.ndarray: Signal on the sphere sampled with MWSS sampling scheme, sampling at
         resolution 2*L.
+
     """
     if f.ndim == 2:
         f = np.expand_dims(f, 0)
@@ -126,7 +132,8 @@ def upsample_by_two_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
 
 
 def upsample_by_two_mwss_ext(f_ext: np.ndarray, L: int) -> np.ndarray:
-    """Upsample an extended MWSS sampled signal on the sphere defined on domain
+    r"""
+    Upsample an extended MWSS sampled signal on the sphere defined on domain
     :math:`[0,2\pi]` by a factor of two.
 
     Upsampling is performed by zero-padding in harmonic space.
@@ -140,6 +147,7 @@ def upsample_by_two_mwss_ext(f_ext: np.ndarray, L: int) -> np.ndarray:
     Returns:
         np.ndarray: Signal on the sphere sampled on extended MWSS sampling scheme on
         domain :math:`[0,2\pi]`, sampling at resolution 2*L.
+
     """
     nphi = 2 * L
     ntheta_ext = 2 * L
@@ -153,7 +161,8 @@ def upsample_by_two_mwss_ext(f_ext: np.ndarray, L: int) -> np.ndarray:
 
 
 def downsample_by_two_mwss(f_ext: np.ndarray, L: int) -> np.ndarray:
-    """Downsample an MWSS sampled signal on the sphere.
+    r"""
+    Downsample an MWSS sampled signal on the sphere.
 
     Can be applied to either MWSS signal sampled on original domain :math:`[0,\pi]`
     or extended domain :math:`[0,2\pi]`.
@@ -173,8 +182,8 @@ def downsample_by_two_mwss(f_ext: np.ndarray, L: int) -> np.ndarray:
     Returns:
         np.ndarray: Signal on the sphere sampled with MWSS sampling scheme at
         resolution L/2.  L must be even so that L/2 is an integer.
-    """
 
+    """
     # Check L is even.
     if L % 2 != 0:
         raise ValueError(f"L must be even (L={L})")
@@ -185,7 +194,8 @@ def downsample_by_two_mwss(f_ext: np.ndarray, L: int) -> np.ndarray:
 
 
 def unextend(f_ext: np.ndarray, L: int, sampling: str = "mw") -> np.ndarray:
-    r"""Unextend MW/MWSS sampled signal from :math:`\theta` domain
+    r"""
+    Unextend MW/MWSS sampled signal from :math:`\theta` domain
     :math:`[0,2\pi]` to :math:`[0,\pi]`.
 
     Args:
@@ -205,8 +215,8 @@ def unextend(f_ext: np.ndarray, L: int, sampling: str = "mw") -> np.ndarray:
     Returns:
         np.ndarray: Signal on the sphere sampled on :math:`\theta` domain
         :math:`[0,\pi]`.
-    """
 
+    """
     if sampling.lower() not in ["mw", "mwss"]:
         raise ValueError(
             "Only mw and mwss supported for periodic extension "
@@ -236,7 +246,8 @@ def unextend(f_ext: np.ndarray, L: int, sampling: str = "mw") -> np.ndarray:
 
 
 def mw_to_mwss_phi(f_mw: np.ndarray, L: int) -> np.ndarray:
-    r"""Convert :math:`\phi` component of signal on the sphere from MW sampling to
+    r"""
+    Convert :math:`\phi` component of signal on the sphere from MW sampling to
     MWSS sampling.
 
     Conversion is performed by zero padding in harmonic space.
@@ -260,6 +271,7 @@ def mw_to_mwss_phi(f_mw: np.ndarray, L: int) -> np.ndarray:
     Returns:
         np.ndarray: Signal on the sphere with MWSS sampling in :math:`\phi` and
         sampling in :math:`\theta` of the input signal.
+
     """
     f_mwss = np.zeros((f_mw.shape[0], L + 1, 2 * L), dtype=np.complex128)
     f_mwss[:, :, 1:] = np.fft.fftshift(
@@ -270,7 +282,8 @@ def mw_to_mwss_phi(f_mw: np.ndarray, L: int) -> np.ndarray:
 
 
 def mw_to_mwss_theta(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
-    r"""Convert :math:`\theta` component of signal on the sphere from MW sampling to
+    r"""
+    Convert :math:`\theta` component of signal on the sphere from MW sampling to
     MWSS sampling.
 
     Conversion is performed by first performing a period extension in
@@ -291,6 +304,7 @@ def mw_to_mwss_theta(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
     Returns:
         np.ndarray: Signal on the sphere with MWSS sampling in :math:`\theta` and MW
         sampling in :math:`\phi`.
+
     """
     f_mw_ext = periodic_extension(f_mw, L, spin=spin, sampling="mw")
     fmp_mwss_ext = np.zeros((f_mw_ext.shape[0], 2 * L, 2 * L - 1), dtype=np.complex128)
@@ -313,7 +327,8 @@ def mw_to_mwss_theta(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
 
 
 def mw_to_mwss(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
-    r"""Convert signal on the sphere from MW sampling to MWSS sampling.
+    r"""
+    Convert signal on the sphere from MW sampling to MWSS sampling.
 
     Conversion is performed by first performing a period extension in
     :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space.  The
@@ -330,6 +345,7 @@ def mw_to_mwss(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
 
     Returns:
         np.ndarray: Signal on the sphere sampled with MWSS sampling.
+
     """
     if f_mw.ndim == 2:
         return np.squeeze(

@@ -1,10 +1,10 @@
-import pytest
+import healpy as hp
 import numpy as np
+import pyssht as ssht
+import pytest
+
 from s2fft.base_transforms import spherical
 from s2fft.sampling import s2_samples as samples
-import pyssht as ssht
-import healpy as hp
-
 
 L_to_test = [6, 7]
 L_lower_to_test = [0, 2]
@@ -140,10 +140,10 @@ def test_healpix_nside_to_L_exceptions(flm_generator, nside: int):
     flm = flm_generator(L=L, reality=True)
     f = spherical._inverse(flm, L, spin, sampling, "direct", nside)
 
-    with pytest.raises(AssertionError) as e:
+    with pytest.raises(AssertionError):
         spherical.forward(f, L, spin, sampling, nside)
 
-    with pytest.raises(AssertionError) as e:
+    with pytest.raises(AssertionError):
         spherical.inverse(flm, L, spin, sampling, nside)
 
 
@@ -155,14 +155,14 @@ def test_L_lower_exception(flm_generator, L: int):
     flm = flm_generator(L=L, reality=False)
     f = spherical.inverse(flm, L, spin, sampling)
 
-    with pytest.raises(AssertionError) as e:
+    with pytest.raises(AssertionError):
         spherical.forward(f, L, spin, sampling, L_lower=-1)
 
-    with pytest.raises(AssertionError) as e:
+    with pytest.raises(AssertionError):
         spherical.forward(f, L, spin, sampling, L_lower=L)
 
-    with pytest.raises(AssertionError) as e:
+    with pytest.raises(AssertionError):
         spherical.inverse(flm, L, spin, sampling, L_lower=-1)
 
-    with pytest.raises(AssertionError) as e:
+    with pytest.raises(AssertionError):
         spherical.inverse(flm, L, spin, sampling, L_lower=L)

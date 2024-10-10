@@ -1,13 +1,16 @@
-import os
-import logging.config
 import logging
+import logging.config
+import os
 from pathlib import Path
+
 import yaml
+
 import s2fft
 
 
 def setup_logging(custom_yaml_path: str = None):
-    """Initialise and configure logging.
+    """
+    Initialise and configure logging.
 
     Should be called at the beginning of code to initialise and configure the
     desired logging level. Logging levels can be ints in [0,50] where 10 is
@@ -29,7 +32,7 @@ def setup_logging(custom_yaml_path: str = None):
         path = Path(custom_yaml_path)
     if not path.exists():
         raise ValueError(f"Logging config path {path} does not exist.")
-    with open(path, "rt") as f:
+    with open(path) as f:
         config = yaml.safe_load(f.read())
     if custom_yaml_path is None:
         config["handlers"]["info_file_handler"]["filename"] = "info.log"
@@ -39,7 +42,8 @@ def setup_logging(custom_yaml_path: str = None):
 
 
 def debug_log(message: str):
-    """Log a debug message (e.g. for background logs to assist debugging).
+    """
+    Log a debug message (e.g. for background logs to assist debugging).
 
     Args:
         message (str): Message to log.
@@ -50,7 +54,8 @@ def debug_log(message: str):
 
 
 def warning_log(message: str):
-    """Log a warning (e.g. for internal code warnings such as large dynamic
+    """
+    Log a warning (e.g. for internal code warnings such as large dynamic
     ranges).
 
     Args:
@@ -62,7 +67,8 @@ def warning_log(message: str):
 
 
 def critical_log(message: str):
-    """Log a critical message (e.g. core code failures etc).
+    """
+    Log a critical message (e.g. core code failures etc).
 
     Args:
         message (str): Message to log.
@@ -73,7 +79,8 @@ def critical_log(message: str):
 
 
 def info_log(message: str):
-    """Log an information message (e.g. evidence value printing, run completion
+    """
+    Log an information message (e.g. evidence value printing, run completion
     etc).
 
     Args:

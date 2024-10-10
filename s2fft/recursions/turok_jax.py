@@ -1,13 +1,15 @@
-import numpy as np
-import jax.lax as lax
-from jax import jit
-import jax.numpy as jnp
 from functools import partial
+
+import jax.lax as lax
+import jax.numpy as jnp
+import numpy as np
+from jax import jit
 
 
 @partial(jit, static_argnums=(2, 3))
 def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
-    r"""Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
+    r"""
+    Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
     of the complete Wigner-d matrix at polar angle :math:`\beta` using Turok &
     Bucher recursion.
 
@@ -37,6 +39,7 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
+
     """
     dl = jnp.zeros(2 * L - 1, dtype=jnp.float64)
     dl = lax.cond(
@@ -63,7 +66,8 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
 def _compute_quarter_slice(
     dl: jnp.array, beta: float, el: int, L: int, mm: int
 ) -> jnp.ndarray:
-    r"""Compute a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated
+    r"""
+    Compute a single slice at :math:`m^{\prime}` of the Wigner-d matrix evaluated
     at :math:`\beta`.
 
     Args:
@@ -80,6 +84,7 @@ def _compute_quarter_slice(
     Returns:
         jnp.ndarray: Wigner-d matrix slice of dimension [2L-1] populated only on the mm
             slice.
+
     """
     # These constants handle overflow by retrospectively renormalising
     big_const = 1e10
@@ -184,7 +189,8 @@ def _compute_quarter_slice(
 
 @partial(jit, static_argnums=(2, 3))
 def _north_pole(dl, el, L, mm) -> jnp.ndarray:
-    r"""Compute Wigner-d matrix for edge case where theta index is located on the
+    r"""
+    Compute Wigner-d matrix for edge case where theta index is located on the
     north pole.
 
     Args:
@@ -198,6 +204,7 @@ def _north_pole(dl, el, L, mm) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: Wigner-d matrix slice of dimension [2L-1].
+
     """
     dl = dl.at[:].set(0)
     if mm < 0:
@@ -209,7 +216,8 @@ def _north_pole(dl, el, L, mm) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(2, 3))
 def _south_pole(dl, el, L, mm) -> jnp.ndarray:
-    r"""Compute Wigner-d matrix for edge case where theta index is located on the
+    r"""
+    Compute Wigner-d matrix for edge case where theta index is located on the
     south pole.
 
     Args:
@@ -223,6 +231,7 @@ def _south_pole(dl, el, L, mm) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: Wigner-d matrix slice of dimension [2L-1].
+
     """
     dl = dl.at[:].set(0)
     if mm > 0:
@@ -234,7 +243,8 @@ def _south_pole(dl, el, L, mm) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(1))
 def _el0(dl, L) -> jnp.ndarray:
-    r"""Compute Wigner-d matrix for edge case where the harmonic degree is 0
+    r"""
+    Compute Wigner-d matrix for edge case where the harmonic degree is 0
     (monopole term).
 
     Args:
@@ -244,6 +254,7 @@ def _el0(dl, L) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: Wigner-d matrix slice of dimension [2L-1].
+
     """
     dl = dl.at[:].set(0)
     dl = dl.at[-1].set(1)
@@ -252,7 +263,8 @@ def _el0(dl, L) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(2, 3))
 def reindex(dl, el, L, mm) -> jnp.ndarray:
-    r"""Reorders indexing of Wigner-d matrix.
+    r"""
+    Reorders indexing of Wigner-d matrix.
 
     Reindexes the Wigner-d matrix to centre m values around L-1.
     The original indexing is given by
@@ -274,6 +286,7 @@ def reindex(dl, el, L, mm) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: Wigner-d matrix slice of dimension [2L-1].
+
     """
     dl = dl.at[: L - 1].set(jnp.roll(dl, L - el - 1)[: L - 1])
     dl = dl.at[L - 1 :].set(jnp.roll(dl, -(L - el - 1))[L - 1 :])

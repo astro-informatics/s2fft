@@ -1,9 +1,11 @@
-import numpy as np
 from typing import Tuple
+
+import numpy as np
 
 
 def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
-    r"""Number of :math:`\theta` samples for sampling scheme at specified resolution.
+    r"""
+    Number of :math:`\theta` samples for sampling scheme at specified resolution.
 
     Args:
         L (int, optional): Harmonic band-limit.  Required if sampling not healpix.
@@ -24,8 +26,8 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
 
     Returns:
         int: Number of :math:`\theta` samples of sampling scheme at given resolution.
-    """
 
+    """
     if sampling.lower() != "healpix" and L is None:
         raise ValueError(
             f"Sampling scheme sampling={sampling} with L={L} not supported"
@@ -53,7 +55,8 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
 
 
 def ntheta_extension(L: int, sampling: str = "mw") -> int:
-    r"""Number of :math:`\theta` samples for MW/MWSS sampling when extended to
+    r"""
+    Number of :math:`\theta` samples for MW/MWSS sampling when extended to
     :math:`2\pi`.
 
     Args:
@@ -69,7 +72,6 @@ def ntheta_extension(L: int, sampling: str = "mw") -> int:
         int: Number of :math:`\theta` samples when extended to :math:`2\pi`.
 
     """
-
     if sampling.lower() == "mw":
         return 2 * L - 1
 
@@ -83,7 +85,8 @@ def ntheta_extension(L: int, sampling: str = "mw") -> int:
 
 
 def nphi_equiang(L: int, sampling: str = "mw") -> int:
-    r"""Number of :math:`\phi` samples for equiangular sampling scheme at specified
+    r"""
+    Number of :math:`\phi` samples for equiangular sampling scheme at specified
     resolution.
 
     Number of samples is independent of :math:`\theta` since equiangular sampling
@@ -102,8 +105,8 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
 
     Returns:
         int: Number of :math:`\phi` samples.
-    """
 
+    """
     if sampling.lower() in ["mw", "gl"]:
         return 2 * L - 1
 
@@ -123,7 +126,8 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
 
 
 def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> Tuple[int, int]:
-    r"""Shape of intermediate array, before/after latitudinal step.
+    r"""
+    Shape of intermediate array, before/after latitudinal step.
 
     Args:
         L (int): Harmonic band-limit.
@@ -139,8 +143,8 @@ def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> Tuple[int, int
     Returns:
         Tuple[int,int]: Shape of ftm array, i.e. :math:`[n_{\theta}, n_{\phi}]`. Note
         that here "healpix" defaults to :math:`2L = 4nside` phi samples for ftm.
-    """
 
+    """
     if sampling.lower() in ["mwss", "healpix"]:
         return ntheta(L, sampling, nside), 2 * L
 
@@ -154,7 +158,8 @@ def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> Tuple[int, int
 
 
 def nphi_equitorial_band(nside: int) -> int:
-    r"""Number of :math:`\phi` samples within the equitorial band for
+    r"""
+    Number of :math:`\phi` samples within the equitorial band for
     HEALPix sampling scheme.
 
     Args:
@@ -162,12 +167,14 @@ def nphi_equitorial_band(nside: int) -> int:
 
     Returns:
         int: Number of :math:`\phi` samples.
+
     """
     return 4 * nside
 
 
 def nphi_ring(t: int, nside: int = None) -> int:
-    r"""Number of :math:`\phi` samples for HEALPix sampling on given :math:`\theta`
+    r"""
+    Number of :math:`\phi` samples for HEALPix sampling on given :math:`\theta`
     ring.
 
     Args:
@@ -180,8 +187,8 @@ def nphi_ring(t: int, nside: int = None) -> int:
 
     Returns:
         int: Number of :math:`\phi` samples on given :math:`\theta` ring.
-    """
 
+    """
     if (t >= 0) and (t < nside - 1):
         return 4 * (t + 1)
 
@@ -196,7 +203,8 @@ def nphi_ring(t: int, nside: int = None) -> int:
 
 
 def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray:
-    r"""Compute :math:`\theta` samples for given sampling scheme.
+    r"""
+    Compute :math:`\theta` samples for given sampling scheme.
 
     Args:
         L (int, optional): Harmonic band-limit.  Required if sampling not healpix.
@@ -210,6 +218,7 @@ def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray
 
     Returns:
         np.ndarray: Array of :math:`\theta` samples for given sampling scheme.
+
     """
     if sampling.lower() == "gl":
         return np.flip(np.arccos(np.polynomial.legendre.leggauss(L)[0]))
@@ -222,7 +231,8 @@ def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray
 def t2theta(
     t: int, L: int = None, sampling: str = "mw", nside: int = None
 ) -> np.ndarray:
-    r"""Convert index to :math:`\theta` angle for sampling scheme.
+    r"""
+    Convert index to :math:`\theta` angle for sampling scheme.
 
     Args:
         t (int): :math:`\theta` index.
@@ -245,8 +255,8 @@ def t2theta(
 
     Returns:
         np.ndarray: :math:`\theta` angle(s) for passed index or indices.
-    """
 
+    """
     if sampling.lower() != "healpix" and L is None:
         raise ValueError(
             f"Sampling scheme sampling={sampling} with L={L} not supported"
@@ -274,7 +284,8 @@ def t2theta(
 
 
 def _t2theta_healpix(t: int, nside: int) -> np.ndarray:
-    r"""Convert (ring) index to :math:`\theta` angle for HEALPix sampling scheme.
+    r"""
+    Convert (ring) index to :math:`\theta` angle for HEALPix sampling scheme.
 
     Args:
         t (int): :math:`\theta` index.
@@ -283,8 +294,8 @@ def _t2theta_healpix(t: int, nside: int) -> np.ndarray:
 
     Returns:
         np.ndarray: :math:`\theta` angle(s) for passed HEALPix (ring) index or indices.
-    """
 
+    """
     z = np.zeros_like(t)
     z[t < nside - 1] = 1 - (t[t < nside - 1] + 1) ** 2 / (3 * nside**2)
 
@@ -300,7 +311,8 @@ def _t2theta_healpix(t: int, nside: int) -> np.ndarray:
 
 
 def phis_ring(t: int, nside: int) -> np.ndarray:
-    r"""Compute :math:`\phi` samples for given :math:`\theta` HEALPix ring.
+    r"""
+    Compute :math:`\phi` samples for given :math:`\theta` HEALPix ring.
 
     Args:
         t (int): :math:`\theta` index.
@@ -309,15 +321,16 @@ def phis_ring(t: int, nside: int) -> np.ndarray:
 
     Returns:
         np.ndarray: :math:`\phi` angles.
-    """
 
+    """
     p = np.arange(0, nphi_ring(t, nside)).astype(np.float64)
 
     return p2phi_ring(t, p, nside)
 
 
 def p2phi_ring(t: int, p: int, nside: int) -> np.ndarray:
-    r"""Convert index to :math:`\phi` angle for HEALPix for given :math:`\theta` ring.
+    r"""
+    Convert index to :math:`\phi` angle for HEALPix for given :math:`\theta` ring.
 
     Args:
         t (int): :math:`\theta` index of ring.
@@ -328,8 +341,8 @@ def p2phi_ring(t: int, p: int, nside: int) -> np.ndarray:
 
     Returns:
         np.ndarray: :math:`\phi` angle.
-    """
 
+    """
     shift = 1 / 2
     if (t + 1 >= nside) & (t + 1 <= 3 * nside):
         shift *= (t - nside + 2) % 2
@@ -343,7 +356,8 @@ def p2phi_ring(t: int, p: int, nside: int) -> np.ndarray:
 
 
 def phis_equiang(L: int, sampling: str = "mw") -> np.ndarray:
-    r"""Compute :math:`\phi` samples for equiangular sampling scheme.
+    r"""
+    Compute :math:`\phi` samples for equiangular sampling scheme.
 
     Args:
         L (int, optional): Harmonic band-limit.
@@ -353,6 +367,7 @@ def phis_equiang(L: int, sampling: str = "mw") -> np.ndarray:
 
     Returns:
         np.ndarray: Array of :math:`\phi` samples for given sampling scheme.
+
     """
     p = np.arange(0, nphi_equiang(L, sampling))
 
@@ -360,7 +375,8 @@ def phis_equiang(L: int, sampling: str = "mw") -> np.ndarray:
 
 
 def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
-    r"""Convert index to :math:`\phi` angle for sampling scheme.
+    r"""
+    Convert index to :math:`\phi` angle for sampling scheme.
 
     Args:
         L (int, optional): Harmonic band-limit.
@@ -377,8 +393,8 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
 
     Returns:
         np.ndarray: :math:`\phi` sample(s) for given sampling scheme.
-    """
 
+    """
     if sampling.lower() in ["mw", "gl"]:
         return 2 * p * np.pi / (2 * L - 1)
 
@@ -402,7 +418,8 @@ def ring_phase_shift_hp(
     forward: bool = False,
     reality: bool = False,
 ) -> np.ndarray:
-    r"""Generates a phase shift vector for HEALPix for a given :math:`\theta` ring.
+    r"""
+    Generates a phase shift vector for HEALPix for a given :math:`\theta` ring.
 
     Args:
         L (int, optional): Harmonic band-limit.
@@ -420,6 +437,7 @@ def ring_phase_shift_hp(
 
     Returns:
         np.ndarray: Vector of phase shifts with shape :math:`[2L-1]`.
+
     """
     phi_offset = p2phi_ring(t, 0, nside)
     sign = -1 if forward else 1
@@ -428,7 +446,8 @@ def ring_phase_shift_hp(
 
 
 def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> Tuple[int]:
-    r"""Shape of spherical signal.
+    r"""
+    Shape of spherical signal.
 
     Args:
         L (int, optional): Harmonic band-limit.
@@ -442,8 +461,8 @@ def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> Tuple[int
     Returns:
         Tuple[int]: Pixel-space array dimensions with shape :math:`[n_{\theta}, n_{\phi}]`.
         Note that "healpix" is instead indexed by a 1D array, with standard conventions.
-    """
 
+    """
     if sampling.lower() != "healpix" and L is None:
         raise ValueError(
             f"Sampling scheme sampling={sampling} with L={L} not supported"
@@ -462,20 +481,22 @@ def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> Tuple[int
 
 
 def flm_shape(L: int) -> Tuple[int, int]:
-    r"""Standard shape of harmonic coefficients.
+    r"""
+    Standard shape of harmonic coefficients.
 
     Args:
         L (int, optional): Harmonic band-limit.
 
     Returns:
         Tuple[int]: Sampling array shape, with indexing :math:`[\ell, m]`.
-    """
 
+    """
     return L, 2 * L - 1
 
 
 def elm2ind(el: int, m: int) -> int:
-    r"""Convert from spherical harmonic 2D indexing of :math:`(\ell,m)` to 1D index.
+    r"""
+    Convert from spherical harmonic 2D indexing of :math:`(\ell,m)` to 1D index.
 
     1D index is defined by `el**2 + el + m`.
 
@@ -489,13 +510,14 @@ def elm2ind(el: int, m: int) -> int:
 
     Returns:
         int: Corresponding 1D index value.
-    """
 
+    """
     return el**2 + el + m
 
 
 def ind2elm(ind: int) -> tuple:
-    r"""Convert from 1D spherical harmonic index to 2D index of :math:`(\ell,m)`.
+    r"""
+    Convert from 1D spherical harmonic index to 2D index of :math:`(\ell,m)`.
 
     Warning:
         Note that 1D storage of spherical harmonic coefficients is *not* the default.
@@ -505,8 +527,8 @@ def ind2elm(ind: int) -> tuple:
 
     Returns:
         tuple: `(el,m)` defining spherical harmonic degree and order.
-    """
 
+    """
     el = np.floor(np.sqrt(ind))
 
     m = ind - el**2 - el
@@ -515,20 +537,22 @@ def ind2elm(ind: int) -> tuple:
 
 
 def ncoeff(L: int) -> int:
-    """Number of spherical harmonic coefficients for given band-limit L.
+    """
+    Number of spherical harmonic coefficients for given band-limit L.
 
     Args:
         L (int, optional): Harmonic band-limit.
 
     Returns:
         int: Number of spherical harmonic coefficients.
-    """
 
+    """
     return elm2ind(L - 1, L - 1) + 1
 
 
 def hp_ang2pix(nside: int, theta: float, phi: float) -> int:
-    r"""Convert angles to HEALPix index for HEALPix ring ordering scheme.
+    r"""
+    Convert angles to HEALPix index for HEALPix ring ordering scheme.
 
     Args:
         nside (int): HEALPix Nside resolution parameter.
@@ -539,15 +563,16 @@ def hp_ang2pix(nside: int, theta: float, phi: float) -> int:
 
     Returns:
         int: HEALPix map index for ring ordering scheme.
-    """
 
+    """
     z = np.cos(theta)
 
     return _hp_zphi2pix(nside, z, phi)
 
 
 def _hp_zphi2pix(nside: int, z: float, phi: float) -> int:
-    r"""Convert angles to HEALPix index for HEALPix ring ordering scheme, using
+    r"""
+    Convert angles to HEALPix index for HEALPix ring ordering scheme, using
     :math:`z=\cos(\theta)`.
 
     Note:
@@ -562,8 +587,8 @@ def _hp_zphi2pix(nside: int, z: float, phi: float) -> int:
 
     Returns:
         int: HEALPix map index for ring ordering scheme.
-    """
 
+    """
     tt = 2 * phi / np.pi
     za = np.abs(z)
     nl2 = int(2 * nside)
@@ -600,7 +625,8 @@ def _hp_zphi2pix(nside: int, z: float, phi: float) -> int:
 
 
 def hp_getidx(L: int, el: int, m: int) -> int:
-    r"""Compute HEALPix harmonic index.
+    r"""
+    Compute HEALPix harmonic index.
 
     Warning:
         Note that the harmonic band-limit `L` differs to the HEALPix :math`\ell_{\text{max}}` convention,
@@ -615,12 +641,14 @@ def hp_getidx(L: int, el: int, m: int) -> int:
 
     Returns:
         int: Corresponding index for RING ordered HEALPix.
+
     """
     return m * (2 * L - 1 - m) // 2 + el
 
 
 def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
-    r"""Convert from 2D indexed harmonic coefficients to 1D indexed coefficients.
+    r"""
+    Convert from 2D indexed harmonic coefficients to 1D indexed coefficients.
     
     Note:
         Storage conventions for harmonic coefficients :math:`flm_{(\ell,m)}`, for 
@@ -646,12 +674,13 @@ def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
 
     Returns:
         np.ndarray: 1D indexed harmonic coefficients.
+
     """
     flm_1d = np.zeros(ncoeff(L), dtype=np.complex128)
 
     if len(flm_2d.shape) != 2:
         if len(flm_2d.shape) == 1:
-            raise ValueError(f"Flm is already 1D indexed")
+            raise ValueError("Flm is already 1D indexed")
         else:
             raise ValueError(
                 f"Cannot convert flm of dimension {flm_2d.shape} to 1D indexing"
@@ -665,7 +694,8 @@ def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
 
 
 def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
-    r"""Convert from 1D indexed harmnonic coefficients to 2D indexed coefficients.    
+    r"""
+    Convert from 1D indexed harmnonic coefficients to 2D indexed coefficients.
     
     Note:
         Storage conventions for harmonic coefficients :math:`flm_{(\ell,m)}`, for 
@@ -691,13 +721,13 @@ def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
 
     Returns:
         np.ndarray: 2D indexed harmonic coefficients.
-    """
 
+    """
     flm_2d = np.zeros(flm_shape(L), dtype=np.complex128)
 
     if len(flm_1d.shape) != 1:
         if len(flm_1d.shape) == 2:
-            raise ValueError(f"Flm is already 2D indexed")
+            raise ValueError("Flm is already 2D indexed")
         else:
             raise ValueError(
                 f"Cannot convert flm of dimension {flm_2d.shape} to 2D indexing"
@@ -711,7 +741,8 @@ def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
 
 
 def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
-    r"""Converts from HEALPix (healpy) indexed harmonic coefficients to 2D indexed
+    r"""
+    Converts from HEALPix (healpy) indexed harmonic coefficients to 2D indexed
     coefficients.
     
     Notes:
@@ -749,11 +780,12 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
 
     Returns:
         np.ndarray: 2D indexed harmonic coefficients.
+
     """
     flm_2d = np.zeros(flm_shape(L), dtype=np.complex128)
 
     if len(flm_hp.shape) != 1:
-        raise ValueError(f"Healpix indexed flms are not flat")
+        raise ValueError("Healpix indexed flms are not flat")
 
     for el in range(L):
         flm_2d[el, L - 1 + 0] = flm_hp[hp_getidx(L, el, 0)]
@@ -765,7 +797,8 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
 
 
 def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
-    r"""Converts from 2D indexed harmonic coefficients to HEALPix (healpy) indexed
+    r"""
+    Converts from 2D indexed harmonic coefficients to HEALPix (healpy) indexed
     coefficients.
     
     Note:
@@ -806,11 +839,10 @@ def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
         np.ndarray: HEALPix indexed harmonic coefficients.
         
     """
-
     flm_hp = np.zeros(int(L * (L + 1) / 2), dtype=np.complex128)
 
     if len(flm_hp.shape) != 1:
-        raise ValueError(f"HEALPix indexed flms are not flat")
+        raise ValueError("HEALPix indexed flms are not flat")
 
     for el in range(L):
         for m in range(0, el + 1):
@@ -820,7 +852,8 @@ def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
 
 
 def lm2lm_hp(flm: np.ndarray, L: int) -> np.ndarray:
-    r"""Converts from 1D indexed harmonic coefficients to HEALPix (healpy) indexed
+    r"""
+    Converts from 1D indexed harmonic coefficients to HEALPix (healpy) indexed
     coefficients.
 
     Note:

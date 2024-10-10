@@ -1,13 +1,14 @@
-from jax import jit
-
-import numpy as np
-import jax.numpy as jnp
-import torch
-from s2fft.sampling import s2_samples as samples
-from s2fft.utils import resampling, resampling_jax, resampling_torch
-from s2fft.utils import healpix_ffts as hp
 from functools import partial
 from warnings import warn
+
+import jax.numpy as jnp
+import numpy as np
+import torch
+from jax import jit
+
+from s2fft.sampling import s2_samples as samples
+from s2fft.utils import healpix_ffts as hp
+from s2fft.utils import resampling, resampling_jax, resampling_torch
 
 
 def inverse(
@@ -20,7 +21,8 @@ def inverse(
     method: str = "jax",
     nside: int = None,
 ) -> np.ndarray:
-    r"""Compute the inverse spherical harmonic transform via precompute.
+    r"""
+    Compute the inverse spherical harmonic transform via precompute.
 
     Args:
         flm (np.ndarray): Spherical harmonic coefficients.
@@ -51,12 +53,14 @@ def inverse(
 
     Returns:
         np.ndarray: Pixel-space coefficients with shape.
+
     """
     if reality and spin != 0:
         reality = False
         warn(
             "Reality acceleration only supports spin 0 fields. "
-            + "Defering to complex transform."
+            + "Defering to complex transform.",
+            stacklevel=2,
         )
     if method == "numpy":
         return inverse_transform(flm, kernel, L, sampling, reality, spin, nside)
@@ -81,7 +85,8 @@ def inverse_transform(
     spin: int,
     nside: int,
 ) -> np.ndarray:
-    r"""Compute the forward spherical harmonic transform via precompute (vectorized
+    r"""
+    Compute the forward spherical harmonic transform via precompute (vectorized
     implementation).
 
     Args:
@@ -104,6 +109,7 @@ def inverse_transform(
 
     Returns:
         np.ndarray: Pixel-space coefficients.
+
     """
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     m_start_ind = L - 1 if reality else 0
@@ -145,7 +151,8 @@ def inverse_transform_jax(
     spin: int,
     nside: int,
 ) -> jnp.ndarray:
-    r"""Compute the inverse spherical harmonic transform via precompute (JAX
+    r"""
+    Compute the inverse spherical harmonic transform via precompute (JAX
     implementation).
 
     Args:
@@ -168,6 +175,7 @@ def inverse_transform_jax(
 
     Returns:
         jnp.ndarray: Pixel-space coefficients with shape.
+
     """
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     m_start_ind = L - 1 if reality else 0
@@ -215,7 +223,8 @@ def inverse_transform_torch(
     spin: int,
     nside: int,
 ) -> torch.tensor:
-    r"""Compute the inverse spherical harmonic transform via precompute (Torch
+    r"""
+    Compute the inverse spherical harmonic transform via precompute (Torch
     implementation).
 
     Args:
@@ -238,6 +247,7 @@ def inverse_transform_torch(
 
     Returns:
         torch.tensor: Pixel-space coefficients with shape.
+
     """
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     m_start_ind = L - 1 if reality else 0
@@ -294,7 +304,8 @@ def forward(
     method: str = "jax",
     nside: int = None,
 ) -> np.ndarray:
-    r"""Compute the forward spherical harmonic transform via precompute.
+    r"""
+    Compute the forward spherical harmonic transform via precompute.
 
     Args:
         f (np.ndarray): Signal on the sphere.
@@ -325,12 +336,14 @@ def forward(
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
+
     """
     if reality and spin != 0:
         reality = False
         warn(
             "Reality acceleration only supports spin 0 fields. "
-            + "Defering to complex transform."
+            + "Defering to complex transform.",
+            stacklevel=2,
         )
     if method == "numpy":
         return forward_transform(f, kernel, L, sampling, reality, spin, nside)
@@ -355,7 +368,8 @@ def forward_transform(
     spin: int,
     nside: int,
 ) -> np.ndarray:
-    r"""Compute the forward spherical harmonic transform via precompute (vectorized
+    r"""
+    Compute the forward spherical harmonic transform via precompute (vectorized
     implementation).
 
     Args:
@@ -378,6 +392,7 @@ def forward_transform(
 
     Returns:
         np.ndarray: Pixel-space coefficients.
+
     """
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -423,7 +438,8 @@ def forward_transform_jax(
     spin: int,
     nside: int,
 ) -> jnp.ndarray:
-    r"""Compute the forward spherical harmonic tranclearsform via precompute (vectorized
+    r"""
+    Compute the forward spherical harmonic tranclearsform via precompute (vectorized
     implementation).
 
     Args:
@@ -446,6 +462,7 @@ def forward_transform_jax(
 
     Returns:
         jnp.ndarray: Pixel-space coefficients.
+
     """
     if sampling.lower() == "mw":
         f = resampling_jax.mw_to_mwss(f, L, spin)
@@ -496,7 +513,8 @@ def forward_transform_torch(
     spin: int,
     nside: int,
 ) -> torch.tensor:
-    r"""Compute the forward spherical harmonic tranclearsform via precompute (vectorized
+    r"""
+    Compute the forward spherical harmonic tranclearsform via precompute (vectorized
     implementation).
 
     Args:
@@ -519,6 +537,7 @@ def forward_transform_torch(
 
     Returns:
         torch.tensor: Pixel-space coefficients.
+
     """
     if sampling.lower() == "mw":
         f = resampling_torch.mw_to_mwss(f, L, spin)
