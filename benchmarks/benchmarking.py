@@ -60,13 +60,13 @@ if __name__ == "__main__":
 """
 
 import argparse
+import inspect
+import json
+import timeit
 from ast import literal_eval
 from functools import partial
 from itertools import product
 from pathlib import Path
-import json
-import timeit
-import inspect
 
 try:
     import memory_profiler

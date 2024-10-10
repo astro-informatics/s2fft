@@ -1,13 +1,14 @@
 """Benchmarks for Wigner transforms."""
 
 import numpy as np
+from benchmarking import benchmark, parse_args_collect_and_run_benchmarks, skip
+
 import s2fft
 from s2fft.base_transforms import wigner as base_wigner
 from s2fft.recursions.price_mcewen import (
     generate_precomputes_wigner,
     generate_precomputes_wigner_jax,
 )
-from benchmarking import benchmark, skip, parse_args_collect_and_run_benchmarks
 
 L_VALUES = [16, 32, 64, 128, 256]
 N_VALUES = [2]

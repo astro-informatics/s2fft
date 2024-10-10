@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+
 from s2fft.sampling import s2_samples as samples
 from s2fft.sampling import so3_samples as wigner_samples
 
@@ -12,7 +13,8 @@ def generate_flm(
     reality: bool = False,
     using_torch: bool = False,
 ) -> np.ndarray:
-    r"""Generate a 2D set of random harmonic coefficients.
+    r"""
+    Generate a 2D set of random harmonic coefficients.
 
     Note:
         Real signals are explicitly produced from conjugate symmetry.
@@ -60,9 +62,12 @@ def generate_flmn(
     reality: bool = False,
     using_torch: bool = False,
 ) -> np.ndarray:
-    r"""Generate a 3D set of random Wigner coefficients.
+    r"""
+    Generate a 3D set of random Wigner coefficients.
+
     Note:
         Real signals are explicitly produced from conjugate symmetry.
+
     Args:
         rng (Generator): Random number generator.
 
@@ -78,8 +83,8 @@ def generate_flmn(
         using_torch (bool, optional): Desired frontend functionality. Defaults to False.
 
     Returns:
-
         np.ndarray: Random set of Wigner coefficients.
+
     """
     flmn = np.zeros(wigner_samples.flmn_shape(L, N), dtype=np.complex128)
 

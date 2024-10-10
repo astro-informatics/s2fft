@@ -1,16 +1,16 @@
 import jax
-
-jax.config.update("jax_enable_x64", True)
-import pytest
-import numpy as np
 import jax.numpy as jnp
+import numpy as np
+import pytest
 
-from s2fft.transforms import wigner
 from s2fft.base_transforms import wigner as base_wigner
 from s2fft.recursions.price_mcewen import (
     generate_precomputes_wigner,
     generate_precomputes_wigner_jax,
 )
+from s2fft.transforms import wigner
+
+jax.config.update("jax_enable_x64", True)
 
 L_to_test = [6, 7]
 N_to_test = [2]
@@ -93,7 +93,6 @@ def test_forward_wigner_transform(
 def test_ssht_c_backend_inverse_wigner_transform(
     flmn_generator, L: int, N: int, L_lower: int, sampling: str, reality: bool
 ):
-
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     f_check = base_wigner.inverse(flmn, L, N, L_lower, sampling, reality)
 
@@ -111,7 +110,6 @@ def test_ssht_c_backend_inverse_wigner_transform(
 def test_ssht_c_backend_forward_wigner_transform(
     flmn_generator, L: int, N: int, L_lower: int, sampling: str, reality: bool
 ):
-
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     f = base_wigner.inverse(flmn, L, N, L_lower, sampling, reality)
 
@@ -127,10 +125,10 @@ def test_N_exceptions(flmn_generator):
     flmn = flmn_generator(L=L, N=N)
     f = base_wigner.inverse(flmn, L, N)
 
-    with pytest.raises(Warning) as e:
+    with pytest.raises(Warning):
         wigner.inverse(flmn, L, N)
 
-    with pytest.raises(Warning) as e:
+    with pytest.raises(Warning):
         wigner.forward(f, L, N)
 
 
@@ -140,8 +138,8 @@ def test_sampling_ssht_backend_exceptions(flmn_generator):
     flmn = flmn_generator(L=L, N=N)
     f = base_wigner.inverse(flmn, L, N)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         wigner.inverse(flmn, L, N, sampling="healpix", method="jax_ssht")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         wigner.forward(f, L, N, sampling="healpix", method="jax_ssht")

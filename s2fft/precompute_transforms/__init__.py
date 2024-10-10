@@ -1,3 +1,1 @@
-from . import spherical
-from . import wigner
-from . import construct
+from . import construct, spherical, wigner

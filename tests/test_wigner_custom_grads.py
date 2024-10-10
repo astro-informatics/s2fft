@@ -1,12 +1,12 @@
 import jax
-
-jax.config.update("jax_enable_x64", True)
-import pytest
 import jax.numpy as jnp
+import pytest
 from jax.test_util import check_grads
 
-from s2fft.transforms import wigner
 from s2fft.recursions.price_mcewen import generate_precomputes_wigner_jax
+from s2fft.transforms import wigner
+
+jax.config.update("jax_enable_x64", True)
 
 L_to_test = [6]
 N_to_test = [3]
@@ -91,7 +91,6 @@ def test_ssht_c_backend_inverse_wigner_custom_gradients(
     reality: bool,
     _ssht_backend: int,
 ):
-
     if sampling.lower() == "dh" and _ssht_backend == 1:
         pytest.skip("Driscoll Healy ducc0 backend gradient calculation tempremental.")
 
@@ -134,7 +133,6 @@ def test_ssht_c_backend_forward_wigner_custom_gradients(
     reality: bool,
     _ssht_backend: int,
 ):
-
     if sampling.lower() == "dh" and _ssht_backend == 1:
         pytest.skip("Driscoll Healy ducc0 backend gradient calculation tempremental.")
 

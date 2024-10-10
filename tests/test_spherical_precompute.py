@@ -1,9 +1,10 @@
-import pytest
 import numpy as np
+import pytest
 import torch
-from s2fft.precompute_transforms.spherical import inverse, forward
-from s2fft.precompute_transforms.construct import spin_spherical_kernel
+
 from s2fft.base_transforms import spherical as base
+from s2fft.precompute_transforms.construct import spin_spherical_kernel
+from s2fft.precompute_transforms.spherical import forward, inverse
 
 L_to_test = [6, 7]
 spin_to_test = [-2, 0, 1]

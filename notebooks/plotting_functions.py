@@ -1,5 +1,6 @@
-import pyvista as pv
 import numpy as np
+import pyvista as pv
+
 from s2fft.sampling import s2_samples as samples
 
 
@@ -19,7 +20,8 @@ def plot_sphere(
     cmap: str = "inferno",
     isnotebook: bool = False,
 ) -> None:
-    """Plots signal (f) on the sphere using PyVista.
+    """
+    Plots signal (f) on the sphere using PyVista.
 
     Args:
         f (np.ndarray): Signal on the sphere.
@@ -36,8 +38,8 @@ def plot_sphere(
 
     Note:
         TODO: Add support for healpix sampling.
-    """
 
+    """
     phis = samples.phis_equiang(L, sampling)
     thetas = samples.thetas(L, sampling)
     xx_bounds = _cell_bounds(np.degrees(phis))

@@ -1,10 +1,10 @@
-import pytest
 import numpy as np
-
+import pytest
 import torch
-from s2fft.precompute_transforms.wigner import inverse, forward
-from s2fft.precompute_transforms.construct import wigner_kernel
+
 from s2fft.base_transforms import wigner as base
+from s2fft.precompute_transforms.construct import wigner_kernel
+from s2fft.precompute_transforms.wigner import forward, inverse
 
 L_to_test = [8, 10]
 N_to_test = [2, 3]

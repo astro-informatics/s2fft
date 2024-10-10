@@ -1,12 +1,15 @@
-import numpy as np
-from s2fft.sampling import s2_samples as samples
 from typing import Tuple
+
+import numpy as np
+
+from s2fft.sampling import s2_samples as samples
 
 
 def f_shape(
     L: int, N: int, sampling: str = "mw", nside: int = None
 ) -> Tuple[int, int, int]:
-    r"""Computes the pixel-space sampling shape for signal on the rotation group
+    r"""
+    Computes the pixel-space sampling shape for signal on the rotation group
     :math:`SO(3)`.
 
     Note:
@@ -34,6 +37,7 @@ def f_shape(
     Returns:
         Tuple[int,int,int]: Shape of pixel-space sampling of rotation group
         :math:`SO(3)`.
+
     """
     if sampling in ["mw", "mwss", "dh", "gl"]:
         return _ngamma(N), _nbeta(L, sampling), _nalpha(L, sampling)
@@ -46,7 +50,8 @@ def f_shape(
 
 
 def flmn_shape(L: int, N: int) -> Tuple[int, int, int]:
-    r"""Computes the shape of Wigner coefficients for signal on the rotation group
+    r"""
+    Computes the shape of Wigner coefficients for signal on the rotation group
     :math:`SO(3)`.
 
     Args:
@@ -57,6 +62,7 @@ def flmn_shape(L: int, N: int) -> Tuple[int, int, int]:
     Returns:
         Tuple[int,int,int]: Shape of Wigner space sampling of rotation group
             :math:`SO(3)`.
+
     """
     return 2 * N - 1, L, 2 * L - 1
 
@@ -64,7 +70,8 @@ def flmn_shape(L: int, N: int) -> Tuple[int, int, int]:
 def fnab_shape(
     L: int, N: int, sampling: str = "mw", nside: int = None
 ) -> Tuple[int, int, int]:
-    r"""Computes the shape of Wigner coefficients for signal on the rotation group
+    r"""
+    Computes the shape of Wigner coefficients for signal on the rotation group
     :math:`SO(3)`.
 
     Args:
@@ -83,8 +90,8 @@ def fnab_shape(
     Returns:
         Tuple[int,int,int]: Shape of Wigner space sampling of rotation group
             :math:`SO(3)`.
-    """
 
+    """
     if sampling.lower() in ["mwss", "healpix"]:
         return _ngamma(N), samples.ntheta(L, sampling, nside), 2 * L
 
@@ -98,7 +105,8 @@ def fnab_shape(
 
 
 def flmn_shape_1d(L: int, N: int) -> int:
-    r"""Computes the number of non-zero Wigner coefficients.
+    r"""
+    Computes the number of non-zero Wigner coefficients.
 
     Args:
         L (int): Harmonic band-limit.
@@ -107,12 +115,14 @@ def flmn_shape_1d(L: int, N: int) -> int:
 
     Returns:
         int: Total number of non-zero Wigner coefficients.
+
     """
     return (2 * N - 1) * L * L
 
 
 def _nalpha(L: int, sampling: str = "mw") -> int:
-    r"""Computes the number of :math:`\alpha` samples.
+    r"""
+    Computes the number of :math:`\alpha` samples.
 
     Args:
         L (int): Harmonic band-limit.
@@ -125,6 +135,7 @@ def _nalpha(L: int, sampling: str = "mw") -> int:
 
     Returns:
         int: Number of :math:`\alpha` samples.
+
     """
     if sampling.lower() in ["mw", "dh", "gl"]:
         return 2 * L - 1
@@ -137,7 +148,8 @@ def _nalpha(L: int, sampling: str = "mw") -> int:
 
 
 def _nbeta(L: int, sampling: str = "mw") -> int:
-    r"""Computes the number of :math:`\beta` samples.
+    r"""
+    Computes the number of :math:`\beta` samples.
 
     Args:
         L (int): Harmonic band-limit.
@@ -150,6 +162,7 @@ def _nbeta(L: int, sampling: str = "mw") -> int:
 
     Returns:
         int: Number of :math:`\beta` samples.
+
     """
     if sampling.lower() in ["mw", "gl"]:
         return L
@@ -165,19 +178,22 @@ def _nbeta(L: int, sampling: str = "mw") -> int:
 
 
 def _ngamma(N: int) -> int:
-    r"""Computes the number of :math:`\gamma` samples.
+    r"""
+    Computes the number of :math:`\gamma` samples.
 
     Args:
         N (int): Directional band-limit.
 
     Returns:
         int: Number of :math:`\gamma` samples, by default :math:`2N-1`.
+
     """
     return 2 * N - 1
 
 
 def elmn2ind(el: int, m: int, n: int, L: int, N: int) -> int:
-    r"""Convert from Wigner space 3D indexing of :math:`(\ell,m, n)` to 1D index.
+    r"""
+    Convert from Wigner space 3D indexing of :math:`(\ell,m, n)` to 1D index.
 
     Args:
         el (int): Harmonic degree :math:`\ell`.
@@ -192,6 +208,7 @@ def elmn2ind(el: int, m: int, n: int, L: int, N: int) -> int:
 
     Returns:
         int: Corresponding 1D index in Wigner space.
+
     """
     n_offset = (N - 1 + n) * L * L
     el_offset = el * el
@@ -199,7 +216,8 @@ def elmn2ind(el: int, m: int, n: int, L: int, N: int) -> int:
 
 
 def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int) -> np.ndarray:
-    r"""Convert from 3D indexed Wigner coefficients to 1D indexed coefficients.
+    r"""
+    Convert from 3D indexed Wigner coefficients to 1D indexed coefficients.
 
     Args:
         flm_3d (np.ndarray): 3D indexed Wigner coefficients, index order
@@ -216,11 +234,12 @@ def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int) -> np.ndarray:
 
     Returns:
         np.ndarray: 1D indexed Wigner coefficients, C flatten index priority :math:`n, \ell, m`.
+
     """
     flmn_1d = np.zeros(flmn_shape_1d(L, N), dtype=np.complex128)
 
     if len(flmn_3d.shape) == 1:
-        raise ValueError(f"flmn is already 1D indexed")
+        raise ValueError("flmn is already 1D indexed")
     elif len(flmn_3d.shape) != 3:
         raise ValueError(
             f"Cannot convert flmn of dimension {flmn_3d.shape} to 1D indexing"
@@ -235,7 +254,8 @@ def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int) -> np.ndarray:
 
 
 def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int) -> np.ndarray:
-    r"""Convert from 1D indexed Wigner coefficients to 3D indexed coefficients.
+    r"""
+    Convert from 1D indexed Wigner coefficients to 3D indexed coefficients.
 
     Args:
         flm_1d (np.ndarray): 1D indexed Wigner coefficients, C flatten index priority
@@ -252,11 +272,12 @@ def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int) -> np.ndarray:
 
     Returns:
         np.ndarray: 3D indexed Wigner coefficients, index order :math:`[\ell, m, n]`.
+
     """
     flmn_3d = np.zeros(flmn_shape(L, N), dtype=np.complex128)
 
     if len(flmn_1d.shape) == 3:
-        raise ValueError(f"Flmn is already 3D indexed")
+        raise ValueError("Flmn is already 3D indexed")
     elif len(flmn_1d.shape) != 1:
         raise ValueError(
             f"Cannot convert flmn of dimension {flmn_1d.shape} to 3D indexing"
