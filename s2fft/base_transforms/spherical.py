@@ -1,9 +1,11 @@
-import numpy as np
 from warnings import warn
-from s2fft.sampling import s2_samples as samples
-from s2fft.utils import quadrature, resampling
-from s2fft.utils import healpix_ffts as hp
+
+import numpy as np
+
 from s2fft import recursions
+from s2fft.sampling import s2_samples as samples
+from s2fft.utils import healpix_ffts as hp
+from s2fft.utils import quadrature, resampling
 
 
 def inverse(
@@ -15,7 +17,8 @@ def inverse(
     reality: bool = False,
     L_lower: int = 0,
 ) -> np.ndarray:
-    r"""Compute inverse spherical harmonic transform.
+    r"""
+    Compute inverse spherical harmonic transform.
 
     Uses a vectorised separation of variables method with np.fft.
 
@@ -41,6 +44,7 @@ def inverse(
 
     Returns:
         np.ndarray: Signal on the sphere.
+
     """
     return _inverse(
         flm,
@@ -64,7 +68,8 @@ def _inverse(
     reality: bool = False,
     L_lower: int = 0,
 ) -> np.ndarray:
-    r"""Compute inverse spherical harmonic transform using a specified method.
+    r"""
+    Compute inverse spherical harmonic transform using a specified method.
 
     Args:
         flm (np.ndarray): Spherical harmonic coefficients.
@@ -92,6 +97,7 @@ def _inverse(
 
     Returns:
         np.ndarray: Signal on the sphere.
+
     """
     assert flm.shape == samples.flm_shape(L)
     assert L > 0
@@ -101,7 +107,8 @@ def _inverse(
         reality = False
         warn(
             "Reality acceleration only supports spin 0 fields. "
-            + "Deferring to complex transform."
+            + "Deferring to complex transform.",
+            stacklevel=2,
         )
 
     thetas = samples.thetas(L, sampling, nside)
@@ -132,7 +139,8 @@ def forward(
     reality: bool = False,
     L_lower: int = 0,
 ) -> np.ndarray:
-    r"""Compute forward spherical harmonic transform.
+    r"""
+    Compute forward spherical harmonic transform.
 
     Uses a vectorised separation of variables method with np.fft.
 
@@ -158,6 +166,7 @@ def forward(
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
+
     """
     return _forward(
         f,
@@ -181,7 +190,8 @@ def _forward(
     reality: bool = False,
     L_lower: int = 0,
 ):
-    r"""Compute forward spherical harmonic transform using a specified method.
+    r"""
+    Compute forward spherical harmonic transform using a specified method.
 
     Args:
         f (np.ndarray): Signal on the sphere.
@@ -209,6 +219,7 @@ def _forward(
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
+
     """
     assert f.shape == samples.f_shape(L, sampling, nside)
     assert L > 0
@@ -218,7 +229,8 @@ def _forward(
         reality = False
         warn(
             "Reality acceleration only supports spin 0 fields. "
-            + "Deferring to complex transform."
+            + "Deferring to complex transform.",
+            stacklevel=2,
         )
 
     if sampling.lower() == "mw":
@@ -265,7 +277,8 @@ def _compute_inverse_direct(
     reality: bool,
     L_lower: int,
 ):
-    r"""Compute inverse spherical harmonic transform directly.
+    r"""
+    Compute inverse spherical harmonic transform directly.
 
     Args:
         flm (np.ndarray): Spherical harmonic coefficients.
@@ -290,6 +303,7 @@ def _compute_inverse_direct(
 
     Returns:
         np.ndarray: Signal on the sphere.
+
     """
     if sampling.lower() != "healpix":
         phis_ring = samples.phis_equiang(L, sampling)
@@ -349,7 +363,8 @@ def _compute_inverse_sov(
     reality: bool,
     L_lower: int,
 ):
-    r"""Compute inverse spherical harmonic transform by separation of variables with a
+    r"""
+    Compute inverse spherical harmonic transform by separation of variables with a
         manual Fourier transform.
 
     Args:
@@ -375,6 +390,7 @@ def _compute_inverse_sov(
 
     Returns:
         np.ndarray: Signal on the sphere.
+
     """
     ftm = np.zeros((len(thetas), 2 * L - 1), dtype=np.complex128)
     for t, theta in enumerate(thetas):
@@ -421,7 +437,8 @@ def _compute_inverse_sov_fft(
     reality: bool,
     L_lower: int,
 ):
-    r"""Compute inverse spherical harmonic transform by separation of variables with a
+    r"""
+    Compute inverse spherical harmonic transform by separation of variables with a
         Fast Fourier transform.
 
     Args:
@@ -447,8 +464,8 @@ def _compute_inverse_sov_fft(
 
     Returns:
         np.ndarray: Signal on the sphere.
-    """
 
+    """
     if sampling.lower() == "healpix":
         assert L >= 2 * nside
 
@@ -513,7 +530,8 @@ def _compute_inverse_sov_fft_vectorized(
     reality: bool,
     L_lower: int,
 ):
-    r"""A vectorized function to compute inverse spherical harmonic transform by
+    r"""
+    A vectorized function to compute inverse spherical harmonic transform by
         separation of variables with a manual Fourier transform.
 
     Args:
@@ -539,6 +557,7 @@ def _compute_inverse_sov_fft_vectorized(
 
     Returns:
         np.ndarray: Signal on the sphere.
+
     """
     ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
@@ -588,7 +607,8 @@ def _compute_forward_direct(
     reality: bool,
     L_lower: int,
 ):
-    r"""Compute forward spherical harmonic transform directly.
+    r"""
+    Compute forward spherical harmonic transform directly.
 
     Args:
         f (np.ndarray): Signal on the sphere.
@@ -615,6 +635,7 @@ def _compute_forward_direct(
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
+
     """
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
@@ -677,7 +698,8 @@ def _compute_forward_sov(
     reality: bool,
     L_lower: int,
 ):
-    r"""Compute forward spherical harmonic transform by separation of variables with a
+    r"""
+    Compute forward spherical harmonic transform by separation of variables with a
         manual Fourier transform.
 
     Args:
@@ -705,8 +727,8 @@ def _compute_forward_sov(
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
-    """
 
+    """
     if sampling.lower() != "healpix":
         phis_ring = samples.phis_equiang(L, sampling)
 
@@ -772,7 +794,8 @@ def _compute_forward_sov_fft(
     reality: bool,
     L_lower: int,
 ):
-    r"""Compute forward spherical harmonic transform by separation of variables with a
+    r"""
+    Compute forward spherical harmonic transform by separation of variables with a
         Fast Fourier transform.
 
     Args:
@@ -800,6 +823,7 @@ def _compute_forward_sov_fft(
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
+
     """
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
     ftm = np.zeros_like(f).astype(np.complex128)
@@ -886,7 +910,8 @@ def _compute_forward_sov_fft_vectorized(
     reality: bool,
     L_lower: int,
 ):
-    r"""A vectorized function to compute forward spherical harmonic transform by
+    r"""
+    A vectorized function to compute forward spherical harmonic transform by
         separation of variables with a manual Fourier transform.
 
     Args:
@@ -914,6 +939,7 @@ def _compute_forward_sov_fft_vectorized(
 
     Returns:
         np.ndarray: Spherical harmonic coefficients.
+
     """
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
     ftm = np.zeros_like(f).astype(np.complex128)

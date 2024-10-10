@@ -1,12 +1,13 @@
 import jax
-
-jax.config.update("jax_enable_x64", True)
-import pytest
-import numpy as np
 import jax.numpy as jnp
+import numpy as np
+import pyssht as ssht
+import pytest
+
 from s2fft import recursions
 from s2fft.sampling import s2_samples as samples
-import pyssht as ssht
+
+jax.config.update("jax_enable_x64", True)
 
 L_to_test = [6, 7]
 spin_to_test = [-2, 0, 1]
@@ -129,10 +130,10 @@ def test_trapani_interfaces():
             atol=1e-10,
         )
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         recursions.trapani.init(dl_loop, L, implementation="unexpected")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         recursions.trapani.compute_full(dl_jax, L, el, implementation="unexpected")
 
 
@@ -231,7 +232,7 @@ def test_turok_slice_jax_with_ssht(L: int, spin: int, sampling: str):
 
         for el in range(L):
             if el >= np.abs(spin):
-                print("beta {}, el {}, spin {}".format(beta, el, spin))
+                print(f"beta {beta}, el {el}, spin {spin}")
                 dl_turok = recursions.turok_jax.compute_slice(beta, el, L, -spin)
 
                 np.testing.assert_allclose(
@@ -245,11 +246,11 @@ def test_turok_slice_jax_with_ssht(L: int, spin: int, sampling: str):
 def test_turok_exceptions():
     L = 10
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         recursions.turok.compute_full(np.pi / 2, L, L)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         recursions.turok.compute_slice(beta=np.pi / 2, el=L - 1, L=L, mm=L)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         recursions.turok.compute_slice(beta=np.pi / 2, el=L, L=L, mm=0)

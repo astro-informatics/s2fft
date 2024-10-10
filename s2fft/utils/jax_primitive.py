@@ -1,7 +1,8 @@
 from functools import partial
 from typing import Callable, Dict, Optional, Union
+
 from jax import core
-from jax.interpreters import ad, batching, xla, mlir
+from jax.interpreters import ad, batching, mlir, xla
 
 
 def register_primitive(
@@ -13,7 +14,8 @@ def register_primitive(
     jacobian_vector_product: Optional[Callable] = None,
     transpose: Optional[Callable] = None,
 ):
-    """Register a new custom JAX primitive.
+    """
+    Register a new custom JAX primitive.
 
     Args:
         name: Name for primitive.
@@ -29,6 +31,7 @@ def register_primitive(
 
     Returns:
         Registered custom primtive.
+
     """
     primitive = core.Primitive(name)
     primitive.multiple_results = multiple_results

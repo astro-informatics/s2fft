@@ -1,12 +1,12 @@
 import jax
-
-jax.config.update("jax_enable_x64", True)
-import pytest
 import jax.numpy as jnp
+import pytest
 from jax.test_util import check_grads
 
-from s2fft.transforms import spherical
 from s2fft.recursions.price_mcewen import generate_precomputes_jax
+from s2fft.transforms import spherical
+
+jax.config.update("jax_enable_x64", True)
 
 L_to_test = [16]
 L_lower_to_test = [2]

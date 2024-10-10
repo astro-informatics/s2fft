@@ -2,7 +2,8 @@ import numpy as np
 
 
 def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
-    r"""Compute Wigner-d at argument :math:`\beta` for full plane using
+    r"""
+    Compute Wigner-d at argument :math:`\beta` for full plane using
     Risbo recursion.
 
     The Wigner-d plane is computed by recursion over :math:`\ell`.
@@ -20,8 +21,8 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
 
     Returns:
         np.ndarray: Plane of Wigner-d for :math:`\ell` and :math:`\beta`, with full plane computed.
-    """
 
+    """
     _arg_checks(dl, beta, L, el)
 
     if el == 0:
@@ -103,7 +104,8 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
 
 
 def _arg_checks(dl: np.ndarray, beta: float, L: int, el: int):
-    r"""Check arguments of Risbo functions.
+    r"""
+    Check arguments of Risbo functions.
 
     Args:
         dl (np.ndarray): Wigner-d plane of which to check shape.
@@ -111,8 +113,8 @@ def _arg_checks(dl: np.ndarray, beta: float, L: int, el: int):
         L (int): Harmonic band-limit.
 
         el (int): Spherical harmonic degree :math:`\ell`.
-    """
 
+    """
     assert 0 <= el < L  # Should be < not <= once have init routine.
     assert dl.shape[0] == dl.shape[1] == 2 * L - 1
     assert 0 <= beta <= np.pi

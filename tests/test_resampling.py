@@ -1,16 +1,17 @@
-import pytest
 import numpy as np
-from s2fft.utils import resampling
+import pytest
+
 from s2fft.base_transforms import spherical
+from s2fft.utils import resampling
 
 
 def test_periodic_extension_invalid_sampling():
     f_dummy = np.zeros((2, 2), dtype=np.complex128)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         resampling.periodic_extension(f_dummy, L=5, spin=0, sampling="healpix")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         resampling.periodic_extension(f_dummy, L=5, spin=0, sampling="dh")
 
 
@@ -70,21 +71,21 @@ def test_unextend(flm_generator, L: int, sampling: str, spin_reality):
 def test_resampling_exceptions():
     f_dummy = np.zeros((2, 2), dtype=np.complex128)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         L_odd = 3
         resampling.downsample_by_two_mwss(f_dummy, L_odd)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         resampling.unextend(f_dummy, L=5, sampling="healpix")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         resampling.unextend(f_dummy, L=5, sampling="dh")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         # f_ext has wrong shape
         resampling.unextend(f_dummy, L=5, sampling="mw")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         resampling.mw_to_mwss_phi(f_dummy, L=5)
 
 

@@ -1,11 +1,13 @@
+from functools import partial
+
+import jax.numpy as jnp
 import numpy as np
 from jax import jit, lax
-import jax.numpy as jnp
-from functools import partial
 
 
 def init(dl: np.ndarray, L: int, implementation: str = "vectorized") -> np.ndarray:
-    r"""Initialise Wigner-d at argument :math:`\pi/2` for :math:`\ell=0` for
+    r"""
+    Initialise Wigner-d at argument :math:`\pi/2` for :math:`\ell=0` for
     Trapani & Navaza recursion (multiple implementations).
 
     Args:
@@ -21,8 +23,8 @@ def init(dl: np.ndarray, L: int, implementation: str = "vectorized") -> np.ndarr
 
     Returns:
         np.ndarray: Plane of Wigner-d initialised for :math:`\ell=0`,
-    """
 
+    """
     if implementation.lower() == "loop":
         return init_nonjax(dl, L)
 
@@ -37,7 +39,8 @@ def init(dl: np.ndarray, L: int, implementation: str = "vectorized") -> np.ndarr
 
 
 def init_nonjax(dl: np.ndarray, L: int) -> np.ndarray:
-    r"""Initialise Wigner-d at argument :math:`\pi/2` for :math:`\ell=0` for
+    r"""
+    Initialise Wigner-d at argument :math:`\pi/2` for :math:`\ell=0` for
     Trapani & Navaza recursion (loop-based/vectorized implementation).
 
     See :func:`~init` for further details.
@@ -54,8 +57,8 @@ def init_nonjax(dl: np.ndarray, L: int) -> np.ndarray:
 
     Returns:
         np.ndarray: Plane of Wigner-d initialised for :math:`\ell=0`,
-    """
 
+    """
     el = 0
     dl[el + L - 1, el + L - 1] = 1.0
 
@@ -64,7 +67,8 @@ def init_nonjax(dl: np.ndarray, L: int) -> np.ndarray:
 
 @partial(jit, static_argnums=(1,))
 def init_jax(dl: jnp.ndarray, L: int) -> jnp.ndarray:
-    r"""Initialise Wigner-d at argument :math:`\pi/2` for :math:`\ell=0` for
+    r"""
+    Initialise Wigner-d at argument :math:`\pi/2` for :math:`\ell=0` for
     Trapani & Navaza recursion (JAX implementation).
 
     See :func:`~init` for further details.
@@ -81,8 +85,8 @@ def init_jax(dl: jnp.ndarray, L: int) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: Plane of Wigner-d initialised for :math:`\ell=0`,
-    """
 
+    """
     el = 0
     dl = dl.at[el + L - 1, el + L - 1].set(1.0)
 
@@ -90,7 +94,8 @@ def init_jax(dl: jnp.ndarray, L: int) -> jnp.ndarray:
 
 
 def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
-    r"""Compute Wigner-d at argument :math:`\pi/2` for eighth of plane using
+    r"""
+    Compute Wigner-d at argument :math:`\pi/2` for eighth of plane using
     Trapani & Navaza recursion.
 
     The Wigner-d plane is computed by recursion over :math:`\ell` (`el`).
@@ -123,7 +128,6 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with eighth of plane computed.
 
     """
-
     _arg_checks(dl, L, el)
 
     dmm = np.zeros(L)
@@ -171,7 +175,8 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
 
 def compute_quarter_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
-    r"""Compute Wigner-d at argument :math:`\pi/2` for quarter of plane using
+    r"""
+    Compute Wigner-d at argument :math:`\pi/2` for quarter of plane using
     Trapani & Navaza recursion (vector implementation).
 
     The Wigner-d plane is computed by recursion over :math:`\ell` (`el`).
@@ -199,8 +204,8 @@ def compute_quarter_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Returns:
         np.ndarray: Plane of Wigner-d for `el`, with quarter of plane computed.
-    """
 
+    """
     _arg_checks(dl, L, el)
 
     dmm = np.zeros(L)
@@ -241,7 +246,8 @@ def compute_quarter_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
 @partial(jit, static_argnums=(1,))
 def compute_quarter_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
-    r"""Compute Wigner-d at argument :math:`\pi/2` for quarter of plane using
+    r"""
+    Compute Wigner-d at argument :math:`\pi/2` for quarter of plane using
     Trapani & Navaza recursion (JAX implementation).
 
     The Wigner-d plane is computed by recursion over :math:`\ell` (`el`).
@@ -272,8 +278,8 @@ def compute_quarter_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: Plane of Wigner-d for `el`, with quarter of plane computed.
-    """
 
+    """
     _arg_checks(dl, L, el)
 
     dmm = jnp.zeros(L)
@@ -334,7 +340,8 @@ def compute_quarter_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
 
 
 def fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
-    r"""Fill in quarter of Wigner-d plane from eighth.
+    r"""
+    Fill in quarter of Wigner-d plane from eighth.
 
     The Wigner-d plane passed as an argument should be computed for the eighth
     of the plane  :math:`m^\prime <= m < \ell` and :math:`0 <= m^\prime <= \ell`.
@@ -350,8 +357,8 @@ def fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Returns:
         np.ndarray: Plane of Wigner-d for `el`, with quarter of plane computed.
-    """
 
+    """
     _arg_checks(dl, L, el)
 
     # Diagonal symmetry to fill in quarter.
@@ -365,7 +372,8 @@ def fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
 
 def fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndarray:
-    r"""Fill in half of Wigner-d plane from quarter.
+    r"""
+    Fill in half of Wigner-d plane from quarter.
 
     The Wigner-d plane passed as an argument should be computed for the quarter
     of the plane :math:`0 <= m, m^\prime <= \ell`.  The
@@ -381,8 +389,8 @@ def fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Returns:
         np.ndarray: Plane of Wigner-d for `el`, with half of plane computed.
-    """
 
+    """
     _arg_checks(dl, L, el)
 
     # Symmetry in m to fill in half.
@@ -396,7 +404,8 @@ def fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
 
 def fill_quarter2half_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
-    r"""Fill in half of Wigner-d plane from quarter (vectorised implementation).
+    r"""
+    Fill in half of Wigner-d plane from quarter (vectorised implementation).
 
     See :func:`~fill_quarter2half` for further details.
 
@@ -412,8 +421,8 @@ def fill_quarter2half_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Returns:
         np.ndarray: Plane of Wigner-d for `el`, with half of plane computed.
-    """
 
+    """
     _arg_checks(dl, L, el)
 
     # Symmetry in m to fill in half.
@@ -430,7 +439,8 @@ def fill_quarter2half_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
 @partial(jit, static_argnums=(1,))
 def fill_quarter2half_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
-    r"""Fill in half of Wigner-d plane from quarter (JAX implementation).
+    r"""
+    Fill in half of Wigner-d plane from quarter (JAX implementation).
 
     See :func:`~fill_quarter2half` for further details.
 
@@ -446,8 +456,8 @@ def fill_quarter2half_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: Plane of Wigner-d for `el`, with half of plane computed.
-    """
 
+    """
     _arg_checks(dl, L, el)
 
     # Symmetry in m to fill in half.
@@ -465,7 +475,8 @@ def fill_quarter2half_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
 
 
 def fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
-    r"""Fill in full Wigner-d plane from half.
+    r"""
+    Fill in full Wigner-d plane from half.
 
     The Wigner-d plane passed as an argument should be computed for the half
     of the plane :math:`-\ell <= m <= \ell` and :math:`0 <= m^\prime <= \ell`.
@@ -484,8 +495,8 @@ def fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Returns:
         np.ndarray: Plane of Wigner-d for `el`, with full plane computed.
-    """
 
+    """
     _arg_checks(dl, L, el)
 
     # Symmetry in mm to fill in remaining plane.
@@ -499,7 +510,8 @@ def fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
 
 def fill_half2full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
-    r"""Fill in full Wigner-d plane from half (vectorized implementation).
+    r"""
+    Fill in full Wigner-d plane from half (vectorized implementation).
 
     See :func:`~fill_half2full` for further details.
 
@@ -515,8 +527,8 @@ def fill_half2full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Returns:
         np.ndarray: Plane of Wigner-d for `el`, with full plane computed.
-    """
 
+    """
     _arg_checks(dl, L, el)
 
     # Symmetry in mm to fill in remaining plane.
@@ -533,7 +545,8 @@ def fill_half2full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
 @partial(jit, static_argnums=(1,))
 def fill_half2full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
-    r"""Fill in full Wigner-d plane from half (JAX implementation).
+    r"""
+    Fill in full Wigner-d plane from half (JAX implementation).
 
     See :func:`~fill_half2full` for further details.
 
@@ -549,8 +562,8 @@ def fill_half2full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: Plane of Wigner-d for `el`, with full plane computed.
-    """
 
+    """
     _arg_checks(dl, L, el)
 
     # Symmetry in mm to fill in remaining plane.
@@ -570,7 +583,8 @@ def fill_half2full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
 def compute_full(
     dl: np.ndarray, L: int, el: int, implementation: str = "vectorized"
 ) -> np.ndarray:
-    r"""Compute Wigner-d at argument :math:`\pi/2` for full plane using
+    r"""
+    Compute Wigner-d at argument :math:`\pi/2` for full plane using
     Trapani & Navaza recursion (multiple implementations).
 
     The Wigner-d plane is computed by recursion over :math:`\ell` (`el`).
@@ -605,7 +619,6 @@ def compute_full(
         np.ndarray: Plane of Wigner-d for `el`, with full plane computed.
 
     """
-
     if implementation.lower() == "loop":
         return compute_full_loop(dl, L, el)
 
@@ -620,7 +633,8 @@ def compute_full(
 
 
 def compute_full_loop(dl: np.ndarray, L: int, el: int) -> np.ndarray:
-    r"""Compute Wigner-d at argument :math:`\pi/2` for full plane using
+    r"""
+    Compute Wigner-d at argument :math:`\pi/2` for full plane using
     Trapani & Navaza recursion (loop-based implementation).
 
     See :func:`~compute_full` for further details.
@@ -642,7 +656,6 @@ def compute_full_loop(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with full plane computed.
 
     """
-
     _arg_checks(dl, L, el)
 
     dl = compute_eighth(dl, L, el)
@@ -654,7 +667,8 @@ def compute_full_loop(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
 
 def compute_quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
-    r"""Compute Wigner-d at argument :math:`\pi/2` for quarter plane using
+    r"""
+    Compute Wigner-d at argument :math:`\pi/2` for quarter plane using
     Trapani & Navaza recursion.
 
     The Wigner-d plane is computed by recursion over :math:`\ell` (`el`).
@@ -684,7 +698,6 @@ def compute_quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with quarter plane computed.
 
     """
-
     _arg_checks(dl, L, el)
 
     dl = compute_eighth(dl, L, el)
@@ -694,7 +707,8 @@ def compute_quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
 
 def compute_full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
-    r"""Compute Wigner-d at argument :math:`\pi/2` for full plane using
+    r"""
+    Compute Wigner-d at argument :math:`\pi/2` for full plane using
     Trapani & Navaza recursion (vectorized implementation).
 
     See :func:`~compute_full` for further details.
@@ -716,7 +730,6 @@ def compute_full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with full plane computed.
 
     """
-
     _arg_checks(dl, L, el)
 
     dl = compute_quarter_vectorized(dl, L, el)
@@ -728,7 +741,8 @@ def compute_full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
 @partial(jit, static_argnums=(1,))
 def compute_full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
-    r"""Compute Wigner-d at argument :math:`\pi/2` for full plane using
+    r"""
+    Compute Wigner-d at argument :math:`\pi/2` for full plane using
     Trapani & Navaza recursion (JAX implementation).
 
     See :func:`~compute_full` for further details.
@@ -760,7 +774,8 @@ def compute_full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
 
 
 def _arg_checks(dl: np.ndarray, L: int, el: int):
-    """Check arguments of Trapani functions.
+    r"""
+    Check arguments of Trapani functions.
 
     Args:
         dl (np.ndarray): Wigner-d plane of which to check shape.
@@ -768,6 +783,7 @@ def _arg_checks(dl: np.ndarray, L: int, el: int):
         L (int): Harmonic band-limit.
 
         el (int): Spherical harmonic degree :math:`\ell`.
+
     """
 
     # assert 0 < el < L

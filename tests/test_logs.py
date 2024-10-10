@@ -1,5 +1,6 @@
-import s2fft.logs as lg
 import pytest
+
+import s2fft.logs as lg
 
 
 def test_incorrect_log_yaml_path():

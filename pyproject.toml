@@ -99,6 +99,55 @@ filterwarnings = [
     "ignore:FutureWarning",
 ]
 
+[tool.ruff]
+fix = true
+force-exclude = true
+format.exclude = ["*.ipynb"]
+lint.exclude = ["*.ipynb"]
+lint.ignore = [
+    "B023", # function-uses-loop-variable
+    "COM812", # trailing commas (ruff-format recommended)
+    "D100", # undocumented-public-module
+    "D104", # undocumented-public-package
+    "D203", # no-blank-line-before-class
+    "D205", # blank line between summary and description in docstrings
+    "D212", # multi-line-summary-first-line
+    "D401", # non-imperative-mood
+    "D407", # removed dashes lines under sections
+    "D417", # argument description in docstring (unreliable)
+    "ISC001", # simplify implicit str concatenation (ruff-format recommended)
+    "S101", # assert
+]
+lint.per-file-ignores = {"benchmarks*" = [
+    "D", # No docstring checks in benchmarks
+], "tests*" = [
+    "D", # No docstring checks in tests
+    "INP001", # File is part of an implicit namespace package.
+    "S101", # Use of `assert` detected
+], "__init__.py" = [
+    "F401" # unused-import
+]}
+lint.select = [
+    "B",
+    "C90",
+    "D",
+    "E1",
+    "E4",
+    "E7",
+    "E9",
+    "F",
+    "I",
+    "S",
+    "UP",
+]
+lint.isort.known-first-party = [
+    "s2fft"
+]
+lint.mccabe.max-complexity = 18
+lint.pep8-naming.classmethod-decorators = [
+    "classmethod",
+]
+
 [tool.setuptools]
 packages = ["s2fft"]
 

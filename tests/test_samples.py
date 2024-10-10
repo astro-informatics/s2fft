@@ -1,11 +1,11 @@
-import pytest
-import numpy as np
-import jax.numpy as jnp
-import pyssht as ssht
 import healpy as hp
-from s2fft.sampling import s2_samples as samples
-from s2fft.sampling import reindex
+import jax.numpy as jnp
+import numpy as np
+import pyssht as ssht
+import pytest
 
+from s2fft.sampling import reindex
+from s2fft.sampling import s2_samples as samples
 
 nside_to_test = [16, 32]
 
@@ -71,7 +71,7 @@ def test_samples_index_conversion(ind: int):
 def test_samples_ncoeff(L: int):
     n = 0
     for el in range(0, L):
-        for m in range(-el, el + 1):
+        for _ in range(-el, el + 1):
             n += 1
 
     assert samples.ncoeff(L) == pytest.approx(n)
@@ -110,38 +110,38 @@ def test_hp_ang2pix(nside: int):
 def test_samples_exceptions():
     L = 10
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.phis_equiang(L, sampling="healpix")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.phis_equiang(L, sampling="foo")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.ntheta(L, sampling="healpix")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.ntheta(sampling="mw")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.ntheta(L, sampling="foo")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.ntheta_extension(L, sampling="foo")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.nphi_equiang(L, sampling="healpix")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.nphi_equiang(L, sampling="foo")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.nphi_ring(-1, nside=2)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.t2theta(t=0, L=L, sampling="healpix")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.t2theta(t=0, L=L, sampling="foo")
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.t2theta(t=0, sampling="mw")

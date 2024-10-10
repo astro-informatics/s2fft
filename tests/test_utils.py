@@ -1,13 +1,14 @@
 import jax
+import jax.numpy as jnp
+import numpy as np
+import pyssht as ssht
+import pytest
+from jax.test_util import check_grads
+
+from s2fft.sampling import s2_samples as samples
+from s2fft.utils.rotation import generate_rotate_dls, rotate_flms
 
 jax.config.update("jax_enable_x64", True)
-import pytest
-import pyssht as ssht
-import numpy as np
-from s2fft.sampling import s2_samples as samples
-from s2fft.utils.rotation import rotate_flms, generate_rotate_dls
-import jax.numpy as jnp
-from jax.test_util import check_grads
 
 L_to_test = [6, 8, 10]
 angles_to_test = [np.pi / 2, np.pi / 6]
@@ -46,16 +47,16 @@ def test_flm_reindexing_exceptions(flm_generator):
     flm_1d = samples.flm_2d_to_1d(flm_2d, L)
     flm_3d = np.zeros((1, 1, 1))
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.flm_2d_to_1d(flm_1d, L)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.flm_2d_to_1d(flm_3d, L)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.flm_1d_to_2d(flm_2d, L)
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError):
         samples.flm_1d_to_2d(flm_3d, L)
 
 

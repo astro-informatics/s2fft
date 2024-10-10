@@ -1,12 +1,13 @@
+from functools import partial
+
+import jax.numpy as jnp
+import numpy as np
+import torch
 from jax import jit
 
-import numpy as np
-import jax.numpy as jnp
-import torch
-from s2fft.utils import resampling, resampling_jax, resampling_torch
-from s2fft.utils import healpix_ffts as hp
 from s2fft.sampling import so3_samples as samples
-from functools import partial
+from s2fft.utils import healpix_ffts as hp
+from s2fft.utils import resampling, resampling_jax, resampling_torch
 
 
 def inverse(
@@ -19,7 +20,8 @@ def inverse(
     method: str = "jax",
     nside: int = None,
 ) -> np.ndarray:
-    r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
+    r"""
+    Compute the inverse Wigner transform, i.e. inverse Fourier transform on
     :math:`SO(3)`.
 
     Args:
@@ -56,6 +58,7 @@ def inverse(
         For a given :math:`\gamma` we thus recover a signal on the sphere indexed by
         :math:`[\theta, \phi]`, i.e. we associate :math:`\beta` with :math:`\theta` and
         :math:`\alpha` with :math:`\phi`.
+
     """
     if method == "numpy":
         return inverse_transform(flmn, kernel, L, N, sampling, reality, nside)
@@ -76,7 +79,8 @@ def inverse_transform(
     reality: bool,
     nside: int,
 ) -> np.ndarray:
-    r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
+    r"""
+    Compute the inverse Wigner transform, i.e. inverse Fourier transform on
     :math:`SO(3)`.
 
     Args:
@@ -99,6 +103,7 @@ def inverse_transform(
 
     Returns:
         np.ndarray: Pixel-space coefficients.
+
     """
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     n_start_ind = N - 1 if reality else 0
@@ -137,7 +142,8 @@ def inverse_transform_jax(
     reality: bool,
     nside: int,
 ) -> jnp.ndarray:
-    r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
+    r"""
+    Compute the inverse Wigner transform, i.e. inverse Fourier transform on
     :math:`SO(3)`.
 
     Args:
@@ -160,6 +166,7 @@ def inverse_transform_jax(
 
     Returns:
         jnp.ndarray: Pixel-space coefficients.
+
     """
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     n_start_ind = N - 1 if reality else 0
@@ -214,7 +221,8 @@ def inverse_transform_torch(
     reality: bool,
     nside: int,
 ) -> torch.tensor:
-    r"""Compute the inverse Wigner transform, i.e. inverse Fourier transform on
+    r"""
+    Compute the inverse Wigner transform, i.e. inverse Fourier transform on
     :math:`SO(3)`.
 
     Args:
@@ -237,6 +245,7 @@ def inverse_transform_torch(
 
     Returns:
         torch.tensor: Pixel-space coefficients.
+
     """
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     n_start_ind = N - 1 if reality else 0
@@ -291,7 +300,8 @@ def forward(
     method: str = "jax",
     nside: int = None,
 ) -> np.ndarray:
-    r"""Compute the forward Wigner transform, i.e. Fourier transform on
+    r"""
+    Compute the forward Wigner transform, i.e. Fourier transform on
     :math:`SO(3)`.
 
     Args:
@@ -328,6 +338,7 @@ def forward(
         For a given :math:`\gamma` we thus recover a signal on the sphere indexed by
         :math:`[\theta, \phi]`, i.e. we associate :math:`\beta` with :math:`\theta` and
         :math:`\alpha` with :math:`\phi`.
+
     """
     if method == "numpy":
         return forward_transform(f, kernel, L, N, sampling, reality, nside)
@@ -348,7 +359,8 @@ def forward_transform(
     reality: bool,
     nside: int,
 ) -> np.ndarray:
-    r"""Compute the forward Wigner transform, i.e. Fourier transform on
+    r"""
+    Compute the forward Wigner transform, i.e. Fourier transform on
     :math:`SO(3)`.
 
     Args:
@@ -371,6 +383,7 @@ def forward_transform(
 
     Returns:
         np.ndarray: Wigner space coefficients.
+
     """
     n_start_ind = N - 1 if reality else 0
 
@@ -429,7 +442,8 @@ def forward_transform_jax(
     reality: bool,
     nside: int,
 ) -> jnp.ndarray:
-    r"""Compute the forward Wigner transform, i.e. Fourier transform on
+    r"""
+    Compute the forward Wigner transform, i.e. Fourier transform on
     :math:`SO(3)`.
 
     Args:
@@ -452,6 +466,7 @@ def forward_transform_jax(
 
     Returns:
         jnp.ndarray: Wigner space coefficients.
+
     """
     n_start_ind = N - 1 if reality else 0
 
@@ -521,7 +536,8 @@ def forward_transform_torch(
     reality: bool,
     nside: int,
 ) -> torch.tensor:
-    r"""Compute the forward Wigner transform, i.e. Fourier transform on
+    r"""
+    Compute the forward Wigner transform, i.e. Fourier transform on
     :math:`SO(3)`.
 
     Args:
@@ -544,6 +560,7 @@ def forward_transform_torch(
 
     Returns:
         torch.tensor: Wigner space coefficients.
+
     """
     n_start_ind = N - 1 if reality else 0
 

@@ -1,19 +1,20 @@
-from jax import jit, custom_vjp
-
-import numpy as np
-import jax.numpy as jnp
 from functools import partial
 from typing import List
+
+import jax.numpy as jnp
+import numpy as np
+from jax import custom_vjp, jit
+
 from s2fft.sampling import s2_samples as samples
-from s2fft.utils import (
-    resampling,
-    quadrature,
-    resampling_jax,
-    quadrature_jax,
-)
-from s2fft.utils import healpix_ffts as hp
-from s2fft.transforms import otf_recursions as otf
 from s2fft.transforms import c_backend_spherical as c_sph
+from s2fft.transforms import otf_recursions as otf
+from s2fft.utils import healpix_ffts as hp
+from s2fft.utils import (
+    quadrature,
+    quadrature_jax,
+    resampling,
+    resampling_jax,
+)
 
 
 def inverse(
@@ -29,7 +30,8 @@ def inverse(
     L_lower: int = 0,
     _ssht_backend: int = 1,
 ) -> np.ndarray:
-    r"""Wrapper for the inverse spin-spherical harmonic transform.
+    r"""
+    Wrapper for the inverse spin-spherical harmonic transform.
 
     Args:
         flm (np.ndarray): Spherical harmonic coefficients.
@@ -77,8 +79,8 @@ def inverse(
         harmonic bandlimits L this is inefficient as the I/O overhead for communication
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
-    """
 
+    """
     if spin >= 8 and method in ["numpy", "jax"]:
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
@@ -113,7 +115,8 @@ def inverse_numpy(
     precomps: List = None,
     L_lower: int = 0,
 ) -> np.ndarray:
-    r"""Compute the inverse spin-spherical harmonic transform (numpy).
+    r"""
+    Compute the inverse spin-spherical harmonic transform (numpy).
 
     Uses separation of variables and exploits the Price & McEwen recursion for accelerated
     and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
@@ -144,6 +147,7 @@ def inverse_numpy(
 
     Returns:
         np.ndarray: Signal on the sphere.
+
     """
     # Define latitudinal sample positions and Fourier offsets
     thetas = samples.thetas(L, sampling, nside)
@@ -209,7 +213,8 @@ def inverse_jax(
     spmd: bool = False,
     L_lower: int = 0,
 ) -> jnp.ndarray:
-    r"""Compute the inverse spin-spherical harmonic transform (JAX).
+    r"""
+    Compute the inverse spin-spherical harmonic transform (JAX).
 
     Uses separation of variables and exploits the Price & McEwen recursion for accelerated
     and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
@@ -251,6 +256,7 @@ def inverse_jax(
         harmonic bandlimits L this is inefficient as the I/O overhead for communication
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
+
     """
     # Define latitudinal sample positions and Fourier offsets
     thetas = samples.thetas(L, sampling, nside)
@@ -337,7 +343,8 @@ def forward(
     iter: int = 3,
     _ssht_backend: int = 1,
 ) -> np.ndarray:
-    r"""Wrapper for the forward spin-spherical harmonic transform.
+    r"""
+    Wrapper for the forward spin-spherical harmonic transform.
 
     Args:
         f (np.ndarray): Signal on the sphere.
@@ -389,8 +396,8 @@ def forward(
         harmonic bandlimits L this is inefficient as the I/O overhead for communication
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
-    """
 
+    """
     if spin >= 8 and method in ["numpy", "jax"]:
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
@@ -448,7 +455,8 @@ def forward_numpy(
     precomps: List = None,
     L_lower: int = 0,
 ) -> np.ndarray:
-    r"""Compute the forward spin-spherical harmonic transform (JAX).
+    r"""
+    Compute the forward spin-spherical harmonic transform (JAX).
 
     Uses separation of variables and exploits the Price & McEwen recursion for accelerated
     and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
@@ -479,6 +487,7 @@ def forward_numpy(
 
     Returns:
         np.ndarray: Spherical harmonic coefficients
+
     """
     # Resample mw onto mwss and double resolution of both
     if sampling.lower() == "mw":
@@ -573,7 +582,8 @@ def forward_jax(
     L_lower: int = 0,
     use_healpix_custom_primitive: bool = False,
 ) -> jnp.ndarray:
-    r"""Compute the forward spin-spherical harmonic transform (JAX).
+    r"""
+    Compute the forward spin-spherical harmonic transform (JAX).
 
     Uses separation of variables and exploits the Price & McEwen recursion for accelerated
     and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
@@ -606,7 +616,7 @@ def forward_jax(
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
-        use_healpix_custom_primitive (bool, optional): Whether to use a custom CUDA 
+        use_healpix_custom_primitive (bool, optional): Whether to use a custom CUDA
             primitive for computing HEALPix fast fourier transform when `sampling =
             "healpix"` and running on a cuda compatible gpu device. using a custom
             primitive reduces long compilation times when jit compiling. defaults to
@@ -621,6 +631,7 @@ def forward_jax(
         harmonic bandlimits L this is inefficient as the I/O overhead for communication
         between devices is noticable, however as L increases one will asymptotically
         recover acceleration by the number of devices.
+
     """
     # Resample mw onto mwss and double resolution of both
     if sampling.lower() == "mw":

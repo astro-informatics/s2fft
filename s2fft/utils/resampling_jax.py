@@ -1,13 +1,15 @@
-from jax import jit
+from functools import partial
 
 import jax.numpy as jnp
+from jax import jit
+
 from s2fft.sampling import s2_samples as samples
-from functools import partial
 
 
 @partial(jit, static_argnums=(1))
 def mw_to_mwss(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
-    r"""Convert signal on the sphere from MW sampling to MWSS sampling.
+    r"""
+    Convert signal on the sphere from MW sampling to MWSS sampling.
 
     Conversion is performed by first performing a period extension in
     :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space.  The
@@ -26,6 +28,7 @@ def mw_to_mwss(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
 
     Returns:
         jnp.ndarray: Signal on the sphere sampled with MWSS sampling.
+
     """
     if f_mw.ndim == 2:
         return jnp.squeeze(
@@ -37,7 +40,8 @@ def mw_to_mwss(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(1))
 def mw_to_mwss_theta(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
-    r"""Convert :math:`\theta` component of signal on the sphere from MW sampling to
+    r"""
+    Convert :math:`\theta` component of signal on the sphere from MW sampling to
     MWSS sampling.
 
     Conversion is performed by first performing a period extension in
@@ -61,6 +65,7 @@ def mw_to_mwss_theta(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     Returns:
         jnp.ndarray: Signal on the sphere with MWSS sampling in :math:`\theta` and MW
         sampling in :math:`\phi`.
+
     """
     f_mw_ext = periodic_extension(f_mw, L, spin=spin, sampling="mw")
     fmp_mwss_ext = jnp.zeros(
@@ -93,7 +98,8 @@ def mw_to_mwss_theta(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(1))
 def mw_to_mwss_phi(f_mw: jnp.ndarray, L: int) -> jnp.ndarray:
-    r"""Convert :math:`\phi` component of signal on the sphere from MW sampling to
+    r"""
+    Convert :math:`\phi` component of signal on the sphere from MW sampling to
     MWSS sampling.
 
     Conversion is performed by zero padding in harmonic space.
@@ -120,6 +126,7 @@ def mw_to_mwss_phi(f_mw: jnp.ndarray, L: int) -> jnp.ndarray:
     Returns:
         jnp.ndarray: Signal on the sphere with MWSS sampling in :math:`\phi` and
         sampling in :math:`\theta` of the input signal.
+
     """
     f_mwss = jnp.zeros((f_mw.shape[0], L + 1, 2 * L), dtype=jnp.complex128)
     f_mwss = f_mwss.at[:, :, 1:].set(
@@ -139,7 +146,8 @@ def mw_to_mwss_phi(f_mw: jnp.ndarray, L: int) -> jnp.ndarray:
 def periodic_extension(
     f: jnp.ndarray, L: int, spin: int = 0, sampling: str = "mw"
 ) -> jnp.ndarray:
-    r"""Perform period extension of MW/MWSS signal on the sphere in harmonic
+    r"""
+    Perform period extension of MW/MWSS signal on the sphere in harmonic
     domain, extending :math:`\theta` domain from :math:`[0,\pi]` to :math:`[0,2\pi]`.
     JAX implementation of :func:`~s2fft.resampling.periodic_extension`.
 
@@ -159,6 +167,7 @@ def periodic_extension(
     Returns:
         jnp.ndarray: Signal on the sphere extended to :math:`\theta` domain
         :math:`[0,2\pi]`, in same scheme (MW/MWSS) as input.
+
     """
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
@@ -226,7 +235,8 @@ def periodic_extension(
 
 @partial(jit, static_argnums=(1, 2))
 def unextend(f_ext: jnp.ndarray, L: int, sampling: str = "mw") -> jnp.ndarray:
-    r"""Unextend MW/MWSS sampled signal from :math:`\theta` domain
+    r"""
+    Unextend MW/MWSS sampled signal from :math:`\theta` domain
     :math:`[0,2\pi]` to :math:`[0,\pi]`.
 
     Args:
@@ -246,6 +256,7 @@ def unextend(f_ext: jnp.ndarray, L: int, sampling: str = "mw") -> jnp.ndarray:
     Returns:
         jnp.ndarray: Signal on the sphere sampled on :math:`\theta` domain
         :math:`[0,\pi]`.
+
     """
     if sampling.lower() == "mw":
         return f_ext[:, 0:L, :]
@@ -262,7 +273,8 @@ def unextend(f_ext: jnp.ndarray, L: int, sampling: str = "mw") -> jnp.ndarray:
 
 @partial(jit, static_argnums=(1))
 def upsample_by_two_mwss(f: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
-    r"""Upsample MWSS sampled signal on the sphere defined on domain :math:`[0,\pi]`
+    r"""
+    Upsample MWSS sampled signal on the sphere defined on domain :math:`[0,\pi]`
     by a factor of two.
 
     Upsampling is performed by a periodic extension in :math:`\theta` to
@@ -282,6 +294,7 @@ def upsample_by_two_mwss(f: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     Returns:
         jnp.ndarray: Signal on the sphere sampled with MWSS sampling scheme, sampling at
         resolution 2*L.
+
     """
     if f.ndim == 2:
         f = jnp.expand_dims(f, 0)
@@ -293,7 +306,8 @@ def upsample_by_two_mwss(f: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
 
 @partial(jit, static_argnums=(1))
 def upsample_by_two_mwss_ext(f_ext: jnp.ndarray, L: int) -> jnp.ndarray:
-    """Upsample an extended MWSS sampled signal on the sphere defined on domain
+    r"""
+    Upsample an extended MWSS sampled signal on the sphere defined on domain
     :math:`[0,2\pi]` by a factor of two.
 
     Upsampling is performed by zero-padding in harmonic space. JAX implementation of
@@ -308,6 +322,7 @@ def upsample_by_two_mwss_ext(f_ext: jnp.ndarray, L: int) -> jnp.ndarray:
     Returns:
         jnp.ndarray: Signal on the sphere sampled on extended MWSS sampling scheme on
         domain :math:`[0,2\pi]`, sampling at resolution 2*L.
+
     """
     nphi = 2 * L
     ntheta_ext = 2 * L
@@ -332,7 +347,8 @@ def upsample_by_two_mwss_ext(f_ext: jnp.ndarray, L: int) -> jnp.ndarray:
 def periodic_extension_spatial_mwss(
     f: jnp.ndarray, L: int, spin: int = 0
 ) -> jnp.ndarray:
-    r"""Perform period extension of MWSS signal on the sphere in spatial domain,
+    r"""
+    Perform period extension of MWSS signal on the sphere in spatial domain,
     extending :math:`\theta` domain from :math:`[0,\pi]` to :math:`[0,2\pi]`.
 
     For the MWSS sampling scheme, it is possible to do the period extension in
@@ -351,6 +367,7 @@ def periodic_extension_spatial_mwss(
     Returns:
         jnp.ndarray: Signal on the sphere extended to :math:`\theta` domain
         :math:`[0,2\pi]`, in MWSS sampling scheme.
+
     """
     ntheta = L + 1
     nphi = 2 * L

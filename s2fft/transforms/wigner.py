@@ -1,9 +1,10 @@
-from jax import jit, vmap
-
-import numpy as np
-import jax.numpy as jnp
 from functools import partial
 from typing import List
+
+import jax.numpy as jnp
+import numpy as np
+from jax import jit, vmap
+
 import s2fft
 from s2fft.sampling import so3_samples as samples
 from s2fft.transforms import c_backend_spherical as c_sph
@@ -21,7 +22,8 @@ def inverse(
     L_lower: int = 0,
     _ssht_backend: int = 1,
 ) -> np.ndarray:
-    r"""Wrapper for the inverse Wigner transform, i.e. inverse Fourier transform on
+    r"""
+    Wrapper for the inverse Wigner transform, i.e. inverse Fourier transform on
     :math:`SO(3)`.
 
     Importantly, the convention adopted for storage of f is :math:`[\gamma, \beta,
@@ -77,8 +79,8 @@ def inverse(
     Note:
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
-    """
 
+    """
     if N >= 8 and method in ["numpy", "jax"]:
         raise Warning("Recursive transform may provide lower precision beyond N ~ 8")
 
@@ -106,7 +108,8 @@ def inverse_numpy(
     precomps: List = None,
     L_lower: int = 0,
 ) -> np.ndarray:
-    r"""Compute the inverse Wigner transform (numpy).
+    r"""
+    Compute the inverse Wigner transform (numpy).
 
     Uses separation of variables and exploits the Price & McEwen recursion for accelerated
     and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
@@ -145,6 +148,7 @@ def inverse_numpy(
 
     Returns:
         np.ndarray: Signal on the sphere.
+
     """
     if precomps is None:
         precomps = s2fft.generate_precomputes_wigner(
@@ -191,7 +195,8 @@ def inverse_jax(
     precomps: List = None,
     L_lower: int = 0,
 ) -> jnp.ndarray:
-    r"""Compute the inverse Wigner transform (JAX).
+    r"""
+    Compute the inverse Wigner transform (JAX).
 
     Uses separation of variables and exploits the Price & McEwen recursion for accelerated
     and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
@@ -230,6 +235,7 @@ def inverse_jax(
 
     Returns:
         jnp.ndarray: Signal on the sphere.
+
     """
     if precomps is None:
         precomps = s2fft.generate_precomputes_wigner_jax(
@@ -279,7 +285,8 @@ def inverse_jax_ssht(
     reality: bool = False,
     _ssht_backend: int = 1,
 ) -> jnp.ndarray:
-    r"""Compute the inverse Wigner transform (SSHT JAX).
+    r"""
+    Compute the inverse Wigner transform (SSHT JAX).
 
     SSHT is a C library which implements the spin-spherical harmonic transform outlined
     in McEwen & Wiaux 2011 [1]. We make use of their python bindings for which we
@@ -314,6 +321,7 @@ def inverse_jax_ssht(
     Note:
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
+
     """
     flmn, fban = _inverse_norm(flmn, L, N, L_lower, sampling)
     fban = _flmn_to_fban(flmn, fban, L, N, sampling, reality, _ssht_backend)
@@ -332,7 +340,8 @@ def forward(
     L_lower: int = 0,
     _ssht_backend: int = 1,
 ) -> np.ndarray:
-    r"""Wrapper for the forward Wigner transform, i.e. Fourier transform on
+    r"""
+    Wrapper for the forward Wigner transform, i.e. Fourier transform on
     :math:`SO(3)`.
 
     Importantly, the convention adopted for storage of f is :math:`[\gamma, \beta,
@@ -387,8 +396,8 @@ def forward(
     Note:
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
-    """
 
+    """
     if N >= 8 and method in ["numpy", "jax"]:
         raise Warning("Recursive transform may provide lower precision beyond N ~ 8")
 
@@ -416,7 +425,8 @@ def forward_numpy(
     precomps: List = None,
     L_lower: int = 0,
 ) -> np.ndarray:
-    r"""Compute the forward Wigner transform (numpy).
+    r"""
+    Compute the forward Wigner transform (numpy).
 
     Uses separation of variables and exploits the Price & McEwen recursion for accelerated
     and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
@@ -456,6 +466,7 @@ def forward_numpy(
 
     Returns:
         np.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
+
     """
     if precomps is None:
         precomps = s2fft.generate_precomputes_wigner(
@@ -509,7 +520,8 @@ def forward_jax(
     precomps: List = None,
     L_lower: int = 0,
 ) -> jnp.ndarray:
-    r"""Compute the forward Wigner transform (JAX).
+    r"""
+    Compute the forward Wigner transform (JAX).
 
     Uses separation of variables and exploits the Price & McEwen recursion for accelerated
     and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
@@ -549,6 +561,7 @@ def forward_jax(
 
     Returns:
         jnp.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
+
     """
     if precomps is None:
         precomps = s2fft.generate_precomputes_wigner_jax(
@@ -617,7 +630,8 @@ def forward_jax_ssht(
     reality: bool = False,
     _ssht_backend: int = 1,
 ) -> jnp.ndarray:
-    r"""Compute the forward Wigner transform (SSHT JAX).
+    r"""
+    Compute the forward Wigner transform (SSHT JAX).
 
     SSHT is a C library which implements the spin-spherical harmonic transform outlined
     in McEwen & Wiaux 2011 [1]. We make use of their python bindings for which we
@@ -654,6 +668,7 @@ def forward_jax_ssht(
     Note:
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
+
     """
     flmn, fban = _f_to_fban(f, L, N, reality)
     flmn = _fban_to_flmn(flmn, fban, L, N, sampling, reality, _ssht_backend)
@@ -662,7 +677,7 @@ def forward_jax_ssht(
 
 @partial(jit, static_argnums=(1, 2, 3))
 def _f_to_fban(f: jnp.ndarray, L: int, N: int, reality: bool = False) -> jnp.ndarray:
-    """Private function which maps from f to fban (C backend)"""
+    """Private function which maps from f to fban (C backend)."""
     flmn = jnp.zeros(samples.flmn_shape(L, N), dtype=jnp.complex128)
 
     if reality:
@@ -684,7 +699,7 @@ def _fban_to_flmn(
     reality: bool = False,
     _ssht_backend: int = 1,
 ) -> jnp.ndarray:
-    """Private function which maps from fban to flmn (C backend)"""
+    """Private function which maps from fban to flmn (C backend)."""
     ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
     n_start_ind = 0 if reality else -N + 1
     func = partial(
@@ -705,7 +720,7 @@ def _fban_to_flmn(
 def _reality_and_norm(
     flmn: jnp.ndarray, L: int, N: int, L_lower: int = 0, reality: bool = False
 ) -> jnp.ndarray:
-    """Private function which maps from f to fban (C backend)"""
+    """Private function which maps from f to fban (C backend)."""
     if reality:
         nidx = jnp.arange(1, N)
         sgn = (-1) ** abs(jnp.arange(-L + 1, L))
@@ -739,7 +754,7 @@ def _reality_and_norm(
 def _inverse_norm(
     flmn: jnp.ndarray, L: int, N: int, L_lower: int = 0, sampling: str = "mw"
 ):
-    """Private function which normalised flmn for inverse Wigner (C backend)"""
+    """Private function which normalised flmn for inverse Wigner (C backend)."""
     fban = jnp.zeros(samples.f_shape(L, N, sampling), dtype=jnp.complex128)
 
     flmn = flmn.at[:, L_lower:].set(
@@ -762,7 +777,7 @@ def _flmn_to_fban(
     reality: bool = False,
     _ssht_backend: int = 1,
 ) -> jnp.ndarray:
-    """Private function which maps from flmn to fban (C backend)"""
+    """Private function which maps from flmn to fban (C backend)."""
     ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
     n_start_ind = 0 if reality else -N + 1
     func = partial(
@@ -781,7 +796,7 @@ def _flmn_to_fban(
 
 @partial(jit, static_argnums=(1, 2, 3))
 def _fban_to_f(fban: jnp.ndarray, L: int, N: int, reality: bool = False) -> jnp.ndarray:
-    """Private function which maps from fban to f (C backend)"""
+    """Private function which maps from fban to f (C backend)."""
     if reality:
         f = jnp.fft.irfft(fban[N - 1 :], 2 * N - 1, axis=-3, norm="forward")
     else:
