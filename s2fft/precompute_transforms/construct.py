@@ -11,7 +11,7 @@ from s2fft.utils import quadrature, quadrature_jax
 
 # Maximum spin number at which Price-McEwen recursion is sufficiently accurate.
 # For spins > PM_MAX_STABLE_SPIN one should default to the Risbo recursion.
-PM_MAX_STABLE_SPIN = 5
+PM_MAX_STABLE_SPIN = 6
 
 
 def spin_spherical_kernel(
@@ -66,15 +66,15 @@ def spin_spherical_kernel(
             + "Defering to complex transform.",
             stacklevel=2,
         )
-    if recursion.lower() == "price-mcewen" and abs(spin) >= PM_MAX_STABLE_SPIN:
+    if recursion.lower() == "price-mcewen" and abs(spin) > PM_MAX_STABLE_SPIN:
         raise ValueError(
-            f"The Price-McEwen can become unstable for spins >= {PM_MAX_STABLE_SPIN}."
+            f"The Price-McEwen recursion can become unstable for spins >= {PM_MAX_STABLE_SPIN}."
         )
 
     if recursion.lower() == "auto":
         # This mode automatically determines which recursion is best suited for the
         # current parameter configuration.
-        recursion = "risbo" if abs(spin) >= PM_MAX_STABLE_SPIN else "price-mcewen"
+        recursion = "risbo" if abs(spin) > PM_MAX_STABLE_SPIN else "price-mcewen"
 
     dl = []
     m_start_ind = L - 1 if reality else 0
@@ -214,15 +214,15 @@ def spin_spherical_kernel_jax(
             + "Defaulting to complex transform.",
             stacklevel=2,
         )
-    if recursion.lower() == "price-mcewen" and abs(spin) >= PM_MAX_STABLE_SPIN:
+    if recursion.lower() == "price-mcewen" and abs(spin) > PM_MAX_STABLE_SPIN:
         raise ValueError(
-            f"The Price-McEwen can become unstable for spins >= {PM_MAX_STABLE_SPIN}."
+            f"The Price-McEwen recursion can become unstable for spins >= {PM_MAX_STABLE_SPIN}."
         )
 
     if recursion.lower() == "auto":
         # This mode automatically determines which recursion is best suited for the
         # current parameter configuration.
-        recursion = "risbo" if abs(spin) >= PM_MAX_STABLE_SPIN else "price-mcewen"
+        recursion = "risbo" if abs(spin) > PM_MAX_STABLE_SPIN else "price-mcewen"
 
     dl = []
     m_start_ind = L - 1 if reality else 0

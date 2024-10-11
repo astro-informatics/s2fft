@@ -8,6 +8,10 @@ from s2fft.precompute_transforms import construct as c
 from s2fft.precompute_transforms.spherical import forward, inverse
 from s2fft.sampling import s2_samples as samples
 
+# Maximum spin number at which Price-McEwen recursion is sufficiently accurate.
+# For spins > PM_MAX_STABLE_SPIN one should default to the Risbo recursion.
+PM_MAX_STABLE_SPIN = 6
+
 L_to_test = [12]
 spin_to_test = [-2, 0, 6]
 nside_to_test = [4, 5]
@@ -16,8 +20,6 @@ sampling_to_test = ["mw", "mwss", "dh", "gl"]
 reality_to_test = [True, False]
 methods_to_test = ["numpy", "jax", "torch"]
 recursions_to_test = ["price-mcewen", "risbo", "auto"]
-
-PM_MAX_STABLE_SPIN = 5
 
 
 @pytest.mark.parametrize("L", L_to_test)
