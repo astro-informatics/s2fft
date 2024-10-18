@@ -1,3 +1,4 @@
+from typing import Tuple
 from warnings import warn
 
 import jax
@@ -608,6 +609,62 @@ def wigner_kernel_jax(
         )
 
     return dl
+
+
+def fourier_wigner_kernel(L: int) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Computes Fourier coefficients of the reduced Wigner d-functions and quadrature
+    weights upsampled for the forward Fourier-Wigner transform.
+
+    Args:
+        L (int): Harmonic band-limit.
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray]: Tuple of delta Fourier coefficients and weights.
+
+    """
+    # Calculate deltas (np.pi/2 Fourier coefficients of Wigner matrices)
+    deltas = np.zeros((L, 2 * L - 1, 2 * L - 1), dtype=np.float64)
+    d = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    for el in range(L):
+        d = recursions.risbo.compute_full(d, np.pi / 2, L, el)
+        deltas[el] = d
+
+    # Calculate upsampled quadrature weights
+    w = np.zeros(4 * L - 3, dtype=np.complex128)
+    for mm in range(-2 * (L - 1), 2 * (L - 1) + 1):
+        w[mm + 2 * (L - 1)] = quadrature.mw_weights(-mm)
+    w = np.fft.ifft(np.fft.ifftshift(w), norm="forward")
+
+    return deltas, w
+
+
+def fourier_wigner_kernel_jax(L: int) -> Tuple[jnp.ndarray, jnp.ndarray]:
+    """
+    Computes Fourier coefficients of the reduced Wigner d-functions and quadrature
+    weights upsampled for the forward Fourier-Wigner transform (JAX implementation).
+
+    Args:
+        L (int): Harmonic band-limit.
+
+    Returns:
+        Tuple[jnp.ndarray, jnp.ndarray]: Tuple of delta Fourier coefficients and weights.
+
+    """
+    # Calculate deltas (np.pi/2 Fourier coefficients of Wigner matrices)
+    deltas = jnp.zeros((L, 2 * L - 1, 2 * L - 1), dtype=jnp.float64)
+    d = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
+    for el in range(L):
+        d = recursions.risbo_jax.compute_full(d, jnp.pi / 2, L, el)
+        deltas = deltas.at[el].set(d)
+
+    # Calculate upsampled quadrature weights
+    w = jnp.zeros(4 * L - 3, dtype=jnp.complex128)
+    for mm in range(-2 * (L - 1), 2 * (L - 1) + 1):
+        w = w.at[mm + 2 * (L - 1)].set(quadrature_jax.mw_weights(-mm))
+    w = jnp.fft.ifft(jnp.fft.ifftshift(w), norm="forward")
+
+    return deltas, w
 
 
 def healpix_phase_shifts(L: int, nside: int, forward: bool = False) -> np.ndarray:
