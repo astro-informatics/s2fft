@@ -110,7 +110,7 @@ def inverse_transform(
 
     fnab = np.zeros(samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128)
     fnab[n_start_ind:, :, m_offset:] = np.einsum(
-        "...ntlm, ...nlm -> ...ntm", kernel, flmn[n_start_ind:, :, :]
+        "...ntlm, ...nlm -> ...ntm", kernel, flmn[n_start_ind:]
     )
 
     if sampling.lower() in "healpix":
@@ -122,7 +122,6 @@ def inverse_transform(
             return np.fft.irfft(f[n_start_ind:], 2 * N - 1, axis=-2, norm="forward")
         else:
             return np.fft.ifft(np.fft.ifftshift(f, axes=-2), axis=-2, norm="forward")
-
     else:
         if reality:
             fnab = np.fft.ifft(np.fft.ifftshift(fnab, axes=-1), axis=-1, norm="forward")

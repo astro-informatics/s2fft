@@ -50,6 +50,21 @@ Precompute Functions
    * - :func:`~s2fft.precompute_transforms.wigner.forward_transform_torch`
      - Forward Wigner transform (Torch)
 
+.. list-table:: Fourier-Wigner transforms.
+   :widths: 25 25
+   :header-rows: 1
+
+   * - Function Name
+     - Description
+   * - :func:`~s2fft.precompute_transforms.fourier_wigner.inverse_transform`
+     - Inverse Wigner transform with Fourier method (NumPy)
+   * - :func:`~s2fft.precompute_transforms.fourier_wigner.inverse_transform_jax`
+     - Inverse Wigner transform with Fourier method (JAX)
+   * - :func:`~s2fft.precompute_transforms.fourier_wigner.forward_transform`
+     - Forward Wigner transform with Fourier method (NumPy)
+   * - :func:`~s2fft.precompute_transforms.fourier_wigner.forward_transform_jax`
+     - Forward Wigner transform with Fourier method (JAX)
+
 .. list-table:: Constructing Kernels for precompute transforms.
    :widths: 25 25
    :header-rows: 1
@@ -64,6 +79,10 @@ Precompute Functions
      - Builds a kernel including quadrature weights and Wigner-D coefficients for spherical harmonic transform (JAX).
    * - :func:`~s2fft.precompute_transforms.construct.wigner_kernel_jax`
      - Builds a kernel including quadrature weights and Wigner-D coefficients for Wigner transform (JAX).
+   * - :func:`~s2fft.precompute_transforms.construct.fourier_wigner_kernel`
+     - Builds a kernel including quadrature weights and Fourier coefficienfs of Wigner d-functions
+   * - :func:`~s2fft.precompute_transforms.construct.fourier_wigner_kernel_jax`
+     - Builds a kernel including quadrature weights and Fourier coefficienfs of Wigner d-functions (JAX).
    * - :func:`~s2fft.precompute_transforms.construct.healpix_phase_shifts`
      - Builds a vector of corresponding phase shifts for each HEALPix latitudinal ring.
 
@@ -76,4 +95,5 @@ Precompute Functions
    alt_construct
    spin_spherical 
    wigner
+   fourier_wigner
 
