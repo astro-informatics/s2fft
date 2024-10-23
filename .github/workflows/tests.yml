@@ -32,5 +32,9 @@ jobs:
     
     - name: Run tests
       run: |
-        pytest --cov-report term --cov=s2fft --cov-config=.coveragerc 
-        codecov --token 298dc7ee-bb9f-4221-b31f-3576cc6cb702
+        pytest --cov-report=xml --cov=s2fft --cov-config=.coveragerc
+  
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
