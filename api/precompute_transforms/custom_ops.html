@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Fourier-Wigner Transform &#8212; S2FFT 1.1.1 documentation</title>
+    <title>Custom Operations &#8212; S2FFT 1.1.1 documentation</title>
   
   
   
@@ -52,11 +52,13 @@
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../_static/copybutton.js?v=f281be69"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'api/precompute_transforms/fourier_wigner';</script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/precompute_transforms/custom_ops';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Custom Operations" href="custom_ops.html" />
-    <link rel="prev" title="Wigner Transform" href="wigner.html" />
+    <link rel="next" title="Reference Transforms" href="../base_transforms/index.html" />
+    <link rel="prev" title="Fourier-Wigner Transform" href="fourier_wigner.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.1.1" />
@@ -433,8 +435,8 @@
 <li class="toctree-l2"><a class="reference internal" href="construct.html">constructor</a></li>
 <li class="toctree-l2"><a class="reference internal" href="spin_spherical.html">Spherical Harmonic Transform</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wigner.html">Wigner Transform</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Fourier-Wigner Transform</a></li>
-<li class="toctree-l2"><a class="reference internal" href="custom_ops.html">Custom Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fourier_wigner.html">Fourier-Wigner Transform</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Custom Operations</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../base_transforms/index.html">Reference Transforms</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -510,7 +512,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Precompute Functions</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Fourier-Wigner Transform</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Custom Operations</span></li>
   </ul>
 </nav>
 </div>
@@ -527,29 +529,32 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-s2fft.precompute_transforms.fourier_wigner">
-<span id="fourier-wigner-transform"></span><h1>Fourier-Wigner Transform<a class="headerlink" href="#module-s2fft.precompute_transforms.fourier_wigner" title="Link to this heading">#</a></h1>
+  <section id="module-s2fft.precompute_transforms.custom_ops">
+<span id="custom-operations"></span><h1>Custom Operations<a class="headerlink" href="#module-s2fft.precompute_transforms.custom_ops" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="s2fft.precompute_transforms.fourier_wigner.forward_transform">
-<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.fourier_wigner.</span></span><span class="sig-name descname"><span class="pre">forward_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DW</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.fourier_wigner.forward_transform" title="Link to this definition">#</a></dt>
-<dd><p>Computes the forward Wigner transform using the Fourier decomposition algorithm.</p>
+<dt class="sig sig-object py" id="s2fft.precompute_transforms.custom_ops.s2_to_wigner_subset">
+<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.custom_ops.</span></span><span class="sig-name descname"><span class="pre">s2_to_wigner_subset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DW</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.custom_ops.s2_to_wigner_subset" title="Link to this definition">#</a></dt>
+<dd><p>Transforms from a collection of arbitrary spin signals on the sphere to the
+corresponding collection of their harmonic coefficients.</p>
+<p>This function takes a multimodal collection of spin spherical harmonic signals
+on the sphere and transforms them into their spin spherical harmonic coefficients.
+These coefficients may then be combined into a subset of Wigner coefficients for
+downstream analysis. In this way one may combine input features across a variety
+of spins into a unified representation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>f</strong> (<em>np.ndarray</em>) – Function sampled on the rotation group.</p></li>
-<li><p><strong>DW</strong> (<em>Tuple</em><em>[</em><em>np.ndarray</em><em>, </em><em>np.ndarray</em><em>]</em><em>, </em><em>optional</em>) – Fourier coefficients of the reduced
+<li><p><strong>fs</strong> (<em>np.ndarray</em>) – Collection of spin signal maps on the sphere with shape <span class="math notranslate nohighlight">\([batch, n_s, n_\theta,n_\phi, channels]\)</span>.</p></li>
+<li><p><strong>spins</strong> (<em>np.ndarray</em>) – Spins of each field in fs with shape <span class="math notranslate nohighlight">\([n_s]\)</span>.</p></li>
+<li><p><strong>DW</strong> (<em>Tuple</em><em>[</em><em>np.ndarray</em><em>, </em><em>np.ndarray</em><em>]</em>) – Fourier coefficients of the reduced
 Wigner d-functions and the corresponding upsampled quadrature weights.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit.</p></li>
-<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
-conjugate symmetry is exploited to reduce computational costs.
-Defaults to False.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
 {“mw”, “mwss”}. Defaults to “mw”.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Wigner coefficients of function f.</p>
+<dd class="field-even"><p>Collection of spin spherical harmonic coefficients with shape <span class="math notranslate nohighlight">\([batch, n_s, L, 2L-1, channels]\)</span>.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray</p>
@@ -558,26 +563,95 @@ Defaults to False.</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="s2fft.precompute_transforms.fourier_wigner.forward_transform_jax">
-<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.fourier_wigner.</span></span><span class="sig-name descname"><span class="pre">forward_transform_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DW</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.fourier_wigner.forward_transform_jax" title="Link to this definition">#</a></dt>
-<dd><p>Computes the forward Wigner transform using the Fourier decomposition algorithm (JAX).</p>
+<dt class="sig sig-object py" id="s2fft.precompute_transforms.custom_ops.s2_to_wigner_subset_jax">
+<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.custom_ops.</span></span><span class="sig-name descname"><span class="pre">s2_to_wigner_subset_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DW</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.custom_ops.s2_to_wigner_subset_jax" title="Link to this definition">#</a></dt>
+<dd><p>Transforms from a collection of arbitrary spin signals on the sphere to the
+corresponding collection of their harmonic coefficients (JAX).</p>
+<p>This function takes a multimodal collection of spin spherical harmonic signals
+on the sphere and transforms them into their spin spherical harmonic coefficients.
+These coefficients may then be combined into a subset of Wigner coefficients for
+downstream analysis. In this way one may combine input features across a variety
+of spins into a unified representation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>f</strong> (<em>jnp.ndarray</em>) – Function sampled on the rotation group.</p></li>
+<li><p><strong>fs</strong> (<em>jnp.ndarray</em>) – Collection of spin signal maps on the sphere with shape <span class="math notranslate nohighlight">\([batch, n_s, n_\theta,n_\phi, channels]\)</span>.</p></li>
+<li><p><strong>spins</strong> (<em>jnp.ndarray</em>) – Spins of each field in fs with shape <span class="math notranslate nohighlight">\([n_s]\)</span>.</p></li>
+<li><p><strong>DW</strong> (<em>Tuple</em><em>[</em><em>jnp.ndarray</em><em>, </em><em>jnp.ndarray</em><em>]</em>) – Fourier coefficients of the reduced
+Wigner d-functions and the corresponding upsampled quadrature weights.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”}. Defaults to “mw”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Collection of spin spherical harmonic coefficients with shape <span class="math notranslate nohighlight">\([batch, n_s, L, 2L-1, channels]\)</span>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.precompute_transforms.custom_ops.so3_to_wigner_subset">
+<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.custom_ops.</span></span><span class="sig-name descname"><span class="pre">so3_to_wigner_subset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DW</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.custom_ops.so3_to_wigner_subset" title="Link to this definition">#</a></dt>
+<dd><p>Transforms a signal on the rotation group to an arbitrary subset of its Wigner
+coefficients.</p>
+<p>This function takes a signal on the rotation group SO(3) and computes a subset of
+spin spherical harmonic coefficients corresponding to slices across the requested
+spin numbers. These spin numbers can be arbitrarily chosen such that their absolute
+value is less than or equal to the azimuthal band-limit <span class="math notranslate nohighlight">\(N\leq L\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>np.ndarray</em>) – Signal on the rotation group with shape <span class="math notranslate nohighlight">\([batch, n_\gamma, n_\theta,n_\phi, channels]\)</span>.</p></li>
+<li><p><strong>spins</strong> (<em>np.ndarray</em>) – Spins of each field in fs with shape <span class="math notranslate nohighlight">\([n_s]\)</span>.</p></li>
+<li><p><strong>DW</strong> (<em>Tuple</em><em>[</em><em>np.ndarray</em><em>, </em><em>np.ndarray</em><em>]</em>) – Fourier coefficients of the reduced
+Wigner d-functions and the corresponding upsampled quadrature weights.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”}. Defaults to “mw”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Collection of spin spherical harmonic coefficients with shape <span class="math notranslate nohighlight">\([batch, n_s, L, 2L-1, channels]\)</span>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.precompute_transforms.custom_ops.so3_to_wigner_subset_jax">
+<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.custom_ops.</span></span><span class="sig-name descname"><span class="pre">so3_to_wigner_subset_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DW</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.custom_ops.so3_to_wigner_subset_jax" title="Link to this definition">#</a></dt>
+<dd><p>Transforms a signal on the rotation group to an arbitrary subset of its Wigner
+coefficients (JAX).</p>
+<p>This function takes a signal on the rotation group SO(3) and computes a subset of
+spin spherical harmonic coefficients corresponding to slices across the requested
+spin numbers. These spin numbers can be arbitrarily chosen such that their absolute
+value is less than or equal to the azimuthal band-limit <span class="math notranslate nohighlight">\(N\leq L\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>jnp.ndarray</em>) – Signal on the rotation group with shape <span class="math notranslate nohighlight">\([batch, n_\gamma, n_\theta,n_\phi, channels]\)</span>.</p></li>
+<li><p><strong>spins</strong> (<em>jnp.ndarray</em>) – Spins of each field in fs with shape <span class="math notranslate nohighlight">\([n_s]\)</span>.</p></li>
 <li><p><strong>DW</strong> (<em>Tuple</em><em>[</em><em>jnp.ndarray</em><em>, </em><em>jnp.ndarray</em><em>]</em>) – Fourier coefficients of the reduced
 Wigner d-functions and the corresponding upsampled quadrature weights.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 <li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit.</p></li>
-<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
-conjugate symmetry is exploited to reduce computational costs.
-Defaults to False.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
 {“mw”, “mwss”}. Defaults to “mw”.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Wigner coefficients of function f.</p>
+<dd class="field-even"><p><dl class="simple">
+<dt>Collection of spin spherical harmonic coefficients</dt><dd><p>with shape <span class="math notranslate nohighlight">\([batch, n_s, L, 2L-1, channels]\)</span>.</p>
+</dd>
+</dl>
+</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>jnp.ndarray</p>
@@ -586,57 +660,79 @@ Defaults to False.</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="s2fft.precompute_transforms.fourier_wigner.inverse_transform">
-<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.fourier_wigner.</span></span><span class="sig-name descname"><span class="pre">inverse_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flmn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DW</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.fourier_wigner.inverse_transform" title="Link to this definition">#</a></dt>
-<dd><p>Computes the inverse Wigner transform using the Fourier decomposition algorithm.</p>
+<dt class="sig sig-object py" id="s2fft.precompute_transforms.custom_ops.wigner_subset_to_s2">
+<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.custom_ops.</span></span><span class="sig-name descname"><span class="pre">wigner_subset_to_s2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flmn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DW</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.custom_ops.wigner_subset_to_s2" title="Link to this definition">#</a></dt>
+<dd><p>Transforms an arbitrary subset of Wigner coefficients onto a subset of spin signals
+on the sphere.</p>
+<p>This function takes a collection of spin spherical harmonic coefficients each with
+a different (though not necessarily unique) spin and maps them back to their
+corresponding pixel-space representations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>flmn</strong> (<em>np.ndarray</em>) – Wigner coefficients.</p></li>
+<li><p><strong>flmn</strong> (<em>np.ndarray</em>) – Collection of spin spherical harmonic coefficients
+with shape <span class="math notranslate nohighlight">\([batch, n_s, L, 2L-1, channels]\)</span>.</p></li>
+<li><p><strong>spins</strong> (<em>np.ndarray</em>) – Spins of each field in fs with shape <span class="math notranslate nohighlight">\([n_s]\)</span>.</p></li>
 <li><p><strong>DW</strong> (<em>Tuple</em><em>[</em><em>np.ndarray</em><em>, </em><em>np.ndarray</em><em>]</em>) – Fourier coefficients of the reduced
 Wigner d-functions and the corresponding upsampled quadrature weights.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit.</p></li>
-<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
-conjugate symmetry is exploited to reduce computational costs.
-Defaults to False.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
 {“mw”, “mwss”}. Defaults to “mw”.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Pixel-space function sampled on the rotation group.</p>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If sampling scheme is not recognised.</p></li>
+<li><p><strong>ValueError</strong> – If the number of spins does not match the number of Wigner coefficients.</p></li>
+</ul>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>A collection of spin signals with</dt><dd><p>shape <span class="math notranslate nohighlight">\([batch, n_s, n_\theta, n_\phi, channels]\)</span>.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="s2fft.precompute_transforms.fourier_wigner.inverse_transform_jax">
-<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.fourier_wigner.</span></span><span class="sig-name descname"><span class="pre">inverse_transform_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flmn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DW</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.fourier_wigner.inverse_transform_jax" title="Link to this definition">#</a></dt>
-<dd><p>Computes the inverse Wigner transform using the Fourier decomposition algorithm (JAX).</p>
+<dt class="sig sig-object py" id="s2fft.precompute_transforms.custom_ops.wigner_subset_to_s2_jax">
+<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.custom_ops.</span></span><span class="sig-name descname"><span class="pre">wigner_subset_to_s2_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flmn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DW</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Array</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.custom_ops.wigner_subset_to_s2_jax" title="Link to this definition">#</a></dt>
+<dd><p>Transforms an arbitrary subset of Wigner coefficients onto a subset of spin signals
+on the sphere (JAX).</p>
+<blockquote>
+<div><p>This function takes a collection of spin spherical harmonic coefficients each with
+a different (though not necessarily unique) spin and maps them back to their
+corresponding pixel-space representations.</p>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>flmn</strong> (<em>jnp.ndarray</em>) – Wigner coefficients.</p></li>
-<li><p><strong>DW</strong> (<em>Tuple</em><em>[</em><em>np.ndarray</em><em>, </em><em>np.ndarray</em><em>]</em>) – Fourier coefficients of the reduced
+<li><p><strong>flmn</strong> (<em>jnp.ndarray</em>) – Collection of spin spherical harmonic coefficients
+with shape <span class="math notranslate nohighlight">\([batch, n_s, L, 2L-1, channels]\)</span>.</p></li>
+<li><p><strong>spins</strong> (<em>jnp.ndarray</em>) – Spins of each field in fs with shape <span class="math notranslate nohighlight">\([n_s]\)</span>.</p></li>
+<li><p><strong>DW</strong> (<em>Tuple</em><em>[</em><em>jnp.ndarray</em><em>, </em><em>jnp.ndarray</em><em>]</em>) – Fourier coefficients of the reduced
 Wigner d-functions and the corresponding upsampled quadrature weights.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit.</p></li>
-<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
-conjugate symmetry is exploited to reduce computational costs.
-Defaults to False.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
 {“mw”, “mwss”}. Defaults to “mw”.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Pixel-space function sampled on the rotation group.</p>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If sampling scheme is not recognised.</p></li>
+<li><p><strong>ValueError</strong> – If the number of spins does not match the number of Wigner coefficients.</p></li>
+</ul>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>jnp.ndarray</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A collection of spin signals with shape <span class="math notranslate nohighlight">\([batch, n_s, n_\theta, n_\phi, channels]\)</span>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>jnp.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -654,20 +750,20 @@ Defaults to False.</p></li>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="wigner.html"
+       href="fourier_wigner.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Wigner Transform</p>
+        <p class="prev-next-title">Fourier-Wigner Transform</p>
       </div>
     </a>
     <a class="right-next"
-       href="custom_ops.html"
+       href="../base_transforms/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Custom Operations</p>
+        <p class="prev-next-title">Reference Transforms</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

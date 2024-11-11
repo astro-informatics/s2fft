@@ -436,6 +436,7 @@
 <li class="toctree-l2"><a class="reference internal" href="spin_spherical.html">Spherical Harmonic Transform</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wigner.html">Wigner Transform</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fourier_wigner.html">Fourier-Wigner Transform</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom_ops.html">Custom Operations</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../base_transforms/index.html">Reference Transforms</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -633,7 +634,40 @@
 </table>
 </div>
 <div class="pst-scrollable-table-container"><table class="table" id="id4">
-<caption><span class="caption-text">Constructing Kernels for precompute transforms.</span><a class="headerlink" href="#id4" title="Link to this table">#</a></caption>
+<caption><span class="caption-text">Custom Operations</span><a class="headerlink" href="#id4" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="custom_ops.html#s2fft.precompute_transforms.custom_ops.wigner_subset_to_s2" title="s2fft.precompute_transforms.custom_ops.wigner_subset_to_s2"><code class="xref py py-func docutils literal notranslate"><span class="pre">wigner_subset_to_s2()</span></code></a></p></td>
+<td><p>Transforms an arbitrary subset of Wigner coefficients onto a subset of spin signals on the sphere.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="custom_ops.html#s2fft.precompute_transforms.custom_ops.wigner_subset_to_s2_jax" title="s2fft.precompute_transforms.custom_ops.wigner_subset_to_s2_jax"><code class="xref py py-func docutils literal notranslate"><span class="pre">wigner_subset_to_s2_jax()</span></code></a></p></td>
+<td><p>Transforms an arbitrary subset of Wigner coefficients onto a subset of spin signals on the sphere (JAX).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="custom_ops.html#s2fft.precompute_transforms.custom_ops.so3_to_wigner_subset" title="s2fft.precompute_transforms.custom_ops.so3_to_wigner_subset"><code class="xref py py-func docutils literal notranslate"><span class="pre">so3_to_wigner_subset()</span></code></a></p></td>
+<td><p>Transforms a signal on the rotation group to an arbitrary subset of its Wigner coefficients.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="custom_ops.html#s2fft.precompute_transforms.custom_ops.so3_to_wigner_subset_jax" title="s2fft.precompute_transforms.custom_ops.so3_to_wigner_subset_jax"><code class="xref py py-func docutils literal notranslate"><span class="pre">so3_to_wigner_subset_jax()</span></code></a></p></td>
+<td><p>Transforms a signal on the rotation group to an arbitrary subset of its Wigner coefficients (JAX).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="custom_ops.html#s2fft.precompute_transforms.custom_ops.s2_to_wigner_subset" title="s2fft.precompute_transforms.custom_ops.s2_to_wigner_subset"><code class="xref py py-func docutils literal notranslate"><span class="pre">s2_to_wigner_subset()</span></code></a></p></td>
+<td><p>Transforms from a collection of arbitrary spin signals on the sphere to the corresponding collection of their harmonic coefficients.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="custom_ops.html#s2fft.precompute_transforms.custom_ops.s2_to_wigner_subset_jax" title="s2fft.precompute_transforms.custom_ops.s2_to_wigner_subset_jax"><code class="xref py py-func docutils literal notranslate"><span class="pre">s2_to_wigner_subset_jax()</span></code></a></p></td>
+<td><p>Transforms from a collection of arbitrary spin signals on the sphere to the corresponding collection of their harmonic coefficients (JAX).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="pst-scrollable-table-container"><table class="table" id="id5">
+<caption><span class="caption-text">Constructing Kernels for precompute transforms.</span><a class="headerlink" href="#id5" title="Link to this table">#</a></caption>
 <colgroup>
 <col style="width: 50.0%" />
 <col style="width: 50.0%" />
