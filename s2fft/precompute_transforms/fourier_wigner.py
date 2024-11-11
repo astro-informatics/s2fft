@@ -18,7 +18,7 @@ def inverse_transform(
 
     Args:
         flmn (np.ndarray): Wigner coefficients.
-        DW (Tuple[np.ndarray, np.ndarray], optional): Fourier coefficients of the reduced
+        DW (Tuple[np.ndarray, np.ndarray]): Fourier coefficients of the reduced
             Wigner d-functions and the corresponding upsampled quadrature weights.
         L (int): Harmonic band-limit.
         N (int): Azimuthal band-limit.
@@ -222,7 +222,7 @@ def forward_transform(
     # PERFORM QUADRATURE CONVOLUTION AS FFT REWEIGHTING IN REAL SPACE
     # NB: Our convention here is conjugate to that of SSHT, in which
     # the weights are conjugate but applied flipped and therefore are
-    # equivalent. To avoid flipping here he simply conjugate the weights.
+    # equivalent. To avoid flipping here we simply conjugate the weights.
     x = np.einsum("nbm,b->nbm", x, Quads)
 
     # COMPUTE GMM BY FFT
@@ -320,7 +320,7 @@ def forward_transform_jax(
     # PERFORM QUADRATURE CONVOLUTION AS FFT REWEIGHTING IN REAL SPACE
     # NB: Our convention here is conjugate to that of SSHT, in which
     # the weights are conjugate but applied flipped and therefore are
-    # equivalent. To avoid flipping here he simply conjugate the weights.
+    # equivalent. To avoid flipping here we simply conjugate the weights.
     x = jnp.einsum("nbm,b->nbm", x, Quads)
 
     # COMPUTE GMM BY FFT

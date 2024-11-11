@@ -1,3 +1,4 @@
+import jax
 import numpy as np
 import pytest
 import so3
@@ -5,6 +6,8 @@ import so3
 from s2fft.precompute_transforms import construct as c
 from s2fft.precompute_transforms import fourier_wigner as fw
 from s2fft.sampling import so3_samples as samples
+
+jax.config.update("jax_enable_x64", True)
 
 # Test cases
 L_to_test = [16]
