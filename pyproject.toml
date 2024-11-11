@@ -73,7 +73,6 @@ plotting = [
 tests = [
     "pytest",
     "pytest-cov",
-    "codecov",
     "so3",
 ]
 
