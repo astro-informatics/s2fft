@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+title: >-
+  s2fft: Differentiable and accelerated spherical transforms with JAX
+message: >-
+  If you use this software, please cite it using the metadata from this file.
+type: software
+authors:
+  - given-names: Matthew A.
+    family-names: Price
+    affiliation: University College London
+    website: 'https://cosmomatt.github.io/'
+  - given-names: Jason
+    orcid: 'https://orcid.org/0000-0002-5852-8890'
+    family-names: McEwen
+    affiliation: University College London
+    website: 'http://www.jasonmcewen.org/'
+repository-code: 'https://github.com/astro-informatics/s2fft'
+url: 'https://astro-informatics.github.io/s2fft'
+license: MIT
+preferred-citation:
+  type: article
+  authors:
+  - family-names: Matthew A.
+    given-names: Price
+    affiliation: University College London
+    website: 'https://cosmomatt.github.io/''
+  - family-names: Jason
+    given-names: McEwen
+    orcid: 'https://orcid.org/0000-0002-5852-8890'
+    website: 'http://www.jasonmcewen.org/''
+  doi: 10.1016/j.jcp.2024.113109
+  journal: Journal of Computational Physics
+  month: 8
+  start: 113109
+  title: Differentiable and accelerated spherical harmonic and Wigner transforms
+  issue: 1
+  volume: 510
+  year: 2024

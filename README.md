@@ -14,7 +14,7 @@
 # Differentiable and accelerated spherical transforms
 
 `S2FFT` is a Python package for computing Fourier transforms on the sphere
-and rotation group [(Price & McEwen 2023)](https://arxiv.org/abs/2311.14670) using 
+and rotation group [(Price & McEwen 2024)](https://arxiv.org/abs/2311.14670) using 
 JAX or PyTorch. It leverages autodiff to provide differentiable transforms, which are 
 also deployable on hardware accelerators (e.g. GPUs and TPUs).
 
@@ -45,7 +45,7 @@ parallelised and distributed, and so map very well onto the architecture
 of hardware accelerators (i.e. GPUs and TPUs). In particular, these
 algorithms are based on new Wigner-d recursions that are stable to high
 angular resolution $L$. The diagram below illustrates the recursions
-(for further details see Price & McEwen, in prep.).
+(for further details see [Price & McEwen 2024]((https://arxiv.org/abs/2311.14670))).
 
 ![image](./docs/assets/figures/Wigner_recursion_legend_darkmode.png)
 With this recursion to hand, the spherical harmonic coefficients of an 
@@ -58,7 +58,7 @@ Alternatively, the real polar-d functions may calculated recursively,
 computing only a portion of the projection at a time, hence incurring 
 negligible memory overhead at the cost of slightly slower execution. The 
 diagram below illustrates the separable spherical harmonic transform 
-(for further details see Price & McEwen, in prep.).
+(for further details see [Price & McEwen 2024]((https://arxiv.org/abs/2311.14670))).
 
 ![image](./docs/assets/figures/sax_schematic_legend_darkmode.png)
 
@@ -186,9 +186,9 @@ in `S2FFT` against the C implementations in the
 
 A brief summary is shown in the table below for the recursion (left) and
 precompute (right) algorithms, with `S2FFT` running on GPUs (for further
-details see Price & McEwen, in prep.). Note that our compute time is
-agnostic to spin number (which is not the case for many other methods
-that scale linearly with spin).
+details see [Price & McEwen 2024]((https://arxiv.org/abs/2311.14670))). 
+Note that our compute time is agnostic to spin number (which is not the 
+case for many other methods that scale linearly with spin).
 
 | L    | Wall-Time | Speed-up | Error    | Wall-Time | Speed-up | Error    | Memory  |
 |------|-----------|----------|----------|-----------|----------|----------|---------|
@@ -248,9 +248,12 @@ referenced. A BibTeX entry for this reference may look like:
 @article{price:s2fft, 
    author      = "Matthew A. Price and Jason D. McEwen",
    title       = "Differentiable and accelerated spherical harmonic and Wigner transforms",
-   journal     = "Journal of Computational Physics, submitted",
-   year        = "2023",
-   eprint      = "arXiv:2311.14670"        
+   journal     = "Journal of Computational Physics",
+   year        = "2024",
+   volume      = "510",
+   pages       = "113109",
+   eprint      = "arXiv:2311.14670",
+   doi         = "10.1016/j.jcp.2024.113109"
 }
 ```
 
