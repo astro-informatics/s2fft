@@ -81,11 +81,7 @@ def test_custom_forward_from_so3(
     spins = -np.arange(-N + 1, N)
 
     # FUNCTION SWITCH
-    func = (
-        ops.so3_to_wigner_subset_jax
-        if method == "jax"
-        else ops.so3_to_wigner_subset_jax
-    )
+    func = ops.so3_to_wigner_subset_jax if method == "jax" else ops.so3_to_wigner_subset
 
     # CREATE CORRECT SHAPE (BATCH: 1, CHANNELS: 1)
     f = f.reshape((1,) + f.shape + (1,))
