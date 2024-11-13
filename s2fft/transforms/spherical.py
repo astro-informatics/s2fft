@@ -401,35 +401,22 @@ def forward(
     if spin >= 8 and method in ["numpy", "jax"]:
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
-    if method == "numpy":
-        return forward_numpy(f, L, spin, nside, sampling, reality, precomps, L_lower)
-    elif method == "jax":
-        return forward_jax(
-            f,
-            L,
-            spin,
-            nside,
-            sampling,
-            reality,
-            precomps,
-            spmd,
-            L_lower,
-            use_healpix_custom_primitive=False,
-        )
-    elif method == "cuda":
-        return forward_jax(
-            f,
-            L,
-            spin,
-            nside,
-            sampling,
-            reality,
-            precomps,
-            spmd,
-            L_lower,
-            use_healpix_custom_primitive=True,
-        )
-
+    if method in {"numpy", "jax", "cuda"}:
+        kwargs = {
+            "f": f,
+            "L": L,
+            "spin": spin,
+            "nside": nside,
+            "sampling": sampling,
+            "reality": reality,
+            "precomps": precomps,
+            "L_lower": L_lower,
+        }
+        if method in {"jax", "cuda"}:
+            kwargs["spmd"] = spmd
+            kwargs["use_healpix_custom_primitive"] = method == "cuda"
+        forward_function = forward_numpy if method == "numpy" else forward_jax
+        return forward_function(**kwargs)
     elif method == "jax_ssht":
         if sampling.lower() == "healpix":
             raise ValueError("SSHT does not support healpix sampling.")
