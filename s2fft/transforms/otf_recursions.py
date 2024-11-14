@@ -82,6 +82,8 @@ def inverse_latitudinal_step(
     if precomps is None:
         precomps = generate_precomputes(L, -mm, sampling, nside, L_lower)
     lrenorm, vsign, cpi, cp2, indices = precomps
+
+    # Create copy to prevent in-place updates propagating to caller
     lrenorm = lrenorm.copy()
 
     for i in range(2):
@@ -490,6 +492,8 @@ def forward_latitudinal_step(
     if precomps is None:
         precomps = generate_precomputes(L, -mm, sampling, nside, True, L_lower)
     lrenorm, vsign, cpi, cp2, indices = precomps
+
+    # Create copy to prevent in-place updates propagating to caller
     lrenorm = lrenorm.copy()
 
     for i in range(2):
