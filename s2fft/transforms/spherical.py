@@ -384,8 +384,11 @@ def forward(
             Primarily of use with HEALPix sampling for which there is not a sampling
             theorem, and round-tripping through the forward and inverse transforms will
             introduce an error. If set to `None`, the default, 3 iterations will be used
-            if :code:`sampling == "healpix"` and :code`method == "jax_healpy"` and zero
-            otherwise. Not used for `jax_ssht` method.
+            if :code:`sampling == "healpix"` and :code:`method == "jax_healpy"` and zero
+            otherwise. For the `healpy` wrappers specifically (that is when
+            :code:`method == "jax_healpy"`) increasing the number iterations increases
+            the accuracy of the forward transform, but reduce the accuracy of the
+            gradient pass. Not used for `jax_ssht` method.
 
         _ssht_backend (int, optional, experimental): Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
