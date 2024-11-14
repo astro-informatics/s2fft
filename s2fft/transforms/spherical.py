@@ -1,5 +1,5 @@
 from functools import partial
-from typing import List
+from typing import List, Optional
 
 import jax.numpy as jnp
 import numpy as np
@@ -336,14 +336,14 @@ def forward(
     f: np.ndarray,
     L: int,
     spin: int = 0,
-    nside: int | None = None,
+    nside: Optional[int] = None,
     sampling: str = "mw",
     method: str = "numpy",
     reality: bool = False,
-    precomps: List | None = None,
+    precomps: Optional[List] = None,
     spmd: bool = False,
     L_lower: int = 0,
-    iter: int | None = None,
+    iter: Optional[int] = None,
     _ssht_backend: int = 1,
 ) -> np.ndarray:
     r"""
