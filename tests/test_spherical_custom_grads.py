@@ -307,22 +307,16 @@ def test_ssht_c_backend_forward_custom_gradients(
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_healpix_c_backend_inverse_custom_gradients(flm_generator, nside: int):
-    sampling = "healpix"
     L = 2 * nside
     reality = True
     flm = flm_generator(L=L, reality=reality)
-    flm_target = flm_generator(L=L, reality=reality)
-    f_target = spherical.inverse_jax(
-        flm_target, L, nside=nside, sampling=sampling, reality=reality
-    )
 
     def func(flm):
-        f = spherical.inverse(
+        return spherical.inverse(
             flm, L, 0, nside, sampling="healpix", method="jax_healpy", reality=True
         )
-        return jnp.sum(jnp.abs(f - f_target) ** 2)
 
-    check_grads(func, (flm,), order=1, modes=("rev"))
+    check_grads(func, (flm,), order=2, modes=("fwd", "rev"))
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -334,16 +328,12 @@ def test_healpix_c_backend_forward_custom_gradients(
     sampling = "healpix"
     L = 2 * nside
     reality = True
-    flm_target = flm_generator(L=L, reality=reality)
     flm = flm_generator(L=L, reality=reality)
     f = spherical.inverse_jax(flm, L, nside=nside, sampling=sampling, reality=reality)
 
     def func(f):
-        flm = spherical.forward(
+        return spherical.forward(
             f, L, nside=nside, sampling="healpix", method="jax_healpy", iter=iter
         )
-        return jnp.sum(jnp.abs(flm - flm_target) ** 2)
 
-    rtol = [1e-6, 1e-2, 5e-2, 1e-2][iter]
-
-    check_grads(func, (f,), order=1, modes=("rev"), rtol=rtol)
+    check_grads(func, (f,), order=2, modes=("fwd", "rev"))
