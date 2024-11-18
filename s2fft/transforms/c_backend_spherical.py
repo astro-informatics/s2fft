@@ -324,7 +324,7 @@ ad.deflinear(_healpy_map2alm_p, _healpy_map2alm_transpose)
 
 def healpy_map2alm(f: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
     """
-    JAX wrapper for healpy.map2alm function (forward spherical harmonic transform).
+    JAX wrapper for healpy map2alm function (forward spherical harmonic transform).
 
     This wrapper will return the spherical harmonic coefficients as a one dimensional
     array using HEALPix (ring-ordered) indexing. To instead return a two-dimensional
@@ -371,7 +371,7 @@ ad.deflinear(_healpy_alm2map_p, _healpy_alm2map_transpose)
 
 def healpy_alm2map(flm: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
     """
-    JAX wrapper for healpy.alm2map function (inverse spherical harmonic transform).
+    JAX wrapper for healpy alm2map function (inverse spherical harmonic transform).
 
     This wrapper assumes the passed spherical harmonic coefficients are a one
     dimensional array using HEALPix (ring-ordered) indexing. To instead pass a
