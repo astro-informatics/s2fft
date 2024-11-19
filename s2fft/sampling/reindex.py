@@ -8,7 +8,7 @@ from jax import jit
 @partial(jit, static_argnums=(1))
 def flm_1d_to_2d_fast(flm_1d: jnp.ndarray, L: int) -> jnp.ndarray:
     r"""
-    Convert from 1D indexed harmnonic coefficients to 2D indexed coefficients (JAX).
+    Convert from 1D indexed harmonic coefficients to 2D indexed coefficients (JAX).
     
     Note:
         Storage conventions for harmonic coefficients :math:`flm_{(\ell,m)}`, for 
@@ -36,7 +36,7 @@ def flm_1d_to_2d_fast(flm_1d: jnp.ndarray, L: int) -> jnp.ndarray:
         jnp.ndarray: 2D indexed harmonic coefficients.
 
     """
-    flm_2d = jnp.zeros((L, 2 * L - 1), dtype=jnp.complex128)
+    flm_2d = jnp.zeros((L, 2 * L - 1), dtype=flm_1d.dtype)
     row_indices, col_indices = np.arange(L)[:, None], np.arange(2 * L - 1)[None, :]
     el_indices, m_indices = np.where(
         (row_indices <= col_indices)[::-1, :] & (row_indices <= col_indices)[::-1, ::-1]
