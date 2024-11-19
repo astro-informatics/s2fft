@@ -126,10 +126,11 @@ def flm_hp_to_2d_fast(flm_hp: jnp.ndarray, L: int) -> jnp.ndarray:
 
     """
     flm_2d = jnp.zeros((L, 2 * L - 1), dtype=flm_hp.dtype)
-    m_indices, el_indices = np.triu_indices(n=L + 1, m=L)
-    flm_2d = flm_2d.at[el_indices, L - 1 + m_indices].set(flm_hp)
+    m_indices, el_indices = np.triu_indices(n=L, k=1, m=L) + np.array([[1], [0]])
+    flm_2d = flm_2d.at[:L, L - 1].set(flm_hp[:L])
+    flm_2d = flm_2d.at[el_indices, L - 1 + m_indices].set(flm_hp[L:])
     flm_2d = flm_2d.at[el_indices, L - 1 - m_indices].set(
-        (-1) ** m_indices * flm_hp.conj()
+        (-1) ** m_indices * flm_hp[L:].conj()
     )
     return flm_2d
 
