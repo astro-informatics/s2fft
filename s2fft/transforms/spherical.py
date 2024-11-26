@@ -10,6 +10,7 @@ from s2fft.transforms import c_backend_spherical as c_sph
 from s2fft.transforms import otf_recursions as otf
 from s2fft.utils import healpix_ffts as hp
 from s2fft.utils import (
+    iterative_refinement,
     quadrature,
     quadrature_jax,
     resampling,
@@ -435,12 +436,12 @@ def forward(
             forward_kwargs = common_kwargs
             inverse_kwargs = {**common_kwargs, "method": "numpy"}
             forward_function = forward_numpy
-        flm = forward_function(f, **forward_kwargs)
-        for _ in range(iter):
-            f_recov = inverse(flm, **inverse_kwargs)
-            f_error = f - f_recov
-            flm += forward_function(f_error, **forward_kwargs)
-        return flm
+        return iterative_refinement.forward_with_iterative_refinement(
+            f=f,
+            n_iter=iter,
+            forward_function=partial(forward_function, **forward_kwargs),
+            backward_function=partial(inverse, **inverse_kwargs),
+        )
     elif method == "jax_ssht":
         if sampling.lower() == "healpix":
             raise ValueError("SSHT does not support healpix sampling.")
