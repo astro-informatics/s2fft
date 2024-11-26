@@ -360,6 +360,11 @@ def _healpy_alm2map_transpose(df: jnp.ndarray, L: int, nside: int) -> tuple:
         * (3 * nside**2)
         / jnp.pi
     )
+    # Scale factor above includes the inverse quadrature weight given by
+    # (12 * nside**2) / (4 * jnp.pi) = (3 * nside**2) / jnp.pi
+    # and also a factor of 2 for m>0 to account for the negative m.
+    # See explanation in this issue comment:
+    # https://github.com/astro-informatics/s2fft/issues/243#issuecomment-2500951488
     return (scale_factors * jnp.conj(healpy_map2alm(jnp.conj(df), L, nside)),)
 
 
