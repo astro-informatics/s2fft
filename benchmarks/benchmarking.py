@@ -176,6 +176,15 @@ def _parse_cli_arguments():
     parser.add_argument(
         "-output-file", type=Path, help="File path to write JSON formatted results to."
     )
+    parser.add_argument(
+        "--run-once-and-discard",
+        action="store_true",
+        help=(
+            "Run benchmark function once first without recording time to "
+            "ignore the effect of any initial one-off costs such as just-in-time "
+            "compilation."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -206,6 +215,7 @@ def run_benchmarks(
     number_repeats,
     print_results=True,
     parameter_overrides=None,
+    run_once_and_discard=False,
 ):
     """Run a set of benchmarks.
 
@@ -219,6 +229,9 @@ def run_benchmarks(
         print_results: Whether to print benchmark results to stdout.
         parameter_overrides: Dictionary specifying any overrides for parameter values
             set in `benchmark` decorator.
+        run_once_and_discard: Whether to run benchmark function once first without
+            recording time to ignore the effect of any initial one-off costs such as
+            just-in-time compilation.
 
     Returns:
         Dictionary containing timing (and potentially memory usage) results for each
@@ -236,6 +249,8 @@ def run_benchmarks(
             try:
                 precomputes = benchmark.setup(**parameter_set)
                 benchmark_function = partial(benchmark, **precomputes, **parameter_set)
+                if run_once_and_discard:
+                    benchmark_function()
                 run_times = [
                     time / number_runs
                     for time in timeit.repeat(
@@ -300,6 +315,7 @@ def parse_args_collect_and_run_benchmarks(module=None):
         number_runs=args.number_runs,
         number_repeats=args.repeats,
         parameter_overrides=parameter_overrides,
+        run_once_and_discard=args.run_once_and_discard,
     )
     if args.output_file is not None:
         with open(args.output_file, "w") as f:
