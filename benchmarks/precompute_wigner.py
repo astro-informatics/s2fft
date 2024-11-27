@@ -14,8 +14,10 @@ L_LOWER_VALUES = [0]
 SAMPLING_VALUES = ["mw"]
 METHOD_VALUES = ["numpy", "jax"]
 REALITY_VALUES = [True]
+MODE_VALUES = ["auto"]
 
-def setup_forward(method, L, N, L_lower, sampling, reality):
+
+def setup_forward(method, L, N, L_lower, sampling, reality, mode):
     rng = np.random.default_rng()
     flmn = s2fft.utils.signal_generator.generate_flmn(rng, L, N, reality=reality)
     f = base_wigner.inverse(
@@ -32,7 +34,7 @@ def setup_forward(method, L, N, L_lower, sampling, reality):
         else s2fft.precompute_transforms.construct.wigner_kernel
     )
     kernel = kernel_function(
-        L=L, N=N, reality=reality, sampling=sampling, forward=True
+        L=L, N=N, reality=reality, sampling=sampling, forward=True, mode=mode
     )
     return {"f": f, "kernel": kernel}
 
@@ -45,8 +47,9 @@ def setup_forward(method, L, N, L_lower, sampling, reality):
     L_lower=L_LOWER_VALUES,
     sampling=SAMPLING_VALUES,
     reality=REALITY_VALUES,
+    mode=MODE_VALUES,
 )
-def forward(f, kernel, method, L, N, L_lower, sampling, reality):
+def forward(f, kernel, method, L, N, L_lower, sampling, reality, mode):
     flmn = s2fft.precompute_transforms.wigner.forward(
         f=f,
         L=L,
@@ -60,7 +63,7 @@ def forward(f, kernel, method, L, N, L_lower, sampling, reality):
         flmn.block_until_ready()
 
 
-def setup_inverse(method, L, N, L_lower, sampling, reality):
+def setup_inverse(method, L, N, L_lower, sampling, reality, mode):
     rng = np.random.default_rng()
     flmn = s2fft.utils.signal_generator.generate_flmn(rng, L, N, reality=reality)
     kernel_function = (
@@ -69,7 +72,7 @@ def setup_inverse(method, L, N, L_lower, sampling, reality):
         else s2fft.precompute_transforms.construct.wigner_kernel
     )
     kernel = kernel_function(
-        L=L, N=N, reality=reality, sampling=sampling, forward=False
+        L=L, N=N, reality=reality, sampling=sampling, forward=False, mode=mode
     )
     return {"flmn": flmn, "kernel": kernel}
 
@@ -82,8 +85,9 @@ def setup_inverse(method, L, N, L_lower, sampling, reality):
     L_lower=L_LOWER_VALUES,
     sampling=SAMPLING_VALUES,
     reality=REALITY_VALUES,
+    mode=MODE_VALUES,
 )
-def inverse(flmn, kernel, method, L, N, L_lower, sampling, reality):
+def inverse(flmn, kernel, method, L, N, L_lower, sampling, reality, mode):
     f = s2fft.precompute_transforms.wigner.inverse(
         flmn=flmn,
         L=L,

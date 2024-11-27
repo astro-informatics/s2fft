@@ -13,9 +13,10 @@ SPIN_VALUES = [0]
 SAMPLING_VALUES = ["mw"]
 METHOD_VALUES = ["numpy", "jax"]
 REALITY_VALUES = [True]
+RECURSION_VALUES = ["auto"]
 
 
-def setup_forward(method, L, sampling, spin, reality):
+def setup_forward(method, L, sampling, spin, reality, recursion):
     if reality and spin != 0:
         skip("Reality only valid for scalar fields (spin=0).")
     rng = np.random.default_rng()
@@ -33,7 +34,12 @@ def setup_forward(method, L, sampling, spin, reality):
         else s2fft.precompute_transforms.construct.spin_spherical_kernel
     )
     kernel = kernel_function(
-        L=L, spin=spin, reality=reality, sampling=sampling, forward=True
+        L=L,
+        spin=spin,
+        reality=reality,
+        sampling=sampling,
+        forward=True,
+        recursion=recursion,
     )
     return {"f": f, "kernel": kernel}
 
@@ -45,8 +51,9 @@ def setup_forward(method, L, sampling, spin, reality):
     sampling=SAMPLING_VALUES,
     spin=SPIN_VALUES,
     reality=REALITY_VALUES,
+    recursion=RECURSION_VALUES,
 )
-def forward(f, kernel, method, L, sampling, spin, reality):
+def forward(f, kernel, method, L, sampling, spin, reality, recursion):
     flm = s2fft.precompute_transforms.spherical.forward(
         f=f,
         L=L,
@@ -60,7 +67,7 @@ def forward(f, kernel, method, L, sampling, spin, reality):
         flm.block_until_ready()
 
 
-def setup_inverse(method, L, sampling, spin, reality):
+def setup_inverse(method, L, sampling, spin, reality, recursion):
     if reality and spin != 0:
         skip("Reality only valid for scalar fields (spin=0).")
     rng = np.random.default_rng()
@@ -71,7 +78,12 @@ def setup_inverse(method, L, sampling, spin, reality):
         else s2fft.precompute_transforms.construct.spin_spherical_kernel
     )
     kernel = kernel_function(
-        L=L, spin=spin, reality=reality, sampling=sampling, forward=False
+        L=L,
+        spin=spin,
+        reality=reality,
+        sampling=sampling,
+        forward=False,
+        recursion=recursion,
     )
     return {"flm": flm, "kernel": kernel}
 
@@ -83,8 +95,9 @@ def setup_inverse(method, L, sampling, spin, reality):
     sampling=SAMPLING_VALUES,
     spin=SPIN_VALUES,
     reality=REALITY_VALUES,
+    recursion=RECURSION_VALUES,
 )
-def inverse(flm, kernel, method, L, sampling, spin, reality):
+def inverse(flm, kernel, method, L, sampling, spin, reality, recursion):
     f = s2fft.precompute_transforms.spherical.inverse(
         flm=flm,
         L=L,
