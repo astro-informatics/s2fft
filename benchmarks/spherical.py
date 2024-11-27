@@ -1,4 +1,4 @@
-"""Benchmarks for spherical transforms."""
+"""Benchmarks for on-the-fly spherical transforms."""
 
 import numpy as np
 import pyssht

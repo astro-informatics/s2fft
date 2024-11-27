@@ -1,4 +1,4 @@
-"""Benchmarks for Wigner transforms."""
+"""Benchmarks for on-the-fly Wigner-d transforms."""
 
 import numpy as np
 from benchmarking import benchmark, parse_args_collect_and_run_benchmarks, skip
