@@ -101,12 +101,47 @@ def _get_cpu_info():
         return None
 
 
+def _get_gpu_memory_mebibytes(device):
+    """Try to get GPU memory available in mebibytes (MiB)."""
+    memory_stats = device.memory_stats()
+    if memory_stats is None:
+        return None
+    bytes_limit = memory_stats.get("bytes_limit")
+    return bytes_limit // 2**20 if bytes_limit is not None else None
+
+
 def _get_gpu_info():
     """Get details of GPU devices available from JAX or None if JAX not available."""
     try:
         import jax
 
-        return [d.device_kind for d in jax.devices() if d.platform == "gpu"]
+        return [
+            {
+                "kind": d.device_kind,
+                "memory_available / MiB": _get_gpu_memory_mebibytes(d),
+            }
+            for d in jax.devices()
+            if d.platform == "gpu"
+        ]
+    except ImportError:
+        return None
+
+
+def _get_cuda_info():
+    """Try to get information on versions of CUDA libraries."""
+    try:
+        from jax._src.lib import cuda_versions
+
+        if cuda_versions is None:
+            return None
+        return {
+            "cuda_runtime_version": cuda_versions.cuda_runtime_get_version(),
+            "cuda_runtime_build_version": cuda_versions.cuda_runtime_build_version(),
+            "cudnn_version": cuda_versions.cudnn_get_version(),
+            "cudnn_build_version": cuda_versions.cudnn_build_version(),
+            "cufft_version": cuda_versions.cufft_get_version(),
+            "cufft_build_version": cuda_versions.cufft_build_version(),
+        }
     except ImportError:
         return None
 
@@ -364,6 +399,7 @@ def parse_args_collect_and_run_benchmarks(module=None):
             "system": platform.system(),
             "cpu_info": _get_cpu_info(),
             "gpu_info": _get_gpu_info(),
+            "cuda_info": _get_cuda_info(),
             **package_versions,
         }
         with open(args.output_file, "w") as f:
