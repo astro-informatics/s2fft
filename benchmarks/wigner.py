@@ -16,12 +16,9 @@ L_LOWER_VALUES = [0]
 SAMPLING_VALUES = ["mw"]
 METHOD_VALUES = ["numpy", "jax"]
 REALITY_VALUES = [True]
-SPMD_VALUES = [False]
 
 
-def setup_forward(method, L, L_lower, N, sampling, reality, spmd):
-    if spmd and method != "jax":
-        skip("GPU distribution only valid for JAX.")
+def setup_forward(method, L, L_lower, N, sampling, reality):
     rng = np.random.default_rng()
     flmn = s2fft.utils.signal_generator.generate_flmn(rng, L, N, reality=reality)
     f = base_wigner.inverse(
@@ -51,27 +48,23 @@ def setup_forward(method, L, L_lower, N, sampling, reality, spmd):
     N=N_VALUES,
     sampling=SAMPLING_VALUES,
     reality=REALITY_VALUES,
-    spmd=SPMD_VALUES,
 )
-def forward(f, precomps, method, L, L_lower, N, sampling, reality, spmd):
+def forward(f, precomps, method, L, L_lower, N, sampling, reality):
     flmn = s2fft.transforms.wigner.forward(
         f=f,
         L=L,
-        L_lower=L_lower,
         N=N,
-        precomps=precomps,
         sampling=sampling,
-        reality=reality,
         method=method,
-        spmd=spmd,
+        reality=reality,
+        precomps=precomps,
+        L_lower=L_lower,
     )
     if method == "jax":
         flmn.block_until_ready()
 
 
-def setup_inverse(method, L, L_lower, N, sampling, reality, spmd):
-    if spmd and method != "jax":
-        skip("GPU distribution only valid for JAX.")
+def setup_inverse(method, L, L_lower, N, sampling, reality):
     rng = np.random.default_rng()
     flmn = s2fft.utils.signal_generator.generate_flmn(rng, L, N, reality=reality)
     generate_precomputes = (
@@ -93,19 +86,17 @@ def setup_inverse(method, L, L_lower, N, sampling, reality, spmd):
     N=N_VALUES,
     sampling=SAMPLING_VALUES,
     reality=REALITY_VALUES,
-    spmd=SPMD_VALUES,
 )
-def inverse(flmn, precomps, method, L, L_lower, N, sampling, reality, spmd):
-    f = s2fft.transforms.spherical.inverse(
-        flm=flmn,
+def inverse(flmn, precomps, method, L, L_lower, N, sampling, reality):
+    f = s2fft.transforms.wigner.inverse(
+        flmn=flmn,
         L=L,
-        L_lower=L_lower,
         N=N,
-        precomps=precomps,
         sampling=sampling,
         reality=reality,
         method=method,
-        spmd=spmd,
+        precomps=precomps,
+        L_lower=L_lower,
     )
     if method == "jax":
         f.block_until_ready()
