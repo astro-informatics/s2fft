@@ -147,7 +147,9 @@ def _parse_parameter_overrides(parameter_overrides):
 
 def _parse_cli_arguments():
     """Parse command line arguments passed for controlling benchmark runs"""
-    parser = argparse.ArgumentParser("Run benchmarks")
+    parser = argparse.ArgumentParser(
+        "Run benchmarks", formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument(
         "-number-runs",
         type=int,
