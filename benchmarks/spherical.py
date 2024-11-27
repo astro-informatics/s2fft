@@ -5,7 +5,7 @@ import pyssht
 from benchmarking import benchmark, parse_args_collect_and_run_benchmarks, skip
 
 import s2fft
-from s2fft.recursions.price_mcewen import generate_precomputes
+from s2fft.recursions.price_mcewen import generate_precomputes_jax
 from s2fft.sampling import s2_samples as samples
 
 L_VALUES = [8, 16, 32, 64, 128, 256]
@@ -15,6 +15,10 @@ SAMPLING_VALUES = ["mw"]
 METHOD_VALUES = ["numpy", "jax"]
 REALITY_VALUES = [True]
 SPMD_VALUES = [False]
+
+
+def _jax_arrays_to_numpy(precomps):
+    return [np.asarray(p) for p in precomps]
 
 
 def setup_forward(method, L, L_lower, sampling, spin, reality, spmd):
@@ -31,7 +35,11 @@ def setup_forward(method, L, L_lower, sampling, spin, reality, spmd):
         Spin=spin,
         Reality=reality,
     )
-    precomps = generate_precomputes(L, spin, sampling, forward=True, L_lower=L_lower)
+    precomps = generate_precomputes_jax(
+        L, spin, sampling, forward=True, L_lower=L_lower
+    )
+    if method == "numpy":
+        precomps = _jax_arrays_to_numpy(precomps)
     return {"f": f, "precomps": precomps}
 
 
@@ -71,7 +79,11 @@ def setup_inverse(method, L, L_lower, sampling, spin, reality, spmd):
         skip("GPU distribution only valid for JAX.")
     rng = np.random.default_rng()
     flm = s2fft.utils.signal_generator.generate_flm(rng, L, spin=spin, reality=reality)
-    precomps = generate_precomputes(L, spin, sampling, forward=False, L_lower=L_lower)
+    precomps = generate_precomputes_jax(
+        L, spin, sampling, forward=False, L_lower=L_lower
+    )
+    if method == "numpy":
+        precomps = _jax_arrays_to_numpy(precomps)
     return {"flm": flm, "precomps": precomps}
 
 
