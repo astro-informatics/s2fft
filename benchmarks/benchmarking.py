@@ -145,10 +145,10 @@ def _parse_parameter_overrides(parameter_overrides):
     )
 
 
-def _parse_cli_arguments():
+def _parse_cli_arguments(description):
     """Parse command line arguments passed for controlling benchmark runs"""
     parser = argparse.ArgumentParser(
-        "Run benchmarks", formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
         "-number-runs",
@@ -305,11 +305,11 @@ def parse_args_collect_and_run_benchmarks(module=None):
         Dictionary containing timing (and potentially memory usage) results for each
         parameters set of each benchmark function.
     """
-    args = _parse_cli_arguments()
-    parameter_overrides = _parse_parameter_overrides(args.parameter_overrides)
     if module is None:
         frame = inspect.stack()[1]
         module = inspect.getmodule(frame[0])
+    args = _parse_cli_arguments(module.__doc__)
+    parameter_overrides = _parse_parameter_overrides(args.parameter_overrides)
     results = run_benchmarks(
         benchmarks=collect_benchmarks(module),
         number_runs=args.number_runs,
