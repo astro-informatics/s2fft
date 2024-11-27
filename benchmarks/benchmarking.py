@@ -91,6 +91,26 @@ def _get_version_or_none(package_name):
         return None
 
 
+def _get_cpu_info():
+    """Get details of CPU from cpuinfo if available or None if not."""
+    try:
+        import cpuinfo
+
+        return cpuinfo.get_cpu_info()
+    except ImportError:
+        return None
+
+
+def _get_gpu_info():
+    """Get details of GPU devices available from JAX or None if JAX not available."""
+    try:
+        import jax
+
+        return [d.device_kind for d in jax.devices() if d.platform == "gpu"]
+    except ImportError:
+        return None
+
+
 def skip(message):
     """Skip benchmark for a particular parameter set with explanatory message.
 
@@ -342,11 +362,14 @@ def parse_args_collect_and_run_benchmarks(module=None):
             "python_version": platform.python_version(),
             "release": platform.release(),
             "system": platform.system(),
+            "cpu_info": _get_cpu_info(),
+            "gpu_info": _get_gpu_info(),
             **package_versions,
         }
         with open(args.output_file, "w") as f:
             output = {
                 "date_time": datetime.datetime.now().isoformat(),
+                "benchmark_module": module.__name__,
                 "system_info": system_info,
                 "results": results,
             }
