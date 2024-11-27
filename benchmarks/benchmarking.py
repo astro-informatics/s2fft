@@ -239,7 +239,7 @@ def run_benchmarks(
     """
     results = {}
     for benchmark in benchmarks:
-        results[benchmark.__name__] = {}
+        results[benchmark.__name__] = []
         if print_results:
             print(benchmark.__name__)
         parameters = benchmark.parameters.copy()
@@ -257,7 +257,7 @@ def run_benchmarks(
                         benchmark_function, number=number_runs, repeat=number_repeats
                     )
                 ]
-                results[benchmark.__name__] = {**parameter_set, "times / s": run_times}
+                results_entry = {**parameter_set, "times / s": run_times}
                 if MEMORY_PROFILER_AVAILABLE:
                     baseline_memory = memory_profiler.memory_usage(max_usage=True)
                     peak_memory = (
@@ -270,7 +270,8 @@ def run_benchmarks(
                         )
                         - baseline_memory
                     )
-                    results[benchmark.__name__]["peak_memory / MiB"] = peak_memory
+                    results_entry["peak_memory / MiB"] = peak_memory
+                results[benchmark.__name__].append(results_entry)
                 if print_results:
                     print(
                         (
@@ -279,9 +280,9 @@ def run_benchmarks(
                             else "    "
                         )
                         + f"min(time): {min(run_times):>#7.2g}s, "
-                        + f"max(time): {max(run_times):>#7.2g}s, "
+                        + f"max(time): {max(run_times):>#7.2g}s"
                         + (
-                            f"peak mem.: {peak_memory:>#7.2g}MiB"
+                            f", peak mem.: {peak_memory:>#7.2g}MiB"
                             if MEMORY_PROFILER_AVAILABLE
                             else ""
                         )
