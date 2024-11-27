@@ -60,11 +60,14 @@ if __name__ == "__main__":
 """
 
 import argparse
+import datetime
 import inspect
 import json
+import platform
 import timeit
 from ast import literal_eval
 from functools import partial
+from importlib.metadata import PackageNotFoundError, version
 from itertools import product
 from pathlib import Path
 
@@ -78,6 +81,14 @@ except ImportError:
 
 class SkipBenchmarkException(Exception):
     """Exception to be raised to skip benchmark for some parameter set."""
+
+
+def _get_version_or_none(package_name):
+    """Get installed version of package or `None` if package not found."""
+    try:
+        return version(package_name)
+    except PackageNotFoundError:
+        return None
 
 
 def skip(message):
@@ -319,6 +330,25 @@ def parse_args_collect_and_run_benchmarks(module=None):
         run_once_and_discard=args.run_once_and_discard,
     )
     if args.output_file is not None:
+        package_versions = {
+            f"{package}_version": _get_version_or_none(package)
+            for package in ("s2fft", "jax", "numpy")
+        }
+        system_info = {
+            "architecture": platform.architecture(),
+            "machine": platform.machine(),
+            "node": platform.node(),
+            "processor": platform.processor(),
+            "python_version": platform.python_version(),
+            "release": platform.release(),
+            "system": platform.system(),
+            **package_versions,
+        }
         with open(args.output_file, "w") as f:
-            json.dump(results, f)
+            output = {
+                "date_time": datetime.datetime.now().isoformat(),
+                "system_info": system_info,
+                "results": results,
+            }
+            json.dump(output, f, indent=True)
     return results
