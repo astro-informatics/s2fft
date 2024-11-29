@@ -1,7 +1,7 @@
 """Benchmarks for on-the-fly Wigner-d transforms."""
 
 import numpy as np
-from benchmarking import benchmark, parse_args_collect_and_run_benchmarks, skip
+from benchmarking import benchmark, parse_args_collect_and_run_benchmarks
 
 import s2fft
 from s2fft.base_transforms import wigner as base_wigner

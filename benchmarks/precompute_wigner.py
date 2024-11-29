@@ -1,12 +1,11 @@
 """Benchmarks for precompute Wigner-d transforms."""
 
 import numpy as np
-from benchmarking import benchmark, parse_args_collect_and_run_benchmarks, skip
+from benchmarking import benchmark, parse_args_collect_and_run_benchmarks
 
 import s2fft
 import s2fft.precompute_transforms
 from s2fft.base_transforms import wigner as base_wigner
-from s2fft.sampling import s2_samples as samples
 
 L_VALUES = [16, 32, 64, 128, 256]
 N_VALUES = [2]
