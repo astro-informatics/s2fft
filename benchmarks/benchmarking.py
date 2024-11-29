@@ -60,11 +60,14 @@ if __name__ == "__main__":
 """
 
 import argparse
+import datetime
 import inspect
 import json
+import platform
 import timeit
 from ast import literal_eval
 from functools import partial
+from importlib.metadata import PackageNotFoundError, version
 from itertools import product
 from pathlib import Path
 
@@ -78,6 +81,69 @@ except ImportError:
 
 class SkipBenchmarkException(Exception):
     """Exception to be raised to skip benchmark for some parameter set."""
+
+
+def _get_version_or_none(package_name):
+    """Get installed version of package or `None` if package not found."""
+    try:
+        return version(package_name)
+    except PackageNotFoundError:
+        return None
+
+
+def _get_cpu_info():
+    """Get details of CPU from cpuinfo if available or None if not."""
+    try:
+        import cpuinfo
+
+        return cpuinfo.get_cpu_info()
+    except ImportError:
+        return None
+
+
+def _get_gpu_memory_mebibytes(device):
+    """Try to get GPU memory available in mebibytes (MiB)."""
+    memory_stats = device.memory_stats()
+    if memory_stats is None:
+        return None
+    bytes_limit = memory_stats.get("bytes_limit")
+    return bytes_limit // 2**20 if bytes_limit is not None else None
+
+
+def _get_gpu_info():
+    """Get details of GPU devices available from JAX or None if JAX not available."""
+    try:
+        import jax
+
+        return [
+            {
+                "kind": d.device_kind,
+                "memory_available / MiB": _get_gpu_memory_mebibytes(d),
+            }
+            for d in jax.devices()
+            if d.platform == "gpu"
+        ]
+    except ImportError:
+        return None
+
+
+def _get_cuda_info():
+    """Try to get information on versions of CUDA libraries."""
+    try:
+        from jax._src.lib import cuda_versions
+
+        if cuda_versions is None:
+            return None
+        return {
+            "cuda_runtime_version": cuda_versions.cuda_runtime_get_version(),
+            "cuda_runtime_build_version": cuda_versions.cuda_runtime_build_version(),
+            "cudnn_version": cuda_versions.cudnn_get_version(),
+            "cudnn_build_version": cuda_versions.cudnn_build_version(),
+            "cufft_version": cuda_versions.cufft_get_version(),
+            "cufft_build_version": cuda_versions.cufft_build_version(),
+        }
+    except ImportError:
+        return None
 
 
 def skip(message):
@@ -145,9 +211,11 @@ def _parse_parameter_overrides(parameter_overrides):
     )
 
 
-def _parse_cli_arguments():
+def _parse_cli_arguments(description):
     """Parse command line arguments passed for controlling benchmark runs"""
-    parser = argparse.ArgumentParser("Run benchmarks")
+    parser = argparse.ArgumentParser(
+        description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument(
         "-number-runs",
         type=int,
@@ -173,6 +241,15 @@ def _parse_cli_arguments():
     )
     parser.add_argument(
         "-output-file", type=Path, help="File path to write JSON formatted results to."
+    )
+    parser.add_argument(
+        "--run-once-and-discard",
+        action="store_true",
+        help=(
+            "Run benchmark function once first without recording time to "
+            "ignore the effect of any initial one-off costs such as just-in-time "
+            "compilation."
+        ),
     )
     return parser.parse_args()
 
@@ -204,6 +281,7 @@ def run_benchmarks(
     number_repeats,
     print_results=True,
     parameter_overrides=None,
+    run_once_and_discard=False,
 ):
     """Run a set of benchmarks.
 
@@ -217,6 +295,9 @@ def run_benchmarks(
         print_results: Whether to print benchmark results to stdout.
         parameter_overrides: Dictionary specifying any overrides for parameter values
             set in `benchmark` decorator.
+        run_once_and_discard: Whether to run benchmark function once first without
+            recording time to ignore the effect of any initial one-off costs such as
+            just-in-time compilation.
 
     Returns:
         Dictionary containing timing (and potentially memory usage) results for each
@@ -224,7 +305,7 @@ def run_benchmarks(
     """
     results = {}
     for benchmark in benchmarks:
-        results[benchmark.__name__] = {}
+        results[benchmark.__name__] = []
         if print_results:
             print(benchmark.__name__)
         parameters = benchmark.parameters.copy()
@@ -234,13 +315,15 @@ def run_benchmarks(
             try:
                 precomputes = benchmark.setup(**parameter_set)
                 benchmark_function = partial(benchmark, **precomputes, **parameter_set)
+                if run_once_and_discard:
+                    benchmark_function()
                 run_times = [
                     time / number_runs
                     for time in timeit.repeat(
                         benchmark_function, number=number_runs, repeat=number_repeats
                     )
                 ]
-                results[benchmark.__name__] = {**parameter_set, "times / s": run_times}
+                results_entry = {**parameter_set, "times / s": run_times}
                 if MEMORY_PROFILER_AVAILABLE:
                     baseline_memory = memory_profiler.memory_usage(max_usage=True)
                     peak_memory = (
@@ -253,7 +336,8 @@ def run_benchmarks(
                         )
                         - baseline_memory
                     )
-                    results[benchmark.__name__]["peak_memory / MiB"] = peak_memory
+                    results_entry["peak_memory / MiB"] = peak_memory
+                results[benchmark.__name__].append(results_entry)
                 if print_results:
                     print(
                         (
@@ -262,9 +346,9 @@ def run_benchmarks(
                             else "    "
                         )
                         + f"min(time): {min(run_times):>#7.2g}s, "
-                        + f"max(time): {max(run_times):>#7.2g}s, "
+                        + f"max(time): {max(run_times):>#7.2g}s"
                         + (
-                            f"peak mem.: {peak_memory:>#7.2g}MiB"
+                            f", peak mem.: {peak_memory:>#7.2g}MiB"
                             if MEMORY_PROFILER_AVAILABLE
                             else ""
                         )
@@ -288,18 +372,42 @@ def parse_args_collect_and_run_benchmarks(module=None):
         Dictionary containing timing (and potentially memory usage) results for each
         parameters set of each benchmark function.
     """
-    args = _parse_cli_arguments()
-    parameter_overrides = _parse_parameter_overrides(args.parameter_overrides)
     if module is None:
         frame = inspect.stack()[1]
         module = inspect.getmodule(frame[0])
+    args = _parse_cli_arguments(module.__doc__)
+    parameter_overrides = _parse_parameter_overrides(args.parameter_overrides)
     results = run_benchmarks(
         benchmarks=collect_benchmarks(module),
         number_runs=args.number_runs,
         number_repeats=args.repeats,
         parameter_overrides=parameter_overrides,
+        run_once_and_discard=args.run_once_and_discard,
     )
     if args.output_file is not None:
+        package_versions = {
+            f"{package}_version": _get_version_or_none(package)
+            for package in ("s2fft", "jax", "numpy")
+        }
+        system_info = {
+            "architecture": platform.architecture(),
+            "machine": platform.machine(),
+            "node": platform.node(),
+            "processor": platform.processor(),
+            "python_version": platform.python_version(),
+            "release": platform.release(),
+            "system": platform.system(),
+            "cpu_info": _get_cpu_info(),
+            "gpu_info": _get_gpu_info(),
+            "cuda_info": _get_cuda_info(),
+            **package_versions,
+        }
         with open(args.output_file, "w") as f:
-            json.dump(results, f)
+            output = {
+                "date_time": datetime.datetime.now().isoformat(),
+                "benchmark_module": module.__name__,
+                "system_info": system_info,
+                "results": results,
+            }
+            json.dump(output, f, indent=True)
     return results
