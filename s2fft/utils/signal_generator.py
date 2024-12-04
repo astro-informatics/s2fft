@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import torch
 
@@ -12,7 +14,7 @@ def generate_flm(
     spin: int = 0,
     reality: bool = False,
     using_torch: bool = False,
-) -> np.ndarray:
+) -> np.ndarray | torch.Tensor:
     r"""
     Generate a 2D set of random harmonic coefficients.
 
@@ -38,18 +40,22 @@ def generate_flm(
     """
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
 
-    for el in range(max(L_lower, abs(spin)), L):
-        if reality:
-            flm[el, 0 + L - 1] = rng.normal()
-        else:
-            flm[el, 0 + L - 1] = rng.normal() + 1j * rng.normal()
-
-        for m in range(1, el + 1):
-            flm[el, m + L - 1] = rng.normal() + 1j * rng.normal()
-            if reality:
-                flm[el, -m + L - 1] = (-1) ** m * np.conj(flm[el, m + L - 1])
-            else:
-                flm[el, -m + L - 1] = rng.normal() + 1j * rng.normal()
+    min_el = max(L_lower, abs(spin))
+    flm[min_el:L, L - 1] = rng.standard_normal(L - min_el)
+    if not reality:
+        flm[min_el:L, L - 1] += 1j * rng.standard_normal(L - min_el)
+    m_indices, el_indices = np.triu_indices(n=L, k=1, m=L) + np.array([[1], [0]])
+    if min_el > 0:
+        in_range_el = el_indices >= min_el
+        m_indices = m_indices[in_range_el]
+        el_indices = el_indices[in_range_el]
+    len_indices = len(m_indices)
+    flm[el_indices, L - 1 - m_indices] = rng.standard_normal(
+        len_indices
+    ) + 1j * rng.standard_normal(len_indices)
+    flm[el_indices, L - 1 + m_indices] = (-1) ** m_indices * np.conj(
+        flm[el_indices, L - 1 - m_indices]
+    )
 
     return torch.from_numpy(flm) if using_torch else flm
 
@@ -61,7 +67,7 @@ def generate_flmn(
     L_lower: int = 0,
     reality: bool = False,
     using_torch: bool = False,
-) -> np.ndarray:
+) -> np.ndarray | torch.Tensor:
     r"""
     Generate a 3D set of random Wigner coefficients.
 
