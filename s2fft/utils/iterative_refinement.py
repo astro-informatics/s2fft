@@ -1,7 +1,6 @@
 """Iterative scheme for improving accuracy of linear transforms."""
 
-from collections.abc import Callable
-from typing import TypeVar
+from typing import Callable, TypeVar
 
 T = TypeVar("T")
 
