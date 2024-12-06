@@ -421,20 +421,18 @@ def forward(
             "nside": nside,
             "sampling": sampling,
             "reality": reality,
-            "precomps": precomps,
             "L_lower": L_lower,
         }
+        forward_kwargs = {**common_kwargs, "precomps": precomps}
+        inverse_kwargs = common_kwargs
         if method in {"jax", "cuda"}:
-            forward_kwargs = {
-                **common_kwargs,
-                "spmd": spmd,
-                "use_healpix_custom_primitive": method == "cuda",
-            }
-            inverse_kwargs = {**common_kwargs, "method": "jax"}
+            forward_kwargs["spmd"] = spmd
+            forward_kwargs["use_healpix_custom_primitive"] = method == "cuda"
+            inverse_kwargs["method"] = "jax"
+            inverse_kwargs["spmd"] = spmd
             forward_function = forward_jax
         else:
-            forward_kwargs = common_kwargs
-            inverse_kwargs = {**common_kwargs, "method": "numpy"}
+            inverse_kwargs["method"] = "numpy"
             forward_function = forward_numpy
         return iterative_refinement.forward_with_iterative_refinement(
             f=f,
