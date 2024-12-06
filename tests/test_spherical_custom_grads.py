@@ -161,6 +161,7 @@ def test_healpix_inverse_custom_gradients(
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("iter", [0, 1, 2, 3])
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_healpix_forward_custom_gradients(
     flm_generator,
@@ -168,6 +169,7 @@ def test_healpix_forward_custom_gradients(
     L_lower: int,
     spin: int,
     reality: bool,
+    iter: int,
 ):
     sampling = "healpix"
     L = 2 * nside
@@ -191,15 +193,17 @@ def test_healpix_forward_custom_gradients(
     )
 
     def func(f):
-        flm = spherical.forward_jax(
+        flm = spherical.forward(
             f,
             L,
+            method="jax",
             spin=spin,
             nside=nside,
             L_lower=L_lower,
             reality=reality,
             precomps=precomps,
             sampling=sampling,
+            iter=iter,
         )
         return jnp.sum(jnp.abs(flm - flm_target) ** 2)
 

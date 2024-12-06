@@ -1,5 +1,6 @@
 from . import (
     healpix_ffts,
+    iterative_refinement,
     jax_primitive,
     quadrature,
     quadrature_jax,

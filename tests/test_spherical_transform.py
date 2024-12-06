@@ -150,12 +150,14 @@ def test_transform_forward(
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("spmd", multiple_gpus)
+@pytest.mark.parametrize("iter", [0, 1, 2, 3])
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_forward_healpix(
     flm_generator,
     nside: int,
     method: str,
     spmd: bool,
+    iter: int,
 ):
     sampling = "healpix"
     L = 2 * nside
@@ -174,10 +176,11 @@ def test_transform_forward_healpix(
         reality=True,
         precomps=precomps,
         spmd=spmd,
+        iter=iter,
     )
     flm_check = samples.flm_2d_to_hp(flm_check, L)
 
-    flm = hp.sphtfunc.map2alm(f, lmax=L - 1, iter=0)
+    flm = hp.sphtfunc.map2alm(f, lmax=L - 1, iter=iter)
 
     np.testing.assert_allclose(flm, flm_check, atol=1e-14)
 
