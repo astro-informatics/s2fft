@@ -62,14 +62,14 @@ def inverse(
             + "Defering to complex transform.",
             stacklevel=2,
         )
-    if method == "numpy":
-        return inverse_transform(flm, kernel, L, sampling, reality, spin, nside)
-    elif method == "jax":
-        return inverse_transform_jax(flm, kernel, L, sampling, reality, spin, nside)
-    elif method == "torch":
-        return inverse_transform_torch(flm, kernel, L, sampling, reality, spin, nside)
-    else:
+    inverse_functions = {
+        "numpy": inverse_transform,
+        "jax": inverse_transform_jax,
+        "torch": inverse_transform_torch,
+    }
+    if method not in inverse_functions:
         raise ValueError(f"Method {method} not recognised.")
+    return inverse_functions[method](flm, kernel, L, sampling, reality, spin, nside)
 
 
 def inverse_transform(
@@ -337,14 +337,14 @@ def forward(
             + "Defering to complex transform.",
             stacklevel=2,
         )
-    if method == "numpy":
-        return forward_transform(f, kernel, L, sampling, reality, spin, nside)
-    elif method == "jax":
-        return forward_transform_jax(f, kernel, L, sampling, reality, spin, nside)
-    elif method == "torch":
-        return forward_transform_torch(f, kernel, L, sampling, reality, spin, nside)
-    else:
+    forward_functions = {
+        "numpy": forward_transform,
+        "jax": forward_transform_jax,
+        "torch": forward_transform_torch,
+    }
+    if method not in forward_functions:
         raise ValueError(f"Method {method} not recognised.")
+    return forward_functions[method](f, kernel, L, sampling, reality, spin, nside)
 
 
 def forward_transform(
