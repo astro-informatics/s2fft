@@ -624,7 +624,7 @@ _forward_functions = {
 }
 
 _kernel_functions = {
-    "numpy": partial(construct.fourier_wigner_kernel, using_torch=False),
-    "jax": construct.fourier_wigner_kernel_jax,
-    "torch": partial(construct.fourier_wigner_kernel, using_torch=True),
+    "numpy": partial(construct.spin_spherical_kernel, using_torch=False),
+    "jax": construct.spin_spherical_kernel_jax,
+    "torch": partial(construct.spin_spherical_kernel, using_torch=True),
 }
