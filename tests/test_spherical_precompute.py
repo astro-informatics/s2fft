@@ -324,3 +324,19 @@ def test_transform_forward_high_spin(
     flm_recov = forward(f, L, spin, kernel, sampling, reality, "numpy")
     tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
     np.testing.assert_allclose(flm_recov, flm, atol=tol, rtol=tol)
+
+
+def test_forward_transform_unrecognised_method_raises():
+    method = "invalid_method"
+    L = 32
+    f = np.zeros(samples.f_shape(L))
+    with pytest.raises(ValueError, match=f"{method} not recognised"):
+        forward(f, L, method=method)
+
+
+def test_inverse_transform_unrecognised_method_raises():
+    method = "invalid_method"
+    L = 32
+    flm = np.zeros(samples.flm_shape(L))
+    with pytest.raises(ValueError, match=f"{method} not recognised"):
+        inverse(flm, L, method=method)

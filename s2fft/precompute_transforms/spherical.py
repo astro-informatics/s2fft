@@ -62,6 +62,8 @@ def inverse(
         np.ndarray: Pixel-space coefficients with shape.
 
     """
+    if method not in _inverse_functions:
+        raise ValueError(f"Method {method} not recognised.")
     if reality and spin != 0:
         reality = False
         warn(
@@ -81,8 +83,6 @@ def inverse(
         if kernel is None
         else kernel
     )
-    if method not in _inverse_functions:
-        raise ValueError(f"Method {method} not recognised.")
     return _inverse_functions[method](flm, kernel, **common_kwargs)
 
 
@@ -351,6 +351,8 @@ def forward(
         np.ndarray: Spherical harmonic coefficients.
 
     """
+    if method not in _forward_functions:
+        raise ValueError(f"Method {method} not recognised.")
     if reality and spin != 0:
         reality = False
         warn(
@@ -370,8 +372,6 @@ def forward(
         if kernel is None
         else kernel
     )
-    if method not in _forward_functions:
-        raise ValueError(f"Method {method} not recognised.")
     if iter == 0:
         return _forward_functions[method](f, kernel, **common_kwargs)
     else:
