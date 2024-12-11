@@ -14,6 +14,7 @@ L_to_nside_ratio = [2, 3]
 sampling_to_test = ["mw", "mwss", "dh", "gl"]
 method_to_test = ["direct", "sov", "sov_fft", "sov_fft_vectorized"]
 reality_to_test = [False, True]
+iter_to_test = [7, 10]
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -128,6 +129,32 @@ def test_transform_forward_healpix(
 
     flm_check = hp.sphtfunc.map2alm(np.real(f), lmax=L - 1, iter=0)
 
+    np.testing.assert_allclose(flm_direct_hp, flm_check, atol=1e-14)
+
+
+@pytest.mark.parametrize("nside", nside_to_test)
+@pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("iter", iter_to_test)
+def test_transform_forward_healpix_iter(
+    flm_generator, nside: int, reality: bool, iter: int
+):
+    sampling = "healpix"
+    L = 2 * nside
+    flm = flm_generator(L=L, reality=True)
+    f = spherical.inverse(flm, L, sampling=sampling, nside=nside, reality=reality)
+    flm_direct = spherical.forward(
+        f,
+        L,
+        sampling=sampling,
+        nside=nside,
+        reality=reality,
+        iter=iter,
+    )
+    # With iter >> 0 round-trip error should be small
+    np.testing.assert_allclose(flm_direct, flm, atol=1e-14)
+    # Also check for consistency with healpy with iter > 0
+    flm_direct_hp = samples.flm_2d_to_hp(flm_direct, L)
+    flm_check = hp.sphtfunc.map2alm(np.real(f), lmax=L - 1, iter=iter)
     np.testing.assert_allclose(flm_direct_hp, flm_check, atol=1e-14)
 
 
