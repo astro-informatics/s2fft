@@ -41,8 +41,8 @@ def complex_el_and_m_indices(L: int, min_el: int) -> tuple[np.ndarray, np.ndarra
 
     ```
     el_indices, m_indices = np.array(
-        [(el, m) for el in range(min_el, L) for m in range(1, el + 1))]
-    )
+        [(el, m) for el in range(min_el, L) for m in range(1, el + 1)]
+    ).T
     ```
 
     For `L, min_el = 1024, 0`, this implementation is around 80x quicker in
