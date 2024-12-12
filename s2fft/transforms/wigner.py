@@ -156,6 +156,9 @@ def inverse_numpy(
         )
     fban = np.zeros(samples.f_shape(L, N, sampling, nside), dtype=np.complex128)
 
+    # Copy flm argument to avoid in-place updates being propagated back to caller
+    flmn = flmn.copy()
+
     flmn[:, L_lower:] = np.einsum(
         "...nlm,...l->...nlm",
         flmn[:, L_lower:],

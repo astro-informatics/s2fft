@@ -155,6 +155,9 @@ def inverse_numpy(
     m_start_ind = L - 1 if reality else 0
     L0 = L_lower
 
+    # Copy flm argument to avoid in-place updates being propagated back to caller
+    flm = flm.copy()
+
     # Apply harmonic normalisation
     flm[L0:] = np.einsum(
         "lm,l->lm", flm[L0:], np.sqrt((2 * np.arange(L0, L) + 1) / (4 * np.pi))
