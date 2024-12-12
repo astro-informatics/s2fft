@@ -153,26 +153,46 @@ def generate_flmn(
 
     """
     flmn = np.zeros(wigner_samples.flmn_shape(L, N), dtype=np.complex128)
-
     for n in range(-N + 1, N):
-        for el in range(max(L_lower, abs(n)), L):
-            if reality:
-                flmn[N - 1 + n, el, 0 + L - 1] = rng.normal()
-                flmn[N - 1 - n, el, 0 + L - 1] = (-1) ** n * flmn[
-                    N - 1 + n,
-                    el,
-                    0 + L - 1,
-                ]
-            else:
-                flmn[N - 1 + n, el, 0 + L - 1] = rng.normal() + 1j * rng.normal()
-
-            for m in range(1, el + 1):
-                flmn[N - 1 + n, el, m + L - 1] = rng.normal() + 1j * rng.normal()
-                if reality:
-                    flmn[N - 1 - n, el, -m + L - 1] = (-1) ** (m + n) * np.conj(
-                        flmn[N - 1 + n, el, m + L - 1]
-                    )
-                else:
-                    flmn[N - 1 + n, el, -m + L - 1] = rng.normal() + 1j * rng.normal()
-
+        min_el = max(L_lower, abs(n))
+        # Separately deal with m = 0 case
+        if reality:
+            if n == 0:
+                # For m = n = 0
+                # flmn[N - 1, el, L - 1] = flmn[N - 1, el, L - 1].conj (real-valued)
+                # Generate independent real coefficients for n = 0
+                flmn[N - 1, min_el:L, L - 1] = rng.standard_normal(L - min_el)
+            elif n > 0:
+                # Generate independent complex coefficients for positive n
+                flmn[N - 1 + n, min_el:L, L - 1] = complex_normal(
+                    rng, L - min_el, var=2
+                )
+                # For m = 0, n > 0
+                # flmn[N - 1 - n, el, L - 1] = (-1)**n * flmn[N - 1 + n, el, L - 1].conj
+                flmn[N - 1 - n, min_el:L, L - 1] = (-1) ** n * (
+                    flmn[N - 1 + n, min_el:L, L - 1].conj()
+                )
+        else:
+            flmn[N - 1 + n, min_el:L, L - 1] = complex_normal(rng, L - min_el, var=2)
+        # Construct arrays of m and el indices for entries in flmn slices for n
+        # corresponding to complex-valued coefficients (m > 0)
+        el_indices, m_indices = complex_el_and_m_indices(L, min_el)
+        len_indices = len(m_indices)
+        # Generate independent complex coefficients for positive m
+        flmn[N - 1 + n, el_indices, L - 1 + m_indices] = complex_normal(
+            rng, len_indices, var=2
+        )
+        if reality:
+            # Real-valued signal so set complex coefficients for negative m using
+            # conjugate symmetry relationship
+            #     flmn[N - 1 - n, el, L - 1 - m] =
+            #         (-1)**(m + n) * flmn[N - 1 + n, el, L - 1 + m].conj
+            flmn[N - 1 - n, el_indices, L - 1 - m_indices] = (-1) ** (m_indices + n) * (
+                flmn[N - 1 + n, el_indices, L - 1 + m_indices].conj()
+            )
+        else:
+            # Complex signal so generate independent complex coefficients for negative m
+            flmn[N - 1 + n, el_indices, L - 1 - m_indices] = complex_normal(
+                rng, len_indices, var=2
+            )
     return torch.from_numpy(flmn) if using_torch else flmn
