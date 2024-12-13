@@ -187,9 +187,12 @@ def generate_flmn(
             # conjugate symmetry relationship
             #     flmn[N - 1 - n, el, L - 1 - m] =
             #         (-1)**(m + n) * flmn[N - 1 + n, el, L - 1 + m].conj
-            flmn[N - 1 - n, el_indices, L - 1 - m_indices] = (-1) ** (m_indices + n) * (
-                flmn[N - 1 + n, el_indices, L - 1 + m_indices].conj()
-            )
+            # As (m_indices + n) can be negative use floating point value (-1.0) as
+            # base of exponentation operation to avoid Numpy
+            # 'ValueError: Integers to negative integer powers are not allowed' error
+            flmn[N - 1 - n, el_indices, L - 1 - m_indices] = (-1.0) ** (
+                m_indices + n
+            ) * flmn[N - 1 + n, el_indices, L - 1 + m_indices].conj()
         else:
             # Complex signal so generate independent complex coefficients for negative m
             flmn[N - 1 + n, el_indices, L - 1 - m_indices] = complex_normal(

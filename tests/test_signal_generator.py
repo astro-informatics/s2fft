@@ -101,7 +101,7 @@ def check_flmn_conjugate_symmetry(flmn, L, N, L_lower):
 
 
 @pytest.mark.parametrize("L", L_values_to_test)
-@pytest.mark.parametrize("N", [1, 2])
+@pytest.mark.parametrize("N", [1, 2, 3])
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
 @pytest.mark.parametrize("reality", reality_values_to_test)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
