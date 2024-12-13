@@ -5,8 +5,8 @@ import s2fft
 import s2fft.sampling as smp
 import s2fft.utils.signal_generator as gen
 
-L_values_to_test = [4, 7, 64]
-L_lower_to_test = [0]
+L_values_to_test = [6, 7, 16]
+L_lower_to_test = [0, 1]
 spin_to_test = [-2, 0, 1]
 reality_values_to_test = [False, True]
 
@@ -73,4 +73,47 @@ def test_generate_flm(rng, L, L_lower, spin, reality):
         f_complex = s2fft.inverse(flm, L, spin=spin, reality=False, L_lower=L_lower)
         assert np.allclose(f_complex.imag, 0)
         f_real = s2fft.inverse(flm, L, spin=spin, reality=True, L_lower=L_lower)
+        assert np.allclose(f_complex.real, f_real)
+
+
+def check_flmn_zeros(flmn, L, N, L_lower):
+    for n in range(-N + 1, N):
+        min_el = max(L_lower, abs(n))
+        for el in range(L):
+            for m in range(L):
+                if el < min_el or m > el:
+                    assert (
+                        flmn[N - 1 + n, el, L - 1 + m]
+                        == flmn[N - 1 + n, el, L - 1 - m]
+                        == 0
+                    )
+
+
+def check_flmn_conjugate_symmetry(flmn, L, N, L_lower):
+    for n in range(-N + 1, N):
+        min_el = max(L_lower, abs(n))
+        for el in range(min_el, L):
+            for m in range(el + 1):
+                assert (
+                    flmn[N - 1 - n, el, L - 1 - m]
+                    == (-1) ** (m + n) * flmn[N - 1 + n, el, L - 1 + m].conj()
+                )
+
+
+@pytest.mark.parametrize("L", L_values_to_test)
+@pytest.mark.parametrize("N", [1, 2])
+@pytest.mark.parametrize("L_lower", L_lower_to_test)
+@pytest.mark.parametrize("reality", reality_values_to_test)
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
+def test_generate_flmn(rng, L, N, L_lower, reality):
+    flmn = gen.generate_flmn(rng, L, N, L_lower, reality)
+    assert flmn.shape == smp.so3_samples.flmn_shape(L, N)
+    assert flmn.dtype == np.complex128
+    assert np.isfinite(flmn).all()
+    check_flmn_zeros(flmn, L, N, L_lower)
+    if reality:
+        check_flmn_conjugate_symmetry(flmn, L, N, L_lower)
+        f_complex = s2fft.wigner.inverse(flmn, L, N, reality=False, L_lower=L_lower)
+        assert np.allclose(f_complex.imag, 0)
+        f_real = s2fft.wigner.inverse(flmn, L, N, reality=True, L_lower=L_lower)
         assert np.allclose(f_complex.real, f_real)
