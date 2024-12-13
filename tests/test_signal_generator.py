@@ -11,6 +11,26 @@ spin_to_test = [-2, 0, 1]
 reality_values_to_test = [False, True]
 
 
+@pytest.mark.parametrize("size", (10, 100, 1000))
+@pytest.mark.parametrize("var", (1, 2))
+def test_complex_normal(rng, size, var):
+    samples = gen.complex_normal(rng, size, var)
+    assert samples.dtype == np.complex128
+    assert samples.size == size
+    mean = samples.mean()
+    # Error in real + imag components of mean estimate ~ Normal(0, (var / 2) / size)
+    # Therefore difference between mean estimate and true zero value should be
+    # less than 3 * sqrt(var / (2 * size)) with probability 0.997
+    mean_error_tol = 3 * (var / (2 * size)) ** 0.5
+    assert abs(mean.imag) < mean_error_tol and abs(mean.real) < mean_error_tol
+    # If S is (unbiased) sample variance estimate then (size - 1) * S / var is a
+    # chi-squared distributed random variable with (size - 1) degrees of freedom
+    # For size >> 1, S ~approx Normal(var, 2 * var**2 / (size - 1)) so error in
+    # variance estimate should be less than 3 * sqrt(2 * var**2 / (size - 1))
+    # with high probability
+    assert abs(samples.var(ddof=1) - var) < 3 * (2 * var**2 / (size - 1)) ** 0.5
+
+
 @pytest.mark.parametrize("L", L_values_to_test)
 @pytest.mark.parametrize("min_el", [0, 1])
 def test_complex_el_and_m_indices(L, min_el):
