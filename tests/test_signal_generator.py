@@ -42,6 +42,13 @@ def test_complex_el_and_m_indices(L, min_el):
     assert (m_indices == expected_m_indices).all()
 
 
+def check_flm_zeros(flm, L, min_el):
+    for el in range(L):
+        for m in range(L):
+            if el < min_el or m > el:
+                assert flm[el, L - 1 + m] == flm[el, L - 1 - m] == 0
+
+
 def check_flm_conjugate_symmetry(flm, L, min_el):
     for el in range(min_el, L):
         for m in range(el + 1):
@@ -60,6 +67,7 @@ def test_generate_flm(rng, L, L_lower, spin, reality):
     assert flm.shape == smp.s2_samples.flm_shape(L)
     assert flm.dtype == np.complex128
     assert np.isfinite(flm).all()
+    check_flm_zeros(flm, L, max(L_lower, abs(spin)))
     if reality:
         check_flm_conjugate_symmetry(flm, L, max(L_lower, abs(spin)))
         f_complex = s2fft.inverse(flm, L, spin=spin, reality=False, L_lower=L_lower)
