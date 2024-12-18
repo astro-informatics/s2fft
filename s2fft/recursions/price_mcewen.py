@@ -21,9 +21,11 @@ def generate_precomputes(
     L_lower: int = 0,
 ) -> List[np.ndarray]:
     r"""
-    Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
-    In practice one could compute these on-the-fly but the memory overhead is
-    negligible and well worth the acceleration.
+    Compute recursion coefficients with :math:`\mathcal{O}(L^3)` memory overhead.
+
+    The corresponding JAX implementation in :py:func:`generate_precomputes_jax` has a
+    :math:`\mathcal{O}(L^2)` overhead and so should generally be preferred, particularly
+    for large :math:`L`.
 
     Args:
         L (int): Harmonic band-limit.
