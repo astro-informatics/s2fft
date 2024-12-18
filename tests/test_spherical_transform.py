@@ -27,6 +27,7 @@ multiple_gpus = [False, True]
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
 @pytest.mark.parametrize("spmd", multiple_gpus)
+@pytest.mark.parametrize("use_generate_precomputes", [True, False])
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_inverse(
     flm_generator,
@@ -37,6 +38,7 @@ def test_transform_inverse(
     method: str,
     reality: bool,
     spmd: bool,
+    use_generate_precomputes: bool,
 ):
     if reality and spin != 0:
         pytest.skip("Reality only valid for scalar fields (spin=0).")
@@ -52,7 +54,10 @@ def test_transform_inverse(
         Reality=reality,
     )
 
-    precomps = generate_precomputes(L, spin, sampling, L_lower=L_lower)
+    if use_generate_precomputes:
+        precomps = generate_precomputes(L, spin, sampling, L_lower=L_lower)
+    else:
+        precomps = None
     f = spherical.inverse(
         flm,
         L,
@@ -106,6 +111,7 @@ def test_transform_inverse_healpix(
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
 @pytest.mark.parametrize("spmd", multiple_gpus)
+@pytest.mark.parametrize("use_generate_precomputes", [True, False])
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_forward(
     flm_generator,
@@ -116,6 +122,7 @@ def test_transform_forward(
     method: str,
     reality: bool,
     spmd: bool,
+    use_generate_precomputes: bool,
 ):
     if reality and spin != 0:
         pytest.skip("Reality only valid for scalar fields (spin=0).")
@@ -131,8 +138,10 @@ def test_transform_forward(
         Spin=spin,
         Reality=reality,
     )
-
-    precomps = generate_precomputes(L, spin, sampling, None, True, L_lower)
+    if use_generate_precomputes:
+        precomps = generate_precomputes(L, spin, sampling, None, True, L_lower)
+    else:
+        precomps = None
     flm_check = spherical.forward(
         f,
         L,

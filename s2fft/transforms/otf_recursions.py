@@ -80,7 +80,14 @@ def inverse_latitudinal_step(
     half_slices = [el + mm + 1, el - mm + 1]
 
     if precomps is None:
-        precomps = generate_precomputes(L, -mm, sampling, nside, L_lower)
+        precomps = generate_precomputes(
+            L=L,
+            spin=-mm,
+            sampling=sampling,
+            nside=nside,
+            forward=False,
+            L_lower=L_lower,
+        )
     lrenorm, vsign, cpi, cp2, indices = precomps
 
     # Create copy to prevent in-place updates propagating to caller
