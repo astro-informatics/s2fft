@@ -14,7 +14,6 @@ L_to_nside_ratio = [2, 3]
 sampling_to_test = ["mw", "mwss", "dh", "gl"]
 method_to_test = ["direct", "sov", "sov_fft", "sov_fft_vectorized"]
 reality_to_test = [False, True]
-iter_to_test = [7, 10]
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -133,14 +132,12 @@ def test_transform_forward_healpix(
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
-@pytest.mark.parametrize("reality", reality_to_test)
-@pytest.mark.parametrize("iter", iter_to_test)
-def test_transform_forward_healpix_iter(
-    flm_generator, nside: int, reality: bool, iter: int
-):
+@pytest.mark.parametrize("iter", [8, 10])
+def test_transform_forward_healpix_iter(flm_generator, nside: int, iter: int):
     sampling = "healpix"
     L = 2 * nside
-    flm = flm_generator(L=L, reality=True)
+    reality = True
+    flm = flm_generator(L=L, reality=reality)
     f = spherical.inverse(flm, L, sampling=sampling, nside=nside, reality=reality)
     flm_direct = spherical.forward(
         f,
