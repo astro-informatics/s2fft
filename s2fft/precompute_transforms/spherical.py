@@ -1,4 +1,5 @@
 from functools import partial
+from typing import Optional
 from warnings import warn
 
 import jax.numpy as jnp
@@ -6,20 +7,26 @@ import numpy as np
 import torch
 from jax import jit
 
+from s2fft.precompute_transforms import construct
 from s2fft.sampling import s2_samples as samples
 from s2fft.utils import healpix_ffts as hp
-from s2fft.utils import resampling, resampling_jax, resampling_torch
+from s2fft.utils import (
+    iterative_refinement,
+    resampling,
+    resampling_jax,
+    resampling_torch,
+)
 
 
 def inverse(
     flm: np.ndarray,
     L: int,
     spin: int = 0,
-    kernel: np.ndarray = None,
+    kernel: Optional[np.ndarray] = None,
     sampling: str = "mw",
     reality: bool = False,
     method: str = "jax",
-    nside: int = None,
+    nside: Optional[int] = None,
 ) -> np.ndarray:
     r"""
     Compute the inverse spherical harmonic transform via precompute.
@@ -55,6 +62,8 @@ def inverse(
         np.ndarray: Pixel-space coefficients with shape.
 
     """
+    if method not in _inverse_functions:
+        raise ValueError(f"Method {method} not recognised.")
     if reality and spin != 0:
         reality = False
         warn(
@@ -62,14 +71,19 @@ def inverse(
             + "Defering to complex transform.",
             stacklevel=2,
         )
-    if method == "numpy":
-        return inverse_transform(flm, kernel, L, sampling, reality, spin, nside)
-    elif method == "jax":
-        return inverse_transform_jax(flm, kernel, L, sampling, reality, spin, nside)
-    elif method == "torch":
-        return inverse_transform_torch(flm, kernel, L, sampling, reality, spin, nside)
-    else:
-        raise ValueError(f"Method {method} not recognised.")
+    common_kwargs = {
+        "L": L,
+        "sampling": sampling,
+        "reality": reality,
+        "spin": spin,
+        "nside": nside,
+    }
+    kernel = (
+        _kernel_functions[method](forward=False, **common_kwargs)
+        if kernel is None
+        else kernel
+    )
+    return _inverse_functions[method](flm, kernel, **common_kwargs)
 
 
 def inverse_transform(
@@ -290,11 +304,12 @@ def forward(
     f: np.ndarray,
     L: int,
     spin: int = 0,
-    kernel: np.ndarray = None,
+    kernel: Optional[np.ndarray] = None,
     sampling: str = "mw",
     reality: bool = False,
     method: str = "jax",
-    nside: int = None,
+    nside: Optional[int] = None,
+    iter: int = 0,
 ) -> np.ndarray:
     r"""
     Compute the forward spherical harmonic transform via precompute.
@@ -321,6 +336,12 @@ def forward(
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
+        iter (int, optional): Number of iterative refinement iterations to use to
+            improve accuracy of forward transform (as an inverse of inverse transform).
+            Primarily of use with HEALPix sampling for which there is not a sampling
+            theorem, and round-tripping through the forward and inverse transforms will
+            introduce an error.
+
     Raises:
         ValueError: Transform method not recognised.
 
@@ -330,6 +351,8 @@ def forward(
         np.ndarray: Spherical harmonic coefficients.
 
     """
+    if method not in _forward_functions:
+        raise ValueError(f"Method {method} not recognised.")
     if reality and spin != 0:
         reality = False
         warn(
@@ -337,14 +360,32 @@ def forward(
             + "Defering to complex transform.",
             stacklevel=2,
         )
-    if method == "numpy":
-        return forward_transform(f, kernel, L, sampling, reality, spin, nside)
-    elif method == "jax":
-        return forward_transform_jax(f, kernel, L, sampling, reality, spin, nside)
-    elif method == "torch":
-        return forward_transform_torch(f, kernel, L, sampling, reality, spin, nside)
+    common_kwargs = {
+        "L": L,
+        "sampling": sampling,
+        "reality": reality,
+        "spin": spin,
+        "nside": nside,
+    }
+    kernel = (
+        _kernel_functions[method](forward=True, **common_kwargs)
+        if kernel is None
+        else kernel
+    )
+    if iter == 0:
+        return _forward_functions[method](f, kernel, **common_kwargs)
     else:
-        raise ValueError(f"Method {method} not recognised.")
+        inverse_kernel = _kernel_functions[method](forward=False, **common_kwargs)
+        return iterative_refinement.forward_with_iterative_refinement(
+            f=f,
+            n_iter=iter,
+            forward_function=partial(
+                _forward_functions[method], kernel=kernel, **common_kwargs
+            ),
+            backward_function=partial(
+                _inverse_functions[method], kernel=inverse_kernel, **common_kwargs
+            ),
+        )
 
 
 def forward_transform(
@@ -567,3 +608,23 @@ def forward_transform_torch(
         )
 
     return flm * (-1) ** spin
+
+
+_inverse_functions = {
+    "numpy": inverse_transform,
+    "jax": inverse_transform_jax,
+    "torch": inverse_transform_torch,
+}
+
+
+_forward_functions = {
+    "numpy": forward_transform,
+    "jax": forward_transform_jax,
+    "torch": forward_transform_torch,
+}
+
+_kernel_functions = {
+    "numpy": partial(construct.spin_spherical_kernel, using_torch=False),
+    "jax": construct.spin_spherical_kernel_jax,
+    "torch": partial(construct.spin_spherical_kernel, using_torch=True),
+}

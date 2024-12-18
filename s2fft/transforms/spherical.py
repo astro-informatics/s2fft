@@ -1,5 +1,5 @@
 from functools import partial
-from typing import List
+from typing import List, Optional
 
 import jax.numpy as jnp
 import numpy as np
@@ -10,6 +10,7 @@ from s2fft.transforms import c_backend_spherical as c_sph
 from s2fft.transforms import otf_recursions as otf
 from s2fft.utils import healpix_ffts as hp
 from s2fft.utils import (
+    iterative_refinement,
     quadrature,
     quadrature_jax,
     resampling,
@@ -154,6 +155,9 @@ def inverse_numpy(
     m_offset = 1 if sampling.lower() in ["mwss", "healpix"] else 0
     m_start_ind = L - 1 if reality else 0
     L0 = L_lower
+
+    # Copy flm argument to avoid in-place updates being propagated back to caller
+    flm = flm.copy()
 
     # Apply harmonic normalisation
     flm[L0:] = np.einsum(
@@ -333,14 +337,14 @@ def forward(
     f: np.ndarray,
     L: int,
     spin: int = 0,
-    nside: int = None,
+    nside: Optional[int] = None,
     sampling: str = "mw",
     method: str = "numpy",
     reality: bool = False,
-    precomps: List = None,
+    precomps: Optional[List] = None,
     spmd: bool = False,
     L_lower: int = 0,
-    iter: int = 3,
+    iter: Optional[int] = None,
     _ssht_backend: int = 1,
 ) -> np.ndarray:
     r"""
@@ -376,9 +380,13 @@ def forward(
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
-        iter (int, optional): Number of subiterations for healpy. Note that iterations
-            increase the precision of the forward transform, but reduce the accuracy of
-            the gradient pass. Between 2 and 3 iterations is a good compromise.
+        iter (int, optional): Number of iterative refinement iterations to use to
+            improve accuracy of forward transform (as an inverse of inverse transform).
+            Primarily of use with HEALPix sampling for which there is not a sampling
+            theorem, and round-tripping through the forward and inverse transforms will
+            introduce an error. If set to `None`, the default, 3 iterations will be used
+            if :code:`sampling == "healpix"` and :code:`method == "jax_healpy"` and zero
+            otherwise. Not used for `jax_ssht` method.
 
         _ssht_backend (int, optional, experimental): Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
@@ -401,35 +409,34 @@ def forward(
     if spin >= 8 and method in ["numpy", "jax"]:
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
-    if method == "numpy":
-        return forward_numpy(f, L, spin, nside, sampling, reality, precomps, L_lower)
-    elif method == "jax":
-        return forward_jax(
-            f,
-            L,
-            spin,
-            nside,
-            sampling,
-            reality,
-            precomps,
-            spmd,
-            L_lower,
-            use_healpix_custom_primitive=False,
+    if iter is None:
+        iter = 3 if sampling.lower() == "healpix" and method == "jax_healpy" else 0
+    if method in {"numpy", "jax", "cuda"}:
+        common_kwargs = {
+            "L": L,
+            "spin": spin,
+            "nside": nside,
+            "sampling": sampling,
+            "reality": reality,
+            "L_lower": L_lower,
+        }
+        forward_kwargs = {**common_kwargs, "precomps": precomps}
+        inverse_kwargs = common_kwargs
+        if method in {"jax", "cuda"}:
+            forward_kwargs["spmd"] = spmd
+            forward_kwargs["use_healpix_custom_primitive"] = method == "cuda"
+            inverse_kwargs["method"] = "jax"
+            inverse_kwargs["spmd"] = spmd
+            forward_function = forward_jax
+        else:
+            inverse_kwargs["method"] = "numpy"
+            forward_function = forward_numpy
+        return iterative_refinement.forward_with_iterative_refinement(
+            f=f,
+            n_iter=iter,
+            forward_function=partial(forward_function, **forward_kwargs),
+            backward_function=partial(inverse, **inverse_kwargs),
         )
-    elif method == "cuda":
-        return forward_jax(
-            f,
-            L,
-            spin,
-            nside,
-            sampling,
-            reality,
-            precomps,
-            spmd,
-            L_lower,
-            use_healpix_custom_primitive=True,
-        )
-
     elif method == "jax_ssht":
         if sampling.lower() == "healpix":
             raise ValueError("SSHT does not support healpix sampling.")

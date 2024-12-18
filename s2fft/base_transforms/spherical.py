@@ -1,3 +1,4 @@
+from functools import partial
 from warnings import warn
 
 import numpy as np
@@ -5,7 +6,7 @@ import numpy as np
 from s2fft import recursions
 from s2fft.sampling import s2_samples as samples
 from s2fft.utils import healpix_ffts as hp
-from s2fft.utils import quadrature, resampling
+from s2fft.utils import iterative_refinement, quadrature, resampling
 
 
 def inverse(
@@ -138,6 +139,7 @@ def forward(
     nside: int = None,
     reality: bool = False,
     L_lower: int = 0,
+    iter: int = 0,
 ) -> np.ndarray:
     r"""
     Compute forward spherical harmonic transform.
@@ -164,20 +166,34 @@ def forward(
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
+        iter (int, optional): Number of iterative refinement iterations to use to
+            improve accuracy of forward transform (as an inverse of inverse transform).
+            Primarily of use with HEALPix sampling for which there is not a sampling
+            theorem, and round-tripping through the forward and inverse transforms will
+            introduce an error.
+
     Returns:
         np.ndarray: Spherical harmonic coefficients.
 
     """
-    return _forward(
-        f,
-        L,
-        spin,
-        sampling,
-        nside=nside,
-        method="sov_fft_vectorized",
-        reality=reality,
-        L_lower=L_lower,
-    )
+    common_kwargs = {
+        "L": L,
+        "spin": spin,
+        "sampling": sampling,
+        "nside": nside,
+        "method": "sov_fft_vectorized",
+        "reality": reality,
+        "L_lower": L_lower,
+    }
+    if iter == 0:
+        return _forward(f, **common_kwargs)
+    else:
+        return iterative_refinement.forward_with_iterative_refinement(
+            f,
+            n_iter=iter,
+            forward_function=partial(_forward, **common_kwargs),
+            backward_function=partial(_inverse, **common_kwargs),
+        )
 
 
 def _forward(
