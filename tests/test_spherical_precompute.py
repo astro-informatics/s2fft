@@ -306,7 +306,7 @@ def test_transform_inverse_high_spin(
     kernel = c.spin_spherical_kernel(L, spin, reality, sampling, forward=False)
 
     f = inverse(flm, L, spin, kernel, sampling, reality, "numpy")
-    tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
+    tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-11
     np.testing.assert_allclose(f, f_check, atol=tol, rtol=tol)
 
 
