@@ -28,7 +28,7 @@ def test_custom_forward_from_s2(
     # GENERATE MOCK SIGNAL
     flmn = flmn_generator(L=L, N=N)
     DW = c.fourier_wigner_kernel(L)
-    f = fw.inverse_transform(flmn, DW, L, N, False, sampling)
+    f = fw.inverse_transform(flmn, L, N, DW, False, sampling)
     spins = -np.arange(-N + 1, N)
 
     # FUNCTION SWITCH
@@ -77,7 +77,7 @@ def test_custom_forward_from_so3(
     # GENERATE MOCK SIGNAL
     flmn = flmn_generator(L=L, N=N)
     DW = c.fourier_wigner_kernel(L)
-    f = fw.inverse_transform(flmn, DW, L, N, False, sampling)
+    f = fw.inverse_transform(flmn, L, N, DW, False, sampling)
     spins = -np.arange(-N + 1, N)
 
     # FUNCTION SWITCH
@@ -121,7 +121,7 @@ def test_custom_inverse_to_s2(
     # GENERATE MOCK SIGNAL
     flmn = flmn_generator(L=L, N=N)
     DW = c.fourier_wigner_kernel(L)
-    f = fw.inverse_transform(flmn, DW, L, N, False, sampling)
+    f = fw.inverse_transform(flmn, L, N, DW, False, sampling)
     spins = -np.arange(-N + 1, N)
 
     # FUNCTION SWITCH
