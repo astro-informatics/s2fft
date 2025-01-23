@@ -75,11 +75,13 @@ if __name__ == "__main__":
 from __future__ import annotations
 
 import argparse
+import contextlib
 import datetime
 import inspect
 import json
 import platform
 import timeit
+import tracemalloc
 from ast import literal_eval
 from functools import partial
 from importlib.metadata import PackageNotFoundError, version
@@ -89,13 +91,6 @@ from typing import Any, NamedTuple
 
 import jax
 import numpy as np
-
-try:
-    import memory_profiler
-
-    MEMORY_PROFILER_AVAILABLE = True
-except ImportError:
-    MEMORY_PROFILER_AVAILABLE = False
 
 
 class SkipBenchmarkException(Exception):
@@ -230,8 +225,8 @@ def _format_results_entry(results_entry):
         + f"min(run times): {min(results_entry['run_times_in_seconds']):>#7.2g}s, "
         + f"max(run times): {max(results_entry['run_times_in_seconds']):>#7.2g}s"
         + (
-            f", peak memory: {results_entry['peak_memory_in_bytes']:>#7.2g}B"
-            if "peak_memory_in_bytes" in results_entry
+            f", peak memory: {results_entry['traced_memory_peak_in_bytes']:>#7.2g}B"
+            if "traced_memory_peak_in_bytes" in results_entry
             else ""
         )
         + (
@@ -339,31 +334,27 @@ def collect_benchmarks(module, benchmark_names):
     ]
 
 
-def measure_peak_memory_usage(benchmark_function, interval):
-    """Measure peak memory usage in mebibytes (MiB) of a function using memory_profiler.
+@contextlib.contextmanager
+def trace_memory_allocations(n_frames=1):
+    """Context manager for tracing memory allocations in managed with block.
+
+    Returns a thunk (zero-argument function) which can be called on exit from with block
+    to get tuple of current size and peak size of memory blocks traced in bytes.
 
     Args:
-        benchmark_function: Function to benchmark peak memory usage of.
-        interval: Interval in seconds at which memory measurements are collected.
+        n_frames: Limit on depth of frames to trace memory allocations in.
 
     Returns:
-        Peak memory usage measure in mebibytes (MiB).
+        A thunk (zero-argument function) which can be called on exit from with block to
+        get tuple of current size and peak size of memory blocks traced in bytes.
     """
-    baseline_memory = memory_profiler.memory_usage(
-        lambda: None,
-        max_usage=True,
-        include_children=True,
-    )
-    return max(
-        memory_profiler.memory_usage(
-            benchmark_function,
-            interval=interval,
-            max_usage=True,
-            include_children=True,
-        )
-        - baseline_memory,
-        0,
-    )
+    tracemalloc.start(n_frames)
+    current_size, peak_size = None, None
+    try:
+        yield lambda: (current_size, peak_size)
+        current_size, peak_size = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
 
 
 def _compile_jax_benchmark_and_analyse(benchmark_function, results_entry):
@@ -437,8 +428,12 @@ def run_benchmarks(
                         benchmark_function, results_entry
                     )
                 # Run benchmark once without timing to record output for potentially
-                # computing numerical error
-                output = benchmark_function()
+                # computing numerical error and trace memory usage
+                with trace_memory_allocations() as traced_memory:
+                    output = benchmark_function()
+                current_size, peak_size = traced_memory()
+                results_entry["traced_memory_final_in_bytes"] = current_size
+                results_entry["traced_memory_peak_in_bytes"] = peak_size
                 if reference_output is not None and output is not None:
                     results_entry["max_abs_error"] = abs(
                         reference_output - output
@@ -450,11 +445,6 @@ def run_benchmarks(
                     )
                 ]
                 results_entry["run_times_in_seconds"] = run_times
-                if MEMORY_PROFILER_AVAILABLE:
-                    results_entry["peak_memory_in_bytes"] = measure_peak_memory_usage(
-                        benchmark_function,
-                        interval=min(run_times) / 20,
-                    ) * (2**20)
                 results[benchmark.__name__].append(results_entry)
                 if print_results:
                     print(_format_results_entry(results_entry))

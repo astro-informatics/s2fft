@@ -1,13 +1,10 @@
 # Benchmarks for `s2fft`
 
-Scripts for benchmarking `s2fft` with `timeit` (and optionally `memory_profiler`).
+Scripts for benchmarking `s2fft` transforms.
 
 Measures time to compute transforms for grids of parameters settings, optionally 
 outputting the results to a JSON file to allow comparing performance over versions
-and/or systems. 
-If the [`memory_profiler` package](https://github.com/pythonprofilers/memory_profiler) 
-is installed an estimate of the peak (main) memory usage of the benchmarked functions
-will also be recorded.
+and/or systems.
 If the [`py-cpuinfo` package](https://pypi.org/project/py-cpuinfo/) 
 is installed additional information about CPU of system benchmarks are run on will be
 recorded in JSON output.
