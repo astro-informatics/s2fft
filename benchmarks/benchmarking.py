@@ -249,6 +249,11 @@ def _parse_cli_arguments(description):
     parser.add_argument(
         "-output-file", type=Path, help="File path to write JSON formatted results to."
     )
+    parser.add_argument(
+        "-benchmarks",
+        nargs="+",
+        help="Names of benchmark functions to run. All benchmarks are run if omitted.",
+    )
     return parser.parse_args()
 
 
@@ -261,16 +266,22 @@ def _is_benchmark(object):
     )
 
 
-def collect_benchmarks(module):
+def collect_benchmarks(module, benchmark_names):
     """Collect all benchmark functions from a module.
 
     Args:
         module: Python module containing benchmark functions.
+        benchmark_names: List of benchmark names to collect or `None` if all benchmarks
+            in module to be collected.
 
     Returns:
         List of functions in module with `is_benchmark` attribute set to `True`.
     """
-    return [function for name, function in inspect.getmembers(module, _is_benchmark)]
+    return [
+        function
+        for name, function in inspect.getmembers(module, _is_benchmark)
+        if benchmark_names is None or name in benchmark_names
+    ]
 
 
 def run_benchmarks(
@@ -383,7 +394,7 @@ def parse_args_collect_and_run_benchmarks(module=None):
     args = _parse_cli_arguments(module.__doc__)
     parameter_overrides = _parse_parameter_overrides(args.parameter_overrides)
     results = run_benchmarks(
-        benchmarks=collect_benchmarks(module),
+        benchmarks=collect_benchmarks(module, args.benchmarks),
         number_runs=args.number_runs,
         number_repeats=args.repeats,
         parameter_overrides=parameter_overrides,
