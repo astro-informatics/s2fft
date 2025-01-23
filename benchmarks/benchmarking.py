@@ -1,25 +1,40 @@
 """Helper functions and classes for benchmarking.
 
-Functions to be benchmarked in a module should be decorated with `benchmark` which
-takes one positional argument corresponding to a function to peform any necessary
-set up for the benchmarked function (returning a dictionary, potentially empty with
-any precomputed values to pass to benchmark function as keyword arguments) and zero
-or more keyword arguments specifying parameter names and values lists to benchmark
-over (the Cartesian product of all specified parameter values is used). The benchmark
-function is passed the union of any precomputed values outputted by the setup function
-and the parameters values as keyword arguments.
+Functions to be benchmarked in a module should be decorated with `benchmark` which takes
+one positional argument corresponding to a function to perform any necessary set up for
+the benchmarked function and zero or more keyword arguments specifying parameter names
+and values lists to benchmark over (the Cartesian product of all specified parameter
+values is used).
+
+The benchmark setup function should return an instance of the named tuple type
+`BenchmarkSetup` which consists of a required dictionary entry, potentially empty with
+any precomputed values to pass to benchmark function as keyword arguments, and two
+further optional entries: the first a reference value for the output of the benchmarked
+function to use to compute numerical error if applicable, defaulting to `None`
+indicating no applicable reference value; and the second a flag indicating whether to
+just-in-time compile the benchmark function using JAX's `jit` transform, defaulting to
+`False`.
+
+The benchmark function is passed the union of any precomputed values returned by the
+setup function and the parameters values as keyword arguments. If a reference output
+value is set by the setup function the benchmark function should output the value to
+compare to this reference value by computing the maximum absolute elementwise
+difference. If the function is to be just-in-time compiled using JAX the value returned
+by the benchmark function should be a JAX array on which the `block_until_ready` method
+may be called to ensure the function only exits once the relevant computation has
+completed (necessary due to JAX's asynchronous dispatch computation model).
 
 As a simple example, the following defines a benchmark for computing the mean of a list
 of numbers.
 
 ```Python
 import random
-from benchmarking import benchmark
+from benchmarking import BenchmarkSetup, benchmark
 
 def setup_mean(n):
-    return {"x": [random.random() for _ in range(n)]}, None
+    return BenchmarkSetup({"x": [random.random() for _ in range(n)]})
 
-@benchmark(setup_computation, n=[1, 2, 3, 4])
+@benchmark(setup_mean, n=[1, 2, 3, 4])
 def mean(x, n):
     return sum(x) / n
 ```
@@ -29,12 +44,12 @@ For example
 
 ```Python
 import random
-from benchmarking import benchmark, skip
+from benchmarking import BenchmarkSetup, benchmark, skip
 
 def setup_mean(n):
-    return {"x": [random.random() for _ in range(n)]}, None
+    return BenchmarkSetup({"x": [random.random() for _ in range(n)]})
 
-@benchmark(setup_computation, n=[0, 1, 2, 3, 4])
+@benchmark(setup_mean, n=[0, 1, 2, 3, 4])
 def mean(x, n):
     if n == 0:
         skip("number of items must be positive")
@@ -48,16 +63,16 @@ The `parse_args_collect_and_run_benchmarks` function should be called within a
 to allow it to be executed as a script for runnning the benchmarks:
 
 ```Python
-
 from benchmarking import benchmark, parse_args_collect_and_run_benchmarks
 
 ...
 
 if __name__ == "__main__":
     parse_args_collect_and_run_benchmarks()
-
 ```
 """
+
+from __future__ import annotations
 
 import argparse
 import datetime
@@ -70,6 +85,10 @@ from functools import partial
 from importlib.metadata import PackageNotFoundError, version
 from itertools import product
 from pathlib import Path
+from typing import Any, NamedTuple
+
+import jax
+import numpy as np
 
 try:
     import memory_profiler
@@ -155,11 +174,19 @@ def skip(message):
     raise SkipBenchmarkException(message)
 
 
-def benchmark(setup_=None, **parameters):
+class BenchmarkSetup(NamedTuple):
+    """Structure containing data for setting up a benchmark function."""
+
+    arguments: dict[str, Any]
+    reference_output: None | jax.Array | np.ndarray = None
+    jit_benchmark: bool = False
+
+
+def benchmark(setup=None, **parameters):
     """Decorator for defining a function to be benchmark.
 
     Args:
-        setup_: Function performing any necessary set up for benchmark, and the resource
+        setup: Function performing any necessary set up for benchmark, and the resource
             usage of which will not be tracked in benchmarking. The function should
             return a 2-tuple, with first entry a dictionary of values to pass to the
             benchmark as keyword arguments, corresponding to any precomputed values,
@@ -175,13 +202,13 @@ def benchmark(setup_=None, **parameters):
         Decorator which marks function as benchmark and sets setup function and
         parameters attributes. To also record error of benchmarked function in terms of
         maximum absolute elementwise difference between output and reference value
-        returned by `setup_` function, the decorated benchmark function should return
+        returned by `setup` function, the decorated benchmark function should return
         the numerical value to measure the error for.
     """
 
     def decorator(function):
         function.is_benchmark = True
-        function.setup = setup_ if setup_ is not None else lambda: {}
+        function.setup = setup if setup is not None else lambda: {}
         function.parameters = parameters
         return function
 
@@ -204,13 +231,19 @@ def _format_results_entry(results_entry):
         + f"min(time): {min(results_entry['times / s']):>#7.2g}s, "
         + f"max(time): {max(results_entry['times / s']):>#7.2g}s"
         + (
-            f", peak mem.: {results_entry['peak_memory / MiB']:>#7.2g}MiB"
+            f", peak memory: {results_entry['peak_memory / MiB']:>#7.2g}MiB"
             if "peak_memory / MiB" in results_entry
             else ""
         )
         + (
-            f", max(abs(error)): {results_entry['error']:#7.2g}"
+            f", max(abs(error)): {results_entry['error']:>#7.2g}"
             if "error" in results_entry
+            else ""
+        )
+        + (
+            f", floating point ops: {results_entry['cost_analysis']['flops']:>#7.2g}"
+            f", mem access: {results_entry['cost_analysis']['bytes_accessed']:>#7.2g}B"
+            if "cost_analysis" in results_entry
             else ""
         )
     )
@@ -334,6 +367,33 @@ def measure_peak_memory_usage(benchmark_function, interval):
     )
 
 
+def _compile_jax_benchmark_and_analyse(benchmark_function, results_entry):
+    """Compile a JAX benchmark function and extract cost estimates if available."""
+    compiled_benchmark_function = jax.jit(benchmark_function).lower().compile()
+    cost_analysis = compiled_benchmark_function.cost_analysis()
+    if cost_analysis is not None and isinstance(cost_analysis, list):
+        results_entry["cost_analysis"] = {
+            "flops": cost_analysis[0].get("flops"),
+            "bytes_accessed": cost_analysis[0].get("bytes accessed"),
+        }
+    memory_analysis = compiled_benchmark_function.memory_analysis()
+    if memory_analysis is not None:
+        results_entry["memory_analysis"] = {
+            prefix + base_key: getattr(memory_analysis, prefix + base_key, None)
+            for prefix in ("", "host_")
+            for base_key in (
+                "alias_size_in_bytes",
+                "argument_size_in_bytes",
+                "generated_code_size_in_bytes",
+                "output_size_in_bytes",
+                "temp_size_in_bytes",
+            )
+        }
+    # Ensure block_until_ready called on benchmark output due to JAX's asynchronous
+    # dispatch model: https://jax.readthedocs.io/en/latest/async_dispatch.html
+    return lambda: compiled_benchmark_function().block_until_ready()
+
+
 def run_benchmarks(
     benchmarks,
     number_runs,
@@ -370,21 +430,25 @@ def run_benchmarks(
                     parameters[parameter_name] = parameter_values
         for parameter_set in _dict_product(parameters):
             try:
-                precomputes, reference_output = benchmark.setup(**parameter_set)
-                benchmark_function = partial(benchmark, **precomputes, **parameter_set)
+                args, reference_output, jit_benchmark = benchmark.setup(**parameter_set)
+                benchmark_function = partial(benchmark, **args, **parameter_set)
+                results_entry = {"parameters": parameter_set}
+                if jit_benchmark:
+                    benchmark_function = _compile_jax_benchmark_and_analyse(
+                        benchmark_function, results_entry
+                    )
                 # Run benchmark once without timing to record output for potentially
-                # computing numerical error and to remove effect of any one-off costs
-                # such as just-in-time compilation when timing
+                # computing numerical error
                 output = benchmark_function()
+                if reference_output is not None and output is not None:
+                    results_entry["error"] = abs(reference_output - output).max()
                 run_times = [
                     time / number_runs
                     for time in timeit.repeat(
                         benchmark_function, number=number_runs, repeat=number_repeats
                     )
                 ]
-                results_entry = {"parameters": parameter_set, "times / s": run_times}
-                if reference_output is not None and output is not None:
-                    results_entry["error"] = abs(reference_output - output).max()
+                results_entry["times / s"] = run_times
                 if MEMORY_PROFILER_AVAILABLE:
                     results_entry["peak_memory / MiB"] = measure_peak_memory_usage(
                         benchmark_function,

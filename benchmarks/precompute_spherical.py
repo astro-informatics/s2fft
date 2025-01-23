@@ -1,7 +1,12 @@
 """Benchmarks for precompute spherical transforms."""
 
 import numpy as np
-from benchmarking import benchmark, parse_args_collect_and_run_benchmarks, skip
+from benchmarking import (
+    BenchmarkSetup,
+    benchmark,
+    parse_args_collect_and_run_benchmarks,
+    skip,
+)
 
 import s2fft
 import s2fft.precompute_transforms
@@ -39,7 +44,7 @@ def setup_forward(method, L, sampling, spin, reality, recursion):
         forward=True,
         recursion=recursion,
     )
-    return {"f": f, "kernel": kernel}, flm
+    return BenchmarkSetup({"f": f, "kernel": kernel}, flm, "jax" in method)
 
 
 @benchmark(
@@ -52,7 +57,7 @@ def setup_forward(method, L, sampling, spin, reality, recursion):
     recursion=RECURSION_VALUES,
 )
 def forward(f, kernel, method, L, sampling, spin, reality, recursion):
-    flm = s2fft.precompute_transforms.spherical.forward(
+    return s2fft.precompute_transforms.spherical.forward(
         f=f,
         L=L,
         spin=spin,
@@ -61,9 +66,6 @@ def forward(f, kernel, method, L, sampling, spin, reality, recursion):
         reality=reality,
         method=method,
     )
-    if method == "jax":
-        flm.block_until_ready()
-    return flm
 
 
 def setup_inverse(method, L, sampling, spin, reality, recursion):
@@ -84,7 +86,7 @@ def setup_inverse(method, L, sampling, spin, reality, recursion):
         forward=False,
         recursion=recursion,
     )
-    return {"flm": flm, "kernel": kernel}, None
+    return BenchmarkSetup({"flm": flm, "kernel": kernel}, None, "jax" in method)
 
 
 @benchmark(
@@ -97,7 +99,7 @@ def setup_inverse(method, L, sampling, spin, reality, recursion):
     recursion=RECURSION_VALUES,
 )
 def inverse(flm, kernel, method, L, sampling, spin, reality, recursion):
-    f = s2fft.precompute_transforms.spherical.inverse(
+    return s2fft.precompute_transforms.spherical.inverse(
         flm=flm,
         L=L,
         spin=spin,
@@ -106,9 +108,6 @@ def inverse(flm, kernel, method, L, sampling, spin, reality, recursion):
         reality=reality,
         method=method,
     )
-    if method == "jax":
-        f.block_until_ready()
-    return f
 
 
 if __name__ == "__main__":

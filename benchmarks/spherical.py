@@ -1,8 +1,12 @@
 """Benchmarks for on-the-fly spherical transforms."""
 
-import jax
 import numpy as np
-from benchmarking import benchmark, parse_args_collect_and_run_benchmarks, skip
+from benchmarking import (
+    BenchmarkSetup,
+    benchmark,
+    parse_args_collect_and_run_benchmarks,
+    skip,
+)
 
 import s2fft
 from s2fft.recursions.price_mcewen import generate_precomputes_jax
@@ -52,7 +56,7 @@ def setup_forward(
     )
     if method == "numpy":
         precomps = _jax_arrays_to_numpy(precomps)
-    return {"f": f, "precomps": precomps}, flm
+    return BenchmarkSetup({"f": f, "precomps": precomps}, flm, "jax" in method)
 
 
 @benchmark(
@@ -80,7 +84,7 @@ def forward(
     spmd,
     n_iter,
 ):
-    flm = s2fft.transforms.spherical.forward(
+    return s2fft.transforms.spherical.forward(
         f=f,
         L=L,
         L_lower=L_lower,
@@ -93,7 +97,6 @@ def forward(
         spmd=spmd,
         iter=n_iter,
     )
-    return flm.block_until_ready() if isinstance(flm, jax.Array) else flm
 
 
 def setup_inverse(method, L, L_lower, sampling, spin, L_to_nside_ratio, reality, spmd):
@@ -113,7 +116,7 @@ def setup_inverse(method, L, L_lower, sampling, spin, L_to_nside_ratio, reality,
     )
     if method == "numpy":
         precomps = _jax_arrays_to_numpy(precomps)
-    return {"flm": flm, "precomps": precomps}, None
+    return BenchmarkSetup({"flm": flm, "precomps": precomps}, None, "jax" in method)
 
 
 @benchmark(
@@ -130,7 +133,7 @@ def setup_inverse(method, L, L_lower, sampling, spin, L_to_nside_ratio, reality,
 def inverse(
     flm, precomps, method, L, L_lower, sampling, spin, L_to_nside_ratio, reality, spmd
 ):
-    f = s2fft.transforms.spherical.inverse(
+    return s2fft.transforms.spherical.inverse(
         flm=flm,
         L=L,
         L_lower=L_lower,
@@ -142,7 +145,6 @@ def inverse(
         method=method,
         spmd=spmd,
     )
-    return f.block_until_ready() if isinstance(f, jax.Array) else f
 
 
 if __name__ == "__main__":

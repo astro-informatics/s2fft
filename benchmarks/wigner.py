@@ -1,7 +1,11 @@
 """Benchmarks for on-the-fly Wigner-d transforms."""
 
 import numpy as np
-from benchmarking import benchmark, parse_args_collect_and_run_benchmarks
+from benchmarking import (
+    BenchmarkSetup,
+    benchmark,
+    parse_args_collect_and_run_benchmarks,
+)
 
 import s2fft
 from s2fft.base_transforms import wigner as base_wigner
@@ -31,13 +35,13 @@ def setup_forward(method, L, L_lower, N, sampling, reality):
     )
     generate_precomputes = (
         generate_precomputes_wigner_jax
-        if method == "jax"
+        if "jax" in method
         else generate_precomputes_wigner
     )
     precomps = generate_precomputes(
         L, N, sampling, forward=True, reality=reality, L_lower=L_lower
     )
-    return {"f": f, "precomps": precomps}, flmn
+    return BenchmarkSetup({"f": f, "precomps": precomps}, flmn, "jax" in method)
 
 
 @benchmark(
@@ -50,7 +54,7 @@ def setup_forward(method, L, L_lower, N, sampling, reality):
     reality=REALITY_VALUES,
 )
 def forward(f, precomps, method, L, L_lower, N, sampling, reality):
-    flmn = s2fft.transforms.wigner.forward(
+    return s2fft.transforms.wigner.forward(
         f=f,
         L=L,
         N=N,
@@ -60,9 +64,6 @@ def forward(f, precomps, method, L, L_lower, N, sampling, reality):
         precomps=precomps,
         L_lower=L_lower,
     )
-    if method == "jax":
-        flmn.block_until_ready()
-    return flmn
 
 
 def setup_inverse(method, L, L_lower, N, sampling, reality):
@@ -70,13 +71,13 @@ def setup_inverse(method, L, L_lower, N, sampling, reality):
     flmn = s2fft.utils.signal_generator.generate_flmn(rng, L, N, reality=reality)
     generate_precomputes = (
         generate_precomputes_wigner_jax
-        if method == "jax"
+        if "jax" in method
         else generate_precomputes_wigner
     )
     precomps = generate_precomputes(
         L, N, sampling, forward=False, reality=reality, L_lower=L_lower
     )
-    return {"flmn": flmn, "precomps": precomps}, None
+    return BenchmarkSetup({"flmn": flmn, "precomps": precomps}, None, "jax" in method)
 
 
 @benchmark(
@@ -89,7 +90,7 @@ def setup_inverse(method, L, L_lower, N, sampling, reality):
     reality=REALITY_VALUES,
 )
 def inverse(flmn, precomps, method, L, L_lower, N, sampling, reality):
-    f = s2fft.transforms.wigner.inverse(
+    return s2fft.transforms.wigner.inverse(
         flmn=flmn,
         L=L,
         N=N,
@@ -99,9 +100,6 @@ def inverse(flmn, precomps, method, L, L_lower, N, sampling, reality):
         precomps=precomps,
         L_lower=L_lower,
     )
-    if method == "jax":
-        f.block_until_ready()
-    return f
 
 
 if __name__ == "__main__":
