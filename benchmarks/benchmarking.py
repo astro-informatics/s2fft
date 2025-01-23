@@ -317,7 +317,9 @@ def run_benchmarks(
             print(benchmark.__name__)
         parameters = benchmark.parameters.copy()
         if parameter_overrides is not None:
-            parameters.update(parameter_overrides)
+            for parameter_name, parameter_values in parameter_overrides.items():
+                if parameter_name in parameters:
+                    parameters[parameter_name] = parameter_values
         for parameter_set in _dict_product(parameters):
             try:
                 precomputes, reference_output = benchmark.setup(**parameter_set)
