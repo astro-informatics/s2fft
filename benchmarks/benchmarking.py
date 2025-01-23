@@ -193,6 +193,29 @@ def _parameters_string(parameters):
     return "(" + ", ".join(f"{name}: {val}" for name, val in parameters.items()) + ")"
 
 
+def _format_results_entry(results_entry):
+    """Format benchmark results entry as a string for printing."""
+    return (
+        (
+            f"{_parameters_string(results_entry['parameters']):>40}: \n    "
+            if len(results_entry["parameters"]) != 0
+            else "    "
+        )
+        + f"min(time): {min(results_entry['times / s']):>#7.2g}s, "
+        + f"max(time): {max(results_entry['times / s']):>#7.2g}s"
+        + (
+            f", peak mem.: {results_entry['peak_memory / MiB']:>#7.2g}MiB"
+            if "peak_memory / MiB" in results_entry
+            else ""
+        )
+        + (
+            f", max(abs(error)): {results_entry['error']:#7.2g}"
+            if "error" in results_entry
+            else ""
+        )
+    )
+
+
 def _dict_product(dicts):
     """Generator corresponding to Cartesian product of dictionaries."""
     return (dict(zip(dicts.keys(), values)) for values in product(*dicts.values()))
@@ -284,6 +307,33 @@ def collect_benchmarks(module, benchmark_names):
     ]
 
 
+def measure_peak_memory_usage(benchmark_function, interval):
+    """Measure peak memory usage in mebibytes (MiB) of a function using memory_profiler.
+
+    Args:
+        benchmark_function: Function to benchmark peak memory usage of.
+        interval: Interval in seconds at which memory measurements are collected.
+
+    Returns:
+        Peak memory usage measure in mebibytes (MiB).
+    """
+    baseline_memory = memory_profiler.memory_usage(
+        lambda: None,
+        max_usage=True,
+        include_children=True,
+    )
+    return max(
+        memory_profiler.memory_usage(
+            benchmark_function,
+            interval=interval,
+            max_usage=True,
+            include_children=True,
+        )
+        - baseline_memory,
+        0,
+    )
+
+
 def run_benchmarks(
     benchmarks,
     number_runs,
@@ -332,43 +382,17 @@ def run_benchmarks(
                         benchmark_function, number=number_runs, repeat=number_repeats
                     )
                 ]
-                results_entry = {**parameter_set, "times / s": run_times}
+                results_entry = {"parameters": parameter_set, "times / s": run_times}
                 if reference_output is not None and output is not None:
                     results_entry["error"] = abs(reference_output - output).max()
                 if MEMORY_PROFILER_AVAILABLE:
-                    baseline_memory = memory_profiler.memory_usage(max_usage=True)
-                    peak_memory = (
-                        memory_profiler.memory_usage(
-                            benchmark_function,
-                            interval=max(run_times) * number_repeats,
-                            max_usage=True,
-                            max_iterations=number_repeats,
-                            include_children=True,
-                        )
-                        - baseline_memory
+                    results_entry["peak_memory / MiB"] = measure_peak_memory_usage(
+                        benchmark_function,
+                        interval=min(run_times) / 20,
                     )
-                    results_entry["peak_memory / MiB"] = peak_memory
                 results[benchmark.__name__].append(results_entry)
                 if print_results:
-                    print(
-                        (
-                            f"{_parameters_string(parameter_set):>40}: \n    "
-                            if len(parameter_set) != 0
-                            else "    "
-                        )
-                        + f"min(time): {min(run_times):>#7.2g}s, "
-                        + f"max(time): {max(run_times):>#7.2g}s"
-                        + (
-                            f", peak mem.: {peak_memory:>#7.2g}MiB"
-                            if MEMORY_PROFILER_AVAILABLE
-                            else ""
-                        )
-                        + (
-                            f", max(abs(error)): {results_entry['error']:#7.2g}"
-                            if "error" in results_entry
-                            else ""
-                        )
-                    )
+                    print(_format_results_entry(results_entry))
             except SkipBenchmarkException as e:
                 if print_results:
                     print(
@@ -377,16 +401,56 @@ def run_benchmarks(
     return results
 
 
+def get_system_info():
+    """Get dictionary of metadata about system.
+
+    Returns:
+        Dictionary with information about system, CPU and GPU devices (if present) and
+        Python environment and package versions.
+    """
+    package_versions = {
+        f"{package}_version": _get_version_or_none(package)
+        for package in ("s2fft", "jax", "numpy")
+    }
+    return {
+        "architecture": platform.architecture(),
+        "machine": platform.machine(),
+        "node": platform.node(),
+        "processor": platform.processor(),
+        "python_version": platform.python_version(),
+        "release": platform.release(),
+        "system": platform.system(),
+        "cpu_info": _get_cpu_info(),
+        "gpu_info": _get_gpu_info(),
+        "cuda_info": _get_cuda_info(),
+        **package_versions,
+    }
+
+
+def write_json_results_file(output_file, results, benchmark_module):
+    """Write benchmark results and system information to a file in JSON format.
+
+    Args:
+        output_file: Path to file to write results to.
+        results: Dictionary of benchmark results from `run_benchmarks`.
+        benchmarks_module: Name of module containing benchmarks.
+    """
+    with open(output_file, "w") as f:
+        output = {
+            "date_time": datetime.datetime.now().isoformat(),
+            "benchmark_module": benchmark_module,
+            "system_info": get_system_info(),
+            "results": results,
+        }
+        json.dump(output, f, indent=True)
+
+
 def parse_args_collect_and_run_benchmarks(module=None):
     """Collect and run all benchmarks in a module and parse command line arguments.
 
     Args:
         module: Module containing benchmarks to run. Defaults to module from which
             this function was called if not specified (set to `None`).
-
-    Returns:
-        Dictionary containing timing (and potentially memory usage) results for each
-        parameters set of each benchmark function.
     """
     if module is None:
         frame = inspect.stack()[1]
@@ -397,32 +461,8 @@ def parse_args_collect_and_run_benchmarks(module=None):
         benchmarks=collect_benchmarks(module, args.benchmarks),
         number_runs=args.number_runs,
         number_repeats=args.repeats,
+        print_results=True,
         parameter_overrides=parameter_overrides,
     )
     if args.output_file is not None:
-        package_versions = {
-            f"{package}_version": _get_version_or_none(package)
-            for package in ("s2fft", "jax", "numpy")
-        }
-        system_info = {
-            "architecture": platform.architecture(),
-            "machine": platform.machine(),
-            "node": platform.node(),
-            "processor": platform.processor(),
-            "python_version": platform.python_version(),
-            "release": platform.release(),
-            "system": platform.system(),
-            "cpu_info": _get_cpu_info(),
-            "gpu_info": _get_gpu_info(),
-            "cuda_info": _get_cuda_info(),
-            **package_versions,
-        }
-        with open(args.output_file, "w") as f:
-            output = {
-                "date_time": datetime.datetime.now().isoformat(),
-                "benchmark_module": module.__name__,
-                "system_info": system_info,
-                "results": results,
-            }
-            json.dump(output, f, indent=True)
-    return results
+        write_json_results_file(args.output_file, results, module.__name__)
