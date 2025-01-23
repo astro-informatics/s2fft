@@ -83,10 +83,12 @@ import platform
 import timeit
 import tracemalloc
 from ast import literal_eval
+from collections.abc import Callable, Iterable
 from functools import partial
 from importlib.metadata import PackageNotFoundError, version
 from itertools import product
 from pathlib import Path
+from types import ModuleType
 from typing import Any, NamedTuple
 
 import jax
@@ -97,7 +99,7 @@ class SkipBenchmarkException(Exception):
     """Exception to be raised to skip benchmark for some parameter set."""
 
 
-def _get_version_or_none(package_name):
+def _get_version_or_none(package_name: str) -> str | None:
     """Get installed version of package or `None` if package not found."""
     try:
         return version(package_name)
@@ -115,7 +117,7 @@ def _get_cpu_info():
         return None
 
 
-def _get_gpu_memory_in_bytes(device):
+def _get_gpu_memory_in_bytes(device: jax.Device) -> int | None:
     """Try to get GPU memory available in bytes."""
     memory_stats = device.memory_stats()
     if memory_stats is None:
@@ -123,7 +125,7 @@ def _get_gpu_memory_in_bytes(device):
     return memory_stats.get("bytes_limit")
 
 
-def _get_gpu_info():
+def _get_gpu_info() -> dict[str, str | int]:
     """Get details of GPU devices available from JAX or None if JAX not available."""
     try:
         import jax
@@ -140,7 +142,7 @@ def _get_gpu_info():
         return None
 
 
-def _get_cuda_info():
+def _get_cuda_info() -> dict[str, str]:
     """Try to get information on versions of CUDA libraries."""
     try:
         from jax._src.lib import cuda_versions
@@ -159,7 +161,7 @@ def _get_cuda_info():
         return None
 
 
-def skip(message):
+def skip(message: str) -> None:
     """Skip benchmark for a particular parameter set with explanatory message.
 
     Args:
@@ -176,17 +178,22 @@ class BenchmarkSetup(NamedTuple):
     jit_benchmark: bool = False
 
 
-def benchmark(setup=None, **parameters):
+def benchmark(
+    setup: Callable[..., BenchmarkSetup] | None = None, **parameters
+) -> Callable:
     """Decorator for defining a function to be benchmark.
 
     Args:
         setup: Function performing any necessary set up for benchmark, and the resource
             usage of which will not be tracked in benchmarking. The function should
-            return a 2-tuple, with first entry a dictionary of values to pass to the
-            benchmark as keyword arguments, corresponding to any precomputed values,
-            and the second entry optionally a reference value specifying the expected
-            'true' numerical output of the behchmarked function to allow computing
-            numerical error, or `None` if there is no relevant reference value.
+            return an instance of `BenchmarkSetup` named tuple, with first entry a
+            dictionary of values to pass to the benchmark as keyword arguments,
+            corresponding to any precomputed values, the second entry optionally a
+            reference value specifying the expected 'true' numerical output of the
+            behchmarked function to allow computing numerical error, or `None` if there
+            is no relevant reference value and third entry a boolean flag indicating
+            whether to use JAX's just-in-time compilation transform to benchmark
+            function.
 
     Kwargs:
         Parameter names and associated lists of values over which to run benchmark.
@@ -209,12 +216,12 @@ def benchmark(setup=None, **parameters):
     return decorator
 
 
-def _parameters_string(parameters):
+def _parameters_string(parameters: dict) -> str:
     """Format parameter values as string for printing benchmark results."""
     return "(" + ", ".join(f"{name}: {val}" for name, val in parameters.items()) + ")"
 
 
-def _format_results_entry(results_entry):
+def _format_results_entry(results_entry: dict) -> str:
     """Format benchmark results entry as a string for printing."""
     return (
         (
@@ -243,12 +250,12 @@ def _format_results_entry(results_entry):
     )
 
 
-def _dict_product(dicts):
+def _dict_product(dicts: dict[str, Iterable[Any]]) -> Iterable[dict[str, Any]]:
     """Generator corresponding to Cartesian product of dictionaries."""
     return (dict(zip(dicts.keys(), values)) for values in product(*dicts.values()))
 
 
-def _parse_value(value):
+def _parse_value(value: str) -> Any:
     """Parse a value passed at command line as a Python literal or string as fallback"""
     try:
         return literal_eval(value)
@@ -256,7 +263,7 @@ def _parse_value(value):
         return str(value)
 
 
-def _parse_parameter_overrides(parameter_overrides):
+def _parse_parameter_overrides(parameter_overrides: list[str]) -> dict[str, Any]:
     """Parse any parameter override values passed as command line arguments"""
     return (
         {
@@ -268,7 +275,7 @@ def _parse_parameter_overrides(parameter_overrides):
     )
 
 
-def _parse_cli_arguments(description):
+def _parse_cli_arguments(description: str) -> argparse.Namespace:
     """Parse command line arguments passed for controlling benchmark runs"""
     parser = argparse.ArgumentParser(
         description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -307,7 +314,7 @@ def _parse_cli_arguments(description):
     return parser.parse_args()
 
 
-def _is_benchmark(object):
+def _is_benchmark(object: Any) -> bool:
     """Predicate for testing whether an object is a benchmark function or not."""
     return (
         inspect.isfunction(object)
@@ -316,7 +323,9 @@ def _is_benchmark(object):
     )
 
 
-def collect_benchmarks(module, benchmark_names):
+def collect_benchmarks(
+    module: ModuleType, benchmark_names: list[str]
+) -> list[Callable]:
     """Collect all benchmark functions from a module.
 
     Args:
@@ -335,7 +344,7 @@ def collect_benchmarks(module, benchmark_names):
 
 
 @contextlib.contextmanager
-def trace_memory_allocations(n_frames=1):
+def trace_memory_allocations(n_frames: int = 1) -> Callable[[], tuple[int, int]]:
     """Context manager for tracing memory allocations in managed with block.
 
     Returns a thunk (zero-argument function) which can be called on exit from with block
@@ -357,7 +366,9 @@ def trace_memory_allocations(n_frames=1):
         tracemalloc.stop()
 
 
-def _compile_jax_benchmark_and_analyse(benchmark_function, results_entry):
+def _compile_jax_benchmark_and_analyse(
+    benchmark_function: Callable, results_entry: dict
+) -> Callable:
     """Compile a JAX benchmark function and extract cost estimates if available."""
     compiled_benchmark_function = jax.jit(benchmark_function).lower().compile()
     cost_analysis = compiled_benchmark_function.cost_analysis()
@@ -385,12 +396,12 @@ def _compile_jax_benchmark_and_analyse(benchmark_function, results_entry):
 
 
 def run_benchmarks(
-    benchmarks,
-    number_runs,
-    number_repeats,
-    print_results=True,
-    parameter_overrides=None,
-):
+    benchmarks: list[Callable],
+    number_runs: int,
+    number_repeats: int,
+    print_results: bool = True,
+    parameter_overrides: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Run a set of benchmarks.
 
     Args:
@@ -456,7 +467,7 @@ def run_benchmarks(
     return results
 
 
-def get_system_info():
+def get_system_info() -> dict[str, Any]:
     """Get dictionary of metadata about system.
 
     Returns:
@@ -482,7 +493,9 @@ def get_system_info():
     }
 
 
-def write_json_results_file(output_file, results, benchmark_module):
+def write_json_results_file(
+    output_file: Path, results: dict[str, Any], benchmark_module: str
+) -> None:
     """Write benchmark results and system information to a file in JSON format.
 
     Args:
@@ -500,7 +513,7 @@ def write_json_results_file(output_file, results, benchmark_module):
         json.dump(output, f, indent=True)
 
 
-def parse_args_collect_and_run_benchmarks(module=None):
+def parse_args_collect_and_run_benchmarks(module: ModuleType | None = None) -> None:
     """Collect and run all benchmarks in a module and parse command line arguments.
 
     Args:
