@@ -42,6 +42,7 @@ def setup_forward(
         spin=spin,
         nside=nside,
         sampling=sampling,
+        method=method,
         reality=reality,
         spmd=spmd,
         L_lower=L_lower,
