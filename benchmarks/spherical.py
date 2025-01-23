@@ -28,12 +28,14 @@ def setup_forward(method, L, L_lower, sampling, spin, reality, spmd):
         skip("GPU distribution only valid for JAX.")
     rng = np.random.default_rng()
     flm = s2fft.utils.signal_generator.generate_flm(rng, L, spin=spin, reality=reality)
-    f = pyssht.inverse(
-        samples.flm_2d_to_1d(flm, L),
-        L,
-        Method=sampling.upper(),
-        Spin=spin,
-        Reality=reality,
+    f = s2fft.transforms.spherical.inverse(
+        flm,
+        L=L,
+        spin=spin,
+        sampling=sampling,
+        reality=reality,
+        spmd=spmd,
+        L_lower=L_lower,
     )
     precomps = generate_precomputes_jax(
         L, spin, sampling, forward=True, L_lower=L_lower

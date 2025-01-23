@@ -1,12 +1,10 @@
 """Benchmarks for precompute spherical transforms."""
 
 import numpy as np
-import pyssht
 from benchmarking import benchmark, parse_args_collect_and_run_benchmarks, skip
 
 import s2fft
 import s2fft.precompute_transforms
-from s2fft.sampling import s2_samples as samples
 
 L_VALUES = [8, 16, 32, 64, 128, 256]
 SPIN_VALUES = [0]
@@ -21,12 +19,12 @@ def setup_forward(method, L, sampling, spin, reality, recursion):
         skip("Reality only valid for scalar fields (spin=0).")
     rng = np.random.default_rng()
     flm = s2fft.utils.signal_generator.generate_flm(rng, L, spin=spin, reality=reality)
-    f = pyssht.inverse(
-        samples.flm_2d_to_1d(flm, L),
-        L,
-        Method=sampling.upper(),
-        Spin=spin,
-        Reality=reality,
+    f = s2fft.transforms.spherical.inverse(
+        flm,
+        L=L,
+        spin=spin,
+        sampling=sampling,
+        reality=reality,
     )
     kernel_function = (
         s2fft.precompute_transforms.construct.spin_spherical_kernel_jax
