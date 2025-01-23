@@ -120,13 +120,12 @@ def _get_cpu_info():
         return None
 
 
-def _get_gpu_memory_mebibytes(device):
-    """Try to get GPU memory available in mebibytes (MiB)."""
+def _get_gpu_memory_in_bytes(device):
+    """Try to get GPU memory available in bytes."""
     memory_stats = device.memory_stats()
     if memory_stats is None:
         return None
-    bytes_limit = memory_stats.get("bytes_limit")
-    return bytes_limit // 2**20 if bytes_limit is not None else None
+    return memory_stats.get("bytes_limit")
 
 
 def _get_gpu_info():
@@ -137,7 +136,7 @@ def _get_gpu_info():
         return [
             {
                 "kind": d.device_kind,
-                "memory_available / MiB": _get_gpu_memory_mebibytes(d),
+                "memory_available_in_bytes": _get_gpu_memory_in_bytes(d),
             }
             for d in jax.devices()
             if d.platform == "gpu"
@@ -228,15 +227,15 @@ def _format_results_entry(results_entry):
             if len(results_entry["parameters"]) != 0
             else "    "
         )
-        + f"min(time): {min(results_entry['times / s']):>#7.2g}s, "
-        + f"max(time): {max(results_entry['times / s']):>#7.2g}s"
+        + f"min(run times): {min(results_entry['run_times_in_seconds']):>#7.2g}s, "
+        + f"max(run times): {max(results_entry['run_times_in_seconds']):>#7.2g}s"
         + (
-            f", peak memory: {results_entry['peak_memory / MiB']:>#7.2g}MiB"
-            if "peak_memory / MiB" in results_entry
+            f", peak memory: {results_entry['peak_memory_in_bytes']:>#7.2g}B"
+            if "peak_memory_in_bytes" in results_entry
             else ""
         )
         + (
-            f", max(abs(error)): {results_entry['error']:>#7.2g}"
+            f", max(abs(error)): {results_entry['max_abs_error']:>#7.2g}"
             if "error" in results_entry
             else ""
         )
@@ -441,19 +440,21 @@ def run_benchmarks(
                 # computing numerical error
                 output = benchmark_function()
                 if reference_output is not None and output is not None:
-                    results_entry["error"] = abs(reference_output - output).max()
+                    results_entry["max_abs_error"] = abs(
+                        reference_output - output
+                    ).max()
                 run_times = [
                     time / number_runs
                     for time in timeit.repeat(
                         benchmark_function, number=number_runs, repeat=number_repeats
                     )
                 ]
-                results_entry["times / s"] = run_times
+                results_entry["run_times_in_seconds"] = run_times
                 if MEMORY_PROFILER_AVAILABLE:
-                    results_entry["peak_memory / MiB"] = measure_peak_memory_usage(
+                    results_entry["peak_memory_in_bytes"] = measure_peak_memory_usage(
                         benchmark_function,
                         interval=min(run_times) / 20,
-                    )
+                    ) * (2**20)
                 results[benchmark.__name__].append(results_entry)
                 if print_results:
                     print(_format_results_entry(results_entry))
