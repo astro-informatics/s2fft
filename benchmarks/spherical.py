@@ -16,6 +16,7 @@ SAMPLING_VALUES = ["mw"]
 METHOD_VALUES = ["numpy", "jax"]
 REALITY_VALUES = [True]
 SPMD_VALUES = [False]
+N_ITER_VALUES = [None]
 
 
 def _jax_arrays_to_numpy(precomps):
@@ -26,7 +27,9 @@ def _get_nside(sampling, L, L_to_nside_ratio):
     return None if sampling != "healpix" else L // L_to_nside_ratio
 
 
-def setup_forward(method, L, L_lower, sampling, spin, L_to_nside_ratio, reality, spmd):
+def setup_forward(
+    method, L, L_lower, sampling, spin, L_to_nside_ratio, reality, spmd, n_iter
+):
     if reality and spin != 0:
         skip("Reality only valid for scalar fields (spin=0).")
     if spmd and method != "jax":
@@ -62,9 +65,20 @@ def setup_forward(method, L, L_lower, sampling, spin, L_to_nside_ratio, reality,
     L_to_nside_ratio=L_TO_NSIDE_RATIO_VALUES,
     reality=REALITY_VALUES,
     spmd=SPMD_VALUES,
+    n_iter=N_ITER_VALUES,
 )
 def forward(
-    f, precomps, method, L, L_lower, sampling, spin, L_to_nside_ratio, reality, spmd
+    f,
+    precomps,
+    method,
+    L,
+    L_lower,
+    sampling,
+    spin,
+    L_to_nside_ratio,
+    reality,
+    spmd,
+    n_iter,
 ):
     if method == "pyssht":
         flm = pyssht.forward(f, L, spin, sampling.upper())
@@ -80,6 +94,7 @@ def forward(
             reality=reality,
             method=method,
             spmd=spmd,
+            iter=n_iter,
         )
     if method == "jax":
         flm.block_until_ready()
