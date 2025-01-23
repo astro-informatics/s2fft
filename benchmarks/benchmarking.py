@@ -9,7 +9,7 @@ over (the Cartesian product of all specified parameter values is used). The benc
 function is passed the union of any precomputed values outputted by the setup function
 and the parameters values as keyword arguments.
 
-As a simple example, the following defines a benchmarkfor computing the mean of a list
+As a simple example, the following defines a benchmark for computing the mean of a list
 of numbers.
 
 ```Python
@@ -17,7 +17,7 @@ import random
 from benchmarking import benchmark
 
 def setup_mean(n):
-    return {"x": [random.random() for _ in range(n)]}
+    return {"x": [random.random() for _ in range(n)]}, None
 
 @benchmark(setup_computation, n=[1, 2, 3, 4])
 def mean(x, n):
@@ -32,7 +32,7 @@ import random
 from benchmarking import benchmark, skip
 
 def setup_mean(n):
-    return {"x": [random.random() for _ in range(n)]}
+    return {"x": [random.random() for _ in range(n)]}, None
 
 @benchmark(setup_computation, n=[0, 1, 2, 3, 4])
 def mean(x, n):
@@ -156,12 +156,16 @@ def skip(message):
 
 
 def benchmark(setup_=None, **parameters):
-    """Decorator for defining a function to be benchmarker
+    """Decorator for defining a function to be benchmark.
 
     Args:
         setup_: Function performing any necessary set up for benchmark, and the resource
             usage of which will not be tracked in benchmarking. The function should
-            return a dictionary of values to pass to the benchmark as keyword arguments.
+            return a 2-tuple, with first entry a dictionary of values to pass to the
+            benchmark as keyword arguments, corresponding to any precomputed values,
+            and the second entry optionally a reference value specifying the expected
+            'true' numerical output of the behchmarked function to allow computing
+            numerical error, or `None` if there is no relevant reference value.
 
     Kwargs:
         Parameter names and associated lists of values over which to run benchmark.
@@ -169,7 +173,10 @@ def benchmark(setup_=None, **parameters):
 
     Returns:
         Decorator which marks function as benchmark and sets setup function and
-        parameters attributes.
+        parameters attributes. To also record error of benchmarked function in terms of
+        maximum absolute elementwise difference between output and reference value
+        returned by `setup_` function, the decorated benchmark function should return
+        the numerical value to measure the error for.
     """
 
     def decorator(function):
@@ -313,10 +320,10 @@ def run_benchmarks(
             parameters.update(parameter_overrides)
         for parameter_set in _dict_product(parameters):
             try:
-                precomputes = benchmark.setup(**parameter_set)
+                precomputes, reference_output = benchmark.setup(**parameter_set)
                 benchmark_function = partial(benchmark, **precomputes, **parameter_set)
-                if run_once_and_discard:
-                    benchmark_function()
+                if run_once_and_discard or reference_output is not None:
+                    output = benchmark_function()
                 run_times = [
                     time / number_runs
                     for time in timeit.repeat(
@@ -324,6 +331,8 @@ def run_benchmarks(
                     )
                 ]
                 results_entry = {**parameter_set, "times / s": run_times}
+                if reference_output is not None and output is not None:
+                    results_entry["error"] = abs(reference_output - output).max()
                 if MEMORY_PROFILER_AVAILABLE:
                     baseline_memory = memory_profiler.memory_usage(max_usage=True)
                     peak_memory = (
@@ -350,6 +359,11 @@ def run_benchmarks(
                         + (
                             f", peak mem.: {peak_memory:>#7.2g}MiB"
                             if MEMORY_PROFILER_AVAILABLE
+                            else ""
+                        )
+                        + (
+                            f", round-trip error: {results_entry['error']:#7.2g}"
+                            if "error" in results_entry
                             else ""
                         )
                     )

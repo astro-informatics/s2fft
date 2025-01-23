@@ -35,7 +35,7 @@ def setup_forward(method, L, N, L_lower, sampling, reality, mode):
     kernel = kernel_function(
         L=L, N=N, reality=reality, sampling=sampling, forward=True, mode=mode
     )
-    return {"f": f, "kernel": kernel}
+    return {"f": f, "kernel": kernel}, flmn
 
 
 @benchmark(
@@ -60,6 +60,7 @@ def forward(f, kernel, method, L, N, L_lower, sampling, reality, mode):
     )
     if method == "jax":
         flmn.block_until_ready()
+    return flmn
 
 
 def setup_inverse(method, L, N, L_lower, sampling, reality, mode):
@@ -73,7 +74,7 @@ def setup_inverse(method, L, N, L_lower, sampling, reality, mode):
     kernel = kernel_function(
         L=L, N=N, reality=reality, sampling=sampling, forward=False, mode=mode
     )
-    return {"flmn": flmn, "kernel": kernel}
+    return {"flmn": flmn, "kernel": kernel}, None
 
 
 @benchmark(
@@ -98,6 +99,7 @@ def inverse(flmn, kernel, method, L, N, L_lower, sampling, reality, mode):
     )
     if method == "jax":
         f.block_until_ready()
+    return f
 
 
 if __name__ == "__main__":

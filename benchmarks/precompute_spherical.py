@@ -41,7 +41,7 @@ def setup_forward(method, L, sampling, spin, reality, recursion):
         forward=True,
         recursion=recursion,
     )
-    return {"f": f, "kernel": kernel}
+    return {"f": f, "kernel": kernel}, flm
 
 
 @benchmark(
@@ -65,6 +65,7 @@ def forward(f, kernel, method, L, sampling, spin, reality, recursion):
     )
     if method == "jax":
         flm.block_until_ready()
+    return flm
 
 
 def setup_inverse(method, L, sampling, spin, reality, recursion):
@@ -85,7 +86,7 @@ def setup_inverse(method, L, sampling, spin, reality, recursion):
         forward=False,
         recursion=recursion,
     )
-    return {"flm": flm, "kernel": kernel}
+    return {"flm": flm, "kernel": kernel}, None
 
 
 @benchmark(
@@ -109,6 +110,7 @@ def inverse(flm, kernel, method, L, sampling, spin, reality, recursion):
     )
     if method == "jax":
         f.block_until_ready()
+    return f
 
 
 if __name__ == "__main__":

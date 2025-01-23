@@ -37,7 +37,7 @@ def setup_forward(method, L, L_lower, N, sampling, reality):
     precomps = generate_precomputes(
         L, N, sampling, forward=True, reality=reality, L_lower=L_lower
     )
-    return {"f": f, "precomps": precomps}
+    return {"f": f, "precomps": precomps}, flmn
 
 
 @benchmark(
@@ -62,6 +62,7 @@ def forward(f, precomps, method, L, L_lower, N, sampling, reality):
     )
     if method == "jax":
         flmn.block_until_ready()
+    return flmn
 
 
 def setup_inverse(method, L, L_lower, N, sampling, reality):
@@ -75,7 +76,7 @@ def setup_inverse(method, L, L_lower, N, sampling, reality):
     precomps = generate_precomputes(
         L, N, sampling, forward=False, reality=reality, L_lower=L_lower
     )
-    return {"flmn": flmn, "precomps": precomps}
+    return {"flmn": flmn, "precomps": precomps}, None
 
 
 @benchmark(
@@ -100,6 +101,7 @@ def inverse(flmn, precomps, method, L, L_lower, N, sampling, reality):
     )
     if method == "jax":
         f.block_until_ready()
+    return f
 
 
 if __name__ == "__main__":

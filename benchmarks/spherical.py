@@ -40,7 +40,7 @@ def setup_forward(method, L, L_lower, sampling, spin, reality, spmd):
     )
     if method == "numpy":
         precomps = _jax_arrays_to_numpy(precomps)
-    return {"f": f, "precomps": precomps}
+    return {"f": f, "precomps": precomps}, flm
 
 
 @benchmark(
@@ -70,6 +70,7 @@ def forward(f, precomps, method, L, L_lower, sampling, spin, reality, spmd):
         )
     if method == "jax":
         flm.block_until_ready()
+    return flm
 
 
 def setup_inverse(method, L, L_lower, sampling, spin, reality, spmd):
@@ -84,7 +85,7 @@ def setup_inverse(method, L, L_lower, sampling, spin, reality, spmd):
     )
     if method == "numpy":
         precomps = _jax_arrays_to_numpy(precomps)
-    return {"flm": flm, "precomps": precomps}
+    return {"flm": flm, "precomps": precomps}, None
 
 
 @benchmark(
@@ -114,6 +115,7 @@ def inverse(flm, precomps, method, L, L_lower, sampling, spin, reality, spmd):
         )
     if method == "jax":
         f.block_until_ready()
+    return f
 
 
 if __name__ == "__main__":
