@@ -1,12 +1,11 @@
 """Benchmarks for on-the-fly spherical transforms."""
 
+import jax
 import numpy as np
-import pyssht
 from benchmarking import benchmark, parse_args_collect_and_run_benchmarks, skip
 
 import s2fft
 from s2fft.recursions.price_mcewen import generate_precomputes_jax
-from s2fft.sampling import s2_samples as samples
 
 L_VALUES = [8, 16, 32, 64, 128, 256]
 L_LOWER_VALUES = [0]
@@ -80,25 +79,20 @@ def forward(
     spmd,
     n_iter,
 ):
-    if method == "pyssht":
-        flm = pyssht.forward(f, L, spin, sampling.upper())
-    else:
-        flm = s2fft.transforms.spherical.forward(
-            f=f,
-            L=L,
-            L_lower=L_lower,
-            precomps=precomps,
-            spin=spin,
-            nside=_get_nside(sampling, L, L_to_nside_ratio),
-            sampling=sampling,
-            reality=reality,
-            method=method,
-            spmd=spmd,
-            iter=n_iter,
-        )
-    if method == "jax":
-        flm.block_until_ready()
-    return flm
+    flm = s2fft.transforms.spherical.forward(
+        f=f,
+        L=L,
+        L_lower=L_lower,
+        precomps=precomps,
+        spin=spin,
+        nside=_get_nside(sampling, L, L_to_nside_ratio),
+        sampling=sampling,
+        reality=reality,
+        method=method,
+        spmd=spmd,
+        iter=n_iter,
+    )
+    return flm.block_until_ready() if isinstance(flm, jax.Array) else flm
 
 
 def setup_inverse(method, L, L_lower, sampling, spin, L_to_nside_ratio, reality, spmd):
@@ -135,24 +129,19 @@ def setup_inverse(method, L, L_lower, sampling, spin, L_to_nside_ratio, reality,
 def inverse(
     flm, precomps, method, L, L_lower, sampling, spin, L_to_nside_ratio, reality, spmd
 ):
-    if method == "pyssht":
-        f = pyssht.inverse(samples.flm_2d_to_1d(flm, L), L, spin, sampling.upper())
-    else:
-        f = s2fft.transforms.spherical.inverse(
-            flm=flm,
-            L=L,
-            L_lower=L_lower,
-            precomps=precomps,
-            spin=spin,
-            nside=_get_nside(sampling, L, L_to_nside_ratio),
-            sampling=sampling,
-            reality=reality,
-            method=method,
-            spmd=spmd,
-        )
-    if method == "jax":
-        f.block_until_ready()
-    return f
+    f = s2fft.transforms.spherical.inverse(
+        flm=flm,
+        L=L,
+        L_lower=L_lower,
+        precomps=precomps,
+        spin=spin,
+        nside=_get_nside(sampling, L, L_to_nside_ratio),
+        sampling=sampling,
+        reality=reality,
+        method=method,
+        spmd=spmd,
+    )
+    return f.block_until_ready() if isinstance(f, jax.Array) else f
 
 
 if __name__ == "__main__":
