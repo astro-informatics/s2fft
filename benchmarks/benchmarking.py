@@ -372,10 +372,12 @@ def _compile_jax_benchmark_and_analyse(
     """Compile a JAX benchmark function and extract cost estimates if available."""
     compiled_benchmark_function = jax.jit(benchmark_function).lower().compile()
     cost_analysis = compiled_benchmark_function.cost_analysis()
-    if cost_analysis is not None and isinstance(cost_analysis, list):
+    if cost_analysis is not None:
+        if isinstance(cost_analysis, list):
+            cost_analysis = cost_analysis[0]
         results_entry["cost_analysis"] = {
-            "flops": cost_analysis[0].get("flops"),
-            "bytes_accessed": cost_analysis[0].get("bytes accessed"),
+            "flops": cost_analysis.get("flops"),
+            "bytes_accessed": cost_analysis.get("bytes accessed"),
         }
     memory_analysis = compiled_benchmark_function.memory_analysis()
     if memory_analysis is not None:
