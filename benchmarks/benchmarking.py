@@ -190,7 +190,7 @@ def benchmark(
             dictionary of values to pass to the benchmark as keyword arguments,
             corresponding to any precomputed values, the second entry optionally a
             reference value specifying the expected 'true' numerical output of the
-            behchmarked function to allow computing numerical error, or `None` if there
+            benchmarked function to allow computing numerical error, or `None` if there
             is no relevant reference value and third entry a boolean flag indicating
             whether to use JAX's just-in-time compilation transform to benchmark
             function.
