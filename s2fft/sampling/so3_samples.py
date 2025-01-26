@@ -13,8 +13,8 @@ def f_shape(
     :math:`SO(3)`.
 
     Note:
-        Importantly, the convention adopted for storage of f is :math:`[\beta, \alpha,
-        \gamma]`, for Euler angles :math:`(\alpha, \beta, \gamma)` following the
+        Importantly, the convention adopted for storage of :math:`f` is :math:`[\gamma,
+        \beta, \alpha]`, for Euler angles :math:`(\alpha, \beta, \gamma)` following the
         :math:`zyz` Euler convention, in order to simplify indexing for internal use.
         For a given :math:`\gamma` we thus recover a signal on the sphere indexed by
         :math:`[\theta, \phi]`, i.e. we associate :math:`\beta` with :math:`\theta` and
