@@ -1,16 +1,31 @@
-from functools import partial
+"""C backend functions for which to provide JAX frontends."""
 
-import healpy
+import importlib
+from functools import partial
+from types import ModuleType
+
 import jax.numpy as jnp
 import numpy as np
-
-# C backend functions for which to provide JAX frontend.
-import pyssht
 from jax import core, custom_vjp
 from jax.interpreters import ad
 
 from s2fft.sampling import reindex
 from s2fft.utils import iterative_refinement, quadrature_jax
+
+
+class MissingWrapperDependencyError(Exception):
+    """Exception raised when a dependency for a wrapper function is missing."""
+
+
+def _try_import_module(module_name: str) -> ModuleType:
+    """Try to import a named module which may not be installed."""
+    try:
+        module = importlib.import_module(module_name)
+    except ImportError as e:
+        raise MissingWrapperDependencyError(
+            "Wrapper function requires {module_name} to be installed"
+        ) from e
+    return module
 
 
 @custom_vjp
@@ -29,6 +44,8 @@ def ssht_inverse(
     McEwen & Wiaux 2011 [1]. We make use of their python bindings for which we provide
     custom JAX frontends, hence providing support for automatic differentiation. Currently
     these transforms can only be deployed on CPU, which is a limitation of the SSHT C package.
+
+    Requires `pyssht` package to be installed.
 
     Args:
         flm (jnp.ndarray): Spherical harmonic coefficients.
@@ -56,6 +73,7 @@ def ssht_inverse(
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
 
     """
+    pyssht = _try_import_module("pyssht")
     sampling_str = ["MW", "MWSS", "DH", "GL"]
     flm_1d = reindex.flm_2d_to_1d_fast(flm, L)
     _backend = "SSHT" if _ssht_backend == 0 else "ducc0"
@@ -86,6 +104,7 @@ def _ssht_inverse_fwd(
 
 def _ssht_inverse_bwd(res, f):
     """Private function which implements the backward pass for inverse jax_ssht."""
+    pyssht = _try_import_module("pyssht")
     _, L, spin, reality, ssht_sampling, _ssht_backend = res
     sampling_str = ["MW", "MWSS", "DH", "GL"]
     _backend = "SSHT" if _ssht_backend == 0 else "ducc0"
@@ -149,6 +168,8 @@ def ssht_forward(
     custom JAX frontends, hence providing support for automatic differentiation. Currently
     these transforms can only be deployed on CPU, which is a limitation of the SSHT C package.
 
+    Requires `pyssht` package to be installed.
+
     Args:
         f (jnp.ndarray): Signal on the sphere.
 
@@ -175,6 +196,7 @@ def ssht_forward(
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
 
     """
+    pyssht = _try_import_module("pyssht")
     sampling_str = ["MW", "MWSS", "DH", "GL"]
     _backend = "SSHT" if _ssht_backend == 0 else "ducc0"
     flm = jnp.array(
@@ -205,6 +227,7 @@ def _ssht_forward_fwd(
 
 def _ssht_forward_bwd(res, flm):
     """Private function which implements the backward pass for forward jax_ssht."""
+    pyssht = _try_import_module("pyssht")
     _, L, spin, reality, ssht_sampling, _ssht_backend = res
     sampling_str = ["MW", "MWSS", "DH", "GL"]
     _backend = "SSHT" if _ssht_backend == 0 else "ducc0"
@@ -300,6 +323,7 @@ def _real_dtype(complex_dtype):
 
 
 def _healpy_map2alm_impl(f: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
+    healpy = _try_import_module("healpy")
     return jnp.array(healpy.map2alm(np.array(f), lmax=L - 1, iter=0))
 
 
@@ -332,6 +356,8 @@ def healpy_map2alm(f: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
     array using HEALPix (ring-ordered) indexing. To instead return a two-dimensional
     array of harmonic coefficients use :py:func:`healpy_forward`.
 
+    Requires `healpy` package to be installed.
+
     Args:
         f (jnp.ndarray): Signal on the sphere.
 
@@ -347,6 +373,7 @@ def healpy_map2alm(f: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
 
 
 def _healpy_alm2map_impl(flm: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
+    healpy = _try_import_module("healpy")
     return jnp.array(healpy.alm2map(np.array(flm), lmax=L - 1, nside=nside))
 
 
@@ -384,6 +411,8 @@ def healpy_alm2map(flm: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
     dimensional array using HEALPix (ring-ordered) indexing. To instead pass a
     two-dimensional array of harmonic coefficients use :py:func:`healpy_inverse`.
 
+    Requires `healpy` package to be installed.
+
     Args:
         flm (jnp.ndarray): Spherical harmonic coefficients.
 
@@ -407,6 +436,8 @@ def healpy_forward(f: jnp.ndarray, L: int, nside: int, iter: int = 3) -> jnp.nda
     custom JAX frontends, hence providing support for automatic differentiation.
     Currently these transforms can only be deployed on CPU, which is a limitation of the
     C++ library.
+
+    Requires `healpy` package to be installed.
 
     Args:
         f (jnp.ndarray): Signal on the sphere.
@@ -447,6 +478,8 @@ def healpy_inverse(flm: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
     custom JAX frontends, hence providing support for automatic differentiation.
     Currently these transforms can only be deployed on CPU, which is a limitation of the
     C++ library.
+
+    Requires `healpy` package to be installed.
 
     Args:
         flm (jnp.ndarray): Spherical harmonic coefficients.

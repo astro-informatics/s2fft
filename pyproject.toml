@@ -27,15 +27,12 @@ classifiers = [
 ]
 description = "Differentiable and accelerated spherical transforms with JAX"
 dependencies = [
-    "numpy>=1.20,<2",
+    "numpy>=1.20",
     "colorlog",
     "pyyaml",
     "jax>=0.3.13",
     "jaxlib",
     "torch",
-    "pyssht",
-    "healpy",
-    "ducc0",
 ]
 dynamic = [
     "version",
@@ -71,9 +68,13 @@ plotting = [
     "ipywidgets",
 ]
 tests = [
+    "ducc0",
+    "healpy",
+    "numpy<2",  # Required currently due to lack of Numpy v2 compatible pyssht release
     "pytest",
     "pytest-cov",
     "so3",
+    "pyssht",
 ]
 
 [tool.scikit-build]
