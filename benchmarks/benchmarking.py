@@ -451,6 +451,9 @@ def run_benchmarks(
                     results_entry["max_abs_error"] = abs(
                         reference_output - output
                     ).max()
+                    results_entry["mean_abs_error"] = abs(
+                        reference_output - output
+                    ).mean()
                 run_times = [
                     time / number_runs
                     for time in timeit.repeat(
