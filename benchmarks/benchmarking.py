@@ -238,7 +238,7 @@ def _format_results_entry(results_entry: dict) -> str:
         )
         + (
             f", max(abs(error)): {results_entry['max_abs_error']:>#7.2g}"
-            if "error" in results_entry
+            if "max_abs_error" in results_entry
             else ""
         )
         + (
