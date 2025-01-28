@@ -448,12 +448,12 @@ def run_benchmarks(
                 results_entry["traced_memory_final_in_bytes"] = current_size
                 results_entry["traced_memory_peak_in_bytes"] = peak_size
                 if reference_output is not None and output is not None:
-                    results_entry["max_abs_error"] = abs(
-                        reference_output - output
-                    ).max()
-                    results_entry["mean_abs_error"] = abs(
-                        reference_output - output
-                    ).mean()
+                    results_entry["max_abs_error"] = float(
+                        abs(reference_output - output).max()
+                    )
+                    results_entry["mean_abs_error"] = float(
+                        abs(reference_output - output).mean()
+                    )
                 run_times = [
                     time / number_runs
                     for time in timeit.repeat(
