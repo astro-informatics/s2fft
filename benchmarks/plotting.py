@@ -33,10 +33,10 @@ def _plot_scaling_guide(
     order: int,
 ) -> None:
     n = np.argsort(parameter_values)[len(parameter_values) // 2]
-    coefficient = measurement_values[n] / parameter_values[n] ** order
+    coefficient = measurement_values[n] / float(parameter_values[n]) ** order
     ax.plot(
         parameter_values,
-        coefficient * parameter_values**order,
+        coefficient * parameter_values.astype(float) ** order,
         "k:",
         label=f"$\\mathcal{{O}}({parameter_symbol}^{order})$",
     )
