@@ -1,17 +1,13 @@
 # Benchmarks for `s2fft`
 
-Scripts for benchmarking `s2fft` with `timeit` (and optionally `memory_profiler`).
+Scripts for benchmarking `s2fft` transforms.
 
 Measures time to compute transforms for grids of parameters settings, optionally 
 outputting the results to a JSON file to allow comparing performance over versions
-and/or systems. 
-If the [`memory_profiler` package](https://github.com/pythonprofilers/memory_profiler) 
-is installed an estimate of the peak (main) memory usage of the benchmarked functions
-will also be recorded.
+and/or systems.
 If the [`py-cpuinfo` package](https://pypi.org/project/py-cpuinfo/) 
 is installed additional information about CPU of system benchmarks are run on will be
 recorded in JSON output.
-
 
 ## Description
 
@@ -40,7 +36,7 @@ display the usage message:
 ```
 usage: spherical.py [-h] [-number-runs NUMBER_RUNS] [-repeats REPEATS]
                     [-parameter-overrides [PARAMETER_OVERRIDES ...]] [-output-file OUTPUT_FILE]
-                    [--run-once-and-discard]
+                    [-benchmarks BENCHMARKS [BENCHMARKS ...]]
 
 Benchmarks for on-the-fly spherical transforms.
 
@@ -55,9 +51,8 @@ options:
                         parameters. (default: None)
   -output-file OUTPUT_FILE
                         File path to write JSON formatted results to. (default: None)
-  --run-once-and-discard
-                        Run benchmark function once first without recording time to ignore the effect of any initial
-                        one-off costs such as just-in-time compilation. (default: False)
+  -benchmarks BENCHMARKS [BENCHMARKS ...]
+                        Names of benchmark functions to run. All benchmarks are run if omitted. (default: None)
 ```
 
 For example to run the spherical transform benchmarks using only the JAX implementations,
@@ -65,7 +60,7 @@ running on a CPU (in double-precision) for `L` values 64, 128, 256, 512 and 1024
 would run from the root of the repository:
 
 ```sh
-JAX_PLATFORM_NAME=cpu JAX_ENABLE_X64=1 python benchmarks/spherical.py --run-once-and-discard -p L 64 128 256 512 1024 -p method jax
+JAX_PLATFORM_NAME=cpu JAX_ENABLE_X64=1 python benchmarks/spherical.py -p L 64 128 256 512 1024 -p method jax
 ```
 
 Note the usage of environment variables `JAX_PLATFORM_NAME` and `JAX_ENABLE_X64` to 
