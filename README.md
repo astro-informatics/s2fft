@@ -1,3 +1,9 @@
+<div style="text-align: center;" align="center">
+
+<img class="dark-light" width="98" height="85" alt="s2fft logo - schematic representation of a tiled sphere" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/sax_logo.png">
+
+# Differentiable and accelerated spherical transforms
+
 [![Tests status](https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml)
 [![Linting status](https://github.com/astro-informatics/s2fft/actions/workflows/linting.yml/badge.svg?branch=main)](https://github.com/astro-informatics/s2fft/actions/workflows/linting.yml)
 [![Documentation status](https://github.com/astro-informatics/s2fft/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/astro-informatics/s2fft/actions/workflows/docs.yml)
@@ -5,13 +11,11 @@
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyPI package](https://badge.fury.io/py/s2fft.svg)](https://badge.fury.io/py/s2fft)
 [![arXiv](http://img.shields.io/badge/arXiv-2311.14670-orange.svg?style=flat)](https://arxiv.org/abs/2311.14670)
-[![All Contributors](https://img.shields.io/github/all-contributors/astro-informatics/s2fft?color=ee8449&style=flat-square)](#contributors-)
+![All Contributors](https://img.shields.io/github/all-contributors/astro-informatics/s2fft?color=ee8449&style=flat-square)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/astro-informatics/s2fft/blob/main/notebooks/spherical_harmonic_transform.ipynb)
 [![Linter](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-<img align="left" height="85" width="98" alt="s2fft logo - schematic representation of a tiled sphere" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main//docs/assets/sax_logo.png">
-
-# Differentiable and accelerated spherical transforms
+</div>
 
 `S2FFT` is a Python package for computing Fourier transforms on the sphere
 and rotation group [(Price & McEwen 2024)](https://arxiv.org/abs/2311.14670) using 
@@ -24,7 +28,6 @@ for adjoint transformations where needed, and comes with different
 optimisations (precompute or not) that one may select depending on
 available resources and desired angular resolution $L$.
 
-
 ## Algorithms ⚡
 
 `S2FFT` leverages new algorithmic structures that can he highly
@@ -34,7 +37,10 @@ algorithms are based on new Wigner-d recursions that are stable to high
 angular resolution $L$. The diagram below illustrates the recursions
 (for further details see [Price & McEwen 2024]((https://arxiv.org/abs/2311.14670))).
 
-![Schematic of Wigner recursions](https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/Wigner_recursion_legend_darkmode.png)
+<div style="text-align: center;" align="center">
+<img class="dark-light" alt="Schematic of Wigner recursions" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/Wigner_recursion_legend_darkmode.png" />
+</div>
+
 With this recursion to hand, the spherical harmonic coefficients of an 
 isolatitudinally sampled map may be computed as a two step process. First, 
 a 1D Fourier transform over longitude, for each latitudinal ring. Second, 
@@ -47,7 +53,9 @@ negligible memory overhead at the cost of slightly slower execution. The
 diagram below illustrates the separable spherical harmonic transform 
 (for further details see [Price & McEwen 2024]((https://arxiv.org/abs/2311.14670))).
 
-![Schematic of forward and inverse spherical harmonic transforms](https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/sax_schematic_legend_darkmode.png)
+<div style="text-align: center;" align="center">
+<img class="dark-light" alt="Schematic of forward and inverse spherical harmonic transforms" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/sax_schematic_legend_darkmode.png" />
+</div>
 
 ## Sampling 🌍
 
@@ -72,7 +80,9 @@ so the corresponding harmonic transforms do not achieve machine
 precision but exhibit some error. However, the HEALPix sampling provides
 pixels of equal areas, which has many practical advantages.
 
-<p align="center"><img alt="Visualization of spherical sampling schemes" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/spherical_sampling.png" width="700"></p>
+<div style="text-align: center;" align="center">
+<img class="dark-light" alt="Visualization of spherical sampling schemes" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/spherical_sampling.png" width="700">
+</div>
 
 > [!NOTE]  
 > For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and are working to fix it.  A fix for CPU execution has now been implemented (see example [notebook](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_HEALPix_backend.html)).
@@ -181,7 +191,7 @@ For further details on usage see the [documentation](https://astro-informatics.g
 > [!NOTE]  
 > We also provide PyTorch support for the precompute version of our transforms, as demonstrated in the [_Torch frontend_ tutorial notebook](https://astro-informatics.github.io/s2fft/tutorials/torch_frontend/torch_frontend.html).
 
-## JAX wrappers for SSHT and HEALPix 💡
+## SSHT & HEALPix wrappers 💡
 
 `S2FFT` also provides JAX support for existing C/C++ packages, specifically [`HEALPix`](https://healpix.jpl.nasa.gov) and [`SSHT`](https://github.com/astro-informatics/ssht). This works 
 by wrapping Python bindings with custom JAX frontends. Note that this C/C++ to JAX interoperability is currently limited to CPU.
@@ -206,7 +216,6 @@ For further details on usage see the associated [notebooks](https://astro-inform
 ## Benchmarks ⏱️
 
 A suite of benchmark functions for both the on-the-fly and precompute versions of the spherical harmonic and Wigner transforms are available in the `benchmarks` directory, along with utilities for running the benchmarks and plotting the results.
-
 
 ## Contributors ✨
 
@@ -300,13 +309,13 @@ it will be of use to a wider community.
 Copyright 2023 Matthew Price, Jason McEwen and contributors.
 
 `S2FFT` is free software made available under the MIT License. For
-details see the [`LICENCE.txt`](LICENCE.txt) file.
+details see the [`LICENCE.txt`](https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt) file.
 
-The file [`lib/include/kernel_helpers.h`](lib/include/kernel_helpers.h) is adapted from
+The file [`lib/include/kernel_helpers.h`](https://github.com/astro-informatics/s2fft/blob/main/lib/include/kernel_helpers.h) is adapted from
 [code](https://github.com/dfm/extending-jax/blob/c33869665236877a2ae281f3f5dbff579e8f5b00/lib/kernel_helpers.h) in [a tutorial on extending JAX](https://github.com/dfm/extending-jax) by 
 [Dan Foreman-Mackey](https://github.com/dfm) and licensed under a [MIT license](https://github.com/dfm/extending-jax/blob/371dca93c6405368fa8e71690afd3968d75f4bac/LICENSE).
 
-The file [`lib/include/kernel_nanobind_helpers.h`](lib/include/kernel_nanobind_helpers.h)
+The file [`lib/include/kernel_nanobind_helpers.h`](https://github.com/astro-informatics/s2fft/blob/main/lib/include/kernel_nanobind_helpers.h)
 is adapted from [code](https://github.com/jax-ml/jax/blob/3d389a7fb440c412d95a1f70ffb91d58408247d0/jaxlib/kernel_nanobind_helpers.h) 
 by the [JAX](https://github.com/jax-ml/jax) authors 
 and licensed under a [Apache-2.0 license](https://github.com/jax-ml/jax/blob/3d389a7fb440c412d95a1f70ffb91d58408247d0/LICENSE). 
