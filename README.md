@@ -79,42 +79,69 @@ pixels of equal areas, which has many practical advantages.
 
 ## Installation 💻
 
-The Python dependencies for the `S2FFT` package are listed in the file
-`requirements/requirements-core.txt` and will be automatically installed
-into the active python environment by [pip](https://pypi.org) when running
+The latest release of `S2FFT` published [on PyPI](https://pypi.org/project/s2fft/) can be installed by running
 
-``` bash
+```bash
 pip install s2fft
 ```
-This will install all core functionality which includes JAX support (including PyTorch support).
 
-Alternatively, the `S2FFT` package may be installed directly from GitHub by cloning this 
-repository and then running 
+Alternatively, the  latest development version of `S2FFT` may be installed directly from GitHub by running 
 
-``` bash
-pip install .        
+```bash
+pip install git+https://github.com/astro-informatics/s2fft  
 ```
 
-from the root directory of the repository. 
+## Tests 🚦
 
-Unit tests can then be executed to ensure the installation was successful by first installing the test requirements and then running pytest
+A `pytest` test suite for the package is included in the `tests` directory.
+To install the test dependencies, clone the repository and install the package (in [editable mode](https://setuptools.pypa.io/en/latest/userguide/development_mode.html)) 
+with the extra test dependencies by running from the root of the repository
 
-``` bash
-pip install -r requirements/requirements-tests.txt
-pytest tests/  
+```bash
+pip install -e ".[tests]"
 ```
 
-Documentation for the released version is available [here](https://astro-informatics.github.io/s2fft/).  To build the documentation locally run
+To run the tests, run from the root of the repository
 
-``` bash
-pip install -r requirements/requirements-docs.txt
+```bash
+pytest  
+```
+
+## Documentation 📖
+
+Documentation for the released version is available [here](https://astro-informatics.github.io/s2fft/). 
+To install the documentation dependencies, clone the repository and install the package (in [editable mode](https://setuptools.pypa.io/en/latest/userguide/development_mode.html)) 
+with the extra documentation dependencies by running from the root of the repository
+
+```bash
+pip install -e ".[docs]"
+```
+
+To build the documentation, run from the root of the repository
+
+```bash
 cd docs 
 make html
 open _build/html/index.html
 ```
 
-> [!NOTE]  
-> For plotting functionality which can be found throughout our various notebooks, one must install the requirements which can be found in `requirements/requirements-plotting.txt`.
+## Notebooks 📓
+
+A series of tutorial notebooks are included in the `notebooks` directory
+and rendered [in the documentation](https://astro-informatics.github.io/s2fft/tutorials/index.html).
+
+To install the dependencies required to run the notebooks locally, clone the repository and install the package (in [editable mode](https://setuptools.pypa.io/en/latest/userguide/development_mode.html)) 
+with the extra documentation and plotting dependencies by running from the root of the repository
+
+```bash
+pip install -e ".[docs,plotting]"
+```
+
+To run the notebooks in Jupyter Lab, run from the root of the repository
+
+```bash
+jupyter lab
+```
 
 ## Usage 🚀
 
@@ -122,37 +149,48 @@ To import and use `S2FFT` is as simple follows:
 
 For a signal on the sphere
 
-``` python
+```python
+import s2fft
+
+# Define sampled signal to transform and harmonic bandlimit
+f = ...
+L = ...
 # Compute harmonic coefficients
-flm = s2fft.forward_jax(f, L)  
+flm = s2fft.forward(f, L, method="jax")  
 # Map back to pixel-space signal
-f = s2fft.inverse_jax(flm, L)
+f = s2fft.inverse(flm, L, method="jax")
 ```
 
 For a signal on the rotation group 
 
-``` python
+```python
+import s2fft
+
+# Define sampled signal to transform and harmonic and azimuthal bandlimits
+f = ...
+L = ...
+N = ...
 # Compute Wigner coefficients
-flmn = s2fft.wigner.forward_jax(f, L, N)
+flmn = s2fft.wigner.forward(f, L, N, method="jax")
 # Map back to pixel-space signal
-f = fft.wigner.inverse_jax(flmn, L, N)
+f = fft.wigner.inverse_jax(flmn, L, N, method="jax")
 ```
 
 For further details on usage see the [documentation](https://astro-informatics.github.io/s2fft/) and associated [notebooks](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/spherical_harmonic_transform.html).
 
 > [!NOTE]  
-> We also provide PyTorch support for the precompute version of our transforms. These are called through forward/inverse_torch(). Full PyTorch support will be provided in future releases.
+> We also provide PyTorch support for the precompute version of our transforms, as demonstrated in the [_Torch frontend_ tutorial notebook](https://astro-informatics.github.io/s2fft/tutorials/torch_frontend/torch_frontend.html).
 
 ## JAX wrappers for SSHT and HEALPix 💡
 
 `S2FFT` also provides JAX support for existing C/C++ packages, specifically [`HEALPix`](https://healpix.jpl.nasa.gov) and [`SSHT`](https://github.com/astro-informatics/ssht). This works 
-by wrapping python bindings with custom JAX frontends. Note that this C/C++ to JAX interoperability is currently limited to CPU.
+by wrapping Python bindings with custom JAX frontends. Note that this C/C++ to JAX interoperability is currently limited to CPU.
 
 For example, one may call these alternate backends for the spherical harmonic transform by:
 
 ``` python
 # Forward SSHT spherical harmonic transform
-flm = s2fft.forward(f, L, sampling=["mw"], method="jax_ssht")  
+flm = s2fft.forward(f, L, sampling="mw", method="jax_ssht")  
 
 # Forward HEALPix spherical harmonic transform
 flm = s2fft.forward(f, L, nside=nside, sampling="healpix", method="jax_healpy")  
@@ -165,31 +203,10 @@ applications!
 
 For further details on usage see the associated [notebooks](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_SSHT_backend.html).
 
-<!-- ## Benchmarking :hourglass_flowing_sand:
+## Benchmarks ⏱️
 
-We benchmarked the spherical harmonic and Wigner transforms implemented
-in `S2FFT` against the C implementations in the
-[SSHT](https://github.com/astro-informatics/ssht) package.
+A suite of benchmark functions for both the on-the-fly and precompute versions of the spherical harmonic and Wigner transforms are available in the `benchmarks` directory, along with utilities for running the benchmarks and plotting the results.
 
-A brief summary is shown in the table below for the recursion (left) and
-precompute (right) algorithms, with `S2FFT` running on GPUs (for further
-details see [Price & McEwen 2024]((https://arxiv.org/abs/2311.14670))). 
-Note that our compute time is agnostic to spin number (which is not the 
-case for many other methods that scale linearly with spin).
-
-| L    | Wall-Time | Speed-up | Error    | Wall-Time | Speed-up | Error    | Memory  |
-|------|-----------|----------|----------|-----------|----------|----------|---------|
-| 64   | 3.6 ms    | 0.88     | 1.81E-15 | 52.4 μs   | 60.5     | 1.67E-15 | 4.2 MB  |
-| 128  | 7.26 ms   | 1.80     | 3.32E-15 | 162 μs    | 80.5     | 3.64E-15 | 33 MB   |
-| 256  | 17.3 ms   | 6.32     | 6.66E-15 | 669 μs    | 163      | 6.74E-15 | 268 MB  |
-| 512  | 58.3 ms   | 11.4     | 1.43E-14 | 3.6 ms    | 184      | 1.37E-14 | 2.14 GB |
-| 1024 | 194 ms    | 32.9     | 2.69E-14 | 32.6 ms   | 195      | 2.47E-14 | 17.1 GB |
-| 2048 | 1.44 s    | 49.7     | 5.17E-14 | N/A       | N/A      | N/A      | N/A     |
-| 4096 | 8.48 s    | 133.9    | 1.06E-13 | N/A       | N/A      | N/A      | N/A     |
-| 8192 | 82 s      | 110.8    | 2.14E-13 | N/A       | N/A      | N/A      | N/A     |
-
-where the left hand results are for the recursive based algorithm and the right hand side are 
-our precompute implementation. -->
 
 ## Contributors ✨
 
