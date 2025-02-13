@@ -3,8 +3,7 @@ graft tests
 graft docs
 
 include .pip_readme.rst
-include README.rst
-include pytest.ini
+include README.md
 include LICENCE.txt
 
 exclude .coveragerc
