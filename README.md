@@ -9,7 +9,7 @@
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/astro-informatics/s2fft/blob/main/notebooks/spherical_harmonic_transform.ipynb)
 [![Linter](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-<img align="left" height="85" width="98" src="./docs/assets/sax_logo.png">
+<img align="left" height="85" width="98" alt="s2fft logo - schematic representation of a tiled sphere" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main//docs/assets/sax_logo.png">
 
 # Differentiable and accelerated spherical transforms
 
@@ -47,7 +47,7 @@ algorithms are based on new Wigner-d recursions that are stable to high
 angular resolution $L$. The diagram below illustrates the recursions
 (for further details see [Price & McEwen 2024]((https://arxiv.org/abs/2311.14670))).
 
-![image](./docs/assets/figures/Wigner_recursion_legend_darkmode.png)
+![Schematic of Wigner recursions](https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/Wigner_recursion_legend_darkmode.png)
 With this recursion to hand, the spherical harmonic coefficients of an 
 isolatitudinally sampled map may be computed as a two step process. First, 
 a 1D Fourier transform over longitude, for each latitudinal ring. Second, 
@@ -60,7 +60,7 @@ negligible memory overhead at the cost of slightly slower execution. The
 diagram below illustrates the separable spherical harmonic transform 
 (for further details see [Price & McEwen 2024]((https://arxiv.org/abs/2311.14670))).
 
-![image](./docs/assets/figures/sax_schematic_legend_darkmode.png)
+![Schematic of forward and inverse spherical harmonic transforms](https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/sax_schematic_legend_darkmode.png)
 
 ## Sampling :earth_africa:
 
@@ -85,7 +85,7 @@ so the corresponding harmonic transforms do not achieve machine
 precision but exhibit some error. However, the HEALPix sampling provides
 pixels of equal areas, which has many practical advantages.
 
-<p align="center"><img src="./docs/assets/figures/spherical_sampling.png" width="700"></p>
+<p align="center"><img alt="Visualization of spherical sampling schemes" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/spherical_sampling.png" width="700"></p>
 
 > [!NOTE]  
 > For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and are working to fix it.  A fix for CPU execution has now been implemented (see example [notebook](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_HEALPix_backend.html)).  Fix for GPU execution is coming soon.
