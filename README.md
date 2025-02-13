@@ -2,7 +2,7 @@
 
 <img class="dark-light" width="98" height="85" alt="s2fft logo - schematic representation of a tiled sphere" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/sax_logo.png">
 
-# Differentiable and accelerated spherical transforms
+# S2FFT: differentiable and accelerated spherical transforms
 
 [![Tests status](https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml)
 [![Linting status](https://github.com/astro-informatics/s2fft/actions/workflows/linting.yml/badge.svg?branch=main)](https://github.com/astro-informatics/s2fft/actions/workflows/linting.yml)
