@@ -28,8 +28,6 @@ classifiers = [
 description = "Differentiable and accelerated spherical transforms with JAX"
 dependencies = [
     "numpy>=1.20,<2",
-    "colorlog",
-    "pyyaml",
     "jax>=0.3.13",
     "jaxlib",
     "torch",
@@ -149,9 +147,6 @@ lint.pep8-naming.classmethod-decorators = [
 
 [tool.setuptools]
 packages = ["s2fft"]
-
-[tool.setuptools.package-data]
-s2fft = ["default-logging-config.yaml"]
 
 [tool.setuptools_scm]
 local_scheme = "no-local-version"
