@@ -43,7 +43,7 @@ dynamic = [
 keywords = [
 ]
 name = "s2fft"
-readme = ".pip_readme.rst"
+readme = "README.md"
 requires-python = ">=3.8"
 license.file = "LICENCE.txt"
 urls.homepage = "https://github.com/astro-informatics/s2fft"
