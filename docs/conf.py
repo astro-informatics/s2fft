@@ -139,21 +139,6 @@ html_theme_options = {
     ],
 }
 
-html_sidebars = {
-    # "tutorials/*": [
-    #     "indices.html",
-    #     "navbar-nav.html",
-    # ],
-    "user_guide/*": [
-        "indices.html",
-        "navbar-nav.html",
-    ],
-    # "background/*": [
-    #     "indices.html",
-    #     "navbar-nav.html",
-    # ],
-}
-
 html_static_path = ["_static"]
 html_css_files = [
     "css/custom.css",
