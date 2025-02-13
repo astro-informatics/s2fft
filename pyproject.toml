@@ -61,6 +61,7 @@ docs = [
     "sphinx-copybutton",
     "sphinxemoji",
     "sphinx_rtd_theme",
+    "sphinx_mdinclude",
     "ipython>=7.16.1",
     "jupyter>=1.0.0",
 ]
