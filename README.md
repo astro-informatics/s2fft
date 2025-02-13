@@ -38,7 +38,7 @@ specifically `HEALPix` and `SSHT`. This works by wrapping python bindings with c
 JAX frontends. Note that currently this C/C++ to JAX interoperability is currently 
 limited to CPU.
 
-## Algorithms :zap:
+## Algorithms ⚡
 
 `S2FFT` leverages new algorithmic structures that can he highly
 parallelised and distributed, and so map very well onto the architecture
@@ -62,7 +62,7 @@ diagram below illustrates the separable spherical harmonic transform
 
 ![Schematic of forward and inverse spherical harmonic transforms](https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/sax_schematic_legend_darkmode.png)
 
-## Sampling :earth_africa:
+## Sampling 🌍
 
 The structure of the algorithms implemented in `S2FFT` can support any
 isolatitude sampling scheme. A number of sampling schemes are currently
@@ -90,7 +90,7 @@ pixels of equal areas, which has many practical advantages.
 > [!NOTE]  
 > For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and are working to fix it.  A fix for CPU execution has now been implemented (see example [notebook](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_HEALPix_backend.html)).  Fix for GPU execution is coming soon.
 
-## Installation :computer:
+## Installation 💻
 
 The Python dependencies for the `S2FFT` package are listed in the file
 `requirements/requirements-core.txt` and will be automatically installed
@@ -129,7 +129,7 @@ open _build/html/index.html
 > [!NOTE]  
 > For plotting functionality which can be found throughout our various notebooks, one must install the requirements which can be found in `requirements/requirements-plotting.txt`.
 
-## Usage :rocket:
+## Usage 🚀
 
 To import and use `S2FFT` is as simple follows:
 
@@ -156,7 +156,7 @@ For further details on usage see the [documentation](https://astro-informatics.g
 > [!NOTE]  
 > We also provide PyTorch support for the precompute version of our transforms. These are called through forward/inverse_torch(). Full PyTorch support will be provided in future releases.
 
-## C/C++ JAX Frontends for SSHT/HEALPix :bulb:
+## JAX wrappers for SSHT and HEALPix 💡
 
 `S2FFT` also provides JAX support for existing C/C++ packages, specifically [`HEALPix`](https://healpix.jpl.nasa.gov) and [`SSHT`](https://github.com/astro-informatics/ssht). This works 
 by wrapping python bindings with custom JAX frontends. Note that this C/C++ to JAX interoperability is currently limited to CPU.
@@ -239,7 +239,7 @@ We encourage contributions from any interested developers. A simple
 first addition could be adding support for more spherical sampling
 patterns!
 
-## Attribution :books: 
+## Attribution 📚
 
 Should this code be used in any way, we kindly request that the following article is
 referenced. A BibTeX entry for this reference may look like:
@@ -288,7 +288,7 @@ code builds:
 }
 ```
 
-## License :memo:
+## License 📝
 
 We provide this code under an MIT open-source licence with the hope that
 it will be of use to a wider community.
