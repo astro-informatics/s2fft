@@ -40,7 +40,7 @@ isolatitudinally sampled map may be computed as a two step process. First,
 a 1D Fourier transform over longitude, for each latitudinal ring. Second, 
 a projection onto the real polar-d functions. One may precompute and store 
 all real polar-d functions for extreme acceleration, however this comes 
-with an equally extreme memory overhead, which is infeasible at L ~ 1024. 
+with an equally extreme memory overhead, which is infeasible at $L \sim 1024$. 
 Alternatively, the real polar-d functions may calculated recursively, 
 computing only a portion of the projection at a time, hence incurring 
 negligible memory overhead at the cost of slightly slower execution. The 
@@ -75,7 +75,7 @@ pixels of equal areas, which has many practical advantages.
 <p align="center"><img alt="Visualization of spherical sampling schemes" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/spherical_sampling.png" width="700"></p>
 
 > [!NOTE]  
-> For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and are working to fix it.  A fix for CPU execution has now been implemented (see example [notebook](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_HEALPix_backend.html)).  Fix for GPU execution is coming soon.
+> For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and are working to fix it.  A fix for CPU execution has now been implemented (see example [notebook](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_HEALPix_backend.html)).
 
 ## Installation 💻
 
