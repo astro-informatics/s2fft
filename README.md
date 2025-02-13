@@ -95,6 +95,12 @@ The latest release of `S2FFT` published [on PyPI](https://pypi.org/project/s2fft
 pip install s2fft
 ```
 
+This will install `S2FFT`'s dependencies including JAX if not already installed.
+As by default installing JAX from PyPI will use a CPU-only build,
+if you wish to install JAX with GPU or TPU support,
+you should first follow the [relevant installation instructions in JAX's documentation](https://docs.jax.dev/en/latest/installation.html#installation)
+and then install `S2FFT` as above.
+
 Alternatively, the  latest development version of `S2FFT` may be installed directly from GitHub by running 
 
 ```bash
