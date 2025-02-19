@@ -6,6 +6,10 @@ import pytest
 from jax.test_util import check_grads
 
 from s2fft.sampling import s2_samples as samples
+from s2fft.transforms.c_backend_spherical import (
+    MissingWrapperDependencyError,
+    _try_import_module,
+)
 from s2fft.utils.rotation import generate_rotate_dls, rotate_flms
 
 jax.config.update("jax_enable_x64", True)
@@ -120,3 +124,12 @@ def test_rotate_flms_gradients(
         return jnp.sum(jnp.abs(flm_rot - flm_target))
 
     check_grads(func, (flm_start,), order=1, modes=("rev"))
+
+
+def test_try_import_module():
+    # Use an intentionally long and unlikely to clash module name
+    module_name = "_a_random_module_name_that_should_not_exist"
+    with pytest.raises(
+        MissingWrapperDependencyError, match="requires {module_name} to be installed"
+    ):
+        _try_import_module(module_name)
