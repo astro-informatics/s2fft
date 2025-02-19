@@ -473,6 +473,13 @@
                   
   <section id="module-s2fft.transforms.c_backend_spherical">
 <span id="c-c-custom-jax-support"></span><h1>C/C++ custom JAX support<a class="headerlink" href="#module-s2fft.transforms.c_backend_spherical" title="Link to this heading">#</a></h1>
+<p>C backend functions for which to provide JAX frontends.</p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="s2fft.transforms.c_backend_spherical.MissingWrapperDependencyError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s2fft.transforms.c_backend_spherical.</span></span><span class="sig-name descname"><span class="pre">MissingWrapperDependencyError</span></span><a class="headerlink" href="#s2fft.transforms.c_backend_spherical.MissingWrapperDependencyError" title="Link to this definition">#</a></dt>
+<dd><p>Exception raised when a dependency for a wrapper function is missing.</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.transforms.c_backend_spherical.healpy_alm2map">
 <span class="sig-prename descclassname"><span class="pre">s2fft.transforms.c_backend_spherical.</span></span><span class="sig-name descname"><span class="pre">healpy_alm2map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.transforms.c_backend_spherical.healpy_alm2map" title="Link to this definition">#</a></dt>
@@ -480,6 +487,7 @@
 <p>This wrapper assumes the passed spherical harmonic coefficients are a one
 dimensional array using HEALPix (ring-ordered) indexing. To instead pass a
 two-dimensional array of harmonic coefficients use <a class="reference internal" href="#s2fft.transforms.c_backend_spherical.healpy_inverse" title="s2fft.transforms.c_backend_spherical.healpy_inverse"><code class="xref py py-func docutils literal notranslate"><span class="pre">healpy_inverse()</span></code></a>.</p>
+<p>Requires <cite>healpy</cite> package to be installed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -506,6 +514,7 @@ outlined in [1]. We make use of their healpy python bindings for which we provid
 custom JAX frontends, hence providing support for automatic differentiation.
 Currently these transforms can only be deployed on CPU, which is a limitation of the
 C++ library.</p>
+<p>Requires <cite>healpy</cite> package to be installed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -542,6 +551,7 @@ outlined in [1]. We make use of their healpy python bindings for which we provid
 custom JAX frontends, hence providing support for automatic differentiation.
 Currently these transforms can only be deployed on CPU, which is a limitation of the
 C++ library.</p>
+<p>Requires <cite>healpy</cite> package to be installed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -572,6 +582,7 @@ Astrophysical Journal 622.2 (2005): 759</p>
 <p>This wrapper will return the spherical harmonic coefficients as a one dimensional
 array using HEALPix (ring-ordered) indexing. To instead return a two-dimensional
 array of harmonic coefficients use <a class="reference internal" href="#s2fft.transforms.c_backend_spherical.healpy_forward" title="s2fft.transforms.c_backend_spherical.healpy_forward"><code class="xref py py-func docutils literal notranslate"><span class="pre">healpy_forward()</span></code></a>.</p>
+<p>Requires <cite>healpy</cite> package to be installed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
