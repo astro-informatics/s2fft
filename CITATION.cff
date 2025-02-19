@@ -23,11 +23,11 @@ preferred-citation:
   - family-names: Matthew A.
     given-names: Price
     affiliation: University College London
-    website: 'https://cosmomatt.github.io/''
+    website: 'https://cosmomatt.github.io/'
   - family-names: Jason
     given-names: McEwen
     orcid: 'https://orcid.org/0000-0002-5852-8890'
-    website: 'http://www.jasonmcewen.org/''
+    website: 'http://www.jasonmcewen.org/'
   doi: 10.1016/j.jcp.2024.113109
   journal: Journal of Computational Physics
   month: 8
