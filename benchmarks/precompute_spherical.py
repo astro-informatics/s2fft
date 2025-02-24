@@ -31,11 +31,12 @@ def setup_forward(method, L, sampling, spin, reality, recursion):
         sampling=sampling,
         reality=reality,
     )
-    kernel_function = (
-        s2fft.precompute_transforms.construct.spin_spherical_kernel_jax
-        if method == "jax"
-        else s2fft.precompute_transforms.construct.spin_spherical_kernel
-    )
+    if method == "torch":
+        import torch
+
+        flm = torch.from_numpy(flm)
+        f = torch.from_numpy(f)
+    kernel_function = s2fft.precompute_transforms.spherical._kernel_functions[method]
     kernel = kernel_function(
         L=L,
         spin=spin,
@@ -73,11 +74,11 @@ def setup_inverse(method, L, sampling, spin, reality, recursion):
         skip("Reality only valid for scalar fields (spin=0).")
     rng = np.random.default_rng()
     flm = s2fft.utils.signal_generator.generate_flm(rng, L, spin=spin, reality=reality)
-    kernel_function = (
-        s2fft.precompute_transforms.construct.spin_spherical_kernel_jax
-        if method == "jax"
-        else s2fft.precompute_transforms.construct.spin_spherical_kernel
-    )
+    if method == "torch":
+        import torch
+
+        flm = torch.from_numpy(flm)
+    kernel_function = s2fft.precompute_transforms.spherical._kernel_functions[method]
     kernel = kernel_function(
         L=L,
         spin=spin,
