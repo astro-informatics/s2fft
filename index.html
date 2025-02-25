@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Differentiable and accelerated spherical transforms &#8212; S2FFT 1.1.1 documentation</title>
+    <title>S2FFT: differentiable and accelerated spherical transforms &#8212; S2FFT 0.1.dev1 documentation</title>
   
   
   
@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=9be2284e" />
+    <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=e49c329e" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom_tabs.css?v=82e1095b" />
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/fontawesome.min.css" />
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/solid.min.css" />
@@ -46,7 +46,7 @@
 
     <script src="_static/jquery.js?v=5d32c60e"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="_static/documentation_options.js?v=58fbf978"></script>
+    <script src="_static/documentation_options.js?v=6aee1ebc"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,10 +57,10 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Installation" href="user_guide/install.html" />
+    <link rel="next" title="Tutorials" href="tutorials/index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="1.1.1" />
+  <meta name="docsearch:version" content="0.1" />
   </head>
   
   
@@ -129,8 +129,8 @@
       
     
     
-    <img src="_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 1.1.1 documentation - Home"/>
-    <img src="_static/sax_logo.png" class="logo__image only-dark pst-js-only" alt="S2FFT 1.1.1 documentation - Home"/>
+    <img src="_static/sax_logo.png" class="logo__image only-light" alt="S2FFT 0.1.dev1 documentation - Home"/>
+    <img src="_static/sax_logo.png" class="logo__image only-dark pst-js-only" alt="S2FFT 0.1.dev1 documentation - Home"/>
   
   
 </a></div>
@@ -146,15 +146,8 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="user_guide/install.html">
-    Installation
-  </a>
-</li>
-
-
-<li class="nav-item ">
   <a class="nav-link nav-internal" href="tutorials/index.html">
-    Notebooks
+    Tutorials
   </a>
 </li>
 
@@ -313,15 +306,8 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="user_guide/install.html">
-    Installation
-  </a>
-</li>
-
-
-<li class="nav-item ">
   <a class="nav-link nav-internal" href="tutorials/index.html">
-    Notebooks
+    Tutorials
   </a>
 </li>
 
@@ -454,111 +440,246 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="differentiable-and-accelerated-spherical-transforms">
-<h1>Differentiable and accelerated spherical transforms<a class="headerlink" href="#differentiable-and-accelerated-spherical-transforms" title="Link to this heading">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is a Python package for computing Fourier transforms on the sphere and rotation
-group <a class="reference external" href="https://arxiv.org/abs/2311.14670">(Price &amp; McEwen 2023)</a> using JAX and PyTorch.
-It leverages autodiff to provide differentiable transforms, which are also
-deployable on modern hardware accelerators (e.g. GPUs and TPUs).</p>
-<p>More specifically, <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> provides support for spin spherical harmonic and Wigner
-transforms (for both real and complex signals), with support for adjoint transformations
-where needed, and comes with different optimisations (precompute or not) that one
-may select depending on available resources and desired angular resolution <span class="math notranslate nohighlight">\(L\)</span>.</p>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>HEALPix long JIT compile time fixed for CPU!  Fix for GPU coming soon.</p>
-</div>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p>As of version 1.0.2 <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> also provides PyTorch implementations of underlying
-precompute transforms. In future releases this support will be extended to our
-on-the-fly algorithms.</p>
-</div>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p>As of version 1.1.0 <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> also provides JAX support for existing C/C++ packages,
-specifically <code class="docutils literal notranslate"><span class="pre">HEALPix</span></code> and <code class="docutils literal notranslate"><span class="pre">SSHT</span></code>. This works by wrapping python bindings with custom
-JAX frontends. Note that currently this C/C++ to JAX interoperability is currently
-limited to CPU.</p>
-</div>
-<section id="algorithms-zap">
-<h2>Algorithms ⚡<a class="headerlink" href="#algorithms-zap" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> leverages new algorithmic structures that can he highly parallelised and
-distributed, and so map very well onto the architecture of hardware accelerators (i.e.
-GPUs and TPUs).  In particular, these algorithms are based on new Wigner-d recursions
-that are stable to high angular resolution <span class="math notranslate nohighlight">\(L\)</span>.  The diagram below illustrates the
-recursions (for further details see Price &amp; McEwen 2023).</p>
-<img alt="_images/Wigner_recursion_github_docs.png" src="_images/Wigner_recursion_github_docs.png" />
-<p>With this recursion to hand, the spherical harmonic coefficients of an
+  <div style="text-align: center;" align="center"><img class="dark-light" width="98" height="85" alt="s2fft logo - schematic representation of a tiled sphere" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/sax_logo.png"><section id="s2fft-differentiable-and-accelerated-spherical-transforms">
+<h1>S2FFT: differentiable and accelerated spherical transforms<a class="headerlink" href="#s2fft-differentiable-and-accelerated-spherical-transforms" title="Link to this heading">#</a></h1>
+<a class="reference external image-reference" href="https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml"><img alt="Tests status" src="https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main" />
+</a>
+<a class="reference external image-reference" href="https://github.com/astro-informatics/s2fft/actions/workflows/linting.yml"><img alt="Linting status" src="https://github.com/astro-informatics/s2fft/actions/workflows/linting.yml/badge.svg?branch=main" />
+</a>
+<a class="reference external image-reference" href="https://github.com/astro-informatics/s2fft/actions/workflows/docs.yml"><img alt="Documentation status" src="https://github.com/astro-informatics/s2fft/actions/workflows/docs.yml/badge.svg?branch=main" />
+</a>
+<a class="reference external image-reference" href="https://codecov.io/gh/astro-informatics/s2fft"><img alt="Codecov" src="https://codecov.io/gh/astro-informatics/s2fft/branch/main/graph/badge.svg?token=7QYAFAAWLE" />
+</a>
+<a class="reference external image-reference" href="https://opensource.org/licenses/MIT"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+</a>
+<a class="reference external image-reference" href="https://badge.fury.io/py/s2fft"><img alt="PyPI package" src="https://badge.fury.io/py/s2fft.svg" />
+</a>
+<a class="reference external image-reference" href="https://arxiv.org/abs/2311.14670"><img alt="arXiv" src="http://img.shields.io/badge/arXiv-2311.14670-orange.svg?style=flat" />
+</a>
+<a class="reference external image-reference" href="https://img.shields.io/github/all-contributors/astro-informatics/s2fft?color=ee8449&amp;style=flat-square"><img alt="All Contributors" src="https://img.shields.io/github/all-contributors/astro-informatics/s2fft?color=ee8449&amp;style=flat-square" />
+</a>
+<a class="reference external image-reference" href="https://colab.research.google.com/github/astro-informatics/s2fft/blob/main/notebooks/spherical_harmonic_transform.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
+<a class="reference external image-reference" href="https://github.com/astral-sh/ruff"><img alt="Linter" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" />
+</a>
+</div><p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is a Python package for computing Fourier transforms on the sphere
+and rotation group <a class="reference external" href="https://arxiv.org/abs/2311.14670">(Price &amp; McEwen 2024)</a> using
+JAX or PyTorch. It leverages autodiff to provide differentiable transforms, which are
+also deployable on hardware accelerators (e.g. GPUs and TPUs).</p>
+<p>More specifically, <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> provides support for spin spherical harmonic
+and Wigner transforms (for both real and complex signals), with support
+for adjoint transformations where needed, and comes with different
+optimisations (precompute or not) that one may select depending on
+available resources and desired angular resolution $L$.</p>
+<section id="algorithms">
+<h2>Algorithms ⚡<a class="headerlink" href="#algorithms" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> leverages new algorithmic structures that can he highly
+parallelised and distributed, and so map very well onto the architecture
+of hardware accelerators (i.e. GPUs and TPUs). In particular, these
+algorithms are based on new Wigner-d recursions that are stable to high
+angular resolution $L$. The diagram below illustrates the recursions
+(for further details see <a class="reference external" href="(https://arxiv.org/abs/2311.14670">Price &amp; McEwen 2024</a>)).</p>
+<div style="text-align: center;" align="center">
+<img class="dark-light" alt="Schematic of Wigner recursions" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/Wigner_recursion_legend_darkmode.png" />
+</div><p>With this recursion to hand, the spherical harmonic coefficients of an
 isolatitudinally sampled map may be computed as a two step process. First,
 a 1D Fourier transform over longitude, for each latitudinal ring. Second,
 a projection onto the real polar-d functions. One may precompute and store
 all real polar-d functions for extreme acceleration, however this comes
-with an equally extreme memory overhead, which is infeasible at L ~ 1024.
+with an equally extreme memory overhead, which is infeasible at $L sim 1024$.
 Alternatively, the real polar-d functions may calculated recursively,
 computing only a portion of the projection at a time, hence incurring
 negligible memory overhead at the cost of slightly slower execution. The
-diagram below illustrates the separable spherical harmonic transform.</p>
-<img alt="_images/sax_schematic_github_docs.png" src="_images/sax_schematic_github_docs.png" />
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and are working to fix it.  A fix for CPU execution has now been implemented (see example <a class="reference external" href="https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_HEALPix_backend.html">notebook</a>).  Fix for GPU execution is coming soon.</p>
+diagram below illustrates the separable spherical harmonic transform
+(for further details see <a class="reference external" href="(https://arxiv.org/abs/2311.14670">Price &amp; McEwen 2024</a>)).</p>
+<div style="text-align: center;" align="center">
+<img class="dark-light" alt="Schematic of forward and inverse spherical harmonic transforms" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/sax_schematic_legend_darkmode.png" />
+</div></section>
+<section id="sampling">
+<h2>Sampling 🌍<a class="headerlink" href="#sampling" title="Link to this heading">#</a></h2>
+<p>The structure of the algorithms implemented in <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> can support any
+isolatitude sampling scheme. A number of sampling schemes are currently
+supported.</p>
+<p>The equiangular sampling schemes of <a class="reference external" href="https://arxiv.org/abs/1110.6298">McEwen &amp; Wiaux
+(2012)</a>, <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0196885884710086">Driscoll &amp; Healy
+(1995)</a>
+and <a class="reference external" href="https://link.springer.com/article/10.1007/BF02519350">Gauss-Legendre (1986)</a>
+are supported, which exhibit associated sampling theorems and so
+harmonic transforms can be computed to machine precision. Note that the
+McEwen &amp; Wiaux sampling theorem reduces the Nyquist rate on the sphere
+by a factor of two compared to the Driscoll &amp; Healy approach, halving
+the number of spherical samples required.</p>
+<p>The popular <a class="reference external" href="https://healpix.jpl.nasa.gov">HEALPix</a> sampling scheme
+(<a class="reference external" href="https://arxiv.org/abs/astro-ph/0409513">Gorski et al. 2005</a>) is also
+supported. The HEALPix sampling does not exhibit a sampling theorem and
+so the corresponding harmonic transforms do not achieve machine
+precision but exhibit some error. However, the HEALPix sampling provides
+pixels of equal areas, which has many practical advantages.</p>
+<div style="text-align: center;" align="center">
+<img class="dark-light" alt="Visualization of spherical sampling schemes" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/spherical_sampling.png" width="700">
+</div><blockquote>
+<div><p>[!NOTE] <span class="raw-html-md"><br /></span>
+For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and are working to fix it.  A fix for CPU execution has now been implemented (see example <a class="reference external" href="https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_HEALPix_backend.html">notebook</a>).</p>
+</div></blockquote>
+</section>
+<section id="installation">
+<h2>Installation 💻<a class="headerlink" href="#installation" title="Link to this heading">#</a></h2>
+<p>The latest release of <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> published <a class="reference external" href="https://pypi.org/project/s2fft/">on PyPI</a> can be installed by running</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>s2fft
+</pre></div>
+</div>
+<p>This will install <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code>’s dependencies including JAX if not already installed.
+As by default installing JAX from PyPI will use a CPU-only build,
+if you wish to install JAX with GPU or TPU support,
+you should first follow the <a class="reference external" href="https://docs.jax.dev/en/latest/installation.html#installation">relevant installation instructions in JAX’s documentation</a>
+and then install <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> as above.</p>
+<p>Alternatively, the  latest development version of <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> may be installed directly from GitHub by running</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/astro-informatics/s2fft
+</pre></div>
 </div>
 </section>
-<section id="sampling-earth-africa">
-<h2>Sampling 🌍<a class="headerlink" href="#sampling-earth-africa" title="Link to this heading">#</a></h2>
-<p>The structure of the algorithms implemented in <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> can support any isolattitude sampling scheme.  A number of sampling schemes are currently supported.</p>
-<p>The equiangular sampling schemes of <a class="reference external" href="https://arxiv.org/abs/1110.6298">McEwen &amp; Wiaux (2012)</a>,
-<a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0196885884710086">Driscoll &amp; Healy (1995)</a>, and <a class="reference external" href="https://link.springer.com/article/10.1007/BF02519350">Gauss-Legendre (1986)</a> are supported, which exhibit associated sampling theorems and so harmonic transforms can be computed to machine precision.  Note that the McEwen &amp; Wiaux sampling theorem reduces the Nyquist rate on the sphere by a factor of two compared to the Driscoll &amp; Healy approach, halving the number of spherical samples required.</p>
-<p>The popular <a class="reference external" href="https://healpix.jpl.nasa.gov">HEALPix</a> sampling scheme (<a class="reference external" href="https://arxiv.org/abs/astro-ph/0409513">Gorski et al. 2005</a>) is also supported.  The HEALPix sampling does not exhibit a sampling theorem and so the corresponding harmonic transforms do not achieve machine precision but exhibit some error.  However, the HEALPix sampling provides pixels of equal areas, which has many practical advantages.</p>
-<a class="reference internal image-reference" href="_images/spherical_sampling.png"><img alt="_images/spherical_sampling.png" class="align-center" src="_images/spherical_sampling.png" style="width: 900px;" />
-</a>
+<section id="tests">
+<h2>Tests 🚦<a class="headerlink" href="#tests" title="Link to this heading">#</a></h2>
+<p>A <code class="docutils literal notranslate"><span class="pre">pytest</span></code> test suite for the package is included in the <code class="docutils literal notranslate"><span class="pre">tests</span></code> directory.
+To install the test dependencies, clone the repository and install the package (in <a class="reference external" href="https://setuptools.pypa.io/en/latest/userguide/development_mode.html">editable mode</a>)
+with the extra test dependencies by running from the root of the repository</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[tests]&quot;</span>
+</pre></div>
+</div>
+<p>To run the tests, run from the root of the repository</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest
+</pre></div>
+</div>
+</section>
+<section id="documentation">
+<h2>Documentation 📖<a class="headerlink" href="#documentation" title="Link to this heading">#</a></h2>
+<p>Documentation for the released version is available <a class="reference external" href="https://astro-informatics.github.io/s2fft/">here</a>.
+To install the documentation dependencies, clone the repository and install the package (in <a class="reference external" href="https://setuptools.pypa.io/en/latest/userguide/development_mode.html">editable mode</a>)
+with the extra documentation dependencies by running from the root of the repository</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span>
+</pre></div>
+</div>
+<p>To build the documentation, run from the root of the repository</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>docs
+make<span class="w"> </span>html
+open<span class="w"> </span>_build/html/index.html
+</pre></div>
+</div>
+</section>
+<section id="notebooks">
+<h2>Notebooks 📓<a class="headerlink" href="#notebooks" title="Link to this heading">#</a></h2>
+<p>A series of tutorial notebooks are included in the <code class="docutils literal notranslate"><span class="pre">notebooks</span></code> directory
+and rendered <a class="reference external" href="https://astro-informatics.github.io/s2fft/tutorials/index.html">in the documentation</a>.</p>
+<p>To install the dependencies required to run the notebooks locally, clone the repository and install the package (in <a class="reference external" href="https://setuptools.pypa.io/en/latest/userguide/development_mode.html">editable mode</a>)
+with the extra documentation and plotting dependencies by running from the root of the repository</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs,plotting]&quot;</span>
+</pre></div>
+</div>
+<p>To run the notebooks in Jupyter Lab, run from the root of the repository</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>jupyter<span class="w"> </span>lab
+</pre></div>
+</div>
+</section>
+<section id="usage">
+<h2>Usage 🚀<a class="headerlink" href="#usage" title="Link to this heading">#</a></h2>
+<p>To import and use <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is as simple follows:</p>
+<p>For a signal on the sphere</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">s2fft</span>
+
+<span class="c1"># Define sampled signal to transform and harmonic bandlimit</span>
+<span class="n">f</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">L</span> <span class="o">=</span> <span class="o">...</span>
+<span class="c1"># Compute harmonic coefficients</span>
+<span class="n">flm</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;jax&quot;</span><span class="p">)</span>
+<span class="c1"># Map back to pixel-space signal</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">inverse</span><span class="p">(</span><span class="n">flm</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;jax&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For a signal on the rotation group</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">s2fft</span>
+
+<span class="c1"># Define sampled signal to transform and harmonic and azimuthal bandlimits</span>
+<span class="n">f</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">L</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">N</span> <span class="o">=</span> <span class="o">...</span>
+<span class="c1"># Compute Wigner coefficients</span>
+<span class="n">flmn</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">wigner</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;jax&quot;</span><span class="p">)</span>
+<span class="c1"># Map back to pixel-space signal</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">wigner</span><span class="o">.</span><span class="n">inverse_jax</span><span class="p">(</span><span class="n">flmn</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;jax&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For further details on usage see the <a class="reference external" href="https://astro-informatics.github.io/s2fft/">documentation</a> and associated <a class="reference external" href="https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/spherical_harmonic_transform.html">notebooks</a>.</p>
+<blockquote>
+<div><p>[!NOTE] <span class="raw-html-md"><br /></span>
+We also provide PyTorch support for the precompute version of our transforms, as demonstrated in the <a class="reference external" href="https://astro-informatics.github.io/s2fft/tutorials/torch_frontend/torch_frontend.html">*Torch frontend* tutorial notebook</a>.</p>
+</div></blockquote>
+</section>
+<section id="ssht-healpix-wrappers">
+<h2>SSHT &amp; HEALPix wrappers 💡<a class="headerlink" href="#ssht-healpix-wrappers" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> also provides JAX support for existing C/C++ packages, specifically <span class="raw-html-md"><a href="https://healpix.jpl.nasa.gov"><code class="docutils literal"><span class="pre">HEALPix</span></code></a></span> and <span class="raw-html-md"><a href="https://github.com/astro-informatics/ssht"><code class="docutils literal"><span class="pre">SSHT</span></code></a></span>. This works
+by wrapping Python bindings with custom JAX frontends. Note that this C/C++ to JAX interoperability is currently limited to CPU.</p>
+<p>For example, one may call these alternate backends for the spherical harmonic transform by:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Forward SSHT spherical harmonic transform</span>
+<span class="n">flm</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">sampling</span><span class="o">=</span><span class="s2">&quot;mw&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;jax_ssht&quot;</span><span class="p">)</span>
+
+<span class="c1"># Forward HEALPix spherical harmonic transform</span>
+<span class="n">flm</span> <span class="o">=</span> <span class="n">s2fft</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">nside</span><span class="o">=</span><span class="n">nside</span><span class="p">,</span> <span class="n">sampling</span><span class="o">=</span><span class="s2">&quot;healpix&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;jax_healpy&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All of these JAX frontends supports out of the box reverse mode automatic differentiation,
+and under the hood is simply linking to the C/C++ packages you are familiar with. In this
+way <code class="docutils literal notranslate"><span class="pre">S2fft</span></code> enhances existing packages with gradient functionality for modern scientific computing or machine learning
+applications!</p>
+<p>For further details on usage see the associated <a class="reference external" href="https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_SSHT_backend.html">notebooks</a>.</p>
+</section>
+<section id="benchmarks">
+<h2>Benchmarks ⏱️<a class="headerlink" href="#benchmarks" title="Link to this heading">#</a></h2>
+<p>A suite of benchmark functions for both the on-the-fly and precompute versions of the spherical harmonic and Wigner transforms are available in the <code class="docutils literal notranslate"><span class="pre">benchmarks</span></code> directory, along with utilities for running the benchmarks and plotting the results.</p>
 </section>
 <section id="contributors">
 <h2>Contributors ✨<a class="headerlink" href="#contributors" title="Link to this heading">#</a></h2>
 <p>Thanks goes to these wonderful people (<a class="reference external" href="https://allcontributors.org/docs/en/emoji-key">emoji
 key</a>):</p>
-<embed>
-    <table>
-    <tbody>
-        <tr>
-        <td align="center" valign="top" width="14.28%"><a href="https://cosmomatt.github.io"><img src="https://avatars.githubusercontent.com/u/32554533?v=4?s=100" width="100px;" alt="Matt Price"/><br /><sub><b>Matt Price</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=CosmoMatt" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3ACosmoMatt" title="Reviewed Pull Requests">👀</a> <a href="#ideas-CosmoMatt" title="Ideas, Planning, & Feedback">🤔</a></td>
-        <td align="center" valign="top" width="14.28%"><a href="http://www.jasonmcewen.org"><img src="https://avatars.githubusercontent.com/u/3181701?v=4?s=100" width="100px;" alt="Jason McEwen "/><br /><sub><b>Jason McEwen </b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=jasonmcewen" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3Ajasonmcewen" title="Reviewed Pull Requests">👀</a> <a href="#ideas-jasonmcewen" title="Ideas, Planning, & Feedback">🤔</a></td>
-        <td align="center" valign="top" width="14.28%"><a href="http://matt-graham.github.io"><img src="https://avatars.githubusercontent.com/u/6746980?v=4?s=100" width="100px;" alt="Matt Graham"/><br /><sub><b>Matt Graham</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=matt-graham" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3Amatt-graham" title="Reviewed Pull Requests">👀</a></td>
-        <td align="center" valign="top" width="14.28%"><a href="https://sfmig.github.io/"><img src="https://avatars.githubusercontent.com/u/33267254?v=4?s=100" width="100px;" alt="sfmig"/><br /><sub><b>sfmig</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=sfmig" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3Asfmig" title="Reviewed Pull Requests">👀</a></td>
-        <td align="center" valign="top" width="14.28%"><a href="https://github.com/Devaraj-G"><img src="https://avatars.githubusercontent.com/u/36169767?v=4?s=100" width="100px;" alt="Devaraj Gopinathan"/><br /><sub><b>Devaraj Gopinathan</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=Devaraj-G" title="Code">💻</a></td>
-        <td align="center" valign="top" width="14.28%"><a href="http://flanusse.net"><img src="https://avatars.githubusercontent.com/u/861591?v=4?s=100" width="100px;" alt="Francois Lanusse"/><br /><sub><b>Francois Lanusse</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=EiffL" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/issues?q=author%3AEiffL" title="Bug reports">🐛</a></td>
-        <td align="center" valign="top" width="14.28%"><a href="https://github.com/eltociear"><img src="https://avatars.githubusercontent.com/u/22633385?v=4?s=100" width="100px;" alt="Ikko Eltociear Ashimine"/><br /><sub><b>Ikko Eltociear Ashimine</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=eltociear" title="Documentation">📖</a></td>
-        </tr>
-        <tr>
-        <td align="center" valign="top" width="14.28%"><a href="https://github.com/kmulderdas"><img src="https://avatars.githubusercontent.com/u/33317219?v=4?s=100" width="100px;" alt="Kevin Mulder"/><br /><sub><b>Kevin Mulder</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/issues?q=author%3Akmulderdas" title="Bug reports">🐛</a></td>
-        <td align="center" valign="top" width="14.28%"><a href="https://github.com/PhilippMisofCH"><img src="https://avatars.githubusercontent.com/u/142883157?v=4?s=100" width="100px;" alt="Philipp Misof"/><br /><sub><b>Philipp Misof</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/issues?q=author%3APhilippMisofCH" title="Bug reports">🐛</a></td>
-        <td align="center" valign="top" width="14.28%"><a href="https://github.com/ElisR"><img src="https://avatars.githubusercontent.com/u/19764906?v=4?s=100" width="100px;" alt="Elis Roberts"/><br /><sub><b>Elis Roberts</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/issues?q=author%3AElisR" title="Bug reports">🐛</a> <a href="https://github.com/astro-informatics/s2fft/commits?author=ElisR" title="Documentation">📖</a></td>
-        <td align="center" valign="top" width="14.28%"><a href="https://github.com/ASKabalan"><img src="https://avatars.githubusercontent.com/u/83787080?v=4?s=100" width="100px;" alt="Wassim KABALAN"/><br /><sub><b>Wassim KABALAN</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=ASKabalan" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3AASKabalan" title="Reviewed Pull Requests">👀</a> <a href="https://github.com/astro-informatics/s2fft/commits?author=ASKabalan" title="Tests">⚠️</a></td>
-        </tr>
-    </tbody>
-    </table>
-</embed><p>We encourage contributions from any interested developers. A simple
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section --><!-- prettier-ignore-start --><!-- markdownlint-disable --><table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://cosmomatt.github.io"><img src="https://avatars.githubusercontent.com/u/32554533?v=4?s=100" width="100px;" alt="Matt Price"/><br /><sub><b>Matt Price</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=CosmoMatt" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3ACosmoMatt" title="Reviewed Pull Requests">👀</a> <a href="#ideas-CosmoMatt" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://www.jasonmcewen.org"><img src="https://avatars.githubusercontent.com/u/3181701?v=4?s=100" width="100px;" alt="Jason McEwen "/><br /><sub><b>Jason McEwen </b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=jasonmcewen" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3Ajasonmcewen" title="Reviewed Pull Requests">👀</a> <a href="#ideas-jasonmcewen" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://matt-graham.github.io"><img src="https://avatars.githubusercontent.com/u/6746980?v=4?s=100" width="100px;" alt="Matt Graham"/><br /><sub><b>Matt Graham</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=matt-graham" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3Amatt-graham" title="Reviewed Pull Requests">👀</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://sfmig.github.io/"><img src="https://avatars.githubusercontent.com/u/33267254?v=4?s=100" width="100px;" alt="sfmig"/><br /><sub><b>sfmig</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=sfmig" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3Asfmig" title="Reviewed Pull Requests">👀</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Devaraj-G"><img src="https://avatars.githubusercontent.com/u/36169767?v=4?s=100" width="100px;" alt="Devaraj Gopinathan"/><br /><sub><b>Devaraj Gopinathan</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=Devaraj-G" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://flanusse.net"><img src="https://avatars.githubusercontent.com/u/861591?v=4?s=100" width="100px;" alt="Francois Lanusse"/><br /><sub><b>Francois Lanusse</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=EiffL" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/issues?q=author%3AEiffL" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/eltociear"><img src="https://avatars.githubusercontent.com/u/22633385?v=4?s=100" width="100px;" alt="Ikko Eltociear Ashimine"/><br /><sub><b>Ikko Eltociear Ashimine</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=eltociear" title="Documentation">📖</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/kmulderdas"><img src="https://avatars.githubusercontent.com/u/33317219?v=4?s=100" width="100px;" alt="Kevin Mulder"/><br /><sub><b>Kevin Mulder</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/issues?q=author%3Akmulderdas" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/PhilippMisofCH"><img src="https://avatars.githubusercontent.com/u/142883157?v=4?s=100" width="100px;" alt="Philipp Misof"/><br /><sub><b>Philipp Misof</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/issues?q=author%3APhilippMisofCH" title="Bug reports">🐛</a> <a href="https://github.com/astro-informatics/s2fft/commits?author=PhilippMisofCH" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ElisR"><img src="https://avatars.githubusercontent.com/u/19764906?v=4?s=100" width="100px;" alt="Elis Roberts"/><br /><sub><b>Elis Roberts</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/issues?q=author%3AElisR" title="Bug reports">🐛</a> <a href="https://github.com/astro-informatics/s2fft/commits?author=ElisR" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ASKabalan"><img src="https://avatars.githubusercontent.com/u/83787080?v=4?s=100" width="100px;" alt="Wassim KABALAN"/><br /><sub><b>Wassim KABALAN</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=ASKabalan" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3AASKabalan" title="Reviewed Pull Requests">👀</a> <a href="https://github.com/astro-informatics/s2fft/commits?author=ASKabalan" title="Tests">⚠️</a></td>
+    </tr>
+  </tbody>
+</table><!-- markdownlint-restore --><!-- prettier-ignore-end --><!-- ALL-CONTRIBUTORS-LIST:END --><p>We encourage contributions from any interested developers. A simple
 first addition could be adding support for more spherical sampling
 patterns!</p>
 </section>
-<section id="attribution-books">
-<h2>Attribution 📚<a class="headerlink" href="#attribution-books" title="Link to this heading">#</a></h2>
-<p>Should this code be used in any way, we kindly request that the following
-article is referenced. A BibTeX entry for this reference may look like:</p>
+<section id="attribution">
+<h2>Attribution 📚<a class="headerlink" href="#attribution" title="Link to this heading">#</a></h2>
+<p>Should this code be used in any way, we kindly request that the following article is
+referenced. A BibTeX entry for this reference may look like:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">price</span><span class="p">:</span><span class="n">s2fft</span><span class="p">,</span>
-    <span class="n">author</span>      <span class="o">=</span> <span class="s2">&quot;Matthew A. Price and Jason D. McEwen&quot;</span><span class="p">,</span>
-    <span class="n">title</span>       <span class="o">=</span> <span class="s2">&quot;Differentiable and accelerated spherical harmonic and Wigner transforms&quot;</span><span class="p">,</span>
-    <span class="n">journal</span>     <span class="o">=</span> <span class="s2">&quot;Journal of Computational Physics&quot;</span><span class="p">,</span>
-    <span class="n">year</span>        <span class="o">=</span> <span class="s2">&quot;2024&quot;</span><span class="p">,</span>
-    <span class="n">volume</span>      <span class="o">=</span> <span class="s2">&quot;510&quot;</span><span class="p">,</span>
-    <span class="n">pages</span>       <span class="o">=</span> <span class="s2">&quot;113109&quot;</span><span class="p">,</span>
-    <span class="n">eprint</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:2311.14670&quot;</span><span class="p">,</span>
-    <span class="n">doi</span>         <span class="o">=</span> <span class="s2">&quot;10.1016/j.jcp.2024.113109&quot;</span>
+   <span class="n">author</span>      <span class="o">=</span> <span class="s2">&quot;Matthew A. Price and Jason D. McEwen&quot;</span><span class="p">,</span>
+   <span class="n">title</span>       <span class="o">=</span> <span class="s2">&quot;Differentiable and accelerated spherical harmonic and Wigner transforms&quot;</span><span class="p">,</span>
+   <span class="n">journal</span>     <span class="o">=</span> <span class="s2">&quot;Journal of Computational Physics&quot;</span><span class="p">,</span>
+   <span class="n">year</span>        <span class="o">=</span> <span class="s2">&quot;2024&quot;</span><span class="p">,</span>
+   <span class="n">volume</span>      <span class="o">=</span> <span class="s2">&quot;510&quot;</span><span class="p">,</span>
+   <span class="n">pages</span>       <span class="o">=</span> <span class="s2">&quot;113109&quot;</span><span class="p">,</span>
+   <span class="n">eprint</span>      <span class="o">=</span> <span class="s2">&quot;arXiv:2311.14670&quot;</span><span class="p">,</span>
+   <span class="n">doi</span>         <span class="o">=</span> <span class="s2">&quot;10.1016/j.jcp.2024.113109&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>You might also like to consider citing our related papers on which this code builds:</p>
+<p>You might also like to consider citing our related papers on which this
+code builds:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">mcewen</span><span class="p">:</span><span class="n">fssht</span><span class="p">,</span>
     <span class="n">author</span>      <span class="o">=</span> <span class="s2">&quot;Jason D. McEwen and Yves Wiaux&quot;</span><span class="p">,</span>
     <span class="n">title</span>       <span class="o">=</span> <span class="s2">&quot;A novel sampling theorem on the sphere&quot;</span><span class="p">,</span>
@@ -586,15 +707,20 @@ article is referenced. A BibTeX entry for this reference may look like:</p>
 </pre></div>
 </div>
 </section>
-<section id="license-memo">
-<h2>License 📝<a class="headerlink" href="#license-memo" title="Link to this heading">#</a></h2>
-<p>We provide this code under an MIT open-source licence with the hope that it will be of use
-to a wider community.</p>
+<section id="license">
+<h2>License 📝<a class="headerlink" href="#license" title="Link to this heading">#</a></h2>
+<p>We provide this code under an MIT open-source licence with the hope that
+it will be of use to a wider community.</p>
 <p>Copyright 2023 Matthew Price, Jason McEwen and contributors.</p>
-<p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is free software made available under the MIT License. For details see
-the LICENSE file.</p>
-<div class="toctree-wrapper compound">
-</div>
+<p><code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> is free software made available under the MIT License. For
+details see the <span class="raw-html-md"><a href="https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt"><code class="docutils literal"><span class="pre">LICENCE.txt</span></code></a></span> file.</p>
+<p>The file <span class="raw-html-md"><a href="https://github.com/astro-informatics/s2fft/blob/main/lib/include/kernel_helpers.h"><code class="docutils literal"><span class="pre">lib/include/kernel_helpers.h</span></code></a></span> is adapted from
+<a class="reference external" href="https://github.com/dfm/extending-jax/blob/c33869665236877a2ae281f3f5dbff579e8f5b00/lib/kernel_helpers.h">code</a> in <a class="reference external" href="https://github.com/dfm/extending-jax">a tutorial on extending JAX</a> by
+<a class="reference external" href="https://github.com/dfm">Dan Foreman-Mackey</a> and licensed under a <a class="reference external" href="https://github.com/dfm/extending-jax/blob/371dca93c6405368fa8e71690afd3968d75f4bac/LICENSE">MIT license</a>.</p>
+<p>The file <span class="raw-html-md"><a href="https://github.com/astro-informatics/s2fft/blob/main/lib/include/kernel_nanobind_helpers.h"><code class="docutils literal"><span class="pre">lib/include/kernel_nanobind_helpers.h</span></code></a></span>
+is adapted from <a class="reference external" href="https://github.com/jax-ml/jax/blob/3d389a7fb440c412d95a1f70ffb91d58408247d0/jaxlib/kernel_nanobind_helpers.h">code</a>
+by the <a class="reference external" href="https://github.com/jax-ml/jax">JAX</a> authors
+and licensed under a <a class="reference external" href="https://github.com/jax-ml/jax/blob/3d389a7fb440c412d95a1f70ffb91d58408247d0/LICENSE">Apache-2.0 license</a>.</p>
 <div class="toctree-wrapper compound">
 </div>
 <div class="toctree-wrapper compound">
@@ -613,11 +739,11 @@ the LICENSE file.</p>
                   
 <div class="prev-next-area">
     <a class="right-next"
-       href="user_guide/install.html"
+       href="tutorials/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Installation</p>
+        <p class="prev-next-title">Tutorials</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -640,11 +766,18 @@ the LICENSE file.</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#algorithms-zap">Algorithms ⚡</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-earth-africa">Sampling 🌍</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#algorithms">Algorithms ⚡</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling">Sampling 🌍</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation 💻</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tests">Tests 🚦</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation">Documentation 📖</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notebooks">Notebooks 📓</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage">Usage 🚀</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ssht-healpix-wrappers">SSHT &amp; HEALPix wrappers 💡</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#benchmarks">Benchmarks ⏱️</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contributors">Contributors ✨</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attribution-books">Attribution 📚</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#license-memo">License 📝</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attribution">Attribution 📚</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#license">License 📝</a><ul class="visible nav section-nav flex-column">
 </ul>
 </li>
 </ul>
