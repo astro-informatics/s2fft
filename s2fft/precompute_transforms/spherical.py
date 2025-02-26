@@ -15,6 +15,7 @@ from s2fft.utils import (
     resampling,
     resampling_jax,
     resampling_torch,
+    torch_wrapper,
 )
 
 
@@ -220,6 +221,11 @@ def inverse_transform_jax(
             f = jnp.fft.ifft(f, axis=-1, norm="forward")
 
     return jnp.real(f) if reality else f
+
+
+inverse_transform_torch_wrapper = torch_wrapper.wrap_as_torch_function(
+    inverse_transform_jax, differentiable_argnames=("flm", "kernel")
+)
 
 
 def inverse_transform_torch(
@@ -532,6 +538,11 @@ def forward_transform_jax(
     return flm * (-1) ** spin
 
 
+forward_transform_torch_wrapper = torch_wrapper.wrap_as_torch_function(
+    forward_transform_jax, differentiable_argnames=("f", "kernel")
+)
+
+
 def forward_transform_torch(
     f: torch.tensor,
     kernel: torch.tensor,
@@ -614,6 +625,7 @@ _inverse_functions = {
     "numpy": inverse_transform,
     "jax": inverse_transform_jax,
     "torch": inverse_transform_torch,
+    "torch-wrapper": inverse_transform_torch_wrapper,
 }
 
 
@@ -621,10 +633,12 @@ _forward_functions = {
     "numpy": forward_transform,
     "jax": forward_transform_jax,
     "torch": forward_transform_torch,
+    "torch-wrapper": forward_transform_torch_wrapper,
 }
 
 _kernel_functions = {
     "numpy": partial(construct.spin_spherical_kernel, using_torch=False),
     "jax": construct.spin_spherical_kernel_jax,
     "torch": partial(construct.spin_spherical_kernel, using_torch=True),
+    "torch-wrapper": construct.spin_spherical_kernel_torch_wrapper,
 }

@@ -8,7 +8,7 @@ import torch
 
 from s2fft import recursions
 from s2fft.sampling import s2_samples as samples
-from s2fft.utils import quadrature, quadrature_jax
+from s2fft.utils import quadrature, quadrature_jax, torch_wrapper
 
 # Maximum spin number at which Price-McEwen recursion is sufficiently accurate.
 # For spins > PM_MAX_STABLE_SPIN one should default to the Risbo recursion.
@@ -327,6 +327,11 @@ def spin_spherical_kernel_jax(
         )
 
     return dl
+
+
+spin_spherical_kernel_torch_wrapper = torch_wrapper.wrap_as_torch_function(
+    spin_spherical_kernel_jax
+)
 
 
 def wigner_kernel(

@@ -31,7 +31,7 @@ def setup_forward(method, L, sampling, spin, reality, recursion):
         sampling=sampling,
         reality=reality,
     )
-    if method == "torch":
+    if method.startswith("torch"):
         import torch
 
         flm = torch.from_numpy(flm)
@@ -74,7 +74,7 @@ def setup_inverse(method, L, sampling, spin, reality, recursion):
         skip("Reality only valid for scalar fields (spin=0).")
     rng = np.random.default_rng()
     flm = s2fft.utils.signal_generator.generate_flm(rng, L, spin=spin, reality=reality)
-    if method == "torch":
+    if method.startswith("torch"):
         import torch
 
         flm = torch.from_numpy(flm)
