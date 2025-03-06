@@ -1,5 +1,6 @@
 """Benchmarks for precompute Wigner-d transforms."""
 
+import jax
 import numpy as np
 from benchmarking import (
     BenchmarkSetup,
@@ -10,6 +11,7 @@ from benchmarking import (
 import s2fft
 import s2fft.precompute_transforms
 from s2fft.base_transforms import wigner as base_wigner
+from s2fft.utils import torch_wrapper
 
 L_VALUES = [16, 32, 64, 128, 256]
 N_VALUES = [2]
@@ -31,11 +33,17 @@ def setup_forward(method, L, N, L_lower, sampling, reality, mode):
         sampling=sampling,
         reality=reality,
     )
-    kernel_function = (
-        s2fft.precompute_transforms.construct.wigner_kernel_jax
-        if "jax" in method
-        else s2fft.precompute_transforms.construct.wigner_kernel
-    )
+    # As torch method wraps JAX functions and converting NumPy array to torch tensor
+    # causes warning 'DLPack buffer is not aligned' about byte aligment on subsequently
+    # converting to JAX array using mutual DLPack support we first convert the NumPy
+    # arrays to a JAX arrays before converting to torch tensors which eliminates this
+    # warning
+    if method.startswith("jax") or method.startswith("torch"):
+        flmn = jax.numpy.asarray(flmn)
+        f = jax.numpy.asarray(f)
+    if method.startswith("torch"):
+        flmn, f = torch_wrapper.tree_map_jax_array_to_torch_tensor((flmn, f))
+    kernel_function = s2fft.precompute_transforms.wigner._kernel_functions[method]
     kernel = kernel_function(
         L=L, N=N, reality=reality, sampling=sampling, forward=True, mode=mode
     )
@@ -67,11 +75,16 @@ def forward(f, kernel, method, L, N, L_lower, sampling, reality, mode):
 def setup_inverse(method, L, N, L_lower, sampling, reality, mode):
     rng = np.random.default_rng()
     flmn = s2fft.utils.signal_generator.generate_flmn(rng, L, N, reality=reality)
-    kernel_function = (
-        s2fft.precompute_transforms.construct.wigner_kernel_jax
-        if method == "jax"
-        else s2fft.precompute_transforms.construct.wigner_kernel
-    )
+    # As torch method wraps JAX functions and converting NumPy array to torch tensor
+    # causes warning 'DLPack buffer is not aligned' about byte aligment on subsequently
+    # converting to JAX array using mutual DLPack support we first convert the NumPy
+    # arrays to a JAX arrays before converting to torch tensors which eliminates this
+    # warning
+    if method.startswith("jax") or method.startswith("torch"):
+        flmn = jax.numpy.asarray(flmn)
+    if method.startswith("torch"):
+        flmn = torch_wrapper.jax_array_to_torch_tensor(flmn)
+    kernel_function = s2fft.precompute_transforms.wigner._kernel_functions[method]
     kernel = kernel_function(
         L=L, N=N, reality=reality, sampling=sampling, forward=False, mode=mode
     )
