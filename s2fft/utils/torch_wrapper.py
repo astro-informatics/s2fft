@@ -169,4 +169,8 @@ def wrap_as_torch_function(
 
         return WrappedJaxFunction.apply(*differentiable_args)
 
+    docstring_replacements = {"JAX": "Torch", "jnp.ndarray": "torch.Tensor"}
+    for original, new in docstring_replacements.items():
+        torch_function.__doc__ = torch_function.__doc__.replace(original, new)
+
     return torch_function
