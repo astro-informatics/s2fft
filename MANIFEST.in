@@ -2,7 +2,6 @@ graft s2fft
 graft tests
 graft docs
 
-include .pip_readme.rst
 include README.md
 include LICENCE.txt
 
