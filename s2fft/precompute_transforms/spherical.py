@@ -394,7 +394,7 @@ def forward_transform_jax(
     nside: int,
 ) -> jnp.ndarray:
     r"""
-    Compute the forward spherical harmonic tranclearsform via precompute (vectorized
+    Compute the forward spherical harmonic transform via precompute (vectorized
     implementation).
 
     Args:
