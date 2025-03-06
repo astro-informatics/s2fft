@@ -49,8 +49,6 @@ def spin_spherical_kernel(
         forward (bool, optional): Whether to provide forward or inverse shift.
             Defaults to False.
 
-        using_torch (bool, optional): Desired frontend functionality. Defaults to False.
-
         recursion (str, optional): Recursion to adopt. Supported recursion schemes include
             {"auto", "price-mcewen", "risbo"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
