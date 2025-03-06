@@ -2,10 +2,8 @@ graft s2fft
 graft tests
 graft docs
 
-include README.rst
-include pytest.ini
+include README.md
 include LICENCE.txt
-include s2fft/default-logging-config.yaml
 
 exclude .coveragerc
 exclude *.log
