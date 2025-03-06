@@ -4,7 +4,6 @@ from warnings import warn
 import jax
 import jax.numpy as jnp
 import numpy as np
-import torch
 
 from s2fft import recursions
 from s2fft.sampling import s2_samples as samples
@@ -339,7 +338,6 @@ def wigner_kernel(
     nside: int = None,
     forward: bool = False,
     mode: str = "auto",
-    using_torch: bool = False,
 ) -> np.ndarray:
     r"""
     Precompute the wigner-d kernel for Wigner transform.
@@ -369,8 +367,6 @@ def wigner_kernel(
         mode (str, optional): Whether to use FFT approach or manually compute each element.
             {"auto", "direct", "fft"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
-
-        using_torch (bool, optional): Desired frontend functionality. Defaults to False.
 
     Returns:
         np.ndarray: Transform kernel for Wigner transform.
@@ -470,7 +466,7 @@ def wigner_kernel(
             healpix_phase_shifts(L, nside, forward),
         )
 
-    return torch.from_numpy(dl) if using_torch else dl
+    return dl
 
 
 def wigner_kernel_jax(
