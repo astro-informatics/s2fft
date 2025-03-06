@@ -5,9 +5,10 @@ import numpy as np
 import torch
 from jax import jit
 
+from s2fft.precompute_transforms import construct
 from s2fft.sampling import so3_samples as samples
 from s2fft.utils import healpix_ffts as hp
-from s2fft.utils import resampling, resampling_jax, resampling_torch
+from s2fft.utils import resampling, resampling_jax, resampling_torch, torch_wrapper
 
 
 def inverse(
@@ -60,14 +61,21 @@ def inverse(
         :math:`\alpha` with :math:`\phi`.
 
     """
-    if method == "numpy":
-        return inverse_transform(flmn, kernel, L, N, sampling, reality, nside)
-    elif method == "jax":
-        return inverse_transform_jax(flmn, kernel, L, N, sampling, reality, nside)
-    elif method == "torch":
-        return inverse_transform_torch(flmn, kernel, L, N, sampling, reality, nside)
-    else:
+    if method not in _inverse_functions:
         raise ValueError(f"Method {method} not recognised.")
+    common_kwargs = {
+        "L": L,
+        "N": N,
+        "sampling": sampling,
+        "reality": reality,
+        "nside": nside,
+    }
+    kernel = (
+        _kernel_functions[method](forward=False, **common_kwargs)
+        if kernel is None
+        else kernel
+    )
+    return _inverse_functions[method](flmn, kernel, **common_kwargs)
 
 
 def inverse_transform(
@@ -211,6 +219,11 @@ def inverse_transform_jax(
             return jnp.conj(jnp.fft.fft2(fnab, axes=(-1, -3), norm="backward"))
 
 
+inverse_transform_torch_wrapper = torch_wrapper.wrap_as_torch_function(
+    inverse_transform_jax, differentiable_argnames=("flmn", "kernel")
+)
+
+
 def inverse_transform_torch(
     flmn: torch.tensor,
     kernel: torch.tensor,
@@ -339,14 +352,21 @@ def forward(
         :math:`\alpha` with :math:`\phi`.
 
     """
-    if method == "numpy":
-        return forward_transform(f, kernel, L, N, sampling, reality, nside)
-    elif method == "jax":
-        return forward_transform_jax(f, kernel, L, N, sampling, reality, nside)
-    elif method == "torch":
-        return forward_transform_torch(f, kernel, L, N, sampling, reality, nside)
-    else:
+    if method not in _forward_functions:
         raise ValueError(f"Method {method} not recognised.")
+    common_kwargs = {
+        "L": L,
+        "N": N,
+        "sampling": sampling,
+        "reality": reality,
+        "nside": nside,
+    }
+    kernel = (
+        _kernel_functions[method](forward=True, **common_kwargs)
+        if kernel is None
+        else kernel
+    )
+    return _forward_functions[method](f, kernel, **common_kwargs)
 
 
 def forward_transform(
@@ -526,6 +546,11 @@ def forward_transform_jax(
     return flmn
 
 
+forward_transform_torch_wrapper = torch_wrapper.wrap_as_torch_function(
+    forward_transform_jax, differentiable_argnames=("f", "kernel")
+)
+
+
 def forward_transform_torch(
     f: torch.tensor,
     kernel: torch.tensor,
@@ -619,3 +644,26 @@ def forward_transform_torch(
         )
 
     return flmn
+
+
+_inverse_functions = {
+    "numpy": inverse_transform,
+    "jax": inverse_transform_jax,
+    "torch": inverse_transform_torch,
+    "torch-wrapper": inverse_transform_torch_wrapper,
+}
+
+
+_forward_functions = {
+    "numpy": forward_transform,
+    "jax": forward_transform_jax,
+    "torch": forward_transform_torch,
+    "torch-wrapper": forward_transform_torch_wrapper,
+}
+
+_kernel_functions = {
+    "numpy": construct.wigner_kernel,
+    "jax": construct.wigner_kernel_jax,
+    "torch": construct.wigner_kernel_torch,
+    "torch-wrapper": construct.wigner_kernel_torch,
+}

@@ -615,6 +615,9 @@ def wigner_kernel_jax(
     return dl
 
 
+wigner_kernel_torch = torch_wrapper.wrap_as_torch_function(wigner_kernel_jax)
+
+
 def fourier_wigner_kernel(L: int) -> Tuple[np.ndarray, np.ndarray]:
     """
     Computes Fourier coefficients of the reduced Wigner d-functions and quadrature
@@ -669,6 +672,11 @@ def fourier_wigner_kernel_jax(L: int) -> Tuple[jnp.ndarray, jnp.ndarray]:
     w = jnp.fft.ifft(jnp.fft.ifftshift(w), norm="forward")
 
     return deltas, w
+
+
+fourier_wigner_kernel_torch = torch_wrapper.wrap_as_torch_function(
+    fourier_wigner_kernel_jax
+)
 
 
 def healpix_phase_shifts(L: int, nside: int, forward: bool = False) -> np.ndarray:
