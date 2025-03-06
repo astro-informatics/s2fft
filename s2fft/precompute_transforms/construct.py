@@ -22,7 +22,6 @@ def spin_spherical_kernel(
     sampling: str = "mw",
     nside: int = None,
     forward: bool = True,
-    using_torch: bool = False,
     recursion: str = "auto",
 ) -> np.ndarray:
     r"""
@@ -163,7 +162,7 @@ def spin_spherical_kernel(
             healpix_phase_shifts(L, nside, forward)[:, m_start_ind:],
         )
 
-    return torch.from_numpy(dl) if using_torch else dl
+    return dl
 
 
 def spin_spherical_kernel_jax(
@@ -329,7 +328,7 @@ def spin_spherical_kernel_jax(
     return dl
 
 
-spin_spherical_kernel_torch_wrapper = torch_wrapper.wrap_as_torch_function(
+spin_spherical_kernel_torch = torch_wrapper.wrap_as_torch_function(
     spin_spherical_kernel_jax
 )
 

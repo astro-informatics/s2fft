@@ -4,7 +4,6 @@ from warnings import warn
 
 import jax.numpy as jnp
 import numpy as np
-import torch
 from jax import jit
 
 from s2fft.precompute_transforms import construct
@@ -14,7 +13,6 @@ from s2fft.utils import (
     iterative_refinement,
     resampling,
     resampling_jax,
-    resampling_torch,
     torch_wrapper,
 )
 
@@ -223,87 +221,9 @@ def inverse_transform_jax(
     return jnp.real(f) if reality else f
 
 
-inverse_transform_torch_wrapper = torch_wrapper.wrap_as_torch_function(
+inverse_transform_torch = torch_wrapper.wrap_as_torch_function(
     inverse_transform_jax, differentiable_argnames=("flm", "kernel")
 )
-
-
-def inverse_transform_torch(
-    flm: torch.tensor,
-    kernel: torch.tensor,
-    L: int,
-    sampling: str,
-    reality: bool,
-    spin: int,
-    nside: int,
-) -> torch.tensor:
-    r"""
-    Compute the inverse spherical harmonic transform via precompute (Torch
-    implementation).
-
-    Args:
-        flm (torch.tensor): Spherical harmonic coefficients.
-
-        kernel (torch.tensor): Wigner-d kernel.
-
-        L (int): Harmonic band-limit.
-
-        sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.
-
-        spin (int): Harmonic spin.
-
-        nside (int): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".
-
-    Returns:
-        torch.tensor: Pixel-space coefficients with shape.
-
-    """
-    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
-    m_start_ind = L - 1 if reality else 0
-
-    ftm = torch.zeros(samples.ftm_shape(L, sampling, nside), dtype=torch.complex128)
-    if sampling.lower() == "healpix":
-        ftm[:, m_start_ind + m_offset :] += torch.einsum(
-            "...tlm, ...lm -> ...tm", kernel, flm[:, m_start_ind:]
-        )
-    else:
-        ftm[:, m_start_ind + m_offset :].real += torch.einsum(
-            "...tlm, ...lm -> ...tm", kernel, flm[:, m_start_ind:].real
-        )
-        ftm[:, m_start_ind + m_offset :].imag += torch.einsum(
-            "...tlm, ...lm -> ...tm", kernel, flm[:, m_start_ind:].imag
-        )
-    ftm *= (-1) ** spin
-    if reality:
-        ftm[:, m_offset : m_start_ind + m_offset] = torch.flip(
-            torch.conj(ftm[:, m_start_ind + m_offset + 1 :]), dims=[-1]
-        )
-
-    if sampling.lower() == "healpix":
-        if reality:
-            ftm[:, m_offset : m_start_ind + m_offset] = torch.flip(
-                torch.conj(ftm[:, m_start_ind + m_offset + 1 :]), dims=[-1]
-            )
-        f = hp.healpix_ifft(ftm, L, nside, "torch", reality)
-
-    else:
-        if reality:
-            f = torch.fft.irfft(
-                ftm[:, m_start_ind + m_offset :],
-                samples.nphi_equiang(L, sampling),
-                axis=-1,
-                norm="forward",
-            )
-        else:
-            f = torch.fft.ifftshift(ftm, dim=[-1])
-            f = torch.fft.ifft(f, axis=-1, norm="forward")
-
-    return f.real if reality else f
 
 
 def forward(
@@ -538,94 +458,15 @@ def forward_transform_jax(
     return flm * (-1) ** spin
 
 
-forward_transform_torch_wrapper = torch_wrapper.wrap_as_torch_function(
+forward_transform_torch = torch_wrapper.wrap_as_torch_function(
     forward_transform_jax, differentiable_argnames=("f", "kernel")
 )
-
-
-def forward_transform_torch(
-    f: torch.tensor,
-    kernel: torch.tensor,
-    L: int,
-    sampling: str,
-    reality: bool,
-    spin: int,
-    nside: int,
-) -> torch.tensor:
-    r"""
-    Compute the forward spherical harmonic tranclearsform via precompute (vectorized
-    implementation).
-
-    Args:
-        f (torch.tensor): Signal on the sphere.
-
-        kernel (torch.tensor): Wigner-d kernel.
-
-        L (int): Harmonic band-limit.
-
-        sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.
-
-        spin (int): Harmonic spin.
-
-        nside (int): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".
-
-    Returns:
-        torch.tensor: Pixel-space coefficients.
-
-    """
-    if sampling.lower() == "mw":
-        f = resampling_torch.mw_to_mwss(f, L, spin)
-
-    if sampling.lower() in ["mw", "mwss"]:
-        sampling = "mwss"
-        f = resampling_torch.upsample_by_two_mwss(f, L, spin)
-
-    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
-    m_start_ind = L - 1 if reality else 0
-
-    if sampling.lower() == "healpix":
-        ftm = hp.healpix_fft(f, L, nside, "torch", reality)[:, m_offset:]
-        if reality:
-            ftm = ftm[:, m_start_ind:]
-    else:
-        if reality:
-            ftm = torch.fft.rfft(torch.real(f), axis=-1, norm="backward")
-            if m_offset != 0:
-                ftm = ftm[:, :-1]
-        else:
-            ftm = torch.fft.fft(f, axis=-1, norm="backward")
-            ftm = torch.fft.fftshift(ftm, dim=[-1])[:, m_offset:]
-
-    flm = torch.zeros(samples.flm_shape(L), dtype=torch.complex128)
-    if sampling.lower() == "healpix":
-        flm[:, m_start_ind:] = torch.einsum("...tlm, ...tm -> ...lm", kernel, ftm)
-    else:
-        flm[:, m_start_ind:].real = torch.einsum(
-            "...tlm, ...tm -> ...lm", kernel, ftm.real
-        )
-        flm[:, m_start_ind:].imag = torch.einsum(
-            "...tlm, ...tm -> ...lm", kernel, ftm.imag
-        )
-
-    if reality:
-        flm[:, :m_start_ind] = torch.flip(
-            (-1) ** (torch.arange(1, L) % 2) * torch.conj(flm[:, m_start_ind + 1 :]),
-            dims=[-1],
-        )
-
-    return flm * (-1) ** spin
 
 
 _inverse_functions = {
     "numpy": inverse_transform,
     "jax": inverse_transform_jax,
     "torch": inverse_transform_torch,
-    "torch-wrapper": inverse_transform_torch_wrapper,
 }
 
 
@@ -633,12 +474,10 @@ _forward_functions = {
     "numpy": forward_transform,
     "jax": forward_transform_jax,
     "torch": forward_transform_torch,
-    "torch-wrapper": forward_transform_torch_wrapper,
 }
 
 _kernel_functions = {
-    "numpy": partial(construct.spin_spherical_kernel, using_torch=False),
+    "numpy": construct.spin_spherical_kernel,
     "jax": construct.spin_spherical_kernel_jax,
-    "torch": partial(construct.spin_spherical_kernel, using_torch=True),
-    "torch-wrapper": construct.spin_spherical_kernel_torch_wrapper,
+    "torch": construct.spin_spherical_kernel_torch,
 }
