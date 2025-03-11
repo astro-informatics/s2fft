@@ -176,8 +176,16 @@ def wrap_as_torch_function(
 
         return WrappedJaxFunction.apply(*differentiable_args)
 
-    docstring_replacements = {"JAX": "Torch", "jnp.ndarray": "torch.Tensor"}
+    docstring_replacements = {
+        "JAX": "Torch",
+        "jnp.ndarray": "torch.Tensor",
+        "jax.Array": "torch.Tensor",
+    }
     for original, new in docstring_replacements.items():
         torch_function.__doc__ = torch_function.__doc__.replace(original, new)
+
+    for name, annotation in torch_function.__annotations__.items():
+        if isinstance(annotation, type) and issubclass(annotation, jax.Array):
+            torch_function.__annotations__[name] = torch.Tensor
 
     return torch_function
