@@ -115,7 +115,7 @@ def tree_map_torch_tensor_to_jax_array(
 
 
 def wrap_as_torch_function(
-    jax_function: Callable, differentiable_argnames: tuple[str] = ()
+    jax_function: Callable, differentiable_argnames: None | tuple[str] = None
 ) -> Callable:
     """
     Wrap a function implemented using JAX API to be callable within Torch.
@@ -129,18 +129,25 @@ def wrap_as_torch_function(
         jax_function: JAX function to wrap.
         differentiable_argnames: Names of arguments of `jax_function` which function
            output(s) are differentiable with respect to, and gradients should be
-           compute with respect to in Torch backwards pass.
+           compute with respect to in Torch backwards pass. If `None` (the default)
+           the names of all arguments which are annotated as being `jax.Array` instances
+           will be used.
 
     Returns:
         Wrapped function callable from Torch.
 
     """
     sig = signature(jax_function)
-    if differentiable_argnames is not None:
-        for argname in differentiable_argnames:
-            if argname not in sig.parameters:
-                msg = f"{argname} passed is not a valid argument to {jax_function}"
-                raise ValueError(msg)
+    if differentiable_argnames is None:
+        differentiable_argnames = tuple(
+            name
+            for name, param in sig.parameters.items()
+            if issubclass(param.annotation, jax.Array)
+        )
+    for argname in differentiable_argnames:
+        if argname not in sig.parameters:
+            msg = f"{argname} passed is not a valid argument to {jax_function}"
+            raise ValueError(msg)
 
     @wraps(jax_function)
     def torch_function(*args, **kwargs):
