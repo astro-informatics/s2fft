@@ -218,9 +218,7 @@ def inverse_transform_jax(
             return jnp.conj(jnp.fft.fft2(fnab, axes=(-1, -3), norm="backward"))
 
 
-inverse_transform_torch = torch_wrapper.wrap_as_torch_function(
-    inverse_transform_jax, differentiable_argnames=("flmn", "kernel")
-)
+inverse_transform_torch = torch_wrapper.wrap_as_torch_function(inverse_transform_jax)
 
 
 def forward(
@@ -467,9 +465,7 @@ def forward_transform_jax(
     return flmn
 
 
-forward_transform_torch = torch_wrapper.wrap_as_torch_function(
-    forward_transform_jax, differentiable_argnames=("f", "kernel")
-)
+forward_transform_torch = torch_wrapper.wrap_as_torch_function(forward_transform_jax)
 
 
 _inverse_functions = {

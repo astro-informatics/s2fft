@@ -221,9 +221,7 @@ def inverse_transform_jax(
     return jnp.real(f) if reality else f
 
 
-inverse_transform_torch = torch_wrapper.wrap_as_torch_function(
-    inverse_transform_jax, differentiable_argnames=("flm", "kernel")
-)
+inverse_transform_torch = torch_wrapper.wrap_as_torch_function(inverse_transform_jax)
 
 
 def forward(
@@ -458,9 +456,7 @@ def forward_transform_jax(
     return flm * (-1) ** spin
 
 
-forward_transform_torch = torch_wrapper.wrap_as_torch_function(
-    forward_transform_jax, differentiable_argnames=("f", "kernel")
-)
+forward_transform_torch = torch_wrapper.wrap_as_torch_function(forward_transform_jax)
 
 
 _inverse_functions = {
