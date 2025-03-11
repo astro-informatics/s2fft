@@ -37,7 +37,7 @@ from typing import Any, Callable, TypeVar
 
 import jax
 import jax.dlpack
-from jax.tree import map as tree_map
+from jax.tree_util import tree_map
 
 try:
     import torch
