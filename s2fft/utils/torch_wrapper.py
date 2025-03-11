@@ -31,7 +31,8 @@ SOFTWARE.
 """
 
 from functools import wraps
-from inspect import signature
+from inspect import getmembers, isroutine, signature
+from types import ModuleType
 from typing import Any, Callable, TypeVar
 
 import jax
@@ -189,3 +190,21 @@ def wrap_as_torch_function(
             torch_function.__annotations__[name] = torch.Tensor
 
     return torch_function
+
+
+def populate_namespace_by_wrapping_functions_in_module(
+    namespace: dict, module: ModuleType
+) -> None:
+    """
+    Populate a namespace by wrapping all (JAX) functions in a module as Torch functions.
+
+    Args:
+        namespace: Namespace to define wrapped functions in.
+        module: Source module for (JAX) functions to wrap. Note all functions in this
+            module without a preceding underscore in their name will be wrapped
+            irrespective of whether they are defined in the module or not.
+
+    """
+    for name, function in getmembers(module, isroutine):
+        if not name.startswith("_"):
+            namespace[name] = wrap_as_torch_function(function)
