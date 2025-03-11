@@ -37,12 +37,30 @@ from typing import Any, Callable, TypeVar
 
 import jax
 import jax.dlpack
-import torch
-import torch.utils.dlpack
 from jax.tree import map as tree_map
+
+try:
+    import torch
+    import torch.utils.dlpack
+
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
 
 T = TypeVar("T")
 PyTree = dict[Any, "PyTree"] | list["PyTree"] | tuple["PyTree"] | T
+
+
+def check_torch_available() -> None:
+    """Raise an error if Torch is not importable."""
+    if not TORCH_AVAILABLE:
+        msg = (
+            "torch needs to be installed to use torch wrapper functionality but could\n"
+            "not be imported. Install s2fft with torch extra using:\n"
+            "    pip install s2fft[torch]\n"
+            "to allow use of torch wrapper functionality."
+        )
+        raise RuntimeError(msg)
 
 
 def jax_array_to_torch_tensor(jax_array: jax.Array) -> torch.Tensor:
@@ -138,6 +156,7 @@ def wrap_as_torch_function(
         Wrapped function callable from Torch.
 
     """
+    check_torch_available()
     sig = signature(jax_function)
     if differentiable_argnames is None:
         differentiable_argnames = tuple(
