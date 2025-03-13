@@ -121,19 +121,26 @@ def plot_results_against_bandlimit(
     measurements: tuple[str] = ("times", "flops", "memory", "error"),
     axis_size: float = 3.0,
     fig_dpi: int = 100,
+    functions_along_columns: bool = False,
 ) -> tuple[plt.Figure, plt.Axes]:
     benchmark_results_path = Path(benchmark_results_path)
     with benchmark_results_path.open("r") as f:
         benchmark_results = json.load(f)
     n_functions = len(functions)
     n_measurements = len(measurements)
+    n_rows, n_cols = (
+        (n_measurements, n_functions)
+        if functions_along_columns
+        else (n_functions, n_measurements)
+    )
     fig, axes = plt.subplots(
-        n_functions,
-        n_measurements,
-        figsize=(axis_size * n_measurements, axis_size * n_functions),
+        n_rows,
+        n_cols,
+        figsize=(axis_size * n_cols, axis_size * n_rows),
         dpi=fig_dpi,
         squeeze=False,
     )
+    axes = axes.T if functions_along_columns else axes
     for axes_row, function in zip(axes, functions):
         results = benchmark_results["results"][function]
         l_values = np.array([r["parameters"]["L"] for r in results])
@@ -183,6 +190,11 @@ def _parse_cli_arguments() -> argparse.Namespace:
     parser.add_argument(
         "-title", type=str, help="Title for figure. No title added if omitted."
     )
+    parser.add_argument(
+        "--functions-along-columns",
+        action="store_true",
+        help="Whether to orient axes with functions along columns instead of rows.",
+    )
     return parser.parse_args()
 
 
@@ -202,6 +214,7 @@ if __name__ == "__main__":
         measurements=measurements,
         axis_size=args.axis_size,
         fig_dpi=args.dpi,
+        functions_along_columns=args.functions_along_columns,
     )
     if args.title is not None:
         fig.suptitle(args.title)
