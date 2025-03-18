@@ -1,7 +1,13 @@
+# /Users/mun/ONGOING/JASON_2025_Projects/KURTIS/s2fft/s2fft/utils
+
 import numpy as np
 import numpy.fft as fft
 
 from s2fft.sampling import s2_samples as samples
+
+import jax.numpy as jnp
+import jax
+
 
 
 def quad_weights_transform(
@@ -18,7 +24,7 @@ def quad_weights_transform(
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mwss", "dh", "gl", "healpix}.  Defaults to "mwss".
+            {"mwss", "dh", "gl", "CK", "healpix}.  Defaults to "mwss".
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
@@ -43,11 +49,16 @@ def quad_weights_transform(
     elif sampling.lower() == "gl":
         return quad_weights_gl(L)
 
+    elif sampling.lower() == "ck":
+        return quad_weights_ck(L)
+    
+
     elif sampling.lower() == "healpix":
         return quad_weights_hp(nside)
 
     else:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
+    
 
 
 def quad_weights(
@@ -88,6 +99,9 @@ def quad_weights(
 
     elif sampling.lower() == "gl":
         return quad_weights_gl(L)
+    
+    elif sampling.lower() == "ck":
+        return quad_weights_ck(L)
 
     elif sampling.lower() == "healpix":
         return quad_weights_hp(nside)
@@ -318,3 +332,66 @@ def mw_weights(m: int) -> float:
 
     else:
         return 0
+
+
+def quad_weights_ck(L: int, spin: int = 0) -> np.ndarray:
+    
+    r"""
+    Compute CL quadrature weights for :math:`\theta` integration (only).
+
+    Args:
+        L (int): Harmonic band-limit.
+
+        spin (int, optional): Harmonic spin. Defaults to 0.
+
+    Returns:
+        np.ndarray: Weights computed for each :math:`\theta`.
+
+    """
+
+    n=L
+    
+# def make_clenshaw_curtis_nodes_and_weights(n: int)
+#         -> tuple[jnp.ndarray, jnp.ndarray]:
+          
+    """Nodes and weights of the Clenshaw-Curtis quadrature."""
+
+    
+
+    if n < 1:
+        raise ValueError(f"Clenshaw-Curtis order must be at least 1: n = {n}")
+
+    if n == 1:
+        return jnp.array([-1, 1]), jnp.array([1, 1])
+    
+
+    N = jnp.arange(1, n, 2)  # noqa: N806
+    r = len(N)
+    m = n - r
+
+    # Clenshaw-Curtis nodes
+    x = jnp.cos(jnp.arange(0, n + 1) * jnp.pi / n)
+
+    # Clenshaw-Curtis weights
+    w = jnp.concatenate([2 / N / (N - 2), 1 / N[-1:], jnp.zeros(m)])
+    w = 0 - w[:-1] - w[-1:0:-1]
+    g0: jnp.ndarray[tuple[int, ...], jnp.dtype[np.floating]] = \
+                  -np.ones(n)
+    g0[r] = g0[r] + n
+    g0[m] = g0[m] + n
+    g0 = g0 / (n**2 - 1 + (n % 2))
+    w = jnp.fft.ifft(w + g0)
+    assert jnp.allclose(w.imag, 0)
+
+    wr = w.real
+    # return x, jnp.concatenate([wr, wr[:1]])
+    return jnp.concatenate([wr, wr[:1]])
+
+
+
+
+
+
+%print(a)
+
+
