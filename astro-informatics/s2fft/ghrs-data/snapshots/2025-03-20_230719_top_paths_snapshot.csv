@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/astro-informatics/s2fft,106,36
+/astro-informatics/s2fft/issues,36,7
+/astro-informatics/s2fft/tree/main/s2fft,31,11
+/astro-informatics/s2fft/pulls,30,6
+/astro-informatics/s2fft/blob/main/s2fft/utils/healpix_ffts.py,19,4
+/astro-informatics/s2fft/tree/main/s2fft/transforms,17,8
+/astro-informatics/s2fft/blob/main/s2fft/transforms/spherical.py,17,7
+/astro-informatics/s2fft/issues/279,14,6
+/astro-informatics/s2fft/blob/main/s2fft/sampling/s2_samples.py,11,4
+/astro-informatics/s2fft/blob/main/notebooks/JAX_HEALPix_frontend.ipynb,11,2
