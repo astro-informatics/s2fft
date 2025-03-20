@@ -201,9 +201,11 @@ def wrap_as_torch_function(
         "jnp.ndarray": "torch.Tensor",
         "jax.Array": "torch.Tensor",
     }
-    for original, new in docstring_replacements.items():
-        torch_function.__doc__ = torch_function.__doc__.replace(original, new)
+    if torch_function.__doc__ is not None:
+        for original, new in docstring_replacements.items():
+            torch_function.__doc__ = torch_function.__doc__.replace(original, new)
 
+    torch_function.__annotations__ = torch_function.__annotations__.copy()
     for name, annotation in torch_function.__annotations__.items():
         if isinstance(annotation, type) and issubclass(annotation, jax.Array):
             torch_function.__annotations__[name] = torch.Tensor
