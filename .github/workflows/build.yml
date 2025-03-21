@@ -53,7 +53,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.2
+        uses: pypa/cibuildwheel@v2.23.1
+        env:
+          CIBW_SKIP: pp*-macosx_arm64
 
       - uses: actions/upload-artifact@v4
         with:
