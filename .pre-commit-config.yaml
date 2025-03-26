@@ -4,3 +4,10 @@ repos:
     hooks:
       - id: ruff
       - id: ruff-format
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v18.1.4
+    hooks:
+      - id: clang-format
+        files: '\.(c|cc|cpp|h|hpp|cxx|hh|cu|cuh)$'
+        exclude: '^third_party/|/pybind11/'
+        name: clang-format

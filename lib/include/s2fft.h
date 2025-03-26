@@ -28,8 +28,8 @@ void s2fft_nphi_2_rings(float *data, int nside);
 
 class s2fftDescriptor {
 public:
-    int nside;
-    int harmonic_band_limit;
+    int64_t nside;
+    int64_t harmonic_band_limit;
     bool reality;
 
     bool forward = true;
@@ -37,7 +37,7 @@ public:
     bool shift = true;
     bool double_precision = false;
 
-    s2fftDescriptor(int nside, int harmonic_band_limit, bool reality, bool forward = true,
+    s2fftDescriptor(int64_t nside, int64_t harmonic_band_limit, bool reality, bool forward = true,
                     s2fftKernels::fft_norm norm = s2fftKernels::BACKWARD, bool shift = true,
                     bool double_precision = false)
             : nside(nside),
@@ -95,7 +95,7 @@ namespace std {
 template <>
 struct hash<s2fft::s2fftDescriptor> {
     std::size_t operator()(const s2fft::s2fftDescriptor &k) const {
-        size_t hash = std::hash<int>()(k.nside) ^ (std::hash<int>()(k.harmonic_band_limit) << 1) ^
+        size_t hash = std::hash<int64_t>()(k.nside) ^ (std::hash<int64_t>()(k.harmonic_band_limit) << 1) ^
                       (std::hash<bool>()(k.reality) << 2) ^ (std::hash<int>()(k.norm) << 3) ^
                       (std::hash<bool>()(k.shift) << 4) ^ (std::hash<bool>()(k.double_precision) << 5);
         return hash;

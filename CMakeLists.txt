@@ -28,13 +28,15 @@ if(CMAKE_CUDA_COMPILER)
   else()
     find_package(CUDAToolkit REQUIRED)
 
-    find_package(Python 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
+    # Add the executable
+    find_package(Python 3.8
+    REQUIRED COMPONENTS Interpreter Development.Module
+    OPTIONAL_COMPONENTS Development.SABIModule)
+    set(XLA_DIR ${Python_SITELIB}/jaxlib/include)
+    message(STATUS "XLA_DIR: ${XLA_DIR}")
 
     # Detect the installed nanobind package and import it into CMake
-    execute_process(
-      COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
-      OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
-    find_package(nanobind CONFIG REQUIRED) 
+    find_package(nanobind CONFIG REQUIRED)
 
     nanobind_add_module(_s2fft STABLE_ABI  
                     ${CMAKE_CURRENT_LIST_DIR}/lib/src/extensions.cc
@@ -45,7 +47,10 @@ if(CMAKE_CUDA_COMPILER)
                   )
 
     target_link_libraries(_s2fft PRIVATE CUDA::cudart_static CUDA::cufft_static CUDA::culibos)
-    target_include_directories(_s2fft PUBLIC ${CMAKE_CURRENT_LIST_DIR}/lib/include) 
+    target_include_directories(_s2fft PUBLIC 
+                                ${CMAKE_CURRENT_LIST_DIR}/lib/include 
+                                ${XLA_DIR}
+    ) 
     set_target_properties(_s2fft PROPERTIES 
                         LINKER_LANGUAGE CUDA
                         CUDA_SEPARABLE_COMPILATION ON)

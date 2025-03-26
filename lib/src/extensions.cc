@@ -1,109 +1,227 @@
 
-#include "kernel_nanobind_helpers.h"
-#include "kernel_helpers.h"
 #include <nanobind/nanobind.h>
+#include "xla/ffi/api/api.h"
+#include "xla/ffi/api/c_api.h"
+#include "xla/ffi/api/ffi.h"
 #include <cstddef>
+#include <complex>
+#include <type_traits>
 
 #ifndef NO_CUDA_COMPILER
 #include "cuda_runtime.h"
 #include "plan_cache.h"
 #include "s2fft_kernels.h"
 #include "s2fft.h"
-#else
-void print_error() {
-  
-    throw std::runtime_error("This extension was compiled without CUDA support. Cuda functions are not supported.");
-}
-#endif
 
+namespace ffi = xla::ffi;
 namespace nb = nanobind;
 
 namespace s2fft {
 
-#ifdef NO_CUDA_COMPILER
-void healpix_fft_cuda() { print_error(); }
-#else
-void healpix_forward(cudaStream_t stream, void** buffers, s2fftDescriptor descriptor) {
-    void* data = buffers[0];
-    void* output = buffers[1];
+// =================================================================================================
+// Helper template to go from XLA Type to cufft Complex type
+// =================================================================================================
+template <ffi::DataType DT>
+struct FftComplexType;
 
-    size_t work_size;
-    // Execute the kernel based on the Precision
-    if (descriptor.double_precision) {
-        auto executor = std::make_shared<s2fftExec<cufftDoubleComplex>>();
-        cufftDoubleComplex* data_c = reinterpret_cast<cufftDoubleComplex*>(data);
-        cufftDoubleComplex* out_c = reinterpret_cast<cufftDoubleComplex*>(output);
+template <>
+struct FftComplexType<ffi::DataType::C128> {
+    using type = cufftDoubleComplex;
+};
 
-        PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
-        // Run the fft part
-        executor->Forward(descriptor, stream, data_c);
-        // Run the spectral extension part
-        s2fftKernels::launch_spectral_extension(data_c, out_c, descriptor.nside,
-                                                descriptor.harmonic_band_limit, stream);
+template <>
+struct FftComplexType<ffi::DataType::C64> {
+    using type = cufftComplex;
+};
 
-    } else {
-        auto executor = std::make_shared<s2fftExec<cufftComplex>>();
-        cufftComplex* data_c = reinterpret_cast<cufftComplex*>(data);
-        cufftComplex* out_c = reinterpret_cast<cufftComplex*>(output);
+template <ffi::DataType DT>
+using fft_complex_t = typename FftComplexType<DT>::type;
 
-        PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
-        // Run the fft part
-        executor->Forward(descriptor, stream, data_c);
-        // Run the spectral extension part
-        s2fftKernels::launch_spectral_extension(data_c, out_c, descriptor.nside,
-                                                descriptor.harmonic_band_limit, stream);
-    }
+// =================================================================================================
+// Helper template to go from XLA Type constexpr boolean indicating if the type is double or not
+// =================================================================================================
+
+template <ffi::DataType T>
+struct is_double : std::false_type {};
+
+template <>
+struct is_double<ffi::DataType::C128> : std::true_type {};
+
+// Helper variable template
+template <ffi::DataType T>
+constexpr bool is_double_v = is_double<T>::value;
+
+/**
+ * @brief Performs the forward spherical harmonic transform.
+ *
+ * This function executes the forward spherical harmonic transform on the input data
+ * using the specified descriptor and CUDA stream.
+ *
+ * @tparam T The data type of the input and output buffers (e.g., ffi::DataType::C64 or ffi::DataType::C128).
+ * @param stream The CUDA stream to associate with the operation.
+ * @param input The input buffer containing the data to transform.
+ * @param output The output buffer to store the transformed data.
+ * @param descriptor The descriptor containing parameters for the transform.
+ * @return An ffi::Error indicating the success or failure of the operation.
+ */
+template <ffi::DataType T>
+ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Result<ffi::Buffer<T>> output,
+                           s2fftDescriptor descriptor) {
+    using fft_complex_type = fft_complex_t<T>;
+    auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
+    fft_complex_type* data_c = reinterpret_cast<fft_complex_type*>(input.untyped_data());
+    fft_complex_type* out_c = reinterpret_cast<fft_complex_type*>(output->untyped_data());
+
+    PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
+    executor->Forward(descriptor, stream, data_c);
+    s2fftKernels::launch_spectral_extension(data_c, out_c, descriptor.nside, descriptor.harmonic_band_limit,
+                                            stream);
+
+    return ffi::Error::Success();
 }
 
-void healpix_backward(cudaStream_t stream, void** buffers, s2fftDescriptor descriptor) {
-    void* data = buffers[0];
-    void* output = buffers[1];
+/**
+ * @brief Performs the backward spherical harmonic transform.
+ *
+ * This function executes the backward spherical harmonic transform on the input data
+ * using the specified descriptor and CUDA stream.
+ *
+ * @tparam T The data type of the input and output buffers (e.g., ffi::DataType::C64 or ffi::DataType::C128).
+ * @param stream The CUDA stream to associate with the operation.
+ * @param input The input buffer containing the data to transform.
+ * @param output The output buffer to store the transformed data.
+ * @param descriptor The descriptor containing parameters for the transform.
+ * @return An ffi::Error indicating the success or failure of the operation.
+ */
+template <ffi::DataType T>
+ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Result<ffi::Buffer<T>> output,
+                            s2fftDescriptor descriptor) {
+    using fft_complex_type = fft_complex_t<T>;
 
-    size_t work_size;
-    // Execute the kernel based on the Precision
-    if (descriptor.double_precision) {
-        auto executor = std::make_shared<s2fftExec<cufftDoubleComplex>>();
-        cufftDoubleComplex* data_c = reinterpret_cast<cufftDoubleComplex*>(data);
-        cufftDoubleComplex* out_c = reinterpret_cast<cufftDoubleComplex*>(output);
+    auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
+    fft_complex_type* data_c = reinterpret_cast<fft_complex_type*>(input.untyped_data());
+    fft_complex_type* out_c = reinterpret_cast<fft_complex_type*>(output->untyped_data());
 
-        PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
-        // Run the spectral folding part
-        s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside, descriptor.harmonic_band_limit,
-                                              descriptor.shift, stream);
-        // Run the fft part
-        executor->Backward(descriptor, stream, out_c);
+    PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
+    s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside, descriptor.harmonic_band_limit,
+                                          descriptor.shift, stream);
+    executor->Backward(descriptor, stream, out_c);
 
-    } else {
-        auto executor = std::make_shared<s2fftExec<cufftComplex>>();
-        cufftComplex* data_c = reinterpret_cast<cufftComplex*>(data);
-        cufftComplex* out_c = reinterpret_cast<cufftComplex*>(output);
-
-        PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
-        // Run the spectral folding part
-        s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside, descriptor.harmonic_band_limit,
-                                              descriptor.shift, stream);
-        // Run the fft part
-        executor->Backward(descriptor, stream, out_c);
-    }
+    return ffi::Error::Success();
 }
 
-void healpix_fft_cuda(cudaStream_t stream, void** buffers, const char* opaque, size_t opaque_len) {
+/**
+ * @brief Constructs a descriptor for the spherical harmonic transform.
+ *
+ * This function builds a descriptor based on the provided parameters, which is used
+ * to configure the spherical harmonic transform operations.
+ *
+ * @tparam T The data type associated with the descriptor (e.g., ffi::DataType::C64 or ffi::DataType::C128).
+ * @param nside The resolution parameter for the transform.
+ * @param harmonic_band_limit The maximum harmonic band limit.
+ * @param reality Flag indicating if the transform is real-valued.
+ * @param forward Flag indicating if the transform is forward (true) or backward (false).
+ * @param normalize Flag indicating if the transform should be normalized.
+ * @return A s2fftDescriptor configured with the specified parameters.
+ */
+template <ffi::DataType T>
+s2fftDescriptor build_descriptor(int64_t nside, int64_t harmonic_band_limit, bool reality, bool forward,
+                                 bool normalize) {
+    size_t work_size;
+    using fft_complex_type = fft_complex_t<T>;
+
+    s2fftKernels::fft_norm norm = s2fftKernels::fft_norm::NONE;
+    if (forward && normalize) {
+        norm = s2fftKernels::fft_norm::FORWARD;
+    } else if (!forward && normalize) {
+        norm = s2fftKernels::fft_norm::BACKWARD;
+    } else if (forward && !normalize) {
+        norm = s2fftKernels::fft_norm::BACKWARD;
+    } else if (!forward && !normalize) {
+        norm = s2fftKernels::fft_norm::FORWARD;
+    }
+
+    bool shift = true;
+
+    s2fftDescriptor descriptor(nside, harmonic_band_limit, reality, forward, norm, shift, is_double_v<T>);
+
+    auto executor = std::make_shared<s2fft::s2fftExec<fft_complex_type>>();
+    s2fft::PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
+    executor->Initialize(descriptor, work_size);
+
+    return descriptor;
+}
+
+/**
+ * @brief Executes the spherical harmonic transform on the GPU.
+ *
+ * This function performs the spherical harmonic transform (forward or backward) on the GPU
+ * using the specified parameters and CUDA stream.
+ *
+ * @tparam T The data type of the input and output buffers (e.g., ffi::DataType::C64 or ffi::DataType::C128).
+ * @param stream The CUDA stream to associate with the operation.
+ * @param nside The resolution parameter for the transform.
+ * @param harmonic_band_limit The maximum harmonic band limit.
+ * @param reality Flag indicating if the transform is real-value.
+ * @param forward Flag indicating if the transform is forward (true) or backward (false).
+ * @param normalize Flag indicating if the transform should be normalized.
+ * @param input The input buffer containing the data to transform.
+ * @param output The output buffer to store the transformed data.
+ * @return An ffi::Error indicating the success or failure of the operation.
+ */
+
+template <ffi::DataType T>
+ffi::Error healpix_fft_cuda(cudaStream_t stream, int64_t nside, int64_t harmonic_band_limit, bool reality,
+                            bool forward, bool normalize, ffi::Buffer<T> input,
+                            ffi::Result<ffi::Buffer<T>> output) {
     // Get the descriptor from the opaque parameter
-    s2fftDescriptor descriptor = *UnpackDescriptor<s2fftDescriptor>(opaque, opaque_len);
+    s2fftDescriptor descriptor = build_descriptor<T>(nside, harmonic_band_limit, reality, forward, normalize);
     size_t work_size;
     // Execute the kernel based on the Precision
     if (descriptor.forward) {
-        healpix_forward(stream, buffers, descriptor);
+        return healpix_forward(stream, input, output, descriptor);
     } else {
-        healpix_backward(stream, buffers, descriptor);
+        return healpix_backward(stream, input, output, descriptor);
     }
 }
 
-#endif  // NO_CUDA_COMPILER
+XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C64, healpix_fft_cuda<ffi::DataType::C64>,
+                              ffi::Ffi::Bind()
+                                      .Ctx<ffi::PlatformStream<cudaStream_t>>()
+                                      .Attr<int64_t>("nside")
+                                      .Attr<int64_t>("harmonic_band_limit")
+                                      .Attr<bool>("reality")
+                                      .Attr<bool>("forward")
+                                      .Attr<bool>("normalize")
+                                      .Arg<ffi::Buffer<ffi::DataType::C64>>()
+                                      .Ret<ffi::Buffer<ffi::DataType::C64>>()  // y
+);
+
+XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C128, healpix_fft_cuda<ffi::DataType::C128>,
+                              ffi::Ffi::Bind()
+                                      .Ctx<ffi::PlatformStream<cudaStream_t>>()
+                                      .Attr<int64_t>("nside")
+                                      .Attr<int64_t>("harmonic_band_limit")
+                                      .Attr<bool>("reality")
+                                      .Attr<bool>("forward")
+                                      .Attr<bool>("normalize")
+                                      .Arg<ffi::Buffer<ffi::DataType::C128>>()
+                                      .Ret<ffi::Buffer<ffi::DataType::C128>>()  // y
+);
+
+template <typename T>
+nb::capsule EncapsulateFfiCall(T* fn) {
+    // This check is optional, but it can be helpful for avoiding invalid
+    // handlers.
+    static_assert(std::is_invocable_r_v<XLA_FFI_Error*, T, XLA_FFI_CallFrame*>,
+                  "Encapsulated function must be and XLA FFI handler");
+    return nb::capsule(reinterpret_cast<void*>(fn));
+}
 
 nb::dict Registration() {
     nb::dict dict;
-    dict["healpix_fft_cuda"] = EncapsulateFunction(healpix_fft_cuda);
+    dict["healpix_fft_cuda_c64"] = EncapsulateFfiCall(healpix_fft_cuda_C64);
+    dict["healpix_fft_cuda_c128"] = EncapsulateFfiCall(healpix_fft_cuda_C128);
     return dict;
 }
 
@@ -111,40 +229,14 @@ nb::dict Registration() {
 
 NB_MODULE(_s2fft, m) {
     m.def("registration", &s2fft::Registration);
-
-    m.def("build_healpix_fft_descriptor",
-          [](int nside, int harmonic_band_limit, bool reality, bool forward,bool normalize, bool double_precision) {
-#ifndef NO_CUDA_COMPILER
-              size_t work_size;
-              // Only backward for now
-              s2fftKernels::fft_norm norm = s2fftKernels::fft_norm::NONE;
-              if (forward && normalize) {
-                  norm = s2fftKernels::fft_norm::FORWARD;
-              } else if (!forward && normalize) {
-                  norm = s2fftKernels::fft_norm::BACKWARD;
-              } else if (forward && !normalize) {
-                  norm = s2fftKernels::fft_norm::BACKWARD;
-              } else if (!forward && !normalize) {
-                  norm = s2fftKernels::fft_norm::FORWARD;
-              }
-              // Always shift
-              bool shift = true;
-              s2fft::s2fftDescriptor descriptor(nside, harmonic_band_limit, reality, forward, norm, shift,
-                                                double_precision);
-
-              if (double_precision) {
-                  auto executor = std::make_shared<s2fft::s2fftExec<cufftDoubleComplex>>();
-                  s2fft::PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
-                  executor->Initialize(descriptor, work_size);
-                  return PackDescriptor(descriptor);
-              } else {
-                  auto executor = std::make_shared<s2fft::s2fftExec<cufftComplex>>();
-                  s2fft::PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
-                  executor->Initialize(descriptor, work_size);
-                  return PackDescriptor(descriptor);
-              }
-#else
-              print_error();
-#endif
-          });
+    m.attr("COMPILED_WITH_CUDA") = true;
 }
+
+#else  // NO_CUDA_COMPILER
+
+NB_MODULE(_s2fft, m) {
+    m.def("registration", []() { return nb::dict(); });
+    m.attr("COMPILED_WITH_CUDA") = false;
+}
+
+#endif  // NO_CUDA_COMPILER
