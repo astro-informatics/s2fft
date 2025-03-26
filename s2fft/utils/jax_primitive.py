@@ -13,6 +13,7 @@ def register_primitive(
     batcher: Optional[Callable] = None,
     jacobian_vector_product: Optional[Callable] = None,
     transpose: Optional[Callable] = None,
+    is_linear: bool = False,
 ):
     """
     Register a new custom JAX primitive.
@@ -44,5 +45,8 @@ def register_primitive(
     if jacobian_vector_product is not None:
         ad.primitive_jvps[primitive] = jacobian_vector_product
     if transpose is not None:
-        ad.primitive_transposes[primitive] = transpose
+        if is_linear:
+            ad.deflinear(primitive, transpose)
+        else:
+            ad.primitive_transposes[primitive] = transpose
     return primitive
