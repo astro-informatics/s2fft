@@ -86,8 +86,20 @@ def inverse(
 
     if method == "numpy":
         return inverse_numpy(flmn, L, N, nside, sampling, reality, precomps, L_lower)
-    elif method == "jax":
-        return inverse_jax(flmn, L, N, nside, sampling, reality, precomps, L_lower)
+    elif method in ["jax", "cuda"]:
+        use_healpix_custom_primitive = method == "cuda"
+        method = "jax"
+        return inverse_jax(
+            flmn,
+            L,
+            N,
+            nside,
+            sampling,
+            reality,
+            precomps,
+            L_lower,
+            use_healpix_custom_primitive,
+        )
     elif method == "jax_ssht":
         if sampling.lower() == "healpix":
             raise ValueError("SSHT does not support healpix sampling.")

@@ -1,5 +1,6 @@
 from functools import partial
 
+import jax
 import jax.numpy as jnp
 import jaxlib.mlir.ir as ir
 import numpy as np
@@ -8,8 +9,6 @@ from jax import jit, vmap
 
 # did not find promote_dtypes_complex outside _src
 from jax._src.numpy.util import promote_dtypes_complex
-from jax.lib import xla_client
-from jaxlib.hlo_helpers import custom_call
 from s2fft_lib import _s2fft
 
 from s2fft.sampling import s2_samples as samples
@@ -703,7 +702,6 @@ def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm):
         assert f.shape == healpix_size
         return f.update(shape=ftm_size, dtype=f.dtype)
     elif fft_type == "backward":
-        print(f"f.shape {f.shape}")
         assert f.shape == ftm_size
         return f.update(shape=healpix_size, dtype=f.dtype)
     else:
@@ -711,8 +709,11 @@ def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm):
 
 
 def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm):
+    assert _s2fft.COMPILED_WITH_CUDA, """
+    S2FFT was compiled without CUDA support. Cuda functions are not supported.
+    Please make sure that nvcc is in your path and $CUDA_HOME is set then reinstall s2fft using pip.
+    """
     (aval_out,) = ctx.avals_out
-    a_type = ir.RankedTensorType(f.type)
 
     out_dtype = aval_out.dtype
     if out_dtype == np.complex64:
@@ -734,34 +735,53 @@ def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm):
     else:
         raise ValueError(f"Unknown norm {norm}")
 
-    descriptor = _s2fft.build_healpix_fft_descriptor(
-        nside, L, reality, forward, normalize, is_double
+    if is_double:
+        ffi_lowered = jax.ffi.ffi_lowering("healpix_fft_cuda_c128")
+    else:
+        ffi_lowered = jax.ffi.ffi_lowering("healpix_fft_cuda_c64")
+
+    return ffi_lowered(
+        ctx,
+        f,
+        nside=nside,
+        harmonic_band_limit=L,
+        reality=reality,
+        normalize=normalize,
+        forward=forward,
     )
 
-    layout = tuple(range(len(a_type.shape) - 1, -1, -1))
-    out_layout = tuple(range(len(out_type.shape) - 1, -1, -1))
 
-    result = custom_call(
-        "healpix_fft_cuda",
-        result_types=[out_type],
-        operands=[f],
-        operand_layouts=[layout],
-        result_layouts=[out_layout],
-        has_side_effect=True,
-        backend_config=descriptor,
+def _healpix_fft_cuda_transpose(
+    df: jnp.ndarray, L: int, nside: int, reality: bool, fft_type: str, norm: str
+) -> jnp.ndarray:
+    scale_factors = (
+        jnp.concatenate((jnp.ones(L), 2 * jnp.ones(L * (L - 1) // 2)))
+        * (3 * nside**2)
+        / jnp.pi
     )
-    return result.results
+    if fft_type == "forward":
+        return (
+            scale_factors
+            * jnp.conj(healpix_ifft_cuda(jnp.conj(df), L, nside, reality, norm)),
+        )
+    elif fft_type == "backward":
+        return (
+            scale_factors
+            * jnp.conj(healpix_fft_cuda(jnp.conj(df), L, nside, reality, norm)),
+        )
 
 
 # Register healpfix_fft_cuda custom call target
 for name, fn in _s2fft.registration().items():
-    xla_client.register_custom_call_target(name, fn, platform="gpu")
+    jax.ffi.register_ffi_target(name, fn, platform="CUDA")
 
 _healpix_fft_cuda_primitive = register_primitive(
     "healpix_fft_cuda",
     multiple_results=False,
     abstract_evaluation=_healpix_fft_cuda_abstract,
     lowering_per_platform={None: _healpix_fft_cuda_lowering},
+    transpose=_healpix_fft_cuda_transpose,
+    is_linear=True,
 )
 
 

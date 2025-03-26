@@ -82,14 +82,25 @@ def inverse(
         recover acceleration by the number of devices.
 
     """
-    if spin >= 8 and method in ["numpy", "jax"]:
+    if spin >= 8 and method in ["numpy", "jax", "cuda"]:
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
     if method == "numpy":
         return inverse_numpy(flm, L, spin, nside, sampling, reality, precomps, L_lower)
-    elif method == "jax":
+    elif method in ["jax", "cuda"]:
+        use_healpix_custom_primitive = method == "cuda"
+        method = "jax"
         return inverse_jax(
-            flm, L, spin, nside, sampling, reality, precomps, spmd, L_lower
+            flm,
+            L,
+            spin,
+            nside,
+            sampling,
+            reality,
+            precomps,
+            spmd,
+            L_lower,
+            use_healpix_custom_primitive,
         )
     elif method == "jax_ssht":
         if sampling.lower() == "healpix":
@@ -205,7 +216,7 @@ def inverse_numpy(
             return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
 
-@partial(jit, static_argnums=(1, 3, 4, 5, 7, 8))
+@partial(jit, static_argnums=(1, 3, 4, 5, 7, 8, 9))
 def inverse_jax(
     flm: jnp.ndarray,
     L: int,
@@ -216,6 +227,7 @@ def inverse_jax(
     precomps: List = None,
     spmd: bool = False,
     L_lower: int = 0,
+    use_healpix_custom_primitive: bool = False,
 ) -> jnp.ndarray:
     r"""
     Compute the inverse spin-spherical harmonic transform (JAX).
@@ -250,6 +262,12 @@ def inverse_jax(
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
+        use_healpix_custom_primitive (bool, optional): Whether to use a custom CUDA
+            primitive for computing HEALPix fast fourier transform when `sampling =
+            "healpix"` and running on a cuda compatible gpu device. using a custom
+            primitive reduces long compilation times when jit compiling. defaults to
+            `False`.
 
     Returns:
         jnp.ndarray: Signal on the sphere.
@@ -326,7 +344,10 @@ def inverse_jax(
             jnp.flip(jnp.conj(ftm[:, L - 1 + m_offset + 1 :]), axis=-1)
         )
     if sampling.lower() == "healpix":
-        return hp.healpix_ifft(ftm, L, nside, "jax")
+        if use_healpix_custom_primitive:
+            return hp.healpix_ifft(ftm, L, nside, "cuda")
+        else:
+            return hp.healpix_ifft(ftm, L, nside, "jax")
     else:
         ftm = jnp.conj(jnp.fft.ifftshift(ftm, axes=1))
         f = jnp.conj(jnp.fft.fft(ftm, axis=1, norm="backward"))
@@ -406,7 +427,7 @@ def forward(
         recover acceleration by the number of devices.
 
     """
-    if spin >= 8 and method in ["numpy", "jax"]:
+    if spin >= 8 and method in ["numpy", "jax", "cuda"]:
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
     if iter is None:
