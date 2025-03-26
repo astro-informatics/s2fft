@@ -54,6 +54,6 @@ jobs:
         pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
