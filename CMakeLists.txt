@@ -32,8 +32,11 @@ if(CMAKE_CUDA_COMPILER)
     find_package(Python 3.8
     REQUIRED COMPONENTS Interpreter Development.Module
     OPTIONAL_COMPONENTS Development.SABIModule)
-    set(XLA_DIR ${Python_SITELIB}/jaxlib/include)
-    message(STATUS "XLA_DIR: ${XLA_DIR}")
+    execute_process(
+    COMMAND "${Python_EXECUTABLE}"
+            "-c" "from jax.extend import ffi; print(ffi.include_dir())"
+    OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE XLA_DIR)
+    message(STATUS "XLA include directory: ${XLA_DIR}")
 
     # Detect the installed nanobind package and import it into CMake
     find_package(nanobind CONFIG REQUIRED)
