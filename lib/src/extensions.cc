@@ -6,15 +6,15 @@
 #include <complex>
 #include <type_traits>
 
+namespace ffi = xla::ffi;
+namespace nb = nanobind;
+
 #ifndef NO_CUDA_COMPILER
 #include "cuda_runtime.h"
 #include "plan_cache.h"
 #include "s2fft_kernels.h"
 #include "s2fft.h"
 #include "cudastreamhandler.hpp"  // For forking and joining CUDA streams
-
-namespace ffi = xla::ffi;
-namespace nb = nanobind;
 
 namespace s2fft {
 
