@@ -30,6 +30,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from __future__ import annotations
+
 from functools import wraps
 from inspect import getmembers, isroutine, signature
 from types import ModuleType
