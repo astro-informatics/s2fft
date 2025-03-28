@@ -1,12 +1,12 @@
-from functools import partial
+from functools import partial as _partial
 
 import jax.numpy as jnp
-from jax import jit
+from jax import jit as _jit
 
 from s2fft.sampling import s2_samples as samples
 
 
-@partial(jit, static_argnums=(1))
+@_partial(_jit, static_argnums=(1))
 def mw_to_mwss(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     r"""
     Convert signal on the sphere from MW sampling to MWSS sampling.
@@ -38,7 +38,7 @@ def mw_to_mwss(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
         return mw_to_mwss_phi(mw_to_mwss_theta(f_mw, L, spin), L)
 
 
-@partial(jit, static_argnums=(1))
+@_partial(_jit, static_argnums=(1))
 def mw_to_mwss_theta(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     r"""
     Convert :math:`\theta` component of signal on the sphere from MW sampling to
@@ -96,7 +96,7 @@ def mw_to_mwss_theta(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     return unextend(f_mwss_ext, L, sampling="mwss")
 
 
-@partial(jit, static_argnums=(1))
+@_partial(_jit, static_argnums=(1))
 def mw_to_mwss_phi(f_mw: jnp.ndarray, L: int) -> jnp.ndarray:
     r"""
     Convert :math:`\phi` component of signal on the sphere from MW sampling to
@@ -142,7 +142,7 @@ def mw_to_mwss_phi(f_mw: jnp.ndarray, L: int) -> jnp.ndarray:
     )
 
 
-@partial(jit, static_argnums=(1, 3))
+@_partial(_jit, static_argnums=(1, 3))
 def periodic_extension(
     f: jnp.ndarray, L: int, spin: int = 0, sampling: str = "mw"
 ) -> jnp.ndarray:
@@ -233,7 +233,7 @@ def periodic_extension(
     )
 
 
-@partial(jit, static_argnums=(1, 2))
+@_partial(_jit, static_argnums=(1, 2))
 def unextend(f_ext: jnp.ndarray, L: int, sampling: str = "mw") -> jnp.ndarray:
     r"""
     Unextend MW/MWSS sampled signal from :math:`\theta` domain
@@ -271,7 +271,7 @@ def unextend(f_ext: jnp.ndarray, L: int, sampling: str = "mw") -> jnp.ndarray:
         )
 
 
-@partial(jit, static_argnums=(1))
+@_partial(_jit, static_argnums=(1))
 def upsample_by_two_mwss(f: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     r"""
     Upsample MWSS sampled signal on the sphere defined on domain :math:`[0,\pi]`
@@ -304,7 +304,7 @@ def upsample_by_two_mwss(f: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     return jnp.squeeze(f_ext)
 
 
-@partial(jit, static_argnums=(1))
+@_partial(_jit, static_argnums=(1))
 def upsample_by_two_mwss_ext(f_ext: jnp.ndarray, L: int) -> jnp.ndarray:
     r"""
     Upsample an extended MWSS sampled signal on the sphere defined on domain
@@ -343,7 +343,7 @@ def upsample_by_two_mwss_ext(f_ext: jnp.ndarray, L: int) -> jnp.ndarray:
     )
 
 
-@partial(jit, static_argnums=(1))
+@_partial(_jit, static_argnums=(1))
 def periodic_extension_spatial_mwss(
     f: jnp.ndarray, L: int, spin: int = 0
 ) -> jnp.ndarray:

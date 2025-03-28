@@ -4,11 +4,10 @@ from warnings import warn
 import jax
 import jax.numpy as jnp
 import numpy as np
-import torch
 
 from s2fft import recursions
 from s2fft.sampling import s2_samples as samples
-from s2fft.utils import quadrature, quadrature_jax
+from s2fft.utils import quadrature, quadrature_jax, torch_wrapper
 
 # Maximum spin number at which Price-McEwen recursion is sufficiently accurate.
 # For spins > PM_MAX_STABLE_SPIN one should default to the Risbo recursion.
@@ -22,7 +21,6 @@ def spin_spherical_kernel(
     sampling: str = "mw",
     nside: int = None,
     forward: bool = True,
-    using_torch: bool = False,
     recursion: str = "auto",
 ) -> np.ndarray:
     r"""
@@ -49,8 +47,6 @@ def spin_spherical_kernel(
 
         forward (bool, optional): Whether to provide forward or inverse shift.
             Defaults to False.
-
-        using_torch (bool, optional): Desired frontend functionality. Defaults to False.
 
         recursion (str, optional): Recursion to adopt. Supported recursion schemes include
             {"auto", "price-mcewen", "risbo"}. Defaults to "auto" which will detect the
@@ -163,7 +159,7 @@ def spin_spherical_kernel(
             healpix_phase_shifts(L, nside, forward)[:, m_start_ind:],
         )
 
-    return torch.from_numpy(dl) if using_torch else dl
+    return dl
 
 
 def spin_spherical_kernel_jax(
@@ -329,6 +325,11 @@ def spin_spherical_kernel_jax(
     return dl
 
 
+spin_spherical_kernel_torch = torch_wrapper.wrap_as_torch_function(
+    spin_spherical_kernel_jax
+)
+
+
 def wigner_kernel(
     L: int,
     N: int,
@@ -337,7 +338,6 @@ def wigner_kernel(
     nside: int = None,
     forward: bool = False,
     mode: str = "auto",
-    using_torch: bool = False,
 ) -> np.ndarray:
     r"""
     Precompute the wigner-d kernel for Wigner transform.
@@ -367,8 +367,6 @@ def wigner_kernel(
         mode (str, optional): Whether to use FFT approach or manually compute each element.
             {"auto", "direct", "fft"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
-
-        using_torch (bool, optional): Desired frontend functionality. Defaults to False.
 
     Returns:
         np.ndarray: Transform kernel for Wigner transform.
@@ -468,7 +466,7 @@ def wigner_kernel(
             healpix_phase_shifts(L, nside, forward),
         )
 
-    return torch.from_numpy(dl) if using_torch else dl
+    return dl
 
 
 def wigner_kernel_jax(
@@ -611,6 +609,9 @@ def wigner_kernel_jax(
     return dl
 
 
+wigner_kernel_torch = torch_wrapper.wrap_as_torch_function(wigner_kernel_jax)
+
+
 def fourier_wigner_kernel(L: int) -> Tuple[np.ndarray, np.ndarray]:
     """
     Computes Fourier coefficients of the reduced Wigner d-functions and quadrature
@@ -665,6 +666,11 @@ def fourier_wigner_kernel_jax(L: int) -> Tuple[jnp.ndarray, jnp.ndarray]:
     w = jnp.fft.ifft(jnp.fft.ifftshift(w), norm="forward")
 
     return deltas, w
+
+
+fourier_wigner_kernel_torch = torch_wrapper.wrap_as_torch_function(
+    fourier_wigner_kernel_jax
+)
 
 
 def healpix_phase_shifts(L: int, nside: int, forward: bool = False) -> np.ndarray:
