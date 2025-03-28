@@ -9,6 +9,7 @@ from jax import jit, vmap
 
 # did not find promote_dtypes_complex outside _src
 from jax._src.numpy.util import promote_dtypes_complex
+from jax.interpreters import batching
 from s2fft_lib import _s2fft
 
 from s2fft.sampling import s2_samples as samples
@@ -692,23 +693,25 @@ def ring_phase_shifts_hp_jax(
 # Custom healpix_fft_cuda primitive
 
 
-def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm):
+def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm, adjoint):
     # For the forward pass, the input is a HEALPix pixel-space array of size nside^2 *
     # 12 and the output is a FTM array of shape (number of rings , width of FTM slice)
     # which is (4 * nside - 1 , 2 * L  )
     healpix_size = (nside**2 * 12,)
     ftm_size = (4 * nside - 1, 2 * L)
     if fft_type == "forward":
-        assert f.shape == healpix_size
-        return f.update(shape=ftm_size, dtype=f.dtype)
+        batch_shape = (f.shape[0],) if f.ndim == 2 else ()
+        assert (f.shape[-1],) == healpix_size
+        return f.update(shape=batch_shape + ftm_size, dtype=f.dtype)
     elif fft_type == "backward":
-        assert f.shape == ftm_size
-        return f.update(shape=healpix_size, dtype=f.dtype)
+        batch_shape = (f.shape[0],) if f.ndim == 3 else ()
+        assert f.shape[-2:] == ftm_size
+        return f.update(shape=batch_shape + healpix_size, dtype=f.dtype)
     else:
         raise ValueError(f"fft_type {fft_type} not recognised.")
 
 
-def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm):
+def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm, adjoint):
     assert _s2fft.COMPILED_WITH_CUDA, """
     S2FFT was compiled without CUDA support. Cuda functions are not supported.
     Please make sure that nvcc is in your path and $CUDA_HOME is set then reinstall s2fft using pip.
@@ -748,27 +751,57 @@ def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm):
         reality=reality,
         normalize=normalize,
         forward=forward,
+        adjoint=adjoint,
     )
+
+
+def _healpix_fft_cuda_batching_rule(
+    batched_args, batched_axis, L, nside, reality, fft_type, norm, adjoint
+):
+    (x,) = batched_args
+    (bd,) = batched_axis
+
+    if fft_type == "forward":
+        assert x.ndim == 2
+    elif fft_type == "backward":
+        assert x.ndim == 3
+    else:
+        raise ValueError(f"fft_type {fft_type} not recognised.")
+
+    x = batching.moveaxis(x, bd, 0)
+    return _healpix_fft_cuda_primitive.bind(
+        x,
+        L=L,
+        nside=nside,
+        reality=reality,
+        fft_type=fft_type,
+        norm=norm,
+        adjoint=adjoint,
+    ), 0
 
 
 def _healpix_fft_cuda_transpose(
-    df: jnp.ndarray, L: int, nside: int, reality: bool, fft_type: str, norm: str
+    df: jnp.ndarray,
+    L: int,
+    nside: int,
+    reality: bool,
+    fft_type: str,
+    norm: str,
+    adjoint: bool,
 ) -> jnp.ndarray:
-    scale_factors = (
-        jnp.concatenate((jnp.ones(L), 2 * jnp.ones(L * (L - 1) // 2)))
-        * (3 * nside**2)
-        / jnp.pi
+    fft_type = "backward" if fft_type == "forward" else "forward"
+    norm = "backward" if norm == "forward" else "forward"
+    return (
+        _healpix_fft_cuda_primitive.bind(
+            df,
+            L=L,
+            nside=nside,
+            reality=reality,
+            fft_type=fft_type,
+            norm=norm,
+            adjoint=not adjoint,
+        ),
     )
-    if fft_type == "forward":
-        return (
-            scale_factors
-            * jnp.conj(healpix_ifft_cuda(jnp.conj(df), L, nside, reality, norm)),
-        )
-    elif fft_type == "backward":
-        return (
-            scale_factors
-            * jnp.conj(healpix_fft_cuda(jnp.conj(df), L, nside, reality, norm)),
-        )
 
 
 # Register healpfix_fft_cuda custom call target
@@ -781,6 +814,7 @@ _healpix_fft_cuda_primitive = register_primitive(
     abstract_evaluation=_healpix_fft_cuda_abstract,
     lowering_per_platform={None: _healpix_fft_cuda_lowering},
     transpose=_healpix_fft_cuda_transpose,
+    batcher=_healpix_fft_cuda_batching_rule,
     is_linear=True,
 )
 
@@ -811,7 +845,13 @@ def healpix_fft_cuda(
     """
     (f,) = promote_dtypes_complex(f)
     return _healpix_fft_cuda_primitive.bind(
-        f, L=L, nside=nside, reality=reality, fft_type="forward", norm=norm
+        f,
+        L=L,
+        nside=nside,
+        reality=reality,
+        fft_type="forward",
+        norm=norm,
+        adjoint=False,
     )
 
 
@@ -841,5 +881,11 @@ def healpix_ifft_cuda(
     """
     (ftm,) = promote_dtypes_complex(ftm)
     return _healpix_fft_cuda_primitive.bind(
-        ftm, L=L, nside=nside, reality=reality, fft_type="backward", norm=norm
+        ftm,
+        L=L,
+        nside=nside,
+        reality=reality,
+        fft_type="backward",
+        norm=norm,
+        adjoint=False,
     )
