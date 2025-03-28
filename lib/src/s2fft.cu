@@ -119,18 +119,19 @@ HRESULT s2fftExec<Complex>::Initialize(const s2fftDescriptor &descriptor, size_t
 template <typename Complex>
 HRESULT s2fftExec<Complex>::Forward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data) {
     // Polar rings ffts*/
+    const int DIRECTION = desc.adjoint ? CUFFT_INVERSE : CUFFT_FORWARD;
 
     for (int i = 0; i < m_nside - 1; i++) {
         int upper_ring_offset = m_upper_ring_offsets[i];
 
         CUFFT_CALL(cufftSetStream(m_polar_plans[i], stream))
-        CUFFT_CALL(cufftXtExec(m_polar_plans[i], data + upper_ring_offset, data + upper_ring_offset,
-                               CUFFT_FORWARD));
+        CUFFT_CALL(
+                cufftXtExec(m_polar_plans[i], data + upper_ring_offset, data + upper_ring_offset, DIRECTION));
     }
     // Equator fft
     CUFFT_CALL(cufftSetStream(m_equator_plan, stream))
     CUFFT_CALL(cufftXtExec(m_equator_plan, data + m_equatorial_offset_start, data + m_equatorial_offset_start,
-                           CUFFT_FORWARD));
+                           DIRECTION));
 
     return S_OK;
 }
@@ -138,17 +139,19 @@ HRESULT s2fftExec<Complex>::Forward(const s2fftDescriptor &desc, cudaStream_t st
 template <typename Complex>
 HRESULT s2fftExec<Complex>::Backward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data) {
     // Polar rings inverse FFTs
+    const int DIRECTION = desc.adjoint ? CUFFT_FORWARD : CUFFT_INVERSE;
+
     for (int i = 0; i < m_nside - 1; i++) {
         int upper_ring_offset = m_upper_ring_offsets[i];
 
         CUFFT_CALL(cufftSetStream(m_inverse_polar_plans[i], stream))
         CUFFT_CALL(cufftXtExec(m_inverse_polar_plans[i], data + upper_ring_offset, data + upper_ring_offset,
-                               CUFFT_INVERSE));
+                               DIRECTION));
     }
     // Equator inverse FFT
     CUFFT_CALL(cufftSetStream(m_inverse_equator_plan, stream))
     CUFFT_CALL(cufftXtExec(m_inverse_equator_plan, data + m_equatorial_offset_start,
-                           data + m_equatorial_offset_start, CUFFT_INVERSE));
+                           data + m_equatorial_offset_start, DIRECTION));
     //
     return S_OK;
 }

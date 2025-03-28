@@ -31,18 +31,20 @@ public:
     int64_t nside;
     int64_t harmonic_band_limit;
     bool reality;
+    bool adjoint;
 
     bool forward = true;
     s2fftKernels::fft_norm norm = s2fftKernels::BACKWARD;
     bool shift = true;
     bool double_precision = false;
 
-    s2fftDescriptor(int64_t nside, int64_t harmonic_band_limit, bool reality, bool forward = true,
-                    s2fftKernels::fft_norm norm = s2fftKernels::BACKWARD, bool shift = true,
-                    bool double_precision = false)
+    s2fftDescriptor(int64_t nside, int64_t harmonic_band_limit, bool reality, bool adjoint,
+                    bool forward = true, s2fftKernels::fft_norm norm = s2fftKernels::BACKWARD,
+                    bool shift = true, bool double_precision = false)
             : nside(nside),
               harmonic_band_limit(harmonic_band_limit),
               reality(reality),
+              adjoint(adjoint),
               norm(norm),
               forward(forward),
               shift(shift),
