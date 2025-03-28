@@ -1,5 +1,6 @@
 import healpy as hp
 import jax
+import jax.numpy as jnp
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
@@ -89,6 +90,97 @@ def test_healpix_ifft_cuda(flm_generator, nside):
     assert_allclose(
         healpix_ifft_jax(ftm, L, nside, False).flatten(),
         healpix_ifft_cuda(ftm, L, nside, False).flatten(),
+        atol=1e-7,
+        rtol=1e-7,
+    )
+
+
+@pytest.mark.skipif(not gpu_available, reason="GPU not available")
+@pytest.mark.parametrize("nside", nside_to_test)
+def test_healpix_fft_cuda_transforms(flm_generator, nside):
+    L = 2 * nside
+
+    # Generate a random bandlimited signal
+    def generate_flm():
+        flm = flm_generator(L=L, reality=False)
+        flm_hp = samples.flm_2d_to_hp(flm, L)
+        f = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
+        return f
+
+    f_stacked = jnp.stack([generate_flm() for _ in range(10)], axis=0)
+
+    def healpix_jax(f):
+        return healpix_fft_jax(f, L, nside, False).real
+
+    def healpix_cuda(f):
+        return healpix_fft_cuda(f, L, nside, False).real
+
+    f = f_stacked[0]
+    # Test VMAP
+    assert_allclose(
+        jax.vmap(healpix_jax)(f_stacked),
+        jax.vmap(healpix_cuda)(f_stacked),
+        atol=1e-7,
+        rtol=1e-7,
+    )
+    # test jacfwd
+    assert_allclose(
+        jax.jacfwd(healpix_jax)(f),
+        jax.jacfwd(healpix_cuda)(f),
+        atol=1e-7,
+        rtol=1e-7,
+    )
+    # test jacrev
+    assert_allclose(
+        jax.jacrev(healpix_jax)(f),
+        jax.jacrev(healpix_cuda)(f),
+        atol=1e-7,
+        rtol=1e-7,
+    )
+
+
+@pytest.mark.skipif(not gpu_available, reason="GPU not available")
+@pytest.mark.parametrize("nside", nside_to_test)
+def test_healpix_ifft_cuda_transforms(flm_generator, nside):
+    L = 2 * nside
+
+    # Generate a random bandlimited signal
+    def generate_flm():
+        flm = flm_generator(L=L, reality=False)
+        flm_hp = samples.flm_2d_to_hp(flm, L)
+        f = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
+        ftm = healpix_fft_jax(f, L, nside, False)
+        return ftm
+
+    ftm_stacked = jnp.stack([generate_flm() for _ in range(10)], axis=0)
+    ftm = ftm_stacked[0].real
+
+    def healpix_inv_jax(f):
+        return healpix_ifft_jax(f, L, nside, False).real
+
+    def healpix_inv_cuda(f):
+        return healpix_ifft_cuda(f, L, nside, False).real
+
+    # Test VMAP
+    assert_allclose(
+        jax.vmap(healpix_inv_jax)(ftm_stacked).flatten(),
+        jax.vmap(healpix_inv_jax)(ftm_stacked).flatten(),
+        atol=1e-7,
+        rtol=1e-7,
+    )
+
+    # test jacfwd
+    assert_allclose(
+        jax.jacfwd(healpix_inv_jax)(ftm).flatten(),
+        jax.jacfwd(healpix_inv_cuda)(ftm).flatten(),
+        atol=1e-7,
+        rtol=1e-7,
+    )
+
+    # test jacrev
+    assert_allclose(
+        jax.jacrev(healpix_inv_jax)(ftm).flatten(),
+        jax.jacrev(healpix_inv_cuda)(ftm).flatten(),
         atol=1e-7,
         rtol=1e-7,
     )
