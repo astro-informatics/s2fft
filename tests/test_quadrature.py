@@ -10,14 +10,19 @@ config.update("jax_enable_x64", True)
 
 
 @pytest.mark.parametrize("L", [5, 6])
-@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "gl"])
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "gl", "cc"])
 @pytest.mark.parametrize("method", ["numpy", "jax", "torch"])
 def test_quadrature_mw_weights(flm_generator, L: int, sampling: str, method: str):
     spin = 0
 
+    if sampling == "cc" and method != "numpy" :
+        pytest.skip("cc to be implemented in jax and pytorch")
+    # 
+   
     if method.lower() == "numpy":
         q = quadrature.quad_weights(L, sampling, spin)
     elif method.lower() == "jax":
+        
         q = quadrature_jax.quad_weights(L, sampling)
     elif method.lower() == "torch":
         q = quadrature_torch.quad_weights(L, sampling).numpy()

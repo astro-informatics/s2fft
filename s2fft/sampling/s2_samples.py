@@ -36,7 +36,7 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
     if sampling.lower() in ["mw", "gl"]:
         return L
 
-    elif sampling.lower() == "mwss":
+    elif sampling.lower() in ["mwss","cc"]:
         return L + 1
 
     elif sampling.lower() == "dh":
@@ -110,7 +110,7 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
     if sampling.lower() in ["mw", "gl"]:
         return 2 * L - 1
 
-    elif sampling.lower() == "mwss":
+    elif sampling.lower() in ["mwss","cc"]:
         return 2 * L
 
     elif sampling.lower() == "dh":
@@ -145,7 +145,7 @@ def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> Tuple[int, int
         that here "healpix" defaults to :math:`2L = 4nside` phi samples for ftm.
 
     """
-    if sampling.lower() in ["mwss", "healpix"]:
+    if sampling.lower() in ["mwss", "cc", "healpix"]:
         return ntheta(L, sampling, nside), 2 * L
 
     elif sampling.lower() in ["mw", "dh", "gl"]:
@@ -265,7 +265,7 @@ def t2theta(
     if sampling.lower() == "mw":
         return (2 * t + 1) * np.pi / (2 * L - 1)
 
-    elif sampling.lower() == "mwss":
+    elif sampling.lower() in ["mwss", "cc"]:
         return 2 * t * np.pi / (2 * L)
 
     elif sampling.lower() == "dh":

@@ -24,7 +24,7 @@ def quad_weights_transform(
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mwss", "dh", "gl", "CK", "healpix}.  Defaults to "mwss".
+            {"mwss", "dh", "gl", "cc", "healpix}.  Defaults to "mwss".
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
@@ -49,8 +49,8 @@ def quad_weights_transform(
     elif sampling.lower() == "gl":
         return quad_weights_gl(L)
 
-    elif sampling.lower() == "ck":
-        return quad_weights_ck(L)
+    elif sampling.lower() == "cc":
+        return quad_weights_cc(L)
     
 
     elif sampling.lower() == "healpix":
@@ -100,8 +100,8 @@ def quad_weights(
     elif sampling.lower() == "gl":
         return quad_weights_gl(L)
     
-    elif sampling.lower() == "ck":
-        return quad_weights_ck(L)
+    elif sampling.lower() == "cc":
+        return quad_weights_cc(L)
 
     elif sampling.lower() == "healpix":
         return quad_weights_hp(nside)
@@ -334,7 +334,7 @@ def mw_weights(m: int) -> float:
         return 0
 
 
-def quad_weights_ck(L: int, spin: int = 0) -> np.ndarray:
+def quad_weights_cc(L: int, spin: int = 0) -> np.ndarray:
     
     r"""
     Compute CL quadrature weights for :math:`\theta` integration (only).
@@ -391,7 +391,30 @@ def quad_weights_ck(L: int, spin: int = 0) -> np.ndarray:
 
 
 
+def make_fejer1_nodes_and_weights(n: int) -> tuple[np.ndarray, np.ndarray]:
+    r"""Nodes and weights of the Fejer quadrature of the first kind."""
 
-%print(a)
+
+    if n < 1:
+        raise ValueError(f"Fejer1 order must be at least 1: n = {n}")
+
+    N = jnp.arange(1, n, 2)  
+    r = len(N)
+    m = n - r
+    K = jnp.arange(0, m)  
+
+    # Fejer1 nodes: k = 1/2, 3/2, ..., n-1/2
+    x = jnp.cos((jnp.arange(0, n) + 0.5) * jnp.pi / n)
+
+    # Fejer1 weights
+    w = jnp.concatenate([
+        2 * jnp.exp(1j * jnp.pi * K / n) / (1 - 4 * (K**2)), jnp.zeros(r + 1)
+        ])
+    w = w[:-1] + jnp.conj(w[-1:0:-1])
+    w = jnp.fft.ifft(w)
+
+    assert jnp.allclose(w.imag, 0)
+    return w.real
+
 
 
