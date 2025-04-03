@@ -13,6 +13,7 @@
 
 import os
 import sys
+from importlib.metadata import version as get_version
 
 sys.path.insert(0, os.path.abspath(".."))
 
@@ -23,10 +24,8 @@ project = "S2FFT"
 copyright = "2023, Matthew Price and Jason McEwen"
 author = "Matthew Price, Jason McEwen, Matthew Graham, Sofia Miñano, Devaraj Gopinathan"
 
-# The short X.Y version
-version = "1.1.1"
-# The full version, including alpha/beta/rc tags
-release = "1.1.1"
+release = get_version("s2fft")
+version = ".".join(release.split(".")[:2])
 
 
 # -- General configuration ---------------------------------------------------
@@ -53,6 +52,7 @@ extensions = [
     "sphinxcontrib.texfigure",
     "sphinx.ext.autosectionlabel",
     "sphinxemoji.sphinxemoji",
+    "sphinx_mdinclude",
 ]
 
 nbsphinx_execute = "never"
@@ -136,21 +136,6 @@ html_theme_options = {
             "type": "local",
         },
     ],
-}
-
-html_sidebars = {
-    # "tutorials/*": [
-    #     "indices.html",
-    #     "navbar-nav.html",
-    # ],
-    "user_guide/*": [
-        "indices.html",
-        "navbar-nav.html",
-    ],
-    # "background/*": [
-    #     "indices.html",
-    #     "navbar-nav.html",
-    # ],
 }
 
 html_static_path = ["_static"]

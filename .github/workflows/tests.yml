@@ -33,10 +33,15 @@ jobs:
           - os: macos-latest
             python-version: "3.8"
       fail-fast: false
+    env:
+      CMAKE_POLICY_VERSION_MINIMUM: 3.5
 
     steps:
     - name: Checkout Source
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2
+      with:
+        fetch-depth: 0
+        fetch-tags: true
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -54,6 +59,6 @@ jobs:
         pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

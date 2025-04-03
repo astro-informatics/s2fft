@@ -28,8 +28,6 @@ classifiers = [
 description = "Differentiable and accelerated spherical transforms with JAX"
 dependencies = [
     "numpy>=1.20",
-    "colorlog",
-    "pyyaml",
     "jax>=0.3.13",
     "jaxlib",
 ]
@@ -39,7 +37,7 @@ dynamic = [
 keywords = [
 ]
 name = "s2fft"
-readme = ".pip_readme.rst"
+readme = "README.md"
 requires-python = ">=3.8"
 license.file = "LICENCE.txt"
 urls.homepage = "https://github.com/astro-informatics/s2fft"
@@ -57,6 +55,7 @@ docs = [
     "sphinx-copybutton",
     "sphinxemoji",
     "sphinx_rtd_theme",
+    "sphinx_mdinclude",
     "ipython>=7.16.1",
     "jupyter>=1.0.0",
 ]
@@ -153,9 +152,6 @@ lint.pep8-naming.classmethod-decorators = [
 
 [tool.setuptools]
 packages = ["s2fft"]
-
-[tool.setuptools.package-data]
-s2fft = ["default-logging-config.yaml"]
 
 [tool.setuptools_scm]
 local_scheme = "no-local-version"
