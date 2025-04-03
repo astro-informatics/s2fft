@@ -33,10 +33,15 @@ jobs:
           - os: macos-latest
             python-version: "3.8"
       fail-fast: false
+    env:
+      CMAKE_POLICY_VERSION_MINIMUM: 3.5
 
     steps:
     - name: Checkout Source
       uses: actions/checkout@v4.2.2
+      with:
+        fetch-depth: 0
+        fetch-tags: true
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
