@@ -76,7 +76,12 @@ def jax_array_to_torch_tensor(jax_array: jax.Array) -> torch.Tensor:
        Torch tensor object with equivalent data to `jax_array`.
 
     """
-    return torch.utils.dlpack.from_dlpack(jax_array)
+    try:
+        return torch.utils.dlpack.from_dlpack(jax_array)
+    except AttributeError:
+        # jax.Array instances in earlier JAX versions lack a __dlpack_device__ attribute
+        # and require explicitly packing into a DLPack capsule with jax.dlpack.to_dlpack
+        return torch.utils.dlpack.from_dlpack(jax.dlpack.to_dlpack(jax_array))
 
 
 def torch_tensor_to_jax_array(torch_tensor: torch.Tensor) -> jax.Array:
