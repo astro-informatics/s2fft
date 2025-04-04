@@ -32,6 +32,7 @@ iter_to_test = [0, 3]
 @pytest.mark.parametrize("reality", reality_to_test)
 @pytest.mark.parametrize("method", methods_to_test)
 @pytest.mark.parametrize("recursion", recursions_to_test)
+@pytest.mark.filterwarnings("ignore:Casting complex values")
 def test_transform_inverse(
     flm_generator,
     L: int,
@@ -159,6 +160,7 @@ def test_transform_inverse_healpix(
 @pytest.mark.parametrize("reality", reality_to_test)
 @pytest.mark.parametrize("method", methods_to_test)
 @pytest.mark.parametrize("recursion", recursions_to_test)
+@pytest.mark.filterwarnings("ignore:Casting complex values")
 def test_transform_forward(
     flm_generator,
     L: int,
