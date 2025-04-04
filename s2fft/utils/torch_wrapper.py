@@ -107,7 +107,12 @@ def torch_tensor_to_jax_array(torch_tensor: torch.Tensor) -> jax.Array:
     # this intended for use when wrapping JAX code detaching tensor from gradient values
     # should not be problematic as derivatives will be separately routed via JAX
     torch_tensor = torch_tensor.detach()
-    return jax.dlpack.from_dlpack(torch_tensor)
+    try:
+        return jax.dlpack.from_dlpack(torch_tensor)
+    except TypeError:
+        # earlier JAX versions require explicitly converting external arrays to
+        # DLPack capsule before passing to jax.dlpack.from_dlpack
+        return jax.dlpack.from_dlpack(torch.utils.dlpack.to_dlpack(torch_tensor))
 
 
 def tree_map_jax_array_to_torch_tensor(
