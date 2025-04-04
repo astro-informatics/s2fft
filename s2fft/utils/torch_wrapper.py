@@ -35,7 +35,7 @@ from __future__ import annotations
 from functools import wraps
 from inspect import getmembers, isroutine, signature
 from types import ModuleType
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, Dict, List, Tuple, TypeVar, Union
 
 import jax
 import jax.dlpack
@@ -50,7 +50,7 @@ except ImportError:
     TORCH_AVAILABLE = False
 
 T = TypeVar("T")
-PyTree = dict[Any, "PyTree"] | list["PyTree"] | tuple["PyTree"] | T
+PyTree = Union[Dict[Any, "PyTree"], List["PyTree"], Tuple["PyTree"], T]
 
 
 def check_torch_available() -> None:
