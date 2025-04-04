@@ -103,7 +103,7 @@ def torch_tensor_to_jax_array(torch_tensor: torch.Tensor) -> jax.Array:
     # https://github.com/data-apis/array-api-compat/issues/173#issuecomment-2272192054
     # so we explicitly resolve any conjugacy operations implied by bit before conversion
     torch_tensor = torch_tensor.resolve_conj()
-    # DLPack compatibility does support tensors that require gradient so detach. As
+    # DLPack compatibility does not support tensors that require gradient so detach. As
     # this intended for use when wrapping JAX code detaching tensor from gradient values
     # should not be problematic as derivatives will be separately routed via JAX
     torch_tensor = torch_tensor.detach()
