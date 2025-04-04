@@ -76,7 +76,7 @@ def jax_array_to_torch_tensor(jax_array: jax.Array) -> torch.Tensor:
        Torch tensor object with equivalent data to `jax_array`.
 
     """
-    return torch.utils.dlpack.from_dlpack(jax.dlpack.to_dlpack(jax_array))
+    return torch.utils.dlpack.from_dlpack(jax_array)
 
 
 def torch_tensor_to_jax_array(torch_tensor: torch.Tensor) -> jax.Array:
@@ -94,7 +94,15 @@ def torch_tensor_to_jax_array(torch_tensor: torch.Tensor) -> jax.Array:
     # tensor to be contiguous before DLPack conversion
     # https://github.com/google/jax/issues/8082
     torch_tensor = torch_tensor.contiguous()
-    return jax.dlpack.from_dlpack(torch.utils.dlpack.to_dlpack(torch_tensor))
+    # Torch does lazy conjugation using flag bits and DLPack does not support this
+    # https://github.com/data-apis/array-api-compat/issues/173#issuecomment-2272192054
+    # so we explicitly resolve any conjugacy operations implied by bit before conversion
+    torch_tensor = torch_tensor.resolve_conj()
+    # DLPack compatibility does support tensors that require gradient so detach. As
+    # this intended for use when wrapping JAX code detaching tensor from gradient values
+    # should not be problematic as derivatives will be separately routed via JAX
+    torch_tensor = torch_tensor.detach()
+    return jax.dlpack.from_dlpack(torch_tensor)
 
 
 def tree_map_jax_array_to_torch_tensor(
@@ -193,8 +201,15 @@ def wrap_as_torch_function(
 
             @staticmethod
             def backward(ctx, *grad_outputs):
-                grad_outputs = tree_map_torch_tensor_to_jax_array(grad_outputs)
-                return tree_map_jax_array_to_torch_tensor(ctx.vjp(*grad_outputs))
+                # JAX and PyTorch use different conventions for derivatives of complex
+                # functions (see https://github.com/jax-ml/jax/issues/4891) so we need
+                # to conjugate the inputs to and outputs from VJP to get equivalent
+                # behaviour to backward method on torch tensors
+                grad_outputs = tree_map(lambda g: g.conj(), grad_outputs)
+                jax_grad_outputs = tree_map_torch_tensor_to_jax_array(grad_outputs)
+                jax_grad_inputs = ctx.vjp(*jax_grad_outputs)
+                grad_inputs = tree_map_jax_array_to_torch_tensor(jax_grad_inputs)
+                return tree_map(lambda g: g.conj(), grad_inputs)
 
         return WrappedJaxFunction.apply(*differentiable_args)
 
