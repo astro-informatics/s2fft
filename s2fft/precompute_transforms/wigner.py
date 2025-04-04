@@ -181,7 +181,7 @@ def inverse_transform_jax(
     fnab = fnab.at[n_start_ind:, :, m_offset:].set(
         jnp.einsum(
             "...ntlm, ...nlm -> ...ntm",
-            kernel,
+            kernel.astype(fnab.dtype),
             flmn[n_start_ind:, :, :],
             optimize=True,
         )
@@ -439,7 +439,9 @@ def forward_transform_jax(
 
     flmn = jnp.zeros(samples.flmn_shape(L, N), dtype=jnp.complex128)
     flmn = flmn.at[n_start_ind:].set(
-        jnp.einsum("...ntlm, ...ntm -> ...nlm", kernel, fban, optimize=True)
+        jnp.einsum(
+            "...ntlm, ...ntm -> ...nlm", kernel.astype(flmn.dtype), fban, optimize=True
+        )
     )
     if reality:
         flmn = flmn.at[:n_start_ind].set(
