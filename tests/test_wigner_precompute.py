@@ -1,3 +1,4 @@
+import jax
 import numpy as np
 import pytest
 import so3
@@ -7,6 +8,8 @@ from s2fft.base_transforms import wigner as base
 from s2fft.precompute_transforms import construct as c
 from s2fft.precompute_transforms.wigner import forward, inverse
 from s2fft.sampling import so3_samples as samples
+
+jax.config.update("jax_enable_x64", True)
 
 L_to_test = [6]
 N_to_test = [2, 6]
