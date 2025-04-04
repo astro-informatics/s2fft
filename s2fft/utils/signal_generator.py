@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+from numpy.typing import DTypeLike
 
 from s2fft.sampling import s2_samples as samples
 from s2fft.sampling import so3_samples as wigner_samples
@@ -9,7 +10,8 @@ from s2fft.sampling import so3_samples as wigner_samples
 def complex_normal(
     rng: np.random.Generator,
     size: int | tuple[int],
-    var: float,
+    var: float = 1.0,
+    dtype: DTypeLike = np.complex128,
 ) -> np.ndarray:
     """
     Generate array of samples from zero-mean complex normal distribution.
@@ -22,14 +24,19 @@ def complex_normal(
         rng: Numpy random generator object to generate samples using.
         size: Output shape of array to generate.
         var: Variance of complex normal distribution to generate samples from.
+        dtype: Data type of generated array.
 
     Returns:
-        Complex-valued array of shape `size` contained generated samples.
+        Complex-valued array of shape `size` and data type `dtype` containing generated
+        samples.
 
     """
-    return (rng.standard_normal(size) + 1j * rng.standard_normal(size)) * (
-        var / 2
-    ) ** 0.5
+    # NumPy handling of scalars differs for floating and complex types with latter
+    # being returned as complex scalar objects rather than arrays of shape () so we
+    # use asarray here to ensure output is always an array
+    return np.asarray(
+        (rng.standard_normal(size) + 1j * rng.standard_normal(size)) * (var / 2) ** 0.5
+    ).astype(dtype)
 
 
 def complex_el_and_m_indices(L: int, min_el: int) -> tuple[np.ndarray, np.ndarray]:
