@@ -1,3 +1,6 @@
+from importlib import reload
+from unittest.mock import MagicMock, patch
+
 import jax
 import numpy as np
 import pytest
@@ -181,3 +184,20 @@ def test_wrap_as_torch_function_single_arg_autograd_check(
     x_torch = torch.tensor(x_numpy, requires_grad=True)
     torch_function = torch_wrapper.wrap_as_torch_function(jax_function)
     torch.autograd.gradcheck(torch_function, x_torch)
+
+
+def test_check_pytorch_available():
+    try:
+        with patch.dict("sys.modules", torch=None):
+            reload(torch_wrapper)
+            with pytest.raises(RuntimeError, match="torch needs to be installed"):
+                torch_wrapper.check_torch_available()
+        with patch.dict("sys.modules", torch=MagicMock()):
+            reload(torch_wrapper)
+            # We should not get an exception here irrespective of whether torch is
+            # installed
+            torch_wrapper.check_torch_available()
+    finally:
+        # Ensure torch_wrapper always reloaded with original state irrespective of test
+        # passing or failing
+        reload(torch_wrapper)
