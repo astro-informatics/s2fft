@@ -44,9 +44,11 @@ from jax.tree_util import tree_map
 try:
     import torch
     import torch.utils.dlpack
+    from torch import Tensor
 
     TORCH_AVAILABLE = True
 except ImportError:
+    Tensor = None
     TORCH_AVAILABLE = False
 
 T = TypeVar("T")
@@ -65,7 +67,7 @@ def check_torch_available() -> None:
         raise RuntimeError(msg)
 
 
-def jax_array_to_torch_tensor(jax_array: jax.Array) -> torch.Tensor:
+def jax_array_to_torch_tensor(jax_array: jax.Array) -> Tensor:
     """
     Convert from JAX array to Torch tensor via mutual DLPack support.
 
@@ -84,7 +86,7 @@ def jax_array_to_torch_tensor(jax_array: jax.Array) -> torch.Tensor:
         return torch.utils.dlpack.from_dlpack(jax.dlpack.to_dlpack(jax_array))
 
 
-def torch_tensor_to_jax_array(torch_tensor: torch.Tensor) -> jax.Array:
+def torch_tensor_to_jax_array(torch_tensor: Tensor) -> jax.Array:
     """
     Convert from Torch tensor to JAX array via mutual DLPack support.
 
@@ -117,7 +119,7 @@ def torch_tensor_to_jax_array(torch_tensor: torch.Tensor) -> jax.Array:
 
 def tree_map_jax_array_to_torch_tensor(
     jax_pytree: PyTree[jax.Array],
-) -> PyTree[torch.Tensor]:
+) -> PyTree[Tensor]:
     """
     Convert from a pytree with JAX arrays to corresponding pytree with Torch tensors.
 
@@ -135,7 +137,7 @@ def tree_map_jax_array_to_torch_tensor(
 
 
 def tree_map_torch_tensor_to_jax_array(
-    torch_pytree: PyTree[torch.Tensor],
+    torch_pytree: PyTree[Tensor],
 ) -> PyTree[jax.Array]:
     """
     Convert from a pytree with Torch tensors to corresponding pytree with JAX arrays.
@@ -148,7 +150,7 @@ def tree_map_torch_tensor_to_jax_array(
 
     """
     return tree_map(
-        lambda t: torch_tensor_to_jax_array(t) if isinstance(t, torch.Tensor) else t,
+        lambda t: torch_tensor_to_jax_array(t) if isinstance(t, Tensor) else t,
         torch_pytree,
     )
 
@@ -176,7 +178,6 @@ def wrap_as_torch_function(
         Wrapped function callable from Torch.
 
     """
-    check_torch_available()
     sig = signature(jax_function)
     if differentiable_argnames is None:
         differentiable_argnames = tuple(
@@ -191,6 +192,7 @@ def wrap_as_torch_function(
 
     @wraps(jax_function)
     def torch_function(*args, **kwargs):
+        check_torch_available()
         bound_args = sig.bind(*args, **kwargs)
         bound_args.apply_defaults()
         differentiable_args = tuple(
@@ -235,7 +237,7 @@ def wrap_as_torch_function(
     torch_function.__annotations__ = torch_function.__annotations__.copy()
     for name, annotation in torch_function.__annotations__.items():
         if isinstance(annotation, type) and issubclass(annotation, jax.Array):
-            torch_function.__annotations__[name] = torch.Tensor
+            torch_function.__annotations__[name] = Tensor
 
     return torch_function
 
