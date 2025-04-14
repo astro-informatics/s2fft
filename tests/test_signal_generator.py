@@ -55,6 +55,14 @@ def check_flm_conjugate_symmetry(flm, L, min_el):
             assert flm[el, L - 1 - m] == (-1) ** m * flm[el, L - 1 + m].conj()
 
 
+def check_flm_unequal(flm1, flm2, L, min_el):
+    """assert that two passed flm are elementwise unequal"""
+    for el in range(L):
+        for m in range(L):
+            if not (el < min_el or m > el):
+                assert flm1[el, L - 1 + m] != flm2[el, L - 1 - m]
+
+
 @pytest.mark.parametrize("L", L_values_to_test)
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
@@ -74,6 +82,24 @@ def test_generate_flm(rng, L, L_lower, spin, reality):
         assert np.allclose(f_complex.imag, 0)
         f_real = s2fft.inverse(flm, L, spin=spin, reality=True, L_lower=L_lower)
         assert np.allclose(f_complex.real, f_real)
+
+
+@pytest.mark.parametrize("L", L_values_to_test)
+@pytest.mark.parametrize("L_lower", L_lower_to_test)
+@pytest.mark.parametrize("spin", spin_to_test)
+@pytest.mark.parametrize("reality", reality_values_to_test)
+def test_generate_flm_size(rng, L, L_lower, spin, reality):
+    if reality and spin != 0:
+        pytest.skip("Reality only valid for scalar fields (spin=0).")
+
+    flm = gen.generate_flm(rng, L, L_lower, spin, reality, size=2)
+    assert flm.shape == (2,) + smp.s2_samples.flm_shape(L)
+    check_flm_zeros(flm[0], L, max(L_lower, abs(spin)))
+    check_flm_zeros(flm[1], L, max(L_lower, abs(spin)))
+    check_flm_unequal(flm[0], flm[1], L, max(L_lower, abs(spin)))
+
+    flm = gen.generate_flm(rng, L, L_lower, spin, reality, size=(3, 4))
+    assert flm.shape == (3, 4) + smp.s2_samples.flm_shape(L)
 
 
 def check_flmn_zeros(flmn, L, N, L_lower):

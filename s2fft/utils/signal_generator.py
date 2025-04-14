@@ -74,6 +74,7 @@ def generate_flm(
     spin: int = 0,
     reality: bool = False,
     using_torch: bool = False,
+    size: tuple[int, ...] | int | None = None,
 ) -> np.ndarray | torch.Tensor:
     r"""
     Generate a 2D set of random harmonic coefficients.
@@ -94,29 +95,39 @@ def generate_flm(
 
         using_torch (bool, optional): Desired frontend functionality. Defaults to False.
 
+        size (tuple[int, ...] | int | None, optional): Shape of realisations.
+
     Returns:
         np.ndarray: Random set of spherical harmonic coefficients.
 
     """
-    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
+    # always turn size into a tuple of int
+    if size is None:
+        size = ()
+    elif isinstance(size, int):
+        size = (size,)
+    elif not (isinstance(size, tuple) and all(isinstance(_, int) for _ in size)):
+        raise TypeError("size must be int or tuple of int")
+
+    flm = np.zeros((*size, *samples.flm_shape(L)), dtype=np.complex128)
     min_el = max(L_lower, abs(spin))
     # m = 0 coefficients are always real
-    flm[min_el:L, L - 1] = rng.standard_normal(L - min_el)
+    flm[..., min_el:L, L - 1] = rng.standard_normal((*size, L - min_el))
     # Construct arrays of m and el indices for entries in flm corresponding to complex-
     # valued coefficients (m > 0)
     el_indices, m_indices = complex_el_and_m_indices(L, min_el)
-    len_indices = len(m_indices)
+    rand_size = (*size, len(m_indices))
     # Generate independent complex coefficients for positive m
-    flm[el_indices, L - 1 + m_indices] = complex_normal(rng, len_indices, var=2)
+    flm[..., el_indices, L - 1 + m_indices] = complex_normal(rng, rand_size, var=2)
     if reality:
         # Real-valued signal so set complex coefficients for negative m using conjugate
         # symmetry such that flm[el, L - 1 - m] = (-1)**m * flm[el, L - 1 + m].conj
-        flm[el_indices, L - 1 - m_indices] = (-1) ** m_indices * (
-            flm[el_indices, L - 1 + m_indices].conj()
+        flm[..., el_indices, L - 1 - m_indices] = (-1) ** m_indices * (
+            flm[..., el_indices, L - 1 + m_indices].conj()
         )
     else:
         # Non-real signal so generate independent complex coefficients for negative m
-        flm[el_indices, L - 1 - m_indices] = complex_normal(rng, len_indices, var=2)
+        flm[..., el_indices, L - 1 - m_indices] = complex_normal(rng, rand_size, var=2)
     return torch.from_numpy(flm) if using_torch else flm
 
 
