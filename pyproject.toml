@@ -72,6 +72,7 @@ tests = [
     "numpy<2",  # Required currently due to lack of Numpy v2 compatible pyssht release
     "pytest",
     "pytest-cov",
+    "pytest-rerunfailures",
     "so3",
     "pyssht",
 ]

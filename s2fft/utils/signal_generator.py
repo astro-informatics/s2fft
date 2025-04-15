@@ -6,6 +6,10 @@ import torch
 from s2fft.sampling import s2_samples as samples
 from s2fft.sampling import so3_samples as wigner_samples
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    import jax
+
 
 def complex_normal(
     rng: np.random.Generator,
@@ -210,3 +214,60 @@ def generate_flmn(
                 rng, len_indices, var=2
             )
     return torch.from_numpy(flmn) if using_torch else flmn
+
+
+def generate_flm_from_spectra(
+    rng: np.random.Generator,
+    spectra: np.ndarray | jax.Array,
+) -> np.ndarray | jax.Array:
+    r"""
+    Generate a stack of random harmonic coefficients from power spectra.
+
+    The input power spectra must be a stack of shape *(K, K, L)* where
+    *K* is the number of fields to be sampled, and *L* is the harmonic
+    band-limit.
+
+    Args:
+        rng (Generator): Random number generator.
+
+        spectra (np.ndarray | jax.Array): Stack of angular power spectra.
+
+    Returns:
+        np.ndarray | jax.Array: A stack of random spherical harmonic
+        coefficients with the given power spectra.
+
+    """
+    # get the Array API namespace from spectra
+    xp = spectra.__array_namespace__()
+
+    # check input
+    if spectra.ndim != 3 or spectra.shape[0] != spectra.shape[1]:
+        raise ValueError("shape of spectra must be (K, K, L)")
+
+    # K is the number of fields, L is the band limit
+    *_, K, L = spectra.shape
+
+    # permute shape (K, K, L) -> (L, K, K)
+    spectra = xp.permute_dims(spectra, (2, 0, 1))
+
+    # SVD for matrix square root
+    # not using cholesky() here because matrix may be semi-definite
+    # divides spectra by 2 for correct amplitude
+    u, s, vh = xp.linalg.svd(spectra / 2, full_matrices=False)
+
+    # compute the matrix square root for sampling
+    a = u @ (xp.sqrt(s[..., None]) * vh)
+
+    # permute shape (L, K, K) -> (K, K, L)
+    a = xp.permute_dims(a, (1, 2, 0))
+
+    # sample the random coefficients
+    # always use reality=True, this could be real fields or E/B modes
+    # shape of flm is (K, L, M)
+    flm = generate_flm(rng, L, reality=True, size=K)
+
+    # compute the matrix multiplication by hand, because we have a mix of
+    # contraction (dim=K) and broadcasting (dim=L)
+    flm = (a[..., None] * flm).sum(axis=-3)
+
+    return flm
