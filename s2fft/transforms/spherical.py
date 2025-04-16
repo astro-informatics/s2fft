@@ -82,28 +82,31 @@ def inverse(
         recover acceleration by the number of devices.
 
     """
+    if method not in _inverse_functions:
+        raise ValueError(f"Method {method} not recognised.")
+
     if spin >= 8 and method in ["numpy", "jax"]:
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
-    if method == "numpy":
-        return inverse_numpy(flm, L, spin, nside, sampling, reality, precomps, L_lower)
-    elif method == "jax":
-        return inverse_jax(
-            flm, L, spin, nside, sampling, reality, precomps, spmd, L_lower
-        )
-    elif method == "jax_ssht":
+    inverse_kwargs = {"flm": flm, "L": L}
+    if method in ("numpy", "jax"):
+        inverse_kwargs.update(sampling=sampling, precomps=precomps, L_lower=L_lower)
+    if method == "jax":
+        inverse_kwargs["spmd"] = spmd
+    if method == "jax_healpy":
+        if sampling.lower() != "healpix":
+            raise ValueError("Healpy only supports healpix sampling.")
+    else:
+        inverse_kwargs.update(spin=spin, reality=reality)
+    if method == "jax_ssht":
         if sampling.lower() == "healpix":
             raise ValueError("SSHT does not support healpix sampling.")
         ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
-        return c_sph.ssht_inverse(flm, L, spin, reality, ssht_sampling, _ssht_backend)
-    elif method == "jax_healpy":
-        if sampling.lower() != "healpix":
-            raise ValueError("Healpy only supports healpix sampling.")
-        return c_sph.healpy_inverse(flm, L, nside)
+        inverse_kwargs.update(ssht_sampling=ssht_sampling, _ssht_backend=_ssht_backend)
     else:
-        raise ValueError(
-            f"Implementation {method} not recognised. Should be either numpy or jax."
-        )
+        inverse_kwargs["nside"] = nside
+
+    return _inverse_functions[method](**inverse_kwargs)
 
 
 def inverse_numpy(
@@ -741,3 +744,18 @@ def forward_jax(
     flm = jnp.where(indices < abs(spin), jnp.zeros_like(flm), flm[..., :])
 
     return flm * (-1) ** jnp.abs(spin)
+
+
+_inverse_functions = {
+    "numpy": inverse_numpy,
+    "jax": inverse_jax,
+    "jax_ssht": c_sph.ssht_inverse,
+    "jax_healpy": c_sph.healpy_inverse,
+}
+
+_forward_functions = {
+    "numpy": forward_numpy,
+    "jax": forward_jax,
+    "jax_ssht": c_sph.ssht_forward,
+    "jax_healpy": c_sph.healpy_forward,
+}
