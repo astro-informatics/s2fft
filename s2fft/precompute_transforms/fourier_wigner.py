@@ -255,43 +255,38 @@ def forward_transform(
     # the weights are conjugate but applied flipped and therefore are
     # equivalent. To avoid flipping here we simply conjugate the weights.
 
-    # PRECOMPUTE TRANSFORM
     if precomps is not None:
-        # EXTRACT VARIOUS PRECOMPUTES
+        # PRECOMPUTE TRANSFORM
         delta, quads = precomps
-
-        # APPLY QUADRATURE
-        x = np.einsum("nbm,b->nbm", x, quads)
-
-        # COMPUTE GMM BY FFT
-        x = np.fft.fft(x, axis=1, norm="forward")
-        x = np.fft.fftshift(x, axes=1)[:, L - 1 : 3 * L - 2]
-
-        # CALCULATE flmn = i^(n-m)\sum_t delta^l_tm delta^l_tn G_mnt
-        x = np.einsum("nam,lam,lan->nlm", x, delta, delta[:, :, L - 1 + n])
-
-    # OTF TRANSFORM
     else:
+        # OTF TRANSFORM
+        delta = None
         # COMPUTE QUADRATURE WEIGHTS
         quads = np.zeros(4 * L - 3, dtype=np.complex128)
         for mm in range(-2 * (L - 1), 2 * (L - 1) + 1):
             quads[mm + 2 * (L - 1)] = quadrature.mw_weights(-mm)
         quads = np.fft.ifft(np.fft.ifftshift(quads), norm="forward")
 
-        # APPLY QUADRATURE
-        x = np.einsum("nbm,b->nbm", x, quads)
+    # APPLY QUADRATURE
+    x = np.einsum("nbm,b->nbm", x, quads)
 
-        # COMPUTE GMM BY FFT
-        x = np.fft.fft(x, axis=1, norm="forward")
-        x = np.fft.fftshift(x, axes=1)[:, L - 1 : 3 * L - 2]
+    # COMPUTE GMM BY FFT
+    x = np.fft.fft(x, axis=1, norm="forward")
+    x = np.fft.fftshift(x, axes=1)[:, L - 1 : 3 * L - 2]
 
-        # CALCULATE flmn = i^(n-m)\sum_t delta^l_tm delta^l_tn G_mnt
+    # CALCULATE flmn = i^(n-m)\sum_t delta^l_tm delta^l_tn G_mnt
+    if delta is not None:
+        # PRECOMPUTE TRANSFORM
+        x = np.einsum("nam,lam,lan->nlm", x, delta, delta[:, :, L - 1 + n])
+    else:
+        # OTF TRANSFORM
         delta_el = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
         xx = np.zeros((x.shape[0], L, x.shape[-1]), dtype=x.dtype)
         for el in range(L):
             delta_el = recursions.risbo.compute_full(delta_el, np.pi / 2, L, el)
             xx[:, el] = np.einsum("nam,am,an->nm", x, delta_el, delta_el[:, L - 1 + n])
         x = xx
+
     x = np.einsum("nbm,m,n->nbm", x, 1j ** (m), 1j ** (-n))
 
     # SYMMETRY REFLECT FOR N < 0
@@ -381,35 +376,31 @@ def forward_transform_jax(
     # the weights are conjugate but applied flipped and therefore are
     # equivalent. To avoid flipping here we simply conjugate the weights.
 
-    # PRECOMPUTE TRANSFORM
     if precomps is not None:
-        # EXTRACT VARIOUS PRECOMPUTES
+        # PRECOMPUTE TRANSFORM
         delta, quads = precomps
-
-        # APPLY QUADRATURE
-        x = jnp.einsum("nbm,b->nbm", x, quads)
-
-        # COMPUTE GMM BY FFT
-        x = jnp.fft.fft(x, axis=1, norm="forward")
-        x = jnp.fft.fftshift(x, axes=1)[:, L - 1 : 3 * L - 2]
-
-        # Calculate flmn = i^(n-m)\sum_t delta^l_tm delta^l_tn G_mnt
-        x = jnp.einsum("nam,lam,lan->nlm", x, delta, delta[:, :, L - 1 + n])
-
     else:
+        # OTF TRANSFORM
+        delta = None
+        # COMPUTE QUADRATURE WEIGHTS
         quads = jnp.zeros(4 * L - 3, dtype=jnp.complex128)
         for mm in range(-2 * (L - 1), 2 * (L - 1) + 1):
             quads = quads.at[mm + 2 * (L - 1)].set(quadrature_jax.mw_weights(-mm))
         quads = jnp.fft.ifft(jnp.fft.ifftshift(quads), norm="forward")
 
-        # APPLY QUADRATURE
-        x = jnp.einsum("nbm,b->nbm", x, quads)
+    # APPLY QUADRATURE
+    x = jnp.einsum("nbm,b->nbm", x, quads)
 
-        # COMPUTE GMM BY FFT
-        x = jnp.fft.fft(x, axis=1, norm="forward")
-        x = jnp.fft.fftshift(x, axes=1)[:, L - 1 : 3 * L - 2]
+    # COMPUTE GMM BY FFT
+    x = jnp.fft.fft(x, axis=1, norm="forward")
+    x = jnp.fft.fftshift(x, axes=1)[:, L - 1 : 3 * L - 2]
 
-        # CALCULATE flmn = i^(n-m)\sum_t delta^l_tm delta^l_tn G_mnt
+    # Calculate flmn = i^(n-m)\sum_t delta^l_tm delta^l_tn G_mnt
+    if delta is not None:
+        # PRECOMPUTE TRANSFORM
+        x = jnp.einsum("nam,lam,lan->nlm", x, delta, delta[:, :, L - 1 + n])
+    else:
+        # OTF TRANSFORM
         delta_el = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
         xx = jnp.zeros((x.shape[0], L, x.shape[-1]), dtype=x.dtype)
         for el in range(L):
