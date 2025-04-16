@@ -6,6 +6,12 @@ import torch
 from s2fft.sampling import s2_samples as samples
 from s2fft.sampling import so3_samples as wigner_samples
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from types import ModuleType
+
+    import jax
+
 
 def complex_normal(
     rng: np.random.Generator,
@@ -74,6 +80,7 @@ def generate_flm(
     spin: int = 0,
     reality: bool = False,
     using_torch: bool = False,
+    size: tuple[int, ...] | int | None = None,
 ) -> np.ndarray | torch.Tensor:
     r"""
     Generate a 2D set of random harmonic coefficients.
@@ -94,29 +101,39 @@ def generate_flm(
 
         using_torch (bool, optional): Desired frontend functionality. Defaults to False.
 
+        size (tuple[int, ...] | int | None, optional): Shape of realisations.
+
     Returns:
         np.ndarray: Random set of spherical harmonic coefficients.
 
     """
-    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
+    # always turn size into a tuple of int
+    if size is None:
+        size = ()
+    elif isinstance(size, int):
+        size = (size,)
+    elif not (isinstance(size, tuple) and all(isinstance(i, int) for i in size)):
+        raise TypeError("size must be int or tuple of int")
+
+    flm = np.zeros((*size, *samples.flm_shape(L)), dtype=np.complex128)
     min_el = max(L_lower, abs(spin))
     # m = 0 coefficients are always real
-    flm[min_el:L, L - 1] = rng.standard_normal(L - min_el)
+    flm[..., min_el:L, L - 1] = rng.standard_normal((*size, L - min_el))
     # Construct arrays of m and el indices for entries in flm corresponding to complex-
     # valued coefficients (m > 0)
     el_indices, m_indices = complex_el_and_m_indices(L, min_el)
-    len_indices = len(m_indices)
+    rand_size = (*size, len(m_indices))
     # Generate independent complex coefficients for positive m
-    flm[el_indices, L - 1 + m_indices] = complex_normal(rng, len_indices, var=2)
+    flm[..., el_indices, L - 1 + m_indices] = complex_normal(rng, rand_size, var=2)
     if reality:
         # Real-valued signal so set complex coefficients for negative m using conjugate
         # symmetry such that flm[el, L - 1 - m] = (-1)**m * flm[el, L - 1 + m].conj
-        flm[el_indices, L - 1 - m_indices] = (-1) ** m_indices * (
-            flm[el_indices, L - 1 + m_indices].conj()
+        flm[..., el_indices, L - 1 - m_indices] = (-1) ** m_indices * (
+            flm[..., el_indices, L - 1 + m_indices].conj()
         )
     else:
         # Non-real signal so generate independent complex coefficients for negative m
-        flm[el_indices, L - 1 - m_indices] = complex_normal(rng, len_indices, var=2)
+        flm[..., el_indices, L - 1 - m_indices] = complex_normal(rng, rand_size, var=2)
     return torch.from_numpy(flm) if using_torch else flm
 
 
@@ -199,3 +216,71 @@ def generate_flmn(
                 rng, len_indices, var=2
             )
     return torch.from_numpy(flmn) if using_torch else flmn
+
+
+def _get_array_namespace(obj: np.ndarray | jax.Array) -> ModuleType:
+    """Return the correct array namespace for numpy or jax arrays."""
+    from sys import modules
+
+    if (numpy := modules.get("numpy")) and isinstance(obj, numpy.ndarray):
+        return numpy
+    if (jax := modules.get("jax")) and isinstance(obj, jax.Array):
+        return jax.numpy
+    raise TypeError(f"unknown array type: {type(obj)!r}")
+
+
+def generate_flm_from_spectra(
+    rng: np.random.Generator,
+    spectra: np.ndarray | jax.Array,
+) -> np.ndarray | jax.Array:
+    r"""
+    Generate a stack of random harmonic coefficients from power spectra.
+
+    The input power spectra must be a stack of shape *(K, K, L)* where
+    *K* is the number of fields to be sampled, and *L* is the harmonic
+    band-limit.
+
+    Args:
+        rng (Generator): Random number generator.
+
+        spectra (np.ndarray | jax.Array): Stack of angular power spectra.
+
+    Returns:
+        np.ndarray | jax.Array: A stack of random spherical harmonic
+        coefficients with the given power spectra.
+
+    """
+    # get an ArrayAPI-ish namespace from spectra
+    xp = _get_array_namespace(spectra)
+
+    # check input
+    if spectra.ndim != 3 or spectra.shape[0] != spectra.shape[1]:
+        raise ValueError("shape of spectra must be (K, K, L)")
+
+    # K is the number of fields, L is the band limit
+    *_, K, L = spectra.shape
+
+    # permute shape (K, K, L) -> (L, K, K)
+    spectra = xp.permute_dims(spectra, (2, 0, 1))
+
+    # SVD for matrix square root
+    # not using cholesky() here because matrix may be semi-definite
+    # divides spectra by 2 for correct amplitude
+    u, s, vh = xp.linalg.svd(spectra / 2, full_matrices=False)
+
+    # compute the matrix square root for sampling
+    a = u @ (xp.sqrt(s[..., None]) * vh)
+
+    # permute shape (L, K, K) -> (K, K, L)
+    a = xp.permute_dims(a, (1, 2, 0))
+
+    # sample the random coefficients
+    # always use reality=True; one can assemble complex fields from them
+    # shape of flm is (K, L, M)
+    flm = generate_flm(rng, L, reality=True, size=K)
+
+    # compute the matrix multiplication by hand, because we have a mix of
+    # contraction (dim=K) and broadcasting (dim=L)
+    flm = (a[..., None] * flm).sum(axis=-3)
+
+    return flm
