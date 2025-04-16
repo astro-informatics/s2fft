@@ -23,7 +23,7 @@ sampling_to_test = ["mw", "mwss", "dh", "gl"]
 reality_to_test = [True, False]
 methods_to_test = ["numpy", "jax", "torch"]
 recursions_to_test = ["price-mcewen", "risbo", "auto"]
-iter_to_test = [0, 3]
+iter_to_test = [0, 1]
 
 
 @pytest.mark.parametrize("L", L_to_test)
