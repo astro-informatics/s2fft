@@ -169,7 +169,6 @@ def gaussian_covariance(spectra):
     return cov
 
 
-@pytest.mark.flaky
 @pytest.mark.parametrize("L", L_values_to_test)
 @pytest.mark.parametrize("xp", [np, jnp])
 def test_generate_flm_from_spectra(rng, L, xp):

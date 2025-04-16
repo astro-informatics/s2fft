@@ -8,6 +8,8 @@ from s2fft.sampling import so3_samples as wigner_samples
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
+    from types import ModuleType
+
     import jax
 
 
@@ -216,6 +218,17 @@ def generate_flmn(
     return torch.from_numpy(flmn) if using_torch else flmn
 
 
+def _get_array_namespace(obj: np.ndarray | jax.Array) -> ModuleType:
+    """Return the correct array namespace for numpy or jax arrays."""
+    from sys import modules
+
+    if (numpy := modules.get("numpy")) and isinstance(obj, numpy.ndarray):
+        return numpy
+    if (jax := modules.get("jax")) and isinstance(obj, jax.Array):
+        return jax.numpy
+    raise TypeError(f"unknown array type: {type(obj)!r}")
+
+
 def generate_flm_from_spectra(
     rng: np.random.Generator,
     spectra: np.ndarray | jax.Array,
@@ -237,8 +250,8 @@ def generate_flm_from_spectra(
         coefficients with the given power spectra.
 
     """
-    # get the Array API namespace from spectra
-    xp = spectra.__array_namespace__()
+    # get an ArrayAPI-ish namespace from spectra
+    xp = _get_array_namespace(spectra)
 
     # check input
     if spectra.ndim != 3 or spectra.shape[0] != spectra.shape[1]:
@@ -262,7 +275,7 @@ def generate_flm_from_spectra(
     a = xp.permute_dims(a, (1, 2, 0))
 
     # sample the random coefficients
-    # always use reality=True, this could be real fields or E/B modes
+    # always use reality=True; one can assemble complex fields from them
     # shape of flm is (K, L, M)
     flm = generate_flm(rng, L, reality=True, size=K)
 
