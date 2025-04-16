@@ -219,6 +219,7 @@ def inverse_jax(
     precomps: List = None,
     spmd: bool = False,
     L_lower: int = 0,
+    use_healpix_custom_primitive: bool = False,
 ) -> jnp.ndarray:
     r"""
     Compute the inverse spin-spherical harmonic transform (JAX).
@@ -253,6 +254,12 @@ def inverse_jax(
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
+        use_healpix_custom_primitive (bool, optional): Whether to use a custom CUDA
+            primitive for computing HEALPix fast Fourier transform when `sampling =
+            "healpix"` and running on a CUDA compatible GPU device. Using a custom
+            primitive reduces long compilation times when just-in-time compiling.
+            Defaults to `False`.
 
     Returns:
         jnp.ndarray: Signal on the sphere.
@@ -329,7 +336,10 @@ def inverse_jax(
             jnp.flip(jnp.conj(ftm[:, L - 1 + m_offset + 1 :]), axis=-1)
         )
     if sampling.lower() == "healpix":
-        return hp.healpix_ifft(ftm, L, nside, "jax")
+        if use_healpix_custom_primitive:
+            return hp.healpix_ifft(ftm, L, nside, "cuda")
+        else:
+            return hp.healpix_ifft(ftm, L, nside, "jax")
     else:
         ftm = jnp.conj(jnp.fft.ifftshift(ftm, axes=1))
         f = jnp.conj(jnp.fft.fft(ftm, axis=1, norm="backward"))
@@ -627,10 +637,10 @@ def forward_jax(
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
         use_healpix_custom_primitive (bool, optional): Whether to use a custom CUDA
-            primitive for computing HEALPix fast fourier transform when `sampling =
-            "healpix"` and running on a cuda compatible gpu device. using a custom
-            primitive reduces long compilation times when jit compiling. defaults to
-            `False`.
+            primitive for computing HEALPix fast Fourier transform when `sampling =
+            "healpix"` and running on a CUDA compatible GPU device. Using a custom
+            primitive reduces long compilation times when just-in-time compiling.
+            Defaults to `False`.
 
     Returns:
         jnp.ndarray: Spherical harmonic coefficients
