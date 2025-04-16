@@ -47,15 +47,16 @@ def test_inverse_fourier_wigner_transform(
     )
     f = so3.inverse(samples.flmn_3d_to_1d(flmn, L, N), params)
 
-    delta = None
     transform = fw.inverse_transform_jax if method == "jax" else fw.inverse_transform
     if delta_method.lower() == "precomp":
-        delta = (
+        precomps = (
             c.fourier_wigner_kernel_jax(L)
             if method == "jax"
             else c.fourier_wigner_kernel(L)
         )
-    f_check = transform(flmn, L, N, delta, reality, sampling)
+    else:
+        precomps = None
+    f_check = transform(flmn, L, N, precomps, reality, sampling)
     np.testing.assert_allclose(f, f_check.flatten("C"), atol=atol)
 
 
@@ -91,15 +92,16 @@ def test_forward_fourier_wigner_transform(
     )
     flmn = samples.flmn_1d_to_3d(so3.forward(f, params), L, N)
 
-    delta = None
     transform = fw.forward_transform_jax if method == "jax" else fw.forward_transform
     if delta_method.lower() == "precomp":
-        delta = (
+        precomps = (
             c.fourier_wigner_kernel_jax(L)
             if method == "jax"
             else c.fourier_wigner_kernel(L)
         )
-    flmn_check = transform(f_3D, L, N, delta, reality, sampling)
+    else:
+        precomps = None
+    flmn_check = transform(f_3D, L, N, precomps, reality, sampling)
     np.testing.assert_allclose(flmn, flmn_check, atol=atol)
 
 
@@ -121,8 +123,8 @@ def test_inverse_fourier_wigner_transform_high_N(
     f = so3.inverse(samples.flmn_3d_to_1d(flmn, L, N), params)
 
     f = f.real if reality else f
-    delta = c.fourier_wigner_kernel(L)
-    f_check = fw.inverse_transform(flmn, L, N, delta, reality, sampling)
+    precomps = c.fourier_wigner_kernel(L)
+    f_check = fw.inverse_transform(flmn, L, N, precomps, reality, sampling)
 
     np.testing.assert_allclose(f, f_check.flatten("C"), atol=atol)
 
@@ -151,6 +153,6 @@ def test_forward_fourier_wigner_transform_high_N(
     )
     flmn_so3 = samples.flmn_1d_to_3d(so3.forward(f_1D, params), L, N)
 
-    delta = c.fourier_wigner_kernel_jax(L)
-    flmn_check = fw.forward_transform_jax(f_3D, L, N, delta, reality, sampling)
+    precomps = c.fourier_wigner_kernel_jax(L)
+    flmn_check = fw.forward_transform_jax(f_3D, L, N, precomps, reality, sampling)
     np.testing.assert_allclose(flmn_so3, flmn_check, atol=atol)
