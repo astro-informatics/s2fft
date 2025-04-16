@@ -179,16 +179,9 @@ def healpix_fft(
         np.ndarray: Array of Fourier coefficients for all latitudes.
 
     """
-    if method.lower() == "numpy":
-        return healpix_fft_numpy(f, L, nside, reality)
-    elif method.lower() == "jax":
-        return healpix_fft_jax(f, L, nside, reality)
-    elif method.lower() == "cuda":
-        return healpix_fft_cuda(f, L, nside, reality)
-    elif method.lower() == "torch":
-        return healpix_fft_torch(f, L, nside, reality)
-    else:
+    if method not in _healpix_fft_functions:
         raise ValueError(f"Method {method} not recognised.")
+    return _healpix_fft_functions(f, L, nside, reality)
 
 
 def healpix_fft_numpy(f: np.ndarray, L: int, nside: int, reality: bool) -> np.ndarray:
@@ -319,7 +312,7 @@ def healpix_ifft(
 
         nside (int): HEALPix Nside resolution parameter.
 
-        method (str, optional): Evaluation method in {"numpy", "jax", "torch"}.
+        method (str, optional): Evaluation method in {"numpy", "jax", "torch", "cuda"}.
             Defaults to "numpy".
 
         reality (bool): Whether the signal on the sphere is real.  If so,
@@ -327,23 +320,16 @@ def healpix_ifft(
             Defaults to False.
 
     Raises:
-        ValueError: Deployment method not in {"numpy", "jax", "torch"}.
+        ValueError: Deployment method not in {"numpy", "jax", "torch", "cuda"}.
 
     Returns:
         np.ndarray: HEALPix pixel-space array.
 
     """
     assert L >= 2 * nside
-    if method.lower() == "numpy":
-        return healpix_ifft_numpy(ftm, L, nside, reality)
-    elif method.lower() == "jax":
-        return healpix_ifft_jax(ftm, L, nside, reality)
-    elif method.lower() == "cuda":
-        return healpix_ifft_cuda(ftm, L, nside, reality)
-    elif method.lower() == "torch":
-        return healpix_ifft_torch(ftm, L, nside, reality)
-    else:
+    if method not in _healpix_ifft_functions:
         raise ValueError(f"Method {method} not recognised.")
+    return _healpix_ifft_functions(ftm, L, nside, reality)
 
 
 def healpix_ifft_numpy(
@@ -690,3 +676,18 @@ def healpix_ifft_cuda(
     return _healpix_fft_cuda_primitive.bind(
         ftm, L=L, nside=nside, reality=reality, fft_type="backward", norm=norm
     )
+
+
+_healpix_fft_functions = {
+    "numpy": healpix_fft_numpy,
+    "jax": healpix_fft_jax,
+    "cuda": healpix_fft_cuda,
+    "torch": healpix_fft_torch,
+}
+
+_healpix_ifft_functions = {
+    "numpy": healpix_ifft_numpy,
+    "jax": healpix_ifft_jax,
+    "cuda": healpix_ifft_cuda,
+    "torch": healpix_ifft_torch,
+}
