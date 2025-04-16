@@ -94,14 +94,16 @@ def test_generate_flm_size(rng, L, L_lower, spin, reality):
     if reality and spin != 0:
         pytest.skip("Reality only valid for scalar fields (spin=0).")
 
-    flm = gen.generate_flm(rng, L, L_lower, spin, reality, size=2)
-    assert flm.shape == (2,) + smp.s2_samples.flm_shape(L)
+    size = 2
+    flm = gen.generate_flm(rng, L, L_lower, spin, reality, size=size)
+    assert flm.shape == (size,) + smp.s2_samples.flm_shape(L)
     check_flm_zeros(flm[0], L, max(L_lower, abs(spin)))
     check_flm_zeros(flm[1], L, max(L_lower, abs(spin)))
     check_flm_unequal(flm[0], flm[1], L, max(L_lower, abs(spin)))
 
-    flm = gen.generate_flm(rng, L, L_lower, spin, reality, size=(3, 4))
-    assert flm.shape == (3, 4) + smp.s2_samples.flm_shape(L)
+    size = (3, 4)
+    flm = gen.generate_flm(rng, L, L_lower, spin, reality, size=size)
+    assert flm.shape == size + smp.s2_samples.flm_shape(L)
 
 
 def check_flmn_zeros(flmn, L, N, L_lower):

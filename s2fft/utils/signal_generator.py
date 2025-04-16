@@ -110,7 +110,7 @@ def generate_flm(
         size = ()
     elif isinstance(size, int):
         size = (size,)
-    elif not (isinstance(size, tuple) and all(isinstance(_, int) for _ in size)):
+    elif not (isinstance(size, tuple) and all(isinstance(i, int) for i in size)):
         raise TypeError("size must be int or tuple of int")
 
     flm = np.zeros((*size, *samples.flm_shape(L)), dtype=np.complex128)
