@@ -115,6 +115,15 @@
         "review",
         "test"
       ]
+    },
+    {
+      "login": "mdavezac",
+      "name": "Mayeul d'Avezac",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2745737?v=4",
+      "profile": "https://github.com/mdavezac",
+      "contributions": [
+        "infra"
+      ]
     }
   ],
   "contributorsPerLine": 7,
