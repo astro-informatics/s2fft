@@ -27,8 +27,8 @@ def test_custom_forward_from_s2(
 ):
     # GENERATE MOCK SIGNAL
     flmn = flmn_generator(L=L, N=N)
-    DW = c.fourier_wigner_kernel(L)
-    f = fw.inverse_transform(flmn, L, N, DW, False, sampling)
+    precomps = c.fourier_wigner_kernel(L)
+    f = fw.inverse_transform(flmn, L, N, precomps, False, sampling)
     spins = -np.arange(-N + 1, N)
 
     # FUNCTION SWITCH
@@ -42,27 +42,27 @@ def test_custom_forward_from_s2(
     fn = fn.reshape((1,) + fn.shape + (1,))
 
     # TEST: ALL UNIQUE SPINS
-    flmn_test = func(fn, spins, DW, L, sampling)
+    flmn_test = func(fn, spins, precomps, L, sampling)
     np.testing.assert_allclose(flmn, np.squeeze(flmn_test), atol=atol)
 
     # TEST: A SINGLE SPIN
-    flmn_test = func(fn[:, [0]], spins[[0]], DW, L, sampling)
+    flmn_test = func(fn[:, [0]], spins[[0]], precomps, L, sampling)
     np.testing.assert_allclose(flmn[0], np.squeeze(flmn_test), atol=atol)
 
     # TEST: SUBSET OF SPINS
-    flmn_test = func(fn[:, ::2], spins[::2], DW, L, sampling)
+    flmn_test = func(fn[:, ::2], spins[::2], precomps, L, sampling)
     np.testing.assert_allclose(flmn[::2], np.squeeze(flmn_test), atol=atol)
 
     # TEST: REPEATED SPINS
     fn_repeat = np.concatenate([fn, fn], axis=1)
     spins_repeat = np.concatenate([spins, spins])
-    flmn_test = func(fn_repeat, spins_repeat, DW, L, sampling)
+    flmn_test = func(fn_repeat, spins_repeat, precomps, L, sampling)
     np.testing.assert_allclose(flmn, np.squeeze(flmn_test[:, : len(spins)]), atol=atol)
     np.testing.assert_allclose(flmn, np.squeeze(flmn_test[:, len(spins) :]), atol=atol)
 
     # TEST: SIMULATED BATCHING
     fnb = np.concatenate([fn, fn], axis=0)
-    flmn_test = func(fnb, spins, DW, L, sampling)
+    flmn_test = func(fnb, spins, precomps, L, sampling)
     for b in range(2):
         np.testing.assert_allclose(flmn, np.squeeze(flmn_test[b]), atol=atol)
 
@@ -76,8 +76,8 @@ def test_custom_forward_from_so3(
 ):
     # GENERATE MOCK SIGNAL
     flmn = flmn_generator(L=L, N=N)
-    DW = c.fourier_wigner_kernel(L)
-    f = fw.inverse_transform(flmn, L, N, DW, False, sampling)
+    precomps = c.fourier_wigner_kernel(L)
+    f = fw.inverse_transform(flmn, L, N, precomps, False, sampling)
     spins = -np.arange(-N + 1, N)
 
     # FUNCTION SWITCH
@@ -87,26 +87,26 @@ def test_custom_forward_from_so3(
     f = f.reshape((1,) + f.shape + (1,))
 
     # TEST: ALL UNIQUE SPINS
-    flmn_test = func(f, spins, DW, L, N, sampling)
+    flmn_test = func(f, spins, precomps, L, N, sampling)
     np.testing.assert_allclose(flmn, np.squeeze(flmn_test), atol=atol)
 
     # TEST: A SINGLE SPIN
-    flmn_test = func(f, spins[[0]], DW, L, N, sampling)
+    flmn_test = func(f, spins[[0]], precomps, L, N, sampling)
     np.testing.assert_allclose(flmn[0], np.squeeze(flmn_test), atol=atol)
 
     # TEST: SUBSET OF SPINS
-    flmn_test = func(f, spins[::2], DW, L, N, sampling)
+    flmn_test = func(f, spins[::2], precomps, L, N, sampling)
     np.testing.assert_allclose(flmn[::2], np.squeeze(flmn_test), atol=atol)
 
     # TEST: REPEATED SPINS
     spins_repeat = np.concatenate([spins, spins])
-    flmn_test = func(f, spins_repeat, DW, L, N, sampling)
+    flmn_test = func(f, spins_repeat, precomps, L, N, sampling)
     np.testing.assert_allclose(flmn, np.squeeze(flmn_test[:, : len(spins)]), atol=atol)
     np.testing.assert_allclose(flmn, np.squeeze(flmn_test[:, len(spins) :]), atol=atol)
 
     # TEST: SIMULATED BATCHING
     fb = np.concatenate([f, f], axis=0)
-    flmn_test = func(fb, spins, DW, L, N, sampling)
+    flmn_test = func(fb, spins, precomps, L, N, sampling)
     for b in range(2):
         np.testing.assert_allclose(flmn, np.squeeze(flmn_test[b]), atol=atol)
 
@@ -120,8 +120,8 @@ def test_custom_inverse_to_s2(
 ):
     # GENERATE MOCK SIGNAL
     flmn = flmn_generator(L=L, N=N)
-    DW = c.fourier_wigner_kernel(L)
-    f = fw.inverse_transform(flmn, L, N, DW, False, sampling)
+    precomps = c.fourier_wigner_kernel(L)
+    f = fw.inverse_transform(flmn, L, N, precomps, False, sampling)
     spins = -np.arange(-N + 1, N)
 
     # FUNCTION SWITCH
@@ -135,26 +135,26 @@ def test_custom_inverse_to_s2(
     flmn = flmn.reshape((1,) + flmn.shape + (1,))
 
     # TEST: ALL UNIQUE SPINS
-    f_test = func(flmn, spins, DW, L, sampling)
+    f_test = func(flmn, spins, precomps, L, sampling)
     np.testing.assert_allclose(fn, np.squeeze(f_test), atol=atol)
 
     # TEST: A SINGLE SPIN
-    f_test = func(flmn[:, [0]], spins[[0]], DW, L, sampling)
+    f_test = func(flmn[:, [0]], spins[[0]], precomps, L, sampling)
     np.testing.assert_allclose(fn[0], np.squeeze(f_test), atol=atol)
 
     # TEST: SUBSET OF SPINS
-    f_test = func(flmn[:, ::2], spins[::2], DW, L, sampling)
+    f_test = func(flmn[:, ::2], spins[::2], precomps, L, sampling)
     np.testing.assert_allclose(fn[::2], np.squeeze(f_test), atol=atol)
 
     # TEST: REPEATED SPINS
     flmn_repeat = np.concatenate([flmn, flmn], axis=1)
     spins_repeat = np.concatenate([spins, spins])
-    f_test = func(flmn_repeat, spins_repeat, DW, L, sampling)
+    f_test = func(flmn_repeat, spins_repeat, precomps, L, sampling)
     np.testing.assert_allclose(fn, np.squeeze(f_test[:, : len(spins)]), atol=atol)
     np.testing.assert_allclose(fn, np.squeeze(f_test[:, len(spins) :]), atol=atol)
 
     # TEST: SIMULATED BATCHING
     flmnb = np.concatenate([flmn, flmn], axis=0)
-    f_test = func(flmnb, spins, DW, L, sampling)
+    f_test = func(flmnb, spins, precomps, L, sampling)
     for b in range(2):
         np.testing.assert_allclose(fn, np.squeeze(f_test[b]), atol=atol)
