@@ -6,6 +6,7 @@ import pytest
 from numpy.testing import assert_allclose
 from packaging.version import Version as _Version
 
+import s2fft
 from s2fft.sampling import s2_samples as samples
 from s2fft.utils.healpix_ffts import (
     healpix_fft_cuda,
@@ -103,8 +104,9 @@ def test_healpix_fft_cuda_transforms(flm_generator, nside):
     # Generate a random bandlimited signal
     def generate_flm():
         flm = flm_generator(L=L, reality=False)
-        flm_hp = samples.flm_2d_to_hp(flm, L)
-        f = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
+        f = s2fft.inverse(
+            flm, L=L, nside=nside, reality=False, method="jax", sampling="healpix"
+        )
         return f
 
     f_stacked = jnp.stack([generate_flm() for _ in range(10)], axis=0)
@@ -125,15 +127,15 @@ def test_healpix_fft_cuda_transforms(flm_generator, nside):
     )
     # test jacfwd
     assert_allclose(
-        jax.jacfwd(healpix_jax)(f),
-        jax.jacfwd(healpix_cuda)(f),
+        jax.jacfwd(healpix_jax)(f.real),
+        jax.jacfwd(healpix_cuda)(f.real),
         atol=1e-7,
         rtol=1e-7,
     )
     # test jacrev
     assert_allclose(
-        jax.jacrev(healpix_jax)(f),
-        jax.jacrev(healpix_cuda)(f),
+        jax.jacrev(healpix_jax)(f.real),
+        jax.jacrev(healpix_cuda)(f.real),
         atol=1e-7,
         rtol=1e-7,
     )
@@ -147,8 +149,9 @@ def test_healpix_ifft_cuda_transforms(flm_generator, nside):
     # Generate a random bandlimited signal
     def generate_flm():
         flm = flm_generator(L=L, reality=False)
-        flm_hp = samples.flm_2d_to_hp(flm, L)
-        f = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
+        f = s2fft.inverse(
+            flm, L=L, nside=nside, reality=False, method="jax", sampling="healpix"
+        )
         ftm = healpix_fft_jax(f, L, nside, False)
         return ftm
 
@@ -164,23 +167,23 @@ def test_healpix_ifft_cuda_transforms(flm_generator, nside):
     # Test VMAP
     assert_allclose(
         jax.vmap(healpix_inv_jax)(ftm_stacked).flatten(),
-        jax.vmap(healpix_inv_jax)(ftm_stacked).flatten(),
+        jax.vmap(healpix_inv_cuda)(ftm_stacked).flatten(),
         atol=1e-7,
         rtol=1e-7,
     )
 
     # test jacfwd
     assert_allclose(
-        jax.jacfwd(healpix_inv_jax)(ftm).flatten(),
-        jax.jacfwd(healpix_inv_cuda)(ftm).flatten(),
+        jax.jacfwd(healpix_inv_jax)(ftm.real).flatten(),
+        jax.jacfwd(healpix_inv_cuda)(ftm.real).flatten(),
         atol=1e-7,
         rtol=1e-7,
     )
 
     # test jacrev
     assert_allclose(
-        jax.jacrev(healpix_inv_jax)(ftm).flatten(),
-        jax.jacrev(healpix_inv_cuda)(ftm).flatten(),
+        jax.jacrev(healpix_inv_jax)(ftm.real).flatten(),
+        jax.jacrev(healpix_inv_cuda)(ftm.real).flatten(),
         atol=1e-7,
         rtol=1e-7,
     )

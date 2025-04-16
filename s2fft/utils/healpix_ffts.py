@@ -711,11 +711,18 @@ def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm, adjoint):
         raise ValueError(f"fft_type {fft_type} not recognised.")
 
 
+class MissingCUDASupport(Exception):  # noqa : D107
+    def __init__(self):  # noqa : D107
+        super().__init__("""
+                        S2FFT was compiled without CUDA support. Cuda functions are not supported.
+                        Please make sure that nvcc is in your path and $CUDA_HOME is set then reinstall s2fft using pip.
+                        """)
+
+
 def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm, adjoint):
-    assert _s2fft.COMPILED_WITH_CUDA, """
-    S2FFT was compiled without CUDA support. Cuda functions are not supported.
-    Please make sure that nvcc is in your path and $CUDA_HOME is set then reinstall s2fft using pip.
-    """
+    if not _s2fft.COMPILED_WITH_CUDA:
+        raise MissingCUDASupport()
+
     (aval_out,) = ctx.avals_out
 
     out_dtype = aval_out.dtype
