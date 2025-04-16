@@ -158,11 +158,11 @@ def test_healpix_ifft_cuda_transforms(flm_generator, nside):
     ftm_stacked = jnp.stack([generate_flm() for _ in range(10)], axis=0)
     ftm = ftm_stacked[0].real
 
-    def healpix_inv_jax(f):
-        return healpix_ifft_jax(f, L, nside, False).real
+    def healpix_inv_jax(ftm):
+        return healpix_ifft_jax(ftm, L, nside, False).real
 
-    def healpix_inv_cuda(f):
-        return healpix_ifft_cuda(f, L, nside, False).real
+    def healpix_inv_cuda(ftm):
+        return healpix_ifft_cuda(ftm, L, nside, False).real
 
     # Test VMAP
     assert_allclose(
