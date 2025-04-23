@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import partial
 
 import jax.numpy as jnp
@@ -12,7 +14,7 @@ def inverse_transform(
     flmn: np.ndarray,
     L: int,
     N: int,
-    DW: np.ndarray = None,
+    precomps: tuple[np.ndarray, np.ndarray] | None = None,
     reality: bool = False,
     sampling: str = "mw",
 ) -> np.ndarray:
@@ -23,9 +25,9 @@ def inverse_transform(
         flmn (np.ndarray): Wigner coefficients.
         L (int): Harmonic band-limit.
         N (int): Azimuthal band-limit.
-        DW (Tuple[np.ndarray, np.ndarray], optional): Fourier coefficients of the reduced
-            Wigner d-functions and the corresponding upsampled quadrature weights.
-            Defaults to None.
+        precomps (tuple[np.ndarray, np.ndarray], optional): Fourier coefficients of the
+            reduced Wigner d-functions and the corresponding upsampled quadrature
+            weights. Defaults to None.
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
             Defaults to False.
@@ -53,28 +55,28 @@ def inverse_transform(
     m = np.arange(-L + 1 - m_offset, L)
     n = np.arange(n_start_ind - N + 1, N)
 
-    # Calculate fmna = i^(n-m)\sum_L Delta^l_am Delta^l_an f^l_mn(2l+1)/(8pi^2)
+    # Calculate fmna = i^(n-m)\sum_L delta^l_am delta^l_an f^l_mn(2l+1)/(8pi^2)
     x = np.zeros((xnlm_size, xnlm_size, n_dim), dtype=flmn.dtype)
     flmn = np.einsum("nlm,l->nlm", flmn, (2 * np.arange(L) + 1) / (8 * np.pi**2))
 
     # PRECOMPUTE TRANSFORM
-    if DW is not None:
-        Delta, _ = DW
+    if precomps is not None:
+        delta, _ = precomps
         x = np.zeros((xnlm_size, xnlm_size, n_dim), dtype=flmn.dtype)
         x[m_offset:, m_offset:] = np.einsum(
-            "nlm,lam,lan->amn", flmn[n_start_ind:], Delta, Delta[:, :, L - 1 + n]
+            "nlm,lam,lan->amn", flmn[n_start_ind:], delta, delta[:, :, L - 1 + n]
         )
 
     # OTF TRANSFORM
     else:
-        Delta_el = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+        delta_el = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
         for el in range(L):
-            Delta_el = recursions.risbo.compute_full(Delta_el, np.pi / 2, L, el)
+            delta_el = recursions.risbo.compute_full(delta_el, np.pi / 2, L, el)
             x[m_offset:, m_offset:] += np.einsum(
                 "nm,am,an->amn",
                 flmn[n_start_ind:, el],
-                Delta_el,
-                Delta_el[:, L - 1 + n],
+                delta_el,
+                delta_el[:, L - 1 + n],
             )
 
     # APPLY SIGN FUNCTION AND PHASE SHIFT
@@ -97,7 +99,7 @@ def inverse_transform_jax(
     flmn: jnp.ndarray,
     L: int,
     N: int,
-    DW: jnp.ndarray = None,
+    precomps: tuple[jnp.ndarray, jnp.ndarray] | None = None,
     reality: bool = False,
     sampling: str = "mw",
 ) -> jnp.ndarray:
@@ -108,9 +110,9 @@ def inverse_transform_jax(
         flmn (jnp.ndarray): Wigner coefficients.
         L (int): Harmonic band-limit.
         N (int): Azimuthal band-limit.
-        DW (Tuple[np.ndarray, np.ndarray], optional): Fourier coefficients of the reduced
-            Wigner d-functions and the corresponding upsampled quadrature weights.
-            Defaults to None.
+        precomps (tuple[np.ndarray, np.ndarray], optional): Fourier coefficients of the
+            reduced Wigner d-functions and the corresponding upsampled quadrature
+            weights. Defaults to None.
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
             Defaults to False.
@@ -138,30 +140,30 @@ def inverse_transform_jax(
     m = jnp.arange(-L + 1 - m_offset, L)
     n = jnp.arange(n_start_ind - N + 1, N)
 
-    # Calculate fmna = i^(n-m)\sum_L Delta^l_am Delta^l_an f^l_mn(2l+1)/(8pi^2)
+    # Calculate fmna = i^(n-m)\sum_L delta^l_am delta^l_an f^l_mn(2l+1)/(8pi^2)
     x = jnp.zeros((xnlm_size, xnlm_size, n_dim), dtype=jnp.complex128)
     flmn = jnp.einsum("nlm,l->nlm", flmn, (2 * jnp.arange(L) + 1) / (8 * jnp.pi**2))
 
     # PRECOMPUTE TRANSFORM
-    if DW is not None:
-        Delta, _ = DW
+    if precomps is not None:
+        delta, _ = precomps
         x = x.at[m_offset:, m_offset:].set(
             jnp.einsum(
-                "nlm,lam,lan->amn", flmn[n_start_ind:], Delta, Delta[:, :, L - 1 + n]
+                "nlm,lam,lan->amn", flmn[n_start_ind:], delta, delta[:, :, L - 1 + n]
             )
         )
 
     # OTF TRANSFORM
     else:
-        Delta_el = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
+        delta_el = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
         for el in range(L):
-            Delta_el = recursions.risbo_jax.compute_full(Delta_el, jnp.pi / 2, L, el)
+            delta_el = recursions.risbo_jax.compute_full(delta_el, jnp.pi / 2, L, el)
             x = x.at[m_offset:, m_offset:].add(
                 jnp.einsum(
                     "nm,am,an->amn",
                     flmn[n_start_ind:, el],
-                    Delta_el,
-                    Delta_el[:, L - 1 + n],
+                    delta_el,
+                    delta_el[:, L - 1 + n],
                 )
             )
 
@@ -184,7 +186,7 @@ def forward_transform(
     f: np.ndarray,
     L: int,
     N: int,
-    DW: np.ndarray = None,
+    precomps: tuple[np.ndarray, np.ndarray] | None = None,
     reality: bool = False,
     sampling: str = "mw",
 ) -> np.ndarray:
@@ -195,9 +197,9 @@ def forward_transform(
         f (np.ndarray): Function sampled on the rotation group.
         L (int): Harmonic band-limit.
         N (int): Azimuthal band-limit.
-        DW (Tuple[np.ndarray, np.ndarray], optional): Fourier coefficients of the reduced
-            Wigner d-functions and the corresponding upsampled quadrature weights.
-            Defaults to None.
+        precomps (tuple[np.ndarray, np.ndarray], optional): Fourier coefficients of the
+            reduced Wigner d-functions and the corresponding upsampled quadrature
+            weights. Defaults to None.
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
             Defaults to False.
@@ -253,43 +255,38 @@ def forward_transform(
     # the weights are conjugate but applied flipped and therefore are
     # equivalent. To avoid flipping here we simply conjugate the weights.
 
-    # PRECOMPUTE TRANSFORM
-    if DW is not None:
-        # EXTRACT VARIOUS PRECOMPUTES
-        Delta, Quads = DW
-
-        # APPLY QUADRATURE
-        x = np.einsum("nbm,b->nbm", x, Quads)
-
-        # COMPUTE GMM BY FFT
-        x = np.fft.fft(x, axis=1, norm="forward")
-        x = np.fft.fftshift(x, axes=1)[:, L - 1 : 3 * L - 2]
-
-        # CALCULATE flmn = i^(n-m)\sum_t Delta^l_tm Delta^l_tn G_mnt
-        x = np.einsum("nam,lam,lan->nlm", x, Delta, Delta[:, :, L - 1 + n])
-
-    # OTF TRANSFORM
+    if precomps is not None:
+        # PRECOMPUTE TRANSFORM
+        delta, quads = precomps
     else:
+        # OTF TRANSFORM
+        delta = None
         # COMPUTE QUADRATURE WEIGHTS
-        Quads = np.zeros(4 * L - 3, dtype=np.complex128)
+        quads = np.zeros(4 * L - 3, dtype=np.complex128)
         for mm in range(-2 * (L - 1), 2 * (L - 1) + 1):
-            Quads[mm + 2 * (L - 1)] = quadrature.mw_weights(-mm)
-        Quads = np.fft.ifft(np.fft.ifftshift(Quads), norm="forward")
+            quads[mm + 2 * (L - 1)] = quadrature.mw_weights(-mm)
+        quads = np.fft.ifft(np.fft.ifftshift(quads), norm="forward")
 
-        # APPLY QUADRATURE
-        x = np.einsum("nbm,b->nbm", x, Quads)
+    # APPLY QUADRATURE
+    x = np.einsum("nbm,b->nbm", x, quads)
 
-        # COMPUTE GMM BY FFT
-        x = np.fft.fft(x, axis=1, norm="forward")
-        x = np.fft.fftshift(x, axes=1)[:, L - 1 : 3 * L - 2]
+    # COMPUTE GMM BY FFT
+    x = np.fft.fft(x, axis=1, norm="forward")
+    x = np.fft.fftshift(x, axes=1)[:, L - 1 : 3 * L - 2]
 
-        # CALCULATE flmn = i^(n-m)\sum_t Delta^l_tm Delta^l_tn G_mnt
-        Delta_el = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
+    # CALCULATE flmn = i^(n-m)\sum_t delta^l_tm delta^l_tn G_mnt
+    if delta is not None:
+        # PRECOMPUTE TRANSFORM
+        x = np.einsum("nam,lam,lan->nlm", x, delta, delta[:, :, L - 1 + n])
+    else:
+        # OTF TRANSFORM
+        delta_el = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
         xx = np.zeros((x.shape[0], L, x.shape[-1]), dtype=x.dtype)
         for el in range(L):
-            Delta_el = recursions.risbo.compute_full(Delta_el, np.pi / 2, L, el)
-            xx[:, el] = np.einsum("nam,am,an->nm", x, Delta_el, Delta_el[:, L - 1 + n])
+            delta_el = recursions.risbo.compute_full(delta_el, np.pi / 2, L, el)
+            xx[:, el] = np.einsum("nam,am,an->nm", x, delta_el, delta_el[:, L - 1 + n])
         x = xx
+
     x = np.einsum("nbm,m,n->nbm", x, 1j ** (m), 1j ** (-n))
 
     # SYMMETRY REFLECT FOR N < 0
@@ -310,7 +307,7 @@ def forward_transform_jax(
     f: jnp.ndarray,
     L: int,
     N: int,
-    DW: jnp.ndarray = None,
+    precomps: tuple[jnp.ndarray, jnp.ndarray] | None = None,
     reality: bool = False,
     sampling: str = "mw",
 ) -> jnp.ndarray:
@@ -321,9 +318,9 @@ def forward_transform_jax(
         f (jnp.ndarray): Function sampled on the rotation group.
         L (int): Harmonic band-limit.
         N (int): Azimuthal band-limit.
-        DW (Tuple[np.ndarray, np.ndarray], optional): Fourier coefficients of the reduced
-            Wigner d-functions and the corresponding upsampled quadrature weights.
-            Defaults to None.
+        precomps (tuple[np.ndarray, np.ndarray], optional): Fourier coefficients of the
+            reduced Wigner d-functions and the corresponding upsampled quadrature
+            weights. Defaults to None.
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
             Defaults to False.
@@ -379,41 +376,37 @@ def forward_transform_jax(
     # the weights are conjugate but applied flipped and therefore are
     # equivalent. To avoid flipping here we simply conjugate the weights.
 
-    # PRECOMPUTE TRANSFORM
-    if DW is not None:
-        # EXTRACT VARIOUS PRECOMPUTES
-        Delta, Quads = DW
-
-        # APPLY QUADRATURE
-        x = jnp.einsum("nbm,b->nbm", x, Quads)
-
-        # COMPUTE GMM BY FFT
-        x = jnp.fft.fft(x, axis=1, norm="forward")
-        x = jnp.fft.fftshift(x, axes=1)[:, L - 1 : 3 * L - 2]
-
-        # Calculate flmn = i^(n-m)\sum_t Delta^l_tm Delta^l_tn G_mnt
-        x = jnp.einsum("nam,lam,lan->nlm", x, Delta, Delta[:, :, L - 1 + n])
-
+    if precomps is not None:
+        # PRECOMPUTE TRANSFORM
+        delta, quads = precomps
     else:
-        Quads = jnp.zeros(4 * L - 3, dtype=jnp.complex128)
+        # OTF TRANSFORM
+        delta = None
+        # COMPUTE QUADRATURE WEIGHTS
+        quads = jnp.zeros(4 * L - 3, dtype=jnp.complex128)
         for mm in range(-2 * (L - 1), 2 * (L - 1) + 1):
-            Quads = Quads.at[mm + 2 * (L - 1)].set(quadrature_jax.mw_weights(-mm))
-        Quads = jnp.fft.ifft(jnp.fft.ifftshift(Quads), norm="forward")
+            quads = quads.at[mm + 2 * (L - 1)].set(quadrature_jax.mw_weights(-mm))
+        quads = jnp.fft.ifft(jnp.fft.ifftshift(quads), norm="forward")
 
-        # APPLY QUADRATURE
-        x = jnp.einsum("nbm,b->nbm", x, Quads)
+    # APPLY QUADRATURE
+    x = jnp.einsum("nbm,b->nbm", x, quads)
 
-        # COMPUTE GMM BY FFT
-        x = jnp.fft.fft(x, axis=1, norm="forward")
-        x = jnp.fft.fftshift(x, axes=1)[:, L - 1 : 3 * L - 2]
+    # COMPUTE GMM BY FFT
+    x = jnp.fft.fft(x, axis=1, norm="forward")
+    x = jnp.fft.fftshift(x, axes=1)[:, L - 1 : 3 * L - 2]
 
-        # CALCULATE flmn = i^(n-m)\sum_t Delta^l_tm Delta^l_tn G_mnt
-        Delta_el = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
+    # Calculate flmn = i^(n-m)\sum_t delta^l_tm delta^l_tn G_mnt
+    if delta is not None:
+        # PRECOMPUTE TRANSFORM
+        x = jnp.einsum("nam,lam,lan->nlm", x, delta, delta[:, :, L - 1 + n])
+    else:
+        # OTF TRANSFORM
+        delta_el = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
         xx = jnp.zeros((x.shape[0], L, x.shape[-1]), dtype=x.dtype)
         for el in range(L):
-            Delta_el = recursions.risbo_jax.compute_full(Delta_el, jnp.pi / 2, L, el)
+            delta_el = recursions.risbo_jax.compute_full(delta_el, jnp.pi / 2, L, el)
             xx = xx.at[:, el].set(
-                jnp.einsum("nam,am,an->nm", x, Delta_el, Delta_el[:, L - 1 + n])
+                jnp.einsum("nam,am,an->nm", x, delta_el, delta_el[:, L - 1 + n])
             )
         x = xx
 
