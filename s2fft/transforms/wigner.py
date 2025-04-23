@@ -8,6 +8,7 @@ from jax import jit, vmap
 import s2fft
 from s2fft.sampling import so3_samples as samples
 from s2fft.transforms import c_backend_spherical as c_sph
+from s2fft.utils import torch_wrapper
 
 
 def inverse(
@@ -84,7 +85,7 @@ def inverse(
     if method not in _inverse_functions:
         raise ValueError(f"Method {method} not recognised.")
 
-    if N >= 8 and method in ("numpy", "jax"):
+    if N >= 8 and method in ("numpy", "jax", "torch"):
         raise Warning("Recursive transform may provide lower precision beyond N ~ 8")
 
     inverse_kwargs = {
@@ -96,7 +97,7 @@ def inverse(
         "reality": reality,
     }
 
-    if method in ("jax", "numpy"):
+    if method in ("jax", "numpy", "torch"):
         inverse_kwargs.update(nside=nside, precomps=precomps)
 
     if method == "jax_ssht":
@@ -288,6 +289,9 @@ def inverse_jax(
     return f
 
 
+inverse_torch = torch_wrapper.wrap_as_torch_function(inverse_jax)
+
+
 def inverse_jax_ssht(
     flmn: jnp.ndarray,
     L: int,
@@ -413,7 +417,7 @@ def forward(
     if method not in _inverse_functions:
         raise ValueError(f"Method {method} not recognised.")
 
-    if N >= 8 and method in ("numpy", "jax"):
+    if N >= 8 and method in ("numpy", "jax", "torch"):
         raise Warning("Recursive transform may provide lower precision beyond N ~ 8")
 
     forward_kwargs = {
@@ -425,7 +429,7 @@ def forward(
         "reality": reality,
     }
 
-    if method in ("jax", "numpy"):
+    if method in ("jax", "numpy", "torch"):
         forward_kwargs.update(nside=nside, precomps=precomps)
 
     if method == "jax_ssht":
@@ -642,6 +646,9 @@ def forward_jax(
     return flmn
 
 
+forward_torch = torch_wrapper.wrap_as_torch_function(forward_jax)
+
+
 def forward_jax_ssht(
     f: jnp.ndarray,
     L: int,
@@ -829,10 +836,12 @@ _inverse_functions = {
     "numpy": inverse_numpy,
     "jax": inverse_jax,
     "jax_ssht": inverse_jax_ssht,
+    "torch": inverse_torch,
 }
 
 _forward_functions = {
     "numpy": forward_numpy,
     "jax": forward_jax,
     "jax_ssht": forward_jax_ssht,
+    "torch": forward_torch,
 }
