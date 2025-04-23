@@ -15,6 +15,7 @@ from s2fft.utils import (
     quadrature_jax,
     resampling,
     resampling_jax,
+    torch_wrapper,
 )
 
 
@@ -85,13 +86,13 @@ def inverse(
     if method not in _inverse_functions:
         raise ValueError(f"Method {method} not recognised.")
 
-    if spin >= 8 and method in ("numpy", "jax", "jax_cuda"):
+    if spin >= 8 and method in ("numpy", "jax", "jax_cuda", "torch"):
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
     inverse_kwargs = {"flm": flm, "L": L}
-    if method in ("numpy", "jax", "jax_cuda"):
+    if method in ("numpy", "jax", "jax_cuda", "torch"):
         inverse_kwargs.update(sampling=sampling, precomps=precomps, L_lower=L_lower)
-    if method in ("jax", "jax_cuda"):
+    if method in ("jax", "jax_cuda", "torch"):
         inverse_kwargs["spmd"] = spmd
     if method == "jax_healpy":
         if sampling.lower() != "healpix":
@@ -346,6 +347,9 @@ def inverse_jax(
         return jnp.real(f) if reality else f
 
 
+inverse_torch = torch_wrapper.wrap_as_torch_function(inverse_jax)
+
+
 def forward(
     f: np.ndarray,
     L: int,
@@ -422,16 +426,16 @@ def forward(
     if method not in _forward_functions:
         raise ValueError(f"Method {method} not recognised.")
 
-    if spin >= 8 and method in ("numpy", "jax", "jax_cuda"):
+    if spin >= 8 and method in ("numpy", "jax", "jax_cuda", "torch"):
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
     if iter is None:
         iter = 3 if sampling.lower() == "healpix" and method == "jax_healpy" else 0
 
     forward_kwargs = {"f": f, "L": L}
-    if method in ("numpy", "jax", "jax_cuda"):
+    if method in ("numpy", "jax", "jax_cuda", "torch"):
         forward_kwargs.update(sampling=sampling, precomps=precomps, L_lower=L_lower)
-    if method in ("jax", "jax_cuda"):
+    if method in ("jax", "jax_cuda", "torch"):
         forward_kwargs["spmd"] = spmd
     if method == "jax_healpy":
         if sampling.lower() != "healpix":
@@ -752,12 +756,16 @@ def forward_jax(
     return flm * (-1) ** jnp.abs(spin)
 
 
+forward_torch = torch_wrapper.wrap_as_torch_function(forward_jax)
+
+
 _inverse_functions = {
     "numpy": inverse_numpy,
     "jax": inverse_jax,
     "jax_cuda": partial(inverse_jax, use_healpix_custom_primitive=True),
     "jax_ssht": c_sph.ssht_inverse,
     "jax_healpy": c_sph.healpy_inverse,
+    "torch": inverse_torch,
 }
 
 _forward_functions = {
@@ -766,4 +774,5 @@ _forward_functions = {
     "jax_cuda": partial(forward_jax, use_healpix_custom_primitive=True),
     "jax_ssht": c_sph.ssht_forward,
     "jax_healpy": c_sph.healpy_forward,
+    "torch": forward_torch,
 }
