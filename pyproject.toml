@@ -30,7 +30,6 @@ dependencies = [
     "numpy>=1.20",
     "jax>=0.3.13,<0.6.0",
     "jaxlib",
-    "torch",
 ]
 dynamic = [
     "version",
@@ -74,6 +73,10 @@ tests = [
     "pytest-cov",
     "so3",
     "pyssht",
+    "torch",
+]
+torch = [
+    "torch",
 ]
 
 [tool.scikit-build]

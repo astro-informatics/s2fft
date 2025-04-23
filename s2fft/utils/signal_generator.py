@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
-import torch
+from numpy.typing import DTypeLike
 
 from s2fft.sampling import s2_samples as samples
 from s2fft.sampling import so3_samples as wigner_samples
@@ -10,7 +10,8 @@ from s2fft.sampling import so3_samples as wigner_samples
 def complex_normal(
     rng: np.random.Generator,
     size: int | tuple[int],
-    var: float,
+    var: float = 1.0,
+    dtype: DTypeLike = np.complex128,
 ) -> np.ndarray:
     """
     Generate array of samples from zero-mean complex normal distribution.
@@ -23,14 +24,19 @@ def complex_normal(
         rng: Numpy random generator object to generate samples using.
         size: Output shape of array to generate.
         var: Variance of complex normal distribution to generate samples from.
+        dtype: Data type of generated array.
 
     Returns:
-        Complex-valued array of shape `size` contained generated samples.
+        Complex-valued array of shape `size` and data type `dtype` containing generated
+        samples.
 
     """
-    return (rng.standard_normal(size) + 1j * rng.standard_normal(size)) * (
-        var / 2
-    ) ** 0.5
+    # NumPy handling of scalars differs for floating and complex types with latter
+    # being returned as complex scalar objects rather than arrays of shape () so we
+    # use asarray here to ensure output is always an array
+    return np.asarray(
+        (rng.standard_normal(size) + 1j * rng.standard_normal(size)) * (var / 2) ** 0.5
+    ).astype(dtype)
 
 
 def complex_el_and_m_indices(L: int, min_el: int) -> tuple[np.ndarray, np.ndarray]:
@@ -73,8 +79,7 @@ def generate_flm(
     L_lower: int = 0,
     spin: int = 0,
     reality: bool = False,
-    using_torch: bool = False,
-) -> np.ndarray | torch.Tensor:
+) -> np.ndarray:
     r"""
     Generate a 2D set of random harmonic coefficients.
 
@@ -91,8 +96,6 @@ def generate_flm(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         reality (bool, optional): Reality of signal. Defaults to False.
-
-        using_torch (bool, optional): Desired frontend functionality. Defaults to False.
 
     Returns:
         np.ndarray: Random set of spherical harmonic coefficients.
@@ -117,7 +120,7 @@ def generate_flm(
     else:
         # Non-real signal so generate independent complex coefficients for negative m
         flm[el_indices, L - 1 - m_indices] = complex_normal(rng, len_indices, var=2)
-    return torch.from_numpy(flm) if using_torch else flm
+    return flm
 
 
 def generate_flmn(
@@ -126,8 +129,7 @@ def generate_flmn(
     N: int = 1,
     L_lower: int = 0,
     reality: bool = False,
-    using_torch: bool = False,
-) -> np.ndarray | torch.Tensor:
+) -> np.ndarray:
     r"""
     Generate a 3D set of random Wigner coefficients.
 
@@ -145,8 +147,6 @@ def generate_flmn(
         L_lower (int, optional): Harmonic lower bound. Defaults to 0.
 
         reality (bool, optional): Reality of signal. Defaults to False.
-
-        using_torch (bool, optional): Desired frontend functionality. Defaults to False.
 
     Returns:
         np.ndarray: Random set of Wigner coefficients.
@@ -198,4 +198,4 @@ def generate_flmn(
             flmn[N - 1 + n, el_indices, L - 1 - m_indices] = complex_normal(
                 rng, len_indices, var=2
             )
-    return torch.from_numpy(flmn) if using_torch else flmn
+    return flmn
