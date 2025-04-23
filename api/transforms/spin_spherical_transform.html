@@ -475,8 +475,8 @@
 if sampling=”healpix”.  Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
 {“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
-<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”, “jax_ssht”, “jax_healpy”}.
-Defaults to “numpy”.</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”, “jax_cuda”,
+jax_ssht”, “jax_healpy”}. Defaults to “numpy”.</p></li>
 <li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
 conjugate symmetry is exploited to reduce computational costs.  Defaults to
 False.</p></li>
@@ -547,10 +547,10 @@ only maps over all available devices. Defaults to False.</p></li>
 <li><p><strong>L_lower</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic lower-bound. Transform will only be computed
 for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt; \texttt{L}\)</span>. Defaults to 0.</p></li>
 <li><p><strong>use_healpix_custom_primitive</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use a custom CUDA
-primitive for computing HEALPix fast fourier transform when <cite>sampling =
-“healpix”</cite> and running on a cuda compatible gpu device. using a custom
-primitive reduces long compilation times when jit compiling. defaults to
-<cite>False</cite>.</p></li>
+primitive for computing HEALPix fast Fourier transform when <cite>sampling =
+“healpix”</cite> and running on a CUDA compatible GPU device. Using a custom
+primitive reduces long compilation times when just-in-time compiling.
+Defaults to <cite>False</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -606,6 +606,57 @@ for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt;
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="s2fft.transforms.spherical.forward_torch">
+<span class="sig-prename descclassname"><span class="pre">s2fft.transforms.spherical.</span></span><span class="sig-name descname"><span class="pre">forward_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_healpix_custom_primitive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#s2fft.transforms.spherical.forward_torch" title="Link to this definition">#</a></dt>
+<dd><p>Compute the forward spin-spherical harmonic transform (Torch).</p>
+<p>Uses separation of variables and exploits the Price &amp; McEwen recursion for accelerated
+and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
+function is theoretically <span class="math notranslate nohighlight">\(\mathcal{O}(L^2)\)</span>. This is a Torch implementation of
+<a class="reference internal" href="#s2fft.transforms.spherical.forward_numpy" title="s2fft.transforms.spherical.forward_numpy"><code class="xref py py-func docutils literal notranslate"><span class="pre">forward_numpy()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>torch.Tensor</em>) – Signal on the sphere</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
+if sampling=”healpix”.  Defaults to None.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.  Defaults to
+False.</p></li>
+<li><p><strong>precomps</strong> (<em>List</em><em>[</em><em>torch.Tensor</em><em>]</em>) – Precomputed list of recursion coefficients. At most
+of length <span class="math notranslate nohighlight">\(L^2\)</span>, which is a minimal memory overhead.</p></li>
+<li><p><strong>spmd</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to map compute over multiple devices. Currently this
+only maps over all available devices. Defaults to False.</p></li>
+<li><p><strong>L_lower</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic lower-bound. Transform will only be computed
+for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt; \texttt{L}\)</span>. Defaults to 0.</p></li>
+<li><p><strong>use_healpix_custom_primitive</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use a custom CUDA
+primitive for computing HEALPix fast Fourier transform when <cite>sampling =
+“healpix”</cite> and running on a CUDA compatible GPU device. Using a custom
+primitive reduces long compilation times when just-in-time compiling.
+Defaults to <cite>False</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Spherical harmonic coefficients</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The single-program multiple-data (SPMD) optional variable determines whether
+the transform is run over a single device or all available devices. For very low
+harmonic bandlimits L this is inefficient as the I/O overhead for communication
+between devices is noticable, however as L increases one will asymptotically
+recover acceleration by the number of devices.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="s2fft.transforms.spherical.inverse">
 <span class="sig-prename descclassname"><span class="pre">s2fft.transforms.spherical.</span></span><span class="sig-name descname"><span class="pre">inverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'numpy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_ssht_backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.transforms.spherical.inverse" title="Link to this definition">#</a></dt>
 <dd><p>Wrapper for the inverse spin-spherical harmonic transform.</p>
@@ -619,8 +670,8 @@ for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt;
 if sampling=”healpix”.  Defaults to None.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
 {“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
-<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”, “jax_ssht”, “jax_healpy”}.
-Defaults to “numpy”.</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Execution mode in {“numpy”, “jax”, “jax_cuda”,
+“jax_ssht”, “jax_healpy”}. Defaults to “numpy”.</p></li>
 <li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
 conjugate symmetry is exploited to reduce computational costs.  Defaults to
 False.</p></li>
@@ -658,7 +709,7 @@ recover acceleration by the number of devices.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.transforms.spherical.inverse_jax">
-<span class="sig-prename descclassname"><span class="pre">s2fft.transforms.spherical.</span></span><span class="sig-name descname"><span class="pre">inverse_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.transforms.spherical.inverse_jax" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.transforms.spherical.</span></span><span class="sig-name descname"><span class="pre">inverse_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_healpix_custom_primitive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.transforms.spherical.inverse_jax" title="Link to this definition">#</a></dt>
 <dd><p>Compute the inverse spin-spherical harmonic transform (JAX).</p>
 <p>Uses separation of variables and exploits the Price &amp; McEwen recursion for accelerated
 and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
@@ -683,6 +734,11 @@ of length <span class="math notranslate nohighlight">\(L^2\)</span>, which is a 
 only maps over all available devices. Defaults to False.</p></li>
 <li><p><strong>L_lower</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic lower-bound. Transform will only be computed
 for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt; \texttt{L}\)</span>. Defaults to 0.</p></li>
+<li><p><strong>use_healpix_custom_primitive</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use a custom CUDA
+primitive for computing HEALPix fast Fourier transform when <cite>sampling =
+“healpix”</cite> and running on a CUDA compatible GPU device. Using a custom
+primitive reduces long compilation times when just-in-time compiling.
+Defaults to <cite>False</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -735,6 +791,57 @@ for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt;
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.transforms.spherical.inverse_torch">
+<span class="sig-prename descclassname"><span class="pre">s2fft.transforms.spherical.</span></span><span class="sig-name descname"><span class="pre">inverse_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_healpix_custom_primitive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#s2fft.transforms.spherical.inverse_torch" title="Link to this definition">#</a></dt>
+<dd><p>Compute the inverse spin-spherical harmonic transform (Torch).</p>
+<p>Uses separation of variables and exploits the Price &amp; McEwen recursion for accelerated
+and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
+function is theoretically <span class="math notranslate nohighlight">\(\mathcal{O}(L^2)\)</span>. This is a Torch implementation of
+<a class="reference internal" href="#s2fft.transforms.spherical.inverse_numpy" title="s2fft.transforms.spherical.inverse_numpy"><code class="xref py py-func docutils literal notranslate"><span class="pre">inverse_numpy()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>flm</strong> (<em>torch.Tensor</em>) – Spherical harmonic coefficients.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>spin</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic spin. Defaults to 0.</p></li>
+<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
+if sampling=”healpix”.  Defaults to None.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.  Defaults to
+False.</p></li>
+<li><p><strong>precomps</strong> (<em>List</em><em>[</em><em>torch.Tensor</em><em>]</em>) – Precomputed list of recursion coefficients. At most
+of length <span class="math notranslate nohighlight">\(L^2\)</span>, which is a minimal memory overhead.</p></li>
+<li><p><strong>spmd</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to map compute over multiple devices. Currently this
+only maps over all available devices. Defaults to False.</p></li>
+<li><p><strong>L_lower</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic lower-bound. Transform will only be computed
+for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt; \texttt{L}\)</span>. Defaults to 0.</p></li>
+<li><p><strong>use_healpix_custom_primitive</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use a custom CUDA
+primitive for computing HEALPix fast Fourier transform when <cite>sampling =
+“healpix”</cite> and running on a CUDA compatible GPU device. Using a custom
+primitive reduces long compilation times when just-in-time compiling.
+Defaults to <cite>False</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Signal on the sphere.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The single-program multiple-data (SPMD) optional variable determines whether
+the transform is run over a single device or all available devices. For very low
+harmonic bandlimits L this is inefficient as the I/O overhead for communication
+between devices is noticable, however as L increases one will asymptotically
+recover acceleration by the number of devices.</p>
+</div>
 </dd></dl>
 
 </section>

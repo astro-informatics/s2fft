@@ -593,7 +593,7 @@ if sampling=”healpix”.</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.precompute_transforms.spherical.forward_transform_jax">
 <span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.spherical.</span></span><span class="sig-name descname"><span class="pre">forward_transform_jax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.spherical.forward_transform_jax" title="Link to this definition">#</a></dt>
-<dd><p>Compute the forward spherical harmonic tranclearsform via precompute (vectorized
+<dd><p>Compute the forward spherical harmonic transform via precompute (vectorized
 implementation).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -621,17 +621,17 @@ if sampling=”healpix”.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.precompute_transforms.spherical.forward_transform_torch">
-<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.spherical.</span></span><span class="sig-name descname"><span class="pre">forward_transform_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.spherical.forward_transform_torch" title="Link to this definition">#</a></dt>
-<dd><p>Compute the forward spherical harmonic tranclearsform via precompute (vectorized
+<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.spherical.</span></span><span class="sig-name descname"><span class="pre">forward_transform_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.spherical.forward_transform_torch" title="Link to this definition">#</a></dt>
+<dd><p>Compute the forward spherical harmonic transform via precompute (vectorized
 implementation).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>f</strong> (<em>torch.tensor</em>) – Signal on the sphere.</p></li>
-<li><p><strong>kernel</strong> (<em>torch.tensor</em>) – Wigner-d kernel.</p></li>
+<li><p><strong>f</strong> (<em>torch.Tensor</em>) – Signal on the sphere.</p></li>
+<li><p><strong>kernel</strong> (<em>torch.Tensor</em>) – Wigner-d kernel.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em>) – Sampling scheme.  Supported sampling schemes include
-{“mw”, “mwss”, “dh”, “healpix”}.</p></li>
+{“mw”, “mwss”, “dh”, “gl”, “healpix”}.</p></li>
 <li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
 conjugate symmetry is exploited to reduce computational costs.</p></li>
 <li><p><strong>spin</strong> (<em>int</em>) – Harmonic spin.</p></li>
@@ -643,7 +643,7 @@ if sampling=”healpix”.</p></li>
 <dd class="field-even"><p>Pixel-space coefficients.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>torch.tensor</p>
+<dd class="field-odd"><p>torch.Tensor</p>
 </dd>
 </dl>
 </dd></dl>
@@ -745,17 +745,17 @@ if sampling=”healpix”.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.precompute_transforms.spherical.inverse_transform_torch">
-<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.spherical.</span></span><span class="sig-name descname"><span class="pre">inverse_transform_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.spherical.inverse_transform_torch" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.precompute_transforms.spherical.</span></span><span class="sig-name descname"><span class="pre">inverse_transform_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#s2fft.precompute_transforms.spherical.inverse_transform_torch" title="Link to this definition">#</a></dt>
 <dd><p>Compute the inverse spherical harmonic transform via precompute (Torch
 implementation).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>flm</strong> (<em>torch.tensor</em>) – Spherical harmonic coefficients.</p></li>
-<li><p><strong>kernel</strong> (<em>torch.tensor</em>) – Wigner-d kernel.</p></li>
+<li><p><strong>flm</strong> (<em>torch.Tensor</em>) – Spherical harmonic coefficients.</p></li>
+<li><p><strong>kernel</strong> (<em>torch.Tensor</em>) – Wigner-d kernel.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 <li><p><strong>sampling</strong> (<em>str</em>) – Sampling scheme.  Supported sampling schemes include
-{“mw”, “mwss”, “dh”, “healpix”}.</p></li>
+{“mw”, “mwss”, “dh”, “gl”, “healpix”}.</p></li>
 <li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
 conjugate symmetry is exploited to reduce computational costs.</p></li>
 <li><p><strong>spin</strong> (<em>int</em>) – Harmonic spin.</p></li>
@@ -767,7 +767,7 @@ if sampling=”healpix”.</p></li>
 <dd class="field-even"><p>Pixel-space coefficients with shape.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>torch.tensor</p>
+<dd class="field-odd"><p>torch.Tensor</p>
 </dd>
 </dl>
 </dd></dl>

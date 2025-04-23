@@ -652,6 +652,49 @@ for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt;
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="s2fft.transforms.wigner.forward_torch">
+<span class="sig-prename descclassname"><span class="pre">s2fft.transforms.wigner.</span></span><span class="sig-name descname"><span class="pre">forward_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#s2fft.transforms.wigner.forward_torch" title="Link to this definition">#</a></dt>
+<dd><p>Compute the forward Wigner transform (Torch).</p>
+<p>Uses separation of variables and exploits the Price &amp; McEwen recursion for accelerated
+and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
+function is theoretically <span class="math notranslate nohighlight">\(\mathcal{O}(NL^2)\)</span>.</p>
+<p>Importantly, the convention adopted for storage of f is <span class="math notranslate nohighlight">\([\gamma, \beta,
+\alpha]\)</span>, for Euler angles <span class="math notranslate nohighlight">\((\alpha, \beta, \gamma)\)</span> following the
+<span class="math notranslate nohighlight">\(zyz\)</span> Euler convention, in order to simplify indexing for internal use.
+For a given <span class="math notranslate nohighlight">\(\gamma\)</span> we thus recover a signal on the sphere indexed by
+<span class="math notranslate nohighlight">\([\theta, \phi]\)</span>, i.e. we associate <span class="math notranslate nohighlight">\(\beta\)</span> with <span class="math notranslate nohighlight">\(\theta\)</span> and
+<span class="math notranslate nohighlight">\(\alpha\)</span> with <span class="math notranslate nohighlight">\(\phi\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>torch.Tensor</em>) – Signal on the on <span class="math notranslate nohighlight">\(SO(3)\)</span> with shape
+<span class="math notranslate nohighlight">\([n_{\gamma}, n_{\beta}, n_{\alpha}]\)</span>, where <span class="math notranslate nohighlight">\(n_\xi\)</span> denotes the
+number of samples for angle <span class="math notranslate nohighlight">\(\xi\)</span>.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit.</p></li>
+<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
+if sampling=”healpix”.  Defaults to None.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.  Defaults to
+False.</p></li>
+<li><p><strong>precomps</strong> (<em>List</em><em>[</em><em>torch.Tensor</em><em>]</em>) – Precomputed list of recursion coefficients. At most
+of length <span class="math notranslate nohighlight">\(L^2\)</span>, which is a minimal memory overhead.</p></li>
+<li><p><strong>L_lower</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic lower-bound. Transform will only be computed
+for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt; \texttt{L}\)</span>. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Wigner coefficients <cite>flmn</cite> with shape <span class="math notranslate nohighlight">\([2N-1, L, 2L-1]\)</span>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="s2fft.transforms.wigner.inverse">
 <span class="sig-prename descclassname"><span class="pre">s2fft.transforms.wigner.</span></span><span class="sig-name descname"><span class="pre">inverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flmn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'numpy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_ssht_backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.transforms.wigner.inverse" title="Link to this definition">#</a></dt>
 <dd><p>Wrapper for the inverse Wigner transform, i.e. inverse Fourier transform on
@@ -834,6 +877,48 @@ for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt;
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="s2fft.transforms.wigner.inverse_torch">
+<span class="sig-prename descclassname"><span class="pre">s2fft.transforms.wigner.</span></span><span class="sig-name descname"><span class="pre">inverse_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flmn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#s2fft.transforms.wigner.inverse_torch" title="Link to this definition">#</a></dt>
+<dd><p>Compute the inverse Wigner transform (Torch).</p>
+<p>Uses separation of variables and exploits the Price &amp; McEwen recursion for accelerated
+and numerically stable Wiger-d on-the-fly recursions. The memory overhead for this
+function is theoretically <span class="math notranslate nohighlight">\(\mathcal{O}(NL^2)\)</span>.</p>
+<p>Importantly, the convention adopted for storage of f is <span class="math notranslate nohighlight">\([\gamma, \beta,
+\alpha]\)</span>, for Euler angles <span class="math notranslate nohighlight">\((\alpha, \beta, \gamma)\)</span> following the
+<span class="math notranslate nohighlight">\(zyz\)</span> Euler convention, in order to simplify indexing for internal use.
+For a given <span class="math notranslate nohighlight">\(\gamma\)</span> we thus recover a signal on the sphere indexed by
+<span class="math notranslate nohighlight">\([\theta, \phi]\)</span>, i.e. we associate <span class="math notranslate nohighlight">\(\beta\)</span> with <span class="math notranslate nohighlight">\(\theta\)</span> and
+<span class="math notranslate nohighlight">\(\alpha\)</span> with <span class="math notranslate nohighlight">\(\phi\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>flmn</strong> (<em>torch.Tensor</em>) – Wigner coefficients with shape <span class="math notranslate nohighlight">\([2N-1, L, 2L-1]\)</span>.</p></li>
+<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – Azimuthal band-limit. Recursive transform will have lower precision
+beyond <span class="math notranslate nohighlight">\(N \approx 8\)</span>.</p></li>
+<li><p><strong>nside</strong> (<em>int</em><em>, </em><em>optional</em>) – HEALPix Nside resolution parameter.  Only required
+if sampling=”healpix”.  Defaults to None.</p></li>
+<li><p><strong>sampling</strong> (<em>str</em><em>, </em><em>optional</em>) – Sampling scheme.  Supported sampling schemes include
+{“mw”, “mwss”, “dh”, “gl”, “healpix”}.  Defaults to “mw”.</p></li>
+<li><p><strong>reality</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the signal on the sphere is real.  If so,
+conjugate symmetry is exploited to reduce computational costs.  Defaults to
+False.</p></li>
+<li><p><strong>precomps</strong> (<em>List</em><em>[</em><em>torch.Tensor</em><em>]</em>) – Precomputed list of recursion coefficients. At most
+of length <span class="math notranslate nohighlight">\(L^2\)</span>, which is a minimal memory overhead.</p></li>
+<li><p><strong>L_lower</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic lower-bound. Transform will only be computed
+for <span class="math notranslate nohighlight">\(\texttt{L_lower} \leq \ell &lt; \texttt{L}\)</span>. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Signal on the sphere.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
 </dd>
 </dl>
 </dd></dl>

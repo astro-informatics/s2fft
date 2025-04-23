@@ -628,14 +628,15 @@ conjugate symmetry is exploited to reduce computational costs.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.healpix_fft_torch">
-<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">healpix_fft_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.healpix_fft_torch" title="Link to this definition">#</a></dt>
-<dd><p>Computes the Forward Fast Fourier Transform with spectral back-projection
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">healpix_fft_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.healpix_fft_torch" title="Link to this definition">#</a></dt>
+<dd><p>Healpix FFT Torch implementation using jax.numpy/numpy stack
+Computes the Forward Fast Fourier Transform with spectral back-projection
 in the polar regions to manually enforce Fourier periodicity. Torch specific
 implementation of <a class="reference internal" href="#s2fft.utils.healpix_ffts.healpix_fft_numpy" title="s2fft.utils.healpix_ffts.healpix_fft_numpy"><code class="xref py py-func docutils literal notranslate"><span class="pre">healpix_fft_numpy()</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>f</strong> (<em>torch.tensor</em>) – HEALPix pixel-space array.</p></li>
+<li><p><strong>f</strong> (<em>torch.Tensor</em>) – HEALPix pixel-space array.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 <li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
 <li><p><strong>reality</strong> (<em>bool</em>) – Whether the signal on the sphere is real.  If so,
@@ -646,7 +647,7 @@ conjugate symmetry is exploited to reduce computational costs.</p></li>
 <dd class="field-even"><p>Array of Fourier coefficients for all latitudes.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>torch.tensor</p>
+<dd class="field-odd"><p>torch.Tensor</p>
 </dd>
 </dl>
 </dd></dl>
@@ -662,7 +663,7 @@ in the polar regions to mitigate aliasing.</p>
 <li><p><strong>ftm</strong> (<em>np.ndarray</em>) – Array of Fourier coefficients for all latitudes.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 <li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
-<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Evaluation method in {“numpy”, “jax”, “torch”}.
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Evaluation method in {“numpy”, “jax”, “torch”, “cuda”}.
 Defaults to “numpy”.</p></li>
 <li><p><strong>reality</strong> (<em>bool</em>) – Whether the signal on the sphere is real.  If so,
 conjugate symmetry is exploited to reduce computational costs.
@@ -670,7 +671,7 @@ Defaults to False.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – Deployment method not in {“numpy”, “jax”, “torch”}.</p>
+<dd class="field-even"><p><strong>ValueError</strong> – Deployment method not in {“numpy”, “jax”, “torch”, “cuda”}.</p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>HEALPix pixel-space array.</p>
@@ -757,14 +758,14 @@ conjugate symmetry is exploited to reduce computational costs.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.healpix_ifft_torch">
-<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">healpix_ifft_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ftm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.healpix_ifft_torch" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">healpix_ifft_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ftm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nside</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.healpix_ifft_torch" title="Link to this definition">#</a></dt>
 <dd><p>Computes the Inverse Fast Fourier Transform with spectral folding in the polar
-regions to mitigate aliasing. Torch specific implementation of
+regions to mitigate aliasing, using Torch. Torch specific implementation of
 <a class="reference internal" href="#s2fft.utils.healpix_ffts.healpix_ifft_numpy" title="s2fft.utils.healpix_ffts.healpix_ifft_numpy"><code class="xref py py-func docutils literal notranslate"><span class="pre">healpix_ifft_numpy()</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ftm</strong> (<em>torch.tensor</em>) – Array of Fourier coefficients for all latitudes.</p></li>
+<li><p><strong>ftm</strong> (<em>torch.Tensor</em>) – Array of Fourier coefficients for all latitudes.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 <li><p><strong>nside</strong> (<em>int</em>) – HEALPix Nside resolution parameter.</p></li>
 <li><p><strong>reality</strong> (<em>bool</em>) – Whether the signal on the sphere is real.  If so,
@@ -775,7 +776,7 @@ conjugate symmetry is exploited to reduce computational costs.</p></li>
 <dd class="field-even"><p>HEALPix pixel-space array.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>torch.tensor</p>
+<dd class="field-odd"><p>torch.Tensor</p>
 </dd>
 </dl>
 </dd></dl>
@@ -920,14 +921,14 @@ coefficients, i.e. aliasing high frequencies. JAX specific implementation of
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.spectral_folding_torch">
-<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">spectral_folding_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nphi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.spectral_folding_torch" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">spectral_folding_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nphi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.spectral_folding_torch" title="Link to this definition">#</a></dt>
 <dd><p>Folds higher frequency Fourier coefficients back onto lower frequency
 coefficients, i.e. aliasing high frequencies. Torch specific implementation of
 <a class="reference internal" href="#s2fft.utils.healpix_ffts.spectral_folding" title="s2fft.utils.healpix_ffts.spectral_folding"><code class="xref py py-func docutils literal notranslate"><span class="pre">spectral_folding()</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fm</strong> (<em>torch.tensor</em>) – Slice of Fourier coefficients corresponding to ring at latitute t.</p></li>
+<li><p><strong>fm</strong> (<em>torch.Tensor</em>) – Slice of Fourier coefficients corresponding to ring at latitute t.</p></li>
 <li><p><strong>nphi</strong> (<em>int</em>) – Total number of pixel space phi samples for latitude t.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 </ul>
@@ -936,7 +937,7 @@ coefficients, i.e. aliasing high frequencies. Torch specific implementation of
 <dd class="field-even"><p>Lower resolution set of aliased Fourier coefficients.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>torch.tensor</p>
+<dd class="field-odd"><p>torch.Tensor</p>
 </dd>
 </dl>
 </dd></dl>
@@ -987,14 +988,14 @@ coefficients, i.e. imposed periodicity in Fourier space. Based on
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.utils.healpix_ffts.spectral_periodic_extension_torch">
-<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">spectral_periodic_extension_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.spectral_periodic_extension_torch" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.healpix_ffts.</span></span><span class="sig-name descname"><span class="pre">spectral_periodic_extension_torch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#s2fft.utils.healpix_ffts.spectral_periodic_extension_torch" title="Link to this definition">#</a></dt>
 <dd><p>Extends lower frequency Fourier coefficients onto higher frequency
 coefficients, i.e. imposed periodicity in Fourier space. Based on
-<a class="reference internal" href="#s2fft.utils.healpix_ffts.spectral_periodic_extension" title="s2fft.utils.healpix_ffts.spectral_periodic_extension"><code class="xref py py-func docutils literal notranslate"><span class="pre">spectral_periodic_extension()</span></code></a>.</p>
+<a class="reference internal" href="#s2fft.utils.healpix_ffts.spectral_periodic_extension" title="s2fft.utils.healpix_ffts.spectral_periodic_extension"><code class="xref py py-func docutils literal notranslate"><span class="pre">spectral_periodic_extension()</span></code></a>, modified to be JIT-compilable.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fm</strong> (<em>torch.tensor</em>) – Slice of Fourier coefficients corresponding to ring at latitute t.</p></li>
+<li><p><strong>fm</strong> (<em>torch.Tensor</em>) – Slice of Fourier coefficients corresponding to ring at latitute t.</p></li>
 <li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
 </ul>
 </dd>
@@ -1002,7 +1003,7 @@ coefficients, i.e. imposed periodicity in Fourier space. Based on
 <dd class="field-even"><p>Higher resolution set of periodic Fourier coefficients.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>torch.tensor</p>
+<dd class="field-odd"><p>torch.Tensor</p>
 </dd>
 </dl>
 </dd></dl>
