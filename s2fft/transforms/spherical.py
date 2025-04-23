@@ -376,8 +376,8 @@ def forward(
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        method (str, optional): Execution mode in {"numpy", "jax", "jax_ssht", "jax_healpy"}.
-            Defaults to "numpy".
+        method (str, optional): Execution mode in {"numpy", "jax", "jax_cuda",
+            jax_ssht", "jax_healpy"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -419,50 +419,46 @@ def forward(
         recover acceleration by the number of devices.
 
     """
-    if spin >= 8 and method in ["numpy", "jax"]:
+    if method not in _forward_functions:
+        raise ValueError(f"Method {method} not recognised.")
+
+    if spin >= 8 and method in ("numpy", "jax", "jax_cuda"):
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
     if iter is None:
         iter = 3 if sampling.lower() == "healpix" and method == "jax_healpy" else 0
-    if method in {"numpy", "jax", "cuda"}:
-        common_kwargs = {
-            "L": L,
-            "spin": spin,
-            "nside": nside,
-            "sampling": sampling,
-            "reality": reality,
-            "L_lower": L_lower,
-        }
-        forward_kwargs = {**common_kwargs, "precomps": precomps}
-        inverse_kwargs = common_kwargs
-        if method in {"jax", "cuda"}:
-            forward_kwargs["spmd"] = spmd
-            forward_kwargs["use_healpix_custom_primitive"] = method == "cuda"
-            inverse_kwargs["method"] = "jax"
-            inverse_kwargs["spmd"] = spmd
-            forward_function = forward_jax
-        else:
-            inverse_kwargs["method"] = "numpy"
-            forward_function = forward_numpy
-        return iterative_refinement.forward_with_iterative_refinement(
-            f=f,
-            n_iter=iter,
-            forward_function=partial(forward_function, **forward_kwargs),
-            backward_function=partial(inverse, **inverse_kwargs),
-        )
-    elif method == "jax_ssht":
+
+    forward_kwargs = {"f": f, "L": L}
+    if method in ("numpy", "jax", "jax_cuda"):
+        forward_kwargs.update(sampling=sampling, precomps=precomps, L_lower=L_lower)
+    if method in ("jax", "jax_cuda"):
+        forward_kwargs["spmd"] = spmd
+    if method == "jax_healpy":
+        if sampling.lower() != "healpix":
+            raise ValueError("Healpy only supports healpix sampling.")
+        forward_kwargs["iter"] = iter
+    else:
+        forward_kwargs.update(spin=spin, reality=reality)
+    if method == "jax_ssht":
         if sampling.lower() == "healpix":
             raise ValueError("SSHT does not support healpix sampling.")
         ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
-        return c_sph.ssht_forward(f, L, spin, reality, ssht_sampling, _ssht_backend)
-    elif method == "jax_healpy":
-        if sampling.lower() != "healpix":
-            raise ValueError("Healpy only supports healpix sampling.")
-        return c_sph.healpy_forward(f, L, nside, iter)
+        forward_kwargs.update(ssht_sampling=ssht_sampling, _ssht_backend=_ssht_backend)
     else:
-        raise ValueError(
-            f"Implementation {method} not recognised. Should be either numpy or jax."
+        forward_kwargs["nside"] = nside
+
+    if iter > 0 and method != "jax_healpy":
+        f = forward_kwargs.pop("f")
+        inverse_kwargs = forward_kwargs.copy()
+        inverse_kwargs.pop("precomps")
+        return iterative_refinement.forward_with_iterative_refinement(
+            f=f,
+            n_iter=iter,
+            forward_function=partial(_forward_functions[method], **forward_kwargs),
+            backward_function=partial(_inverse_functions[method], **inverse_kwargs),
         )
+    else:
+        return _forward_functions[method](**forward_kwargs)
 
 
 def forward_numpy(
@@ -767,6 +763,7 @@ _inverse_functions = {
 _forward_functions = {
     "numpy": forward_numpy,
     "jax": forward_jax,
+    "jax_cuda": partial(forward_jax, use_healpix_custom_primitive=True),
     "jax_ssht": c_sph.ssht_forward,
     "jax_healpy": c_sph.healpy_forward,
 }
