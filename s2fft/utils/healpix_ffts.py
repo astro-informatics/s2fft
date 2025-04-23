@@ -181,7 +181,7 @@ def healpix_fft(
     """
     if method not in _healpix_fft_functions:
         raise ValueError(f"Method {method} not recognised.")
-    return _healpix_fft_functions(f, L, nside, reality)
+    return _healpix_fft_functions[method](f, L, nside, reality)
 
 
 def healpix_fft_numpy(f: np.ndarray, L: int, nside: int, reality: bool) -> np.ndarray:
@@ -329,7 +329,7 @@ def healpix_ifft(
     assert L >= 2 * nside
     if method not in _healpix_ifft_functions:
         raise ValueError(f"Method {method} not recognised.")
-    return _healpix_ifft_functions(ftm, L, nside, reality)
+    return _healpix_ifft_functions[method](ftm, L, nside, reality)
 
 
 def healpix_ifft_numpy(
