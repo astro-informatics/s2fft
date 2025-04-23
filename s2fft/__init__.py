@@ -2,7 +2,6 @@ import logging
 
 import jax
 
-from . import logs
 from .recursions.price_mcewen import (
     generate_precomputes,
     generate_precomputes_jax,

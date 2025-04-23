@@ -1,7 +1,11 @@
 """Benchmarks for precompute Wigner-d transforms."""
 
 import numpy as np
-from benchmarking import benchmark, parse_args_collect_and_run_benchmarks
+from benchmarking import (
+    BenchmarkSetup,
+    benchmark,
+    parse_args_collect_and_run_benchmarks,
+)
 
 import s2fft
 import s2fft.precompute_transforms
@@ -29,13 +33,13 @@ def setup_forward(method, L, N, L_lower, sampling, reality, mode):
     )
     kernel_function = (
         s2fft.precompute_transforms.construct.wigner_kernel_jax
-        if method == "jax"
+        if "jax" in method
         else s2fft.precompute_transforms.construct.wigner_kernel
     )
     kernel = kernel_function(
         L=L, N=N, reality=reality, sampling=sampling, forward=True, mode=mode
     )
-    return {"f": f, "kernel": kernel}
+    return BenchmarkSetup({"f": f, "kernel": kernel}, flmn, "jax" in method)
 
 
 @benchmark(
@@ -49,7 +53,7 @@ def setup_forward(method, L, N, L_lower, sampling, reality, mode):
     mode=MODE_VALUES,
 )
 def forward(f, kernel, method, L, N, L_lower, sampling, reality, mode):
-    flmn = s2fft.precompute_transforms.wigner.forward(
+    return s2fft.precompute_transforms.wigner.forward(
         f=f,
         L=L,
         N=N,
@@ -58,8 +62,6 @@ def forward(f, kernel, method, L, N, L_lower, sampling, reality, mode):
         reality=reality,
         method=method,
     )
-    if method == "jax":
-        flmn.block_until_ready()
 
 
 def setup_inverse(method, L, N, L_lower, sampling, reality, mode):
@@ -73,7 +75,7 @@ def setup_inverse(method, L, N, L_lower, sampling, reality, mode):
     kernel = kernel_function(
         L=L, N=N, reality=reality, sampling=sampling, forward=False, mode=mode
     )
-    return {"flmn": flmn, "kernel": kernel}
+    return BenchmarkSetup({"flmn": flmn, "kernel": kernel}, None, "jax" in method)
 
 
 @benchmark(
@@ -87,7 +89,7 @@ def setup_inverse(method, L, N, L_lower, sampling, reality, mode):
     mode=MODE_VALUES,
 )
 def inverse(flmn, kernel, method, L, N, L_lower, sampling, reality, mode):
-    f = s2fft.precompute_transforms.wigner.inverse(
+    return s2fft.precompute_transforms.wigner.inverse(
         flmn=flmn,
         L=L,
         N=N,
@@ -96,8 +98,6 @@ def inverse(flmn, kernel, method, L, N, L_lower, sampling, reality, mode):
         reality=reality,
         method=method,
     )
-    if method == "jax":
-        f.block_until_ready()
 
 
 if __name__ == "__main__":

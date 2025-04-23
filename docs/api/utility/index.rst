@@ -141,5 +141,4 @@ Utility Functions
    healpix_ffts
    utils
    rotation
-   logs
    
