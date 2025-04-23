@@ -81,21 +81,30 @@ def inverse(
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
 
     """
-    if N >= 8 and method in ["numpy", "jax"]:
+    if method not in _inverse_functions:
+        raise ValueError(f"Method {method} not recognised.")
+
+    if N >= 8 and method in ("numpy", "jax"):
         raise Warning("Recursive transform may provide lower precision beyond N ~ 8")
 
-    if method == "numpy":
-        return inverse_numpy(flmn, L, N, nside, sampling, reality, precomps, L_lower)
-    elif method == "jax":
-        return inverse_jax(flmn, L, N, nside, sampling, reality, precomps, L_lower)
-    elif method == "jax_ssht":
+    inverse_kwargs = {
+        "flmn": flmn,
+        "L": L,
+        "N": N,
+        "L_lower": L_lower,
+        "sampling": sampling,
+        "reality": reality,
+    }
+
+    if method in ("jax", "numpy"):
+        inverse_kwargs.update(nside=nside, precomps=precomps)
+
+    if method == "jax_ssht":
         if sampling.lower() == "healpix":
             raise ValueError("SSHT does not support healpix sampling.")
-        return inverse_jax_ssht(flmn, L, N, L_lower, sampling, reality, _ssht_backend)
-    else:
-        raise ValueError(
-            f"Implementation {method} not recognised. Should be either numpy or jax."
-        )
+        inverse_kwargs["_ssht_backend"] = _ssht_backend
+
+    return _inverse_functions[method](**inverse_kwargs)
 
 
 def inverse_numpy(
@@ -401,21 +410,30 @@ def forward(
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
 
     """
-    if N >= 8 and method in ["numpy", "jax"]:
+    if method not in _inverse_functions:
+        raise ValueError(f"Method {method} not recognised.")
+
+    if N >= 8 and method in ("numpy", "jax"):
         raise Warning("Recursive transform may provide lower precision beyond N ~ 8")
 
-    if method == "numpy":
-        return forward_numpy(f, L, N, nside, sampling, reality, precomps, L_lower)
-    elif method == "jax":
-        return forward_jax(f, L, N, nside, sampling, reality, precomps, L_lower)
-    elif method == "jax_ssht":
+    forward_kwargs = {
+        "f": f,
+        "L": L,
+        "N": N,
+        "L_lower": L_lower,
+        "sampling": sampling,
+        "reality": reality,
+    }
+
+    if method in ("jax", "numpy"):
+        forward_kwargs.update(nside=nside, precomps=precomps)
+
+    if method == "jax_ssht":
         if sampling.lower() == "healpix":
             raise ValueError("SSHT does not support healpix sampling.")
-        return forward_jax_ssht(f, L, N, L_lower, sampling, reality, _ssht_backend)
-    else:
-        raise ValueError(
-            f"Implementation {method} not recognised. Should be either numpy or jax."
-        )
+        forward_kwargs["_ssht_backend"] = _ssht_backend
+
+    return _forward_functions[method](**forward_kwargs)
 
 
 def forward_numpy(
@@ -805,3 +823,16 @@ def _fban_to_f(fban: jnp.ndarray, L: int, N: int, reality: bool = False) -> jnp.
     else:
         f = jnp.fft.ifft(jnp.fft.ifftshift(fban, axes=-3), axis=-3, norm="forward")
     return f
+
+
+_inverse_functions = {
+    "numpy": inverse_numpy,
+    "jax": inverse_jax,
+    "jax_ssht": inverse_jax_ssht,
+}
+
+_forward_functions = {
+    "numpy": forward_numpy,
+    "jax": forward_jax,
+    "jax_ssht": forward_jax_ssht,
+}
