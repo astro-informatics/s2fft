@@ -47,8 +47,8 @@ def inverse(
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        method (str, optional): Execution mode in {"numpy", "jax", "jax_ssht", "jax_healpy"}.
-            Defaults to "numpy".
+        method (str, optional): Execution mode in {"numpy", "jax", "jax_cuda",
+            "jax_ssht", "jax_healpy"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -85,13 +85,13 @@ def inverse(
     if method not in _inverse_functions:
         raise ValueError(f"Method {method} not recognised.")
 
-    if spin >= 8 and method in ["numpy", "jax"]:
+    if spin >= 8 and method in ("numpy", "jax", "jax_cuda"):
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
     inverse_kwargs = {"flm": flm, "L": L}
-    if method in ("numpy", "jax"):
+    if method in ("numpy", "jax", "jax_cuda"):
         inverse_kwargs.update(sampling=sampling, precomps=precomps, L_lower=L_lower)
-    if method == "jax":
+    if method in ("jax", "jax_cuda"):
         inverse_kwargs["spmd"] = spmd
     if method == "jax_healpy":
         if sampling.lower() != "healpix":
@@ -759,6 +759,7 @@ def forward_jax(
 _inverse_functions = {
     "numpy": inverse_numpy,
     "jax": inverse_jax,
+    "jax_cuda": partial(inverse_jax, use_healpix_custom_primitive=True),
     "jax_ssht": c_sph.ssht_inverse,
     "jax_healpy": c_sph.healpy_inverse,
 }
