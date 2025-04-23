@@ -3,6 +3,7 @@ import jax
 import numpy as np
 import pyssht as ssht
 import pytest
+import torch
 
 from s2fft.recursions.price_mcewen import generate_precomputes
 from s2fft.sampling import s2_samples as samples
@@ -15,7 +16,7 @@ L_lower_to_test = [0, 2]
 spin_to_test = [-2, 0, 1]
 nside_to_test = [4, 5]
 sampling_to_test = ["mw", "mwss", "dh", "gl"]
-method_to_test = ["numpy", "jax"]
+method_to_test = ["numpy", "jax", "torch"]
 reality_to_test = [False, True]
 multiple_gpus = [False, True]
 
@@ -59,7 +60,7 @@ def test_transform_inverse(
     else:
         precomps = None
     f = spherical.inverse(
-        flm,
+        torch.from_numpy(flm) if method == "orch" else flm,
         L,
         spin,
         sampling=sampling,
@@ -87,10 +88,9 @@ def test_transform_inverse_healpix(
     flm = flm_generator(L=L, spin=0, reality=True)
     flm_hp = samples.flm_2d_to_hp(flm, L)
     f_check = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
-
     precomps = generate_precomputes(L, 0, sampling, nside, False)
     f = spherical.inverse(
-        flm,
+        torch.from_numpy(flm) if method == "torch" else flm,
         L,
         spin=0,
         nside=nside,
@@ -142,8 +142,9 @@ def test_transform_forward(
         precomps = generate_precomputes(L, spin, sampling, None, True, L_lower)
     else:
         precomps = None
+
     flm_check = spherical.forward(
-        f,
+        torch.from_numpy(f) if method == "torch" else f,
         L,
         spin,
         sampling=sampling,
@@ -173,10 +174,9 @@ def test_transform_forward_healpix(
     flm = flm_generator(L=L, spin=0, reality=True)
     flm_hp = samples.flm_2d_to_hp(flm, L)
     f = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
-
     precomps = generate_precomputes(L, 0, sampling, nside, True)
     flm_check = spherical.forward(
-        f,
+        torch.from_numpy(f) if method == "torch" else f,
         L,
         spin=0,
         nside=nside,
