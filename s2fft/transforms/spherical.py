@@ -209,7 +209,7 @@ def inverse_numpy(
             return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
 
-@partial(jit, static_argnums=(1, 3, 4, 5, 7, 8))
+@partial(jit, static_argnums=(1, 3, 4, 5, 7, 8, 9))
 def inverse_jax(
     flm: jnp.ndarray,
     L: int,
