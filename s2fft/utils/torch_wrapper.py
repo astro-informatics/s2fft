@@ -183,7 +183,8 @@ def wrap_as_torch_function(
         differentiable_argnames = tuple(
             name
             for name, param in sig.parameters.items()
-            if issubclass(param.annotation, jax.Array)
+            if isinstance(param.annotation, type)
+            and issubclass(param.annotation, jax.Array)
         )
     for argname in differentiable_argnames:
         if argname not in sig.parameters:
