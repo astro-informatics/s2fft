@@ -518,8 +518,15 @@ pixels of equal areas, which has many practical advantages.</p>
 <div style="text-align: center;" align="center">
 <img class="dark-light" alt="Visualization of spherical sampling schemes" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/spherical_sampling.png" width="700">
 </div><blockquote>
-<div><p>[!NOTE] <span class="raw-html-md"><br /></span>
-For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops which currently cannot be avoided. After compiling HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once. We are aware of this issue and are working to fix it.  A fix for CPU execution has now been implemented (see example <a class="reference external" href="https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_HEALPix_backend.html">notebook</a>).</p>
+<div><p>[!NOTE]
+For algorithmic reasons JIT compilation of HEALPix transforms can become slow at high bandlimits, due to XLA unfolding of loops.
+After compilation, HEALPix transforms should execute with the efficiency outlined in the associated paper, therefore this additional time overhead need only be incurred once.</p>
+<p><strong>If running on a CPU</strong>, we provide (differentiable) JAX wrappers of the <span class="raw-html-md"><a href="https://healpy.readthedocs.io/en/latest/"><code class="docutils literal"><span class="pre">healpy</span></code></a></span> transforms which can be used to sidestep the issue.
+This implementation can be selected by passing a <code class="docutils literal notranslate"><span class="pre">method=&quot;jax_healpy&quot;</span></code> keyword argument to the <code class="docutils literal notranslate"><span class="pre">s2fft.forward</span></code> or <code class="docutils literal notranslate"><span class="pre">s2fft.inverse</span></code> functions -
+see example <a class="reference external" href="https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_HEALPix_backend.html">notebook</a>.</p>
+<p><strong>If running on a GPU</strong>, a CUDA extension module is available which avoids the long compilation time.
+This implementation can be selected by passing a <code class="docutils literal notranslate"><span class="pre">method=&quot;jax_cuda&quot;</span></code> keyword argument to the <code class="docutils literal notranslate"><span class="pre">sfft.forward</span></code> and <code class="docutils literal notranslate"><span class="pre">s2fft.inverse</span></code> functions.
+Currently we do not publish binary wheels with the CUDA extension support so you will need to <span class="xref std std-ref">build the package from source</span> to use this functionality.</p>
 </div></blockquote>
 </section>
 <section id="installation">
@@ -533,10 +540,25 @@ As by default installing JAX from PyPI will use a CPU-only build,
 if you wish to install JAX with GPU or TPU support,
 you should first follow the <a class="reference external" href="https://docs.jax.dev/en/latest/installation.html#installation">relevant installation instructions in JAX’s documentation</a>
 and then install <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> as above.</p>
-<p>Alternatively, the  latest development version of <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> may be installed directly from GitHub by running</p>
+<p>Alternatively, the latest development version of <code class="docutils literal notranslate"><span class="pre">S2FFT</span></code> may be installed directly from GitHub by running</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/astro-informatics/s2fft
 </pre></div>
 </div>
+<section id="cuda-extension-support">
+<h3>CUDA extension support<a class="headerlink" href="#cuda-extension-support" title="Link to this heading">#</a></h3>
+<p>To install the package with support for the CUDA extension module giving reduced compile times for running HEALPix transforms on the GPU,
+you will need to build from source on a system with CUDA (tested with version 12.3) and CMake (versions 3.19+) installed.</p>
+<p>To install the latest development version from source in verbose mode run</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-v<span class="w"> </span>git+https://github.com/astro-informatics/s2fft
+</pre></div>
+</div>
+<p>or to install a specific release tag in verbose mode run</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-v<span class="w"> </span>git+https://github.com/astro-informatics/s2fft@TAG
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">TAG</span></code> is the relevant version tag.
+The output should indicate if the CUDA install on your system is successfully detected.</p>
+</section>
 </section>
 <section id="tests">
 <h2>Tests 🚦<a class="headerlink" href="#tests" title="Link to this heading">#</a></h2>
@@ -609,10 +631,8 @@ with the extra documentation and plotting dependencies by running from the root 
 </pre></div>
 </div>
 <p>For further details on usage see the <a class="reference external" href="https://astro-informatics.github.io/s2fft/">documentation</a> and associated <a class="reference external" href="https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/spherical_harmonic_transform.html">notebooks</a>.</p>
-<blockquote>
-<div><p>[!NOTE] <span class="raw-html-md"><br /></span>
-We also provide PyTorch support for our transforms, as demonstrated in the <a class="reference external" href="https://astro-informatics.github.io/s2fft/tutorials/torch_frontend/torch_frontend.html">*Torch frontend* tutorial notebook</a>. This wraps the JAX implementations so JAX will need to be installed in addition to PyTorch.</p>
-</div></blockquote>
+<p>We also provide PyTorch support for our transforms, as demonstrated in the <a class="reference external" href="https://astro-informatics.github.io/s2fft/tutorials/torch_frontend/torch_frontend.html">*Torch frontend* tutorial notebook</a>.
+This wraps the JAX implementations so JAX will need to be installed in addition to PyTorch.</p>
 </section>
 <section id="ssht-healpix-wrappers">
 <h2>SSHT &amp; HEALPix wrappers 💡<a class="headerlink" href="#ssht-healpix-wrappers" title="Link to this heading">#</a></h2>
@@ -769,7 +789,10 @@ and licensed under a <a class="reference external" href="https://github.com/jax-
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#algorithms">Algorithms ⚡</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling">Sampling 🌍</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation 💻</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation 💻</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-extension-support">CUDA extension support</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tests">Tests 🚦</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation">Documentation 📖</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notebooks">Notebooks 📓</a></li>
