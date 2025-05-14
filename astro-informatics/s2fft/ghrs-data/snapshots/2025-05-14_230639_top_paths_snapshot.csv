@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/astro-informatics/s2fft,83,29
+/astro-informatics/s2fft/commits/main,15,1
+/astro-informatics/s2fft/tree/main/notebooks,11,4
+/astro-informatics/s2fft/tree/main/s2fft,5,3
+/astro-informatics/s2fft/blob/main/notebooks/spherical_rotation.ipynb,4,2
+/astro-informatics/s2fft/pulls,4,2
+/astro-informatics/s2fft/blob/main/notebooks/spherical_harmonic_transform.ipynb,4,1
+/astro-informatics/s2fft/tree/922dae6adb0a2064fced3081708546d922eca34a/s2fft/precompute_transforms,4,1
+/astro-informatics/s2fft/blob/main/pyproject.toml,3,3
+/astro-informatics/s2fft/blob/main/s2fft/precompute_transforms/spherical.py,3,2
