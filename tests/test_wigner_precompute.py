@@ -6,7 +6,7 @@ import torch
 
 from s2fft.base_transforms import wigner as base
 from s2fft.precompute_transforms import construct as c
-from s2fft.precompute_transforms.wigner import forward, inverse
+from s2fft.precompute_transforms.wigner import _kernel_functions, forward, inverse
 from s2fft.sampling import so3_samples as samples
 
 jax.config.update("jax_enable_x64", True)
@@ -19,6 +19,57 @@ reality_to_test = [False, True]
 sampling_schemes = ["mw", "mwss", "dh", "gl"]
 methods_to_test = ["numpy", "jax", "torch"]
 modes_to_test = ["auto", "fft", "direct"]
+
+
+def check_mode_and_sampling(mode, sampling):
+    if mode.lower() == "fft" and sampling.lower() not in ["mw", "mwss", "dh"]:
+        pytest.skip(
+            f"Fourier based Wigner computation not valid for sampling={sampling}"
+        )
+
+
+def get_flmn_and_kernel(
+    flmn_generator, L, N, sampling, reality, method, mode, forward, nside=None
+):
+    flmn = flmn_generator(L=L, N=N, reality=reality)
+    kfunc = _kernel_functions[method]
+    kernel = kfunc(L, N, reality, sampling, nside, forward=forward, mode=mode)
+    return flmn, kernel
+
+
+def check_inverse_transform(flmn, kernel, L, N, sampling, reality, method, nside=None):
+    f = inverse(
+        torch.from_numpy(flmn) if method == "torch" else flmn,
+        L,
+        N,
+        kernel,
+        sampling,
+        reality,
+        method,
+        nside,
+    )
+    if method == "torch":
+        f = f.resolve_conj().numpy()
+    f_check = base.inverse(flmn, L, N, 0, sampling, reality, nside)
+    np.testing.assert_allclose(f, f_check, atol=1e-5, rtol=1e-5)
+
+
+def check_forward_tranform(flmn, kernel, L, N, sampling, reality, method, nside=None):
+    f = base.inverse(flmn, L, N, sampling=sampling, reality=reality, nside=nside)
+    flmn_check = base.forward(f, L, N, sampling=sampling, reality=reality, nside=nside)
+    flmn = forward(
+        torch.from_numpy(f) if method == "torch" else f,
+        L,
+        N,
+        kernel,
+        sampling,
+        reality,
+        method,
+        nside,
+    )
+    if method == "torch":
+        flmn = flmn.resolve_conj().numpy()
+    np.testing.assert_allclose(flmn, flmn_check, atol=1e-5, rtol=1e-5)
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -36,50 +87,37 @@ def test_inverse_wigner_transform(
     method: str,
     mode: str,
 ):
-    if mode.lower() == "fft" and sampling.lower() not in ["mw", "mwss", "dh"]:
-        pytest.skip(
-            f"Fourier based Wigner computation not valid for sampling={sampling}"
-        )
+    check_mode_and_sampling(mode, sampling)
+    flmn, kernel = get_flmn_and_kernel(
+        flmn_generator, L, N, sampling, reality, method, mode, forward=False
+    )
+    check_inverse_transform(flmn, kernel, L, N, sampling, reality, method)
 
-    flmn = flmn_generator(L=L, N=N, reality=reality)
 
-    f = base.inverse(flmn, L, N, 0, sampling, reality)
-
-    kfunc = c.wigner_kernel_jax if method == "jax" else c.wigner_kernel
-    kernel = kfunc(L, N, reality, sampling, forward=False, mode=mode)
-
-    if method.lower() == "torch":
-        # Test Transform
-        f_check = inverse(
-            torch.from_numpy(flmn),
-            L,
-            N,
-            torch.from_numpy(kernel),
-            sampling,
-            reality,
-            method,
-        )
-        np.testing.assert_allclose(f, f_check, atol=1e-5, rtol=1e-5)
-
-        # Test Gradients
-        flmn_grad_test = torch.from_numpy(flmn)
-        flmn_grad_test.requires_grad = True
-        assert torch.autograd.gradcheck(
-            inverse,
-            (
-                flmn_grad_test,
-                L,
-                N,
-                torch.from_numpy(kernel),
-                sampling,
-                reality,
-                method,
-            ),
-        )
-
-    else:
-        f_check = inverse(flmn, L, N, kernel, sampling, reality, method)
-        np.testing.assert_allclose(f, f_check, atol=1e-5, rtol=1e-5)
+@pytest.mark.slow
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("N", N_to_test)
+@pytest.mark.parametrize("sampling", sampling_schemes)
+@pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("mode", modes_to_test)
+def test_inverse_wigner_transform_torch_gradcheck(
+    flmn_generator,
+    L: int,
+    N: int,
+    sampling: str,
+    reality: bool,
+    mode: str,
+):
+    method = "torch"
+    check_mode_and_sampling(mode, sampling)
+    flmn, kernel = get_flmn_and_kernel(
+        flmn_generator, L, N, sampling, reality, method, mode, forward=False
+    )
+    flmn = torch.from_numpy(flmn)
+    flmn.requires_grad = True
+    assert torch.autograd.gradcheck(
+        inverse, (flmn, L, N, kernel, sampling, reality, method)
+    )
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -97,49 +135,38 @@ def test_forward_wigner_transform(
     method: str,
     mode: str,
 ):
-    if mode.lower() == "fft" and sampling.lower() not in ["mw", "mwss", "dh"]:
-        pytest.skip(
-            f"Fourier based Wigner computation not valid for sampling={sampling}"
-        )
-    flmn = flmn_generator(L=L, N=N, reality=reality)
+    check_mode_and_sampling(mode, sampling)
+    flmn, kernel = get_flmn_and_kernel(
+        flmn_generator, L, N, sampling, reality, method, mode, forward=True
+    )
+    check_forward_tranform(flmn, kernel, L, N, sampling, reality, method)
 
+
+@pytest.mark.slow
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("N", N_to_test)
+@pytest.mark.parametrize("sampling", sampling_schemes)
+@pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("mode", modes_to_test)
+def test_forward_wigner_transform_torch_gradcheck(
+    flmn_generator,
+    L: int,
+    N: int,
+    sampling: str,
+    reality: bool,
+    mode: str,
+):
+    method = "torch"
+    check_mode_and_sampling(mode, sampling)
+    flmn, kernel = get_flmn_and_kernel(
+        flmn_generator, L, N, sampling, reality, method, mode, forward=True
+    )
     f = base.inverse(flmn, L, N, sampling=sampling, reality=reality)
-    flmn = base.forward(f, L, N, sampling=sampling, reality=reality)
-
-    kfunc = c.wigner_kernel_jax if method == "jax" else c.wigner_kernel
-    kernel = kfunc(L, N, reality, sampling, forward=True, mode=mode)
-
-    if method.lower() == "torch":
-        # Test Transform
-        flmn_check = forward(
-            torch.from_numpy(f),
-            L,
-            N,
-            torch.from_numpy(kernel),
-            sampling,
-            reality,
-            method,
-        )
-        np.testing.assert_allclose(flmn, flmn_check, atol=1e-5, rtol=1e-5)
-
-        # Test Gradients
-        f_grad_test = torch.from_numpy(f)
-        f_grad_test.requires_grad = True
-        assert torch.autograd.gradcheck(
-            forward,
-            (
-                f_grad_test,
-                L,
-                N,
-                torch.from_numpy(kernel),
-                sampling,
-                reality,
-                method,
-            ),
-        )
-    else:
-        flmn_check = forward(f, L, N, kernel, sampling, reality, method)
-        np.testing.assert_allclose(flmn, flmn_check, atol=1e-5, rtol=1e-5)
+    f = torch.from_numpy(f)
+    f.requires_grad = True
+    assert torch.autograd.gradcheck(
+        forward, (f, L, N, kernel, sampling, reality, method)
+    )
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -156,48 +183,54 @@ def test_inverse_wigner_transform_healpix(
     method: str,
 ):
     sampling = "healpix"
+    mode = "auto"
     L = ratio * nside
-    flmn = flmn_generator(L=L, N=N, reality=reality)
+    flmn, kernel = get_flmn_and_kernel(
+        flmn_generator,
+        L,
+        N,
+        sampling,
+        reality,
+        method,
+        mode,
+        forward=False,
+        nside=nside,
+    )
+    check_inverse_transform(flmn, kernel, L, N, sampling, reality, method, nside)
 
-    f = base.inverse(flmn, L, N, 0, sampling, reality, nside)
 
-    kfunc = c.wigner_kernel_jax if method == "jax" else c.wigner_kernel
-    kernel = kfunc(L, N, reality, sampling, nside, forward=False)
-
-    if method.lower() == "torch":
-        # Test Transform
-        f_check = inverse(
-            torch.from_numpy(flmn),
-            L,
-            N,
-            torch.from_numpy(kernel),
-            sampling,
-            reality,
-            method,
-            nside,
-        )
-        np.testing.assert_allclose(np.real(f), np.real(f_check), atol=1e-5, rtol=1e-5)
-
-        # Test Gradients
-        flmn_grad_test = torch.from_numpy(flmn)
-        flmn_grad_test.requires_grad = True
-        assert torch.autograd.gradcheck(
-            inverse,
-            (
-                flmn_grad_test,
-                L,
-                N,
-                torch.from_numpy(kernel),
-                sampling,
-                reality,
-                method,
-                nside,
-            ),
-        )
-
-    else:
-        f_check = inverse(flmn, L, N, kernel, sampling, reality, method, nside)
-        np.testing.assert_allclose(f, f_check, atol=1e-5, rtol=1e-5)
+@pytest.mark.slow
+@pytest.mark.parametrize("nside", nside_to_test)
+@pytest.mark.parametrize("ratio", L_to_nside_ratio)
+@pytest.mark.parametrize("N", N_to_test)
+@pytest.mark.parametrize("reality", reality_to_test)
+def test_inverse_wigner_transform_healpix_torch_gradcheck(
+    flmn_generator,
+    nside: int,
+    ratio: int,
+    N: int,
+    reality: bool,
+):
+    method = "torch"
+    sampling = "healpix"
+    mode = "auto"
+    L = ratio * nside
+    flmn, kernel = get_flmn_and_kernel(
+        flmn_generator,
+        L,
+        N,
+        sampling,
+        reality,
+        method,
+        mode,
+        forward=False,
+        nside=nside,
+    )
+    flmn = torch.from_numpy(flmn)
+    flmn.requires_grad = True
+    assert torch.autograd.gradcheck(
+        inverse, (flmn, L, N, kernel, sampling, reality, method, nside)
+    )
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -214,49 +247,39 @@ def test_forward_wigner_transform_healpix(
     method: str,
 ):
     sampling = "healpix"
+    mode = "auto"
     L = ratio * nside
-    flmn = flmn_generator(L=L, N=N, reality=reality)
+    flmn, kernel = get_flmn_and_kernel(
+        flmn_generator, L, N, sampling, reality, method, mode, forward=True, nside=nside
+    )
+    check_forward_tranform(flmn, kernel, L, N, sampling, reality, method, nside)
 
-    f = base.inverse(flmn, L, N, 0, sampling, reality, nside)
-    flmn_check = base.forward(f, L, N, 0, sampling, reality, nside)
 
-    kfunc = c.wigner_kernel_jax if method == "jax" else c.wigner_kernel
-    kernel = kfunc(L, N, reality, sampling, nside, forward=True)
-
-    if method.lower() == "torch":
-        # Test Transform
-        flmn = forward(
-            torch.from_numpy(f),
-            L,
-            N,
-            torch.from_numpy(kernel),
-            sampling,
-            reality,
-            method,
-            nside,
-        )
-        np.testing.assert_allclose(flmn, flmn_check, atol=1e-5, rtol=1e-5)
-
-        # Test Gradients
-        f_grad_test = torch.from_numpy(f)
-        f_grad_test.requires_grad = True
-        assert torch.autograd.gradcheck(
-            forward,
-            (
-                f_grad_test,
-                L,
-                N,
-                torch.from_numpy(kernel),
-                sampling,
-                reality,
-                method,
-                nside,
-            ),
-        )
-
-    else:
-        flmn = forward(f, L, N, kernel, sampling, reality, method, nside)
-        np.testing.assert_allclose(flmn, flmn_check, atol=1e-5, rtol=1e-5)
+@pytest.mark.slow
+@pytest.mark.parametrize("nside", nside_to_test)
+@pytest.mark.parametrize("ratio", L_to_nside_ratio)
+@pytest.mark.parametrize("N", N_to_test)
+@pytest.mark.parametrize("reality", reality_to_test)
+def test_forward_wigner_transform_healpix_torch_gradcheck(
+    flmn_generator,
+    nside: int,
+    ratio: int,
+    N: int,
+    reality: bool,
+):
+    method = "torch"
+    sampling = "healpix"
+    mode = "auto"
+    L = ratio * nside
+    flmn, kernel = get_flmn_and_kernel(
+        flmn_generator, L, N, sampling, reality, method, mode, forward=True, nside=nside
+    )
+    f = base.inverse(flmn, L, N, sampling=sampling, reality=reality, nside=nside)
+    f = torch.from_numpy(f)
+    f.requires_grad = True
+    assert torch.autograd.gradcheck(
+        forward, (f, L, N, kernel, sampling, reality, method, nside)
+    )
 
 
 @pytest.mark.parametrize("L", [8, 16, 32])
