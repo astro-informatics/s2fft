@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import numpy as np
 
 from s2fft.sampling import s2_samples as samples
@@ -7,7 +5,7 @@ from s2fft.sampling import s2_samples as samples
 
 def f_shape(
     L: int, N: int, sampling: str = "mw", nside: int = None
-) -> Tuple[int, int, int]:
+) -> tuple[int, int, int]:
     r"""
     Computes the pixel-space sampling shape for signal on the rotation group
     :math:`SO(3)`.
@@ -49,7 +47,7 @@ def f_shape(
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
 
-def flmn_shape(L: int, N: int) -> Tuple[int, int, int]:
+def flmn_shape(L: int, N: int) -> tuple[int, int, int]:
     r"""
     Computes the shape of Wigner coefficients for signal on the rotation group
     :math:`SO(3)`.
@@ -69,7 +67,7 @@ def flmn_shape(L: int, N: int) -> Tuple[int, int, int]:
 
 def fnab_shape(
     L: int, N: int, sampling: str = "mw", nside: int = None
-) -> Tuple[int, int, int]:
+) -> tuple[int, int, int]:
     r"""
     Computes the shape of Wigner coefficients for signal on the rotation group
     :math:`SO(3)`.

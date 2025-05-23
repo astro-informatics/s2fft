@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import numpy as np
 
 
@@ -125,7 +123,7 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
     return 1
 
 
-def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> Tuple[int, int]:
+def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> tuple[int, int]:
     r"""
     Shape of intermediate array, before/after latitudinal step.
 
@@ -445,7 +443,7 @@ def ring_phase_shift_hp(
     return np.exp(sign * 1j * np.arange(m_start_ind, L) * phi_offset)
 
 
-def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> Tuple[int]:
+def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> tuple[int]:
     r"""
     Shape of spherical signal.
 
@@ -480,7 +478,7 @@ def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> Tuple[int
         return ntheta(L, sampling), nphi_equiang(L, sampling)
 
 
-def flm_shape(L: int) -> Tuple[int, int]:
+def flm_shape(L: int) -> tuple[int, int]:
     r"""
     Standard shape of harmonic coefficients.
 

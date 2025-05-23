@@ -1,5 +1,5 @@
+from collections.abc import Callable
 from functools import partial
-from typing import Callable, Dict, Optional, Union
 
 from jax import core
 from jax.interpreters import ad, batching, mlir, xla
@@ -9,10 +9,10 @@ def register_primitive(
     name: str,
     multiple_results: bool,
     abstract_evaluation: Callable,
-    lowering_per_platform: Dict[Union[None, str], Callable],
-    batcher: Optional[Callable] = None,
-    jacobian_vector_product: Optional[Callable] = None,
-    transpose: Optional[Callable] = None,
+    lowering_per_platform: dict[None | str, Callable],
+    batcher: Callable | None = None,
+    jacobian_vector_product: Callable | None = None,
+    transpose: Callable | None = None,
 ):
     """
     Register a new custom JAX primitive.

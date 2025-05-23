@@ -32,10 +32,11 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from functools import wraps
 from inspect import getmembers, isroutine, signature
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Tuple, TypeVar, Union
+from typing import Any, TypeVar
 
 import jax
 import jax.dlpack
@@ -52,7 +53,7 @@ except ImportError:
     TORCH_AVAILABLE = False
 
 T = TypeVar("T")
-PyTree = Union[Dict[Any, "PyTree"], List["PyTree"], Tuple["PyTree"], T]
+PyTree = dict[Any, "PyTree"] | list["PyTree"] | tuple["PyTree"] | T
 
 
 def check_torch_available() -> None:
@@ -201,7 +202,9 @@ def wrap_as_torch_function(
         )
 
         def jax_function_diff_args_only(*differentiable_args):
-            for key, value in zip(differentiable_argnames, differentiable_args):
+            for key, value in zip(
+                differentiable_argnames, differentiable_args, strict=False
+            ):
                 bound_args.arguments[key] = value
             return jax_function(*bound_args.args, **bound_args.kwargs)
 

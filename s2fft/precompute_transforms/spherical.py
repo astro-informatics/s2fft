@@ -1,5 +1,4 @@
 from functools import partial
-from typing import Optional
 from warnings import warn
 
 import jax.numpy as jnp
@@ -21,11 +20,11 @@ def inverse(
     flm: np.ndarray,
     L: int,
     spin: int = 0,
-    kernel: Optional[np.ndarray] = None,
+    kernel: np.ndarray | None = None,
     sampling: str = "mw",
     reality: bool = False,
     method: str = "jax",
-    nside: Optional[int] = None,
+    nside: int | None = None,
 ) -> np.ndarray:
     r"""
     Compute the inverse spherical harmonic transform via precompute.
@@ -228,11 +227,11 @@ def forward(
     f: np.ndarray,
     L: int,
     spin: int = 0,
-    kernel: Optional[np.ndarray] = None,
+    kernel: np.ndarray | None = None,
     sampling: str = "mw",
     reality: bool = False,
     method: str = "jax",
-    nside: Optional[int] = None,
+    nside: int | None = None,
     iter: int = 0,
 ) -> np.ndarray:
     r"""

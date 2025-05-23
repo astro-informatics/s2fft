@@ -1,4 +1,3 @@
-from typing import Tuple
 from warnings import warn
 
 import jax
@@ -612,7 +611,7 @@ def wigner_kernel_jax(
 wigner_kernel_torch = torch_wrapper.wrap_as_torch_function(wigner_kernel_jax)
 
 
-def fourier_wigner_kernel(L: int) -> Tuple[np.ndarray, np.ndarray]:
+def fourier_wigner_kernel(L: int) -> tuple[np.ndarray, np.ndarray]:
     """
     Computes Fourier coefficients of the reduced Wigner d-functions and quadrature
     weights upsampled for the forward Fourier-Wigner transform.
@@ -640,7 +639,7 @@ def fourier_wigner_kernel(L: int) -> Tuple[np.ndarray, np.ndarray]:
     return deltas, w
 
 
-def fourier_wigner_kernel_jax(L: int) -> Tuple[jnp.ndarray, jnp.ndarray]:
+def fourier_wigner_kernel_jax(L: int) -> tuple[jnp.ndarray, jnp.ndarray]:
     """
     Computes Fourier coefficients of the reduced Wigner d-functions and quadrature
     weights upsampled for the forward Fourier-Wigner transform (JAX implementation).

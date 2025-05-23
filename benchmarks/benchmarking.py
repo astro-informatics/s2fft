@@ -252,7 +252,10 @@ def _format_results_entry(results_entry: dict) -> str:
 
 def _dict_product(dicts: dict[str, Iterable[Any]]) -> Iterable[dict[str, Any]]:
     """Generator corresponding to Cartesian product of dictionaries."""
-    return (dict(zip(dicts.keys(), values)) for values in product(*dicts.values()))
+    return (
+        dict(zip(dicts.keys(), values, strict=False))
+        for values in product(*dicts.values())
+    )
 
 
 def _parse_value(value: str) -> Any:

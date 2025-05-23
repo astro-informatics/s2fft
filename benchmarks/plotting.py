@@ -141,10 +141,10 @@ def plot_results_against_bandlimit(
         squeeze=False,
     )
     axes = axes.T if functions_along_columns else axes
-    for axes_row, function in zip(axes, functions):
+    for axes_row, function in zip(axes, functions, strict=False):
         results = benchmark_results["results"][function]
         l_values = np.array([r["parameters"]["L"] for r in results])
-        for ax, measurement in zip(axes_row, measurements):
+        for ax, measurement in zip(axes_row, measurements, strict=False):
             plot_function, label = _measurement_plot_functions_and_labels[measurement]
             try:
                 plot_function(ax, "L", l_values, results)
