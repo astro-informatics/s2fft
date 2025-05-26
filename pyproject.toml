@@ -100,6 +100,7 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore:FutureWarning",
 ]
+markers = ["slow: mark test as slow"]
 
 [tool.ruff]
 fix = true
