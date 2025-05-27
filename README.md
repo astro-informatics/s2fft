@@ -2,7 +2,7 @@
 
 <img class="dark-light" width="98" height="85" alt="s2fft logo - schematic representation of a tiled sphere" src="https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/sax_logo.png">
 
-# S2FFT: differentiable and accelerated spherical harmonic transforms
+# s2fft: differentiable and accelerated spherical harmonic transforms
 
 [![Tests status](https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/astro-informatics/s2fft/actions/workflows/tests.yml)
 [![Linting status](https://github.com/astro-informatics/s2fft/actions/workflows/linting.yml/badge.svg?branch=main)](https://github.com/astro-informatics/s2fft/actions/workflows/linting.yml)
@@ -17,12 +17,12 @@
 
 </div>
 
-`S2FFT` is a Python package for computing Fourier transforms on the sphere
+`s2fft` is a Python package for computing Fourier transforms on the sphere
 and rotation group [(Price & McEwen 2024)](https://arxiv.org/abs/2311.14670) using
 JAX or PyTorch. It leverages autodiff to provide differentiable transforms, which are
 also deployable on hardware accelerators (e.g. GPUs and TPUs).
 
-More specifically, `S2FFT` provides support for spin spherical harmonic
+More specifically, `s2fft` provides support for spin spherical harmonic
 and Wigner transforms (for both real and complex signals), with support
 for adjoint transformations where needed, and comes with different
 optimisations (precompute or not) that one may select depending on
@@ -30,7 +30,7 @@ available resources and desired angular resolution $L$.
 
 ## Algorithms ⚡
 
-`S2FFT` leverages new algorithmic structures that can he highly
+`s2fft` leverages new algorithmic structures that can he highly
 parallelised and distributed, and so map very well onto the architecture
 of hardware accelerators (i.e. GPUs and TPUs). In particular, these
 algorithms are based on new Wigner-d recursions that are stable to high
@@ -59,7 +59,7 @@ diagram below illustrates the separable spherical harmonic transform
 
 ## Sampling 🌍
 
-The structure of the algorithms implemented in `S2FFT` can support any
+The structure of the algorithms implemented in `s2fft` can support any
 isolatitude sampling scheme. A number of sampling schemes are currently
 supported.
 
@@ -98,19 +98,19 @@ pixels of equal areas, which has many practical advantages.
 
 ## Installation 💻
 
-The latest release of `S2FFT` published [on PyPI](https://pypi.org/project/s2fft/) can be installed by running
+The latest release of `s2fft` published [on PyPI](https://pypi.org/project/s2fft/) can be installed by running
 
 ```bash
 pip install s2fft
 ```
 
-This will install `S2FFT`'s dependencies including JAX if not already installed.
+This will install `s2fft`'s dependencies including JAX if not already installed.
 As by default installing JAX from PyPI will use a CPU-only build,
 if you wish to install JAX with GPU or TPU support,
 you should first follow the [relevant installation instructions in JAX's documentation](https://docs.jax.dev/en/latest/installation.html#installation)
-and then install `S2FFT` as above.
+and then install `s2fft` as above.
 
-Alternatively, the latest development version of `S2FFT` may be installed directly from GitHub by running
+Alternatively, the latest development version of `s2fft` may be installed directly from GitHub by running
 
 ```bash
 pip install git+https://github.com/astro-informatics/s2fft
@@ -190,7 +190,7 @@ jupyter lab
 
 ## Usage 🚀
 
-To import and use `S2FFT` is as simple follows:
+To import and use `s2fft` is as simple follows:
 
 For a signal on the sphere
 
@@ -228,7 +228,7 @@ This wraps the JAX implementations so JAX will need to be installed in addition 
 
 ## SSHT & HEALPix wrappers 💡
 
-`S2FFT` also provides JAX support for existing C/C++ packages, specifically [`HEALPix`](https://healpix.jpl.nasa.gov) and [`SSHT`](https://github.com/astro-informatics/ssht). This works
+`s2fft` also provides JAX support for existing C/C++ packages, specifically [`HEALPix`](https://healpix.jpl.nasa.gov) and [`SSHT`](https://github.com/astro-informatics/ssht). This works
 by wrapping Python bindings with custom JAX frontends. Note that this C/C++ to JAX interoperability is currently limited to CPU.
 
 For example, one may call these alternate backends for the spherical harmonic transform by:
@@ -243,7 +243,7 @@ flm = s2fft.forward(f, L, nside=nside, sampling="healpix", method="jax_healpy")
 
 All of these JAX frontends supports out of the box reverse mode automatic differentiation,
 and under the hood is simply linking to the C/C++ packages you are familiar with. In this
-way `S2fft` enhances existing packages with gradient functionality for modern scientific computing or machine learning
+way `s2fft` enhances existing packages with gradient functionality for modern scientific computing or machine learning
 applications!
 
 For further details on usage see the associated [notebooks](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_SSHT_backend.html).
@@ -344,7 +344,7 @@ it will be of use to a wider community.
 
 Copyright 2023 Matthew Price, Jason McEwen and contributors.
 
-`S2FFT` is free software made available under the MIT License. For
+`s2fft` is free software made available under the MIT License. For
 details see the [`LICENCE.txt`](https://github.com/astro-informatics/s2fft/blob/main/LICENCE.txt) file.
 
 The file [`lib/include/kernel_helpers.h`](https://github.com/astro-informatics/s2fft/blob/main/lib/include/kernel_helpers.h) is adapted from
