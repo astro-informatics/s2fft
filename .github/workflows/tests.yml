@@ -27,8 +27,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
-        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.13"]
+        os: [macos-latest]
       fail-fast: false
     env:
       CMAKE_POLICY_VERSION_MINIMUM: 3.5
@@ -51,11 +51,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install .[tests]
 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: true
+
     - name: Run tests
       run: |
-        pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc
-
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v5
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        pytest -vv tests/test_fourier_wigner.py::test_forward_fourier_wigner_transform_high_N[8966433580120847635-True-mwss-64]
