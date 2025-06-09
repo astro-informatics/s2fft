@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/astro-informatics/s2fft,150,90
+/astro-informatics/s2fft/tree/main/s2fft,12,8
+/astro-informatics/s2fft/tree/main/notebooks,11,6
+/astro-informatics/s2fft/actions,11,4
+/astro-informatics/s2fft/pulls,8,3
+/astro-informatics/s2fft/actions/workflows/tests.yml,6,1
+/astro-informatics/s2fft/blob/main/s2fft/utils/rotation.py,4,3
+/astro-informatics/s2fft/blob/main/notebooks/spherical_rotation.ipynb,4,2
+/astro-informatics/s2fft/blob/main/s2fft/transforms/spherical.py,4,2
+/astro-informatics/s2fft/releases,3,3
