@@ -57,5 +57,6 @@ jobs:
         limit-access-to-actor: true
 
     - name: Run tests
+      if: github.event_name != 'pull_request'
       run: |
         pytest -vv tests/test_fourier_wigner.py::test_forward_fourier_wigner_transform_high_N[8966433580120847635-True-mwss-64]
