@@ -15,6 +15,7 @@ from s2fft.utils import (
     quadrature_jax,
     resampling,
     resampling_jax,
+    torch_wrapper,
 )
 
 
@@ -47,8 +48,8 @@ def inverse(
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        method (str, optional): Execution mode in {"numpy", "jax", "jax_ssht", "jax_healpy"}.
-            Defaults to "numpy".
+        method (str, optional): Execution mode in {"numpy", "jax", "jax_cuda",
+            "jax_ssht", "jax_healpy"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -82,39 +83,31 @@ def inverse(
         recover acceleration by the number of devices.
 
     """
-    if spin >= 8 and method in ["numpy", "jax", "cuda"]:
+    if method not in _inverse_functions:
+        raise ValueError(f"Method {method} not recognised.")
+
+    if spin >= 8 and method in ("numpy", "jax", "jax_cuda", "torch"):
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
-    if method == "numpy":
-        return inverse_numpy(flm, L, spin, nside, sampling, reality, precomps, L_lower)
-    elif method in ["jax", "cuda"]:
-        use_healpix_custom_primitive = method == "cuda"
-        method = "jax"
-        return inverse_jax(
-            flm,
-            L,
-            spin,
-            nside,
-            sampling,
-            reality,
-            precomps,
-            spmd,
-            L_lower,
-            use_healpix_custom_primitive,
-        )
-    elif method == "jax_ssht":
+    inverse_kwargs = {"flm": flm, "L": L}
+    if method in ("numpy", "jax", "jax_cuda", "torch"):
+        inverse_kwargs.update(sampling=sampling, precomps=precomps, L_lower=L_lower)
+    if method in ("jax", "jax_cuda", "torch"):
+        inverse_kwargs["spmd"] = spmd
+    if method == "jax_healpy":
+        if sampling.lower() != "healpix":
+            raise ValueError("Healpy only supports healpix sampling.")
+    else:
+        inverse_kwargs.update(spin=spin, reality=reality)
+    if method == "jax_ssht":
         if sampling.lower() == "healpix":
             raise ValueError("SSHT does not support healpix sampling.")
         ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
-        return c_sph.ssht_inverse(flm, L, spin, reality, ssht_sampling, _ssht_backend)
-    elif method == "jax_healpy":
-        if sampling.lower() != "healpix":
-            raise ValueError("Healpy only supports healpix sampling.")
-        return c_sph.healpy_inverse(flm, L, nside)
+        inverse_kwargs.update(ssht_sampling=ssht_sampling, _ssht_backend=_ssht_backend)
     else:
-        raise ValueError(
-            f"Implementation {method} not recognised. Should be either numpy or jax."
-        )
+        inverse_kwargs["nside"] = nside
+
+    return _inverse_functions[method](**inverse_kwargs)
 
 
 def inverse_numpy(
@@ -264,11 +257,11 @@ def inverse_jax(
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
         use_healpix_custom_primitive (bool, optional): Whether to use a custom CUDA
-            primitive for computing HEALPix fast fourier transform when `sampling =
-            "healpix"` and running on a cuda compatible gpu device. using a custom
-            primitive reduces long compilation times when jit compiling. defaults to
-            `False`.
-
+            primitive for computing HEALPix fast Fourier transform when `sampling =
+            "healpix"` and running on a CUDA compatible GPU device. Using a custom
+            primitive reduces long compilation times when just-in-time compiling.
+            Defaults to `False`.
+Z
     Returns:
         jnp.ndarray: Signal on the sphere.
 
@@ -354,6 +347,9 @@ def inverse_jax(
         return jnp.real(f) if reality else f
 
 
+inverse_torch = torch_wrapper.wrap_as_torch_function(inverse_jax)
+
+
 def forward(
     f: np.ndarray,
     L: int,
@@ -384,8 +380,8 @@ def forward(
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        method (str, optional): Execution mode in {"numpy", "jax", "jax_ssht", "jax_healpy"}.
-            Defaults to "numpy".
+        method (str, optional): Execution mode in {"numpy", "jax", "jax_cuda",
+            jax_ssht", "jax_healpy"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -427,50 +423,46 @@ def forward(
         recover acceleration by the number of devices.
 
     """
-    if spin >= 8 and method in ["numpy", "jax", "cuda"]:
+    if method not in _forward_functions:
+        raise ValueError(f"Method {method} not recognised.")
+
+    if spin >= 8 and method in ("numpy", "jax", "jax_cuda", "torch"):
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
     if iter is None:
         iter = 3 if sampling.lower() == "healpix" and method == "jax_healpy" else 0
-    if method in {"numpy", "jax", "cuda"}:
-        common_kwargs = {
-            "L": L,
-            "spin": spin,
-            "nside": nside,
-            "sampling": sampling,
-            "reality": reality,
-            "L_lower": L_lower,
-        }
-        forward_kwargs = {**common_kwargs, "precomps": precomps}
-        inverse_kwargs = common_kwargs
-        if method in {"jax", "cuda"}:
-            forward_kwargs["spmd"] = spmd
-            forward_kwargs["use_healpix_custom_primitive"] = method == "cuda"
-            inverse_kwargs["method"] = "jax"
-            inverse_kwargs["spmd"] = spmd
-            forward_function = forward_jax
-        else:
-            inverse_kwargs["method"] = "numpy"
-            forward_function = forward_numpy
-        return iterative_refinement.forward_with_iterative_refinement(
-            f=f,
-            n_iter=iter,
-            forward_function=partial(forward_function, **forward_kwargs),
-            backward_function=partial(inverse, **inverse_kwargs),
-        )
-    elif method == "jax_ssht":
+
+    forward_kwargs = {"f": f, "L": L}
+    if method in ("numpy", "jax", "jax_cuda", "torch"):
+        forward_kwargs.update(sampling=sampling, precomps=precomps, L_lower=L_lower)
+    if method in ("jax", "jax_cuda", "torch"):
+        forward_kwargs["spmd"] = spmd
+    if method == "jax_healpy":
+        if sampling.lower() != "healpix":
+            raise ValueError("Healpy only supports healpix sampling.")
+        forward_kwargs["iter"] = iter
+    else:
+        forward_kwargs.update(spin=spin, reality=reality)
+    if method == "jax_ssht":
         if sampling.lower() == "healpix":
             raise ValueError("SSHT does not support healpix sampling.")
         ssht_sampling = ["mw", "mwss", "dh", "gl"].index(sampling.lower())
-        return c_sph.ssht_forward(f, L, spin, reality, ssht_sampling, _ssht_backend)
-    elif method == "jax_healpy":
-        if sampling.lower() != "healpix":
-            raise ValueError("Healpy only supports healpix sampling.")
-        return c_sph.healpy_forward(f, L, nside, iter)
+        forward_kwargs.update(ssht_sampling=ssht_sampling, _ssht_backend=_ssht_backend)
     else:
-        raise ValueError(
-            f"Implementation {method} not recognised. Should be either numpy or jax."
+        forward_kwargs["nside"] = nside
+
+    if iter > 0 and method != "jax_healpy":
+        f = forward_kwargs.pop("f")
+        inverse_kwargs = forward_kwargs.copy()
+        inverse_kwargs.pop("precomps")
+        return iterative_refinement.forward_with_iterative_refinement(
+            f=f,
+            n_iter=iter,
+            forward_function=partial(_forward_functions[method], **forward_kwargs),
+            backward_function=partial(_inverse_functions[method], **inverse_kwargs),
         )
+    else:
+        return _forward_functions[method](**forward_kwargs)
 
 
 def forward_numpy(
@@ -645,10 +637,10 @@ def forward_jax(
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
         use_healpix_custom_primitive (bool, optional): Whether to use a custom CUDA
-            primitive for computing HEALPix fast fourier transform when `sampling =
-            "healpix"` and running on a cuda compatible gpu device. using a custom
-            primitive reduces long compilation times when jit compiling. defaults to
-            `False`.
+            primitive for computing HEALPix fast Fourier transform when `sampling =
+            "healpix"` and running on a CUDA compatible GPU device. Using a custom
+            primitive reduces long compilation times when just-in-time compiling.
+            Defaults to `False`.
 
     Returns:
         jnp.ndarray: Spherical harmonic coefficients
@@ -762,3 +754,25 @@ def forward_jax(
     flm = jnp.where(indices < abs(spin), jnp.zeros_like(flm), flm[..., :])
 
     return flm * (-1) ** jnp.abs(spin)
+
+
+forward_torch = torch_wrapper.wrap_as_torch_function(forward_jax)
+
+
+_inverse_functions = {
+    "numpy": inverse_numpy,
+    "jax": inverse_jax,
+    "jax_cuda": partial(inverse_jax, use_healpix_custom_primitive=True),
+    "jax_ssht": c_sph.ssht_inverse,
+    "jax_healpy": c_sph.healpy_inverse,
+    "torch": inverse_torch,
+}
+
+_forward_functions = {
+    "numpy": forward_numpy,
+    "jax": forward_jax,
+    "jax_cuda": partial(forward_jax, use_healpix_custom_primitive=True),
+    "jax_ssht": c_sph.ssht_forward,
+    "jax_healpy": c_sph.healpy_forward,
+    "torch": forward_torch,
+}

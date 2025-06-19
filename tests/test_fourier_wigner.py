@@ -15,6 +15,7 @@ N_to_test = [2, 8, 16]
 reality_to_test = [False, True]
 sampling_schemes = ["mw", "mwss"]
 methods_to_test = ["numpy", "jax"]
+delta_method_to_test = ["otf", "precomp"]
 
 # Test tolerance
 atol = 1e-12
@@ -25,6 +26,7 @@ atol = 1e-12
 @pytest.mark.parametrize("sampling", sampling_schemes)
 @pytest.mark.parametrize("reality", reality_to_test)
 @pytest.mark.parametrize("method", methods_to_test)
+@pytest.mark.parametrize("delta_method", delta_method_to_test)
 def test_inverse_fourier_wigner_transform(
     flmn_generator,
     s2fft_to_so3_sampling,
@@ -33,6 +35,7 @@ def test_inverse_fourier_wigner_transform(
     sampling: str,
     reality: bool,
     method: str,
+    delta_method: str,
 ):
     flmn = flmn_generator(L=L, N=N, reality=reality)
 
@@ -44,13 +47,16 @@ def test_inverse_fourier_wigner_transform(
     )
     f = so3.inverse(samples.flmn_3d_to_1d(flmn, L, N), params)
 
-    delta = (
-        c.fourier_wigner_kernel_jax(L)
-        if method == "jax"
-        else c.fourier_wigner_kernel(L)
-    )
     transform = fw.inverse_transform_jax if method == "jax" else fw.inverse_transform
-    f_check = transform(flmn, delta, L, N, reality, sampling)
+    if delta_method.lower() == "precomp":
+        precomps = (
+            c.fourier_wigner_kernel_jax(L)
+            if method == "jax"
+            else c.fourier_wigner_kernel(L)
+        )
+    else:
+        precomps = None
+    f_check = transform(flmn, L, N, precomps, reality, sampling)
     np.testing.assert_allclose(f, f_check.flatten("C"), atol=atol)
 
 
@@ -59,6 +65,7 @@ def test_inverse_fourier_wigner_transform(
 @pytest.mark.parametrize("sampling", sampling_schemes)
 @pytest.mark.parametrize("reality", reality_to_test)
 @pytest.mark.parametrize("method", methods_to_test)
+@pytest.mark.parametrize("delta_method", delta_method_to_test)
 def test_forward_fourier_wigner_transform(
     flmn_generator,
     s2fft_to_so3_sampling,
@@ -67,6 +74,7 @@ def test_forward_fourier_wigner_transform(
     sampling: str,
     reality: bool,
     method: str,
+    delta_method: str,
 ):
     flmn = flmn_generator(L=L, N=N, reality=reality)
 
@@ -84,14 +92,16 @@ def test_forward_fourier_wigner_transform(
     )
     flmn = samples.flmn_1d_to_3d(so3.forward(f, params), L, N)
 
-    delta = (
-        c.fourier_wigner_kernel_jax(L)
-        if method == "jax"
-        else c.fourier_wigner_kernel(L)
-    )
     transform = fw.forward_transform_jax if method == "jax" else fw.forward_transform
-
-    flmn_check = transform(f_3D, delta, L, N, reality, sampling)
+    if delta_method.lower() == "precomp":
+        precomps = (
+            c.fourier_wigner_kernel_jax(L)
+            if method == "jax"
+            else c.fourier_wigner_kernel(L)
+        )
+    else:
+        precomps = None
+    flmn_check = transform(f_3D, L, N, precomps, reality, sampling)
     np.testing.assert_allclose(flmn, flmn_check, atol=atol)
 
 
@@ -113,8 +123,8 @@ def test_inverse_fourier_wigner_transform_high_N(
     f = so3.inverse(samples.flmn_3d_to_1d(flmn, L, N), params)
 
     f = f.real if reality else f
-    delta = c.fourier_wigner_kernel(L)
-    f_check = fw.inverse_transform(flmn, delta, L, N, reality, sampling)
+    precomps = c.fourier_wigner_kernel(L)
+    f_check = fw.inverse_transform(flmn, L, N, precomps, reality, sampling)
 
     np.testing.assert_allclose(f, f_check.flatten("C"), atol=atol)
 
@@ -143,6 +153,6 @@ def test_forward_fourier_wigner_transform_high_N(
     )
     flmn_so3 = samples.flmn_1d_to_3d(so3.forward(f_1D, params), L, N)
 
-    delta = c.fourier_wigner_kernel_jax(L)
-    flmn_check = fw.forward_transform_jax(f_3D, delta, L, N, reality, sampling)
+    precomps = c.fourier_wigner_kernel_jax(L)
+    flmn_check = fw.forward_transform_jax(f_3D, L, N, precomps, reality, sampling)
     np.testing.assert_allclose(flmn_so3, flmn_check, atol=atol)

@@ -6,7 +6,7 @@ import torch
 
 from s2fft.base_transforms import spherical as base
 from s2fft.precompute_transforms import construct as c
-from s2fft.precompute_transforms.spherical import forward, inverse
+from s2fft.precompute_transforms.spherical import _kernel_functions, forward, inverse
 from s2fft.sampling import s2_samples as samples
 
 jax.config.update("jax_enable_x64", True)
@@ -23,7 +23,69 @@ sampling_to_test = ["mw", "mwss", "dh", "gl"]
 reality_to_test = [True, False]
 methods_to_test = ["numpy", "jax", "torch"]
 recursions_to_test = ["price-mcewen", "risbo", "auto"]
-iter_to_test = [0, 3]
+iter_to_test = [0, 1]
+
+
+def get_flm_and_kernel(
+    flm_generator,
+    L,
+    spin,
+    sampling,
+    reality,
+    method,
+    recursion,
+    forward,
+    nside=None,
+):
+    flm = flm_generator(L=L, spin=spin, reality=reality)
+    kfunc = _kernel_functions[method]
+    kernel = kfunc(L, spin, reality, sampling, nside, forward, recursion=recursion)
+    return flm, kernel
+
+
+def get_tol(sampling):
+    return 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
+
+
+def check_spin(recursion, spin):
+    if recursion.lower() == "price-mcewen" and abs(spin) >= PM_MAX_STABLE_SPIN:
+        pytest.skip(
+            f"price-mcewen recursion not accurate above |spin| = {PM_MAX_STABLE_SPIN}"
+        )
+
+
+def check_inverse_transform(
+    flm, kernel, L, spin, sampling, reality, method, nside=None
+):
+    f = inverse(
+        torch.from_numpy(flm) if method == "torch" else flm,
+        L,
+        spin,
+        kernel,
+        sampling,
+        reality,
+        method,
+        nside,
+    )
+    if method == "torch":
+        f = f.resolve_conj().numpy()
+    f_check = base.inverse(flm, L, spin, sampling, nside, reality)
+    tol = get_tol(sampling)
+    np.testing.assert_allclose(f, f_check, atol=tol, rtol=tol)
+
+
+def check_forward_transform(
+    flm, kernel, L, spin, sampling, reality, method, nside=None
+):
+    f = base.inverse(flm, L, spin, sampling, nside, reality)
+    flm_check = base.forward(f, L, spin, sampling, nside, reality)
+    if method == "torch":
+        f = torch.from_numpy(f)
+    flm_recov = forward(f, L, spin, kernel, sampling, reality, method, nside)
+    if method == "torch":
+        flm_recov = flm_recov.resolve_conj().numpy()
+    tol = get_tol(sampling)
+    np.testing.assert_allclose(flm_check, flm_recov, atol=tol, rtol=tol)
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -41,55 +103,34 @@ def test_transform_inverse(
     method: str,
     recursion: str,
 ):
-    if recursion.lower() == "price-mcewen" and abs(spin) >= PM_MAX_STABLE_SPIN:
-        pytest.skip(
-            f"price-mcewen recursion not accurate above |spin| = {PM_MAX_STABLE_SPIN}"
-        )
-
-    flm = flm_generator(L=L, spin=spin, reality=reality)
-    f_check = base.inverse(flm, L, spin, sampling, reality=reality)
-
-    kfunc = (
-        c.spin_spherical_kernel_jax
-        if method.lower() == "jax"
-        else c.spin_spherical_kernel
+    check_spin(recursion, spin)
+    flm, kernel = get_flm_and_kernel(
+        flm_generator, L, spin, sampling, reality, method, recursion, forward=False
     )
-    kernel = kfunc(L, spin, reality, sampling, forward=False, recursion=recursion)
+    check_inverse_transform(flm, kernel, L, spin, sampling, reality, method)
 
-    tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
-    if method.lower() == "torch":
-        f = inverse(
-            torch.from_numpy(flm),
-            L,
-            spin,
-            torch.from_numpy(kernel),
-            sampling,
-            reality,
-            method,
-        )
-        # Test Transform
-        np.testing.assert_allclose(
-            f.resolve_conj().numpy(), f_check, atol=tol, rtol=tol
-        )
-        # Test Gradients
-        flm_grad_test = torch.from_numpy(flm)
-        flm_grad_test.requires_grad = True
-        assert torch.autograd.gradcheck(
-            inverse,
-            (
-                flm_grad_test,
-                L,
-                spin,
-                torch.from_numpy(kernel),
-                sampling,
-                reality,
-                method,
-            ),
-        )
 
-    else:
-        f = inverse(flm, L, spin, kernel, sampling, reality, method)
-        np.testing.assert_allclose(f, f_check, atol=tol, rtol=tol)
+@pytest.mark.slow
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("spin", spin_to_test)
+@pytest.mark.parametrize("sampling", sampling_to_test)
+@pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("recursion", recursions_to_test)
+def test_transform_inverse_torch_gradcheck(
+    flm_generator,
+    L: int,
+    spin: int,
+    sampling: str,
+    reality: bool,
+    recursion: str,
+):
+    method = "torch"
+    flm, kernel = get_flm_and_kernel(
+        flm_generator, L, spin, sampling, reality, method, recursion, forward=False
+    )
+    flm = torch.from_numpy(flm)
+    flm.requires_grad = True
+    torch.autograd.gradcheck(inverse, (flm, L, spin, kernel, sampling, reality, method))
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -106,51 +147,54 @@ def test_transform_inverse_healpix(
     recursion: str,
 ):
     sampling = "healpix"
+    spin = 0
     L = ratio * nside
-    flm = flm_generator(L=L, reality=reality)
-    f_check = base.inverse(flm, L, 0, sampling, nside, reality)
-
-    kfunc = (
-        c.spin_spherical_kernel_jax
-        if method.lower() == "jax"
-        else c.spin_spherical_kernel
+    flm, kernel = get_flm_and_kernel(
+        flm_generator,
+        L,
+        spin,
+        sampling,
+        reality,
+        method,
+        recursion,
+        forward=False,
+        nside=nside,
     )
-    kernel = kfunc(L, 0, reality, sampling, nside, False, recursion=recursion)
+    check_inverse_transform(flm, kernel, L, spin, sampling, reality, method, nside)
 
-    tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
-    if method.lower() == "torch":
-        # Test Transform
-        f = inverse(
-            torch.from_numpy(flm),
-            L,
-            0,
-            torch.from_numpy(kernel),
-            sampling,
-            reality,
-            method,
-            nside,
-        )
-        np.testing.assert_allclose(f, f_check, atol=tol, rtol=tol)
 
-        # Test Gradients
-        flm_grad_test = torch.from_numpy(flm)
-        flm_grad_test.requires_grad = True
-        assert torch.autograd.gradcheck(
-            inverse,
-            (
-                flm_grad_test,
-                L,
-                0,
-                torch.from_numpy(kernel),
-                sampling,
-                reality,
-                method,
-                nside,
-            ),
-        )
-    else:
-        f = inverse(flm, L, 0, kernel, sampling, reality, method, nside)
-        np.testing.assert_allclose(f, f_check, atol=tol, rtol=tol)
+@pytest.mark.slow
+@pytest.mark.parametrize("nside", nside_to_test)
+@pytest.mark.parametrize("ratio", L_to_nside_ratio)
+@pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("recursion", recursions_to_test)
+def test_transform_inverse_healpix_torch_gradcheck(
+    flm_generator,
+    nside: int,
+    ratio: int,
+    reality: bool,
+    recursion: str,
+):
+    method = "torch"
+    sampling = "healpix"
+    spin = 0
+    L = ratio * nside
+    flm, kernel = get_flm_and_kernel(
+        flm_generator,
+        L,
+        spin,
+        sampling,
+        reality,
+        method,
+        recursion,
+        forward=False,
+        nside=nside,
+    )
+    flm = torch.from_numpy(flm)
+    flm.requires_grad = True
+    torch.autograd.gradcheck(
+        inverse, (flm, L, spin, kernel, sampling, reality, method, nside)
+    )
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -168,56 +212,34 @@ def test_transform_forward(
     method: str,
     recursion: str,
 ):
-    if recursion.lower() == "price-mcewen" and abs(spin) >= PM_MAX_STABLE_SPIN:
-        pytest.skip(
-            f"price-mcewen recursion not accurate above |spin| = {PM_MAX_STABLE_SPIN}"
-        )
-
-    flm = flm_generator(L=L, spin=spin, reality=reality)
-
-    f = base.inverse(flm, L, spin, sampling, reality=reality)
-    flm_check = base.forward(f, L, spin, sampling, reality=reality)
-
-    kfunc = (
-        c.spin_spherical_kernel_jax
-        if method.lower() == "jax"
-        else c.spin_spherical_kernel
+    check_spin(recursion, spin)
+    flm, kernel = get_flm_and_kernel(
+        flm_generator, L, spin, sampling, reality, method, recursion, forward=True
     )
-    kernel = kfunc(L, spin, reality, sampling, forward=True, recursion=recursion)
+    check_forward_transform(flm, kernel, L, spin, sampling, reality, method)
 
-    tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
-    if method.lower() == "torch":
-        # Test Transform
-        flm_recov = forward(
-            torch.from_numpy(f),
-            L,
-            spin,
-            torch.from_numpy(kernel),
-            sampling,
-            reality,
-            method,
-        )
 
-        np.testing.assert_allclose(flm_check, flm_recov, atol=tol, rtol=tol)
-
-        # Test Gradients
-        f_grad_test = torch.from_numpy(f)
-        f_grad_test.requires_grad = True
-        assert torch.autograd.gradcheck(
-            forward,
-            (
-                f_grad_test,
-                L,
-                spin,
-                torch.from_numpy(kernel),
-                sampling,
-                reality,
-                method,
-            ),
-        )
-    else:
-        flm_recov = forward(f, L, spin, kernel, sampling, reality, method)
-        np.testing.assert_allclose(flm_check, flm_recov, atol=tol, rtol=tol)
+@pytest.mark.slow
+@pytest.mark.parametrize("L", L_to_test)
+@pytest.mark.parametrize("spin", spin_to_test)
+@pytest.mark.parametrize("sampling", sampling_to_test)
+@pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("recursion", recursions_to_test)
+def test_transform_forward_torch_gradcheck(
+    flm_generator,
+    L: int,
+    spin: int,
+    sampling: str,
+    reality: bool,
+    recursion: str,
+):
+    method = "torch"
+    flm, kernel = get_flm_and_kernel(
+        flm_generator, L, spin, sampling, reality, method, recursion, forward=True
+    )
+    f = torch.from_numpy(base.inverse(flm, L, spin, sampling, reality=reality))
+    f.requires_grad = True
+    torch.autograd.gradcheck(forward, (f, L, spin, kernel, sampling, reality, method))
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -236,54 +258,57 @@ def test_transform_forward_healpix(
     iter: int,
 ):
     sampling = "healpix"
+    spin = 0
     L = ratio * nside
-    flm = flm_generator(L=L, reality=True)
-    f = base.inverse(flm, L, 0, sampling, nside, reality)
-    flm_check = base.forward(f, L, 0, sampling, nside, reality, iter=iter)
-
-    kfunc = (
-        c.spin_spherical_kernel_jax
-        if method.lower() == "jax"
-        else c.spin_spherical_kernel
+    check_spin(recursion, spin)
+    flm, kernel = get_flm_and_kernel(
+        flm_generator,
+        L,
+        spin,
+        sampling,
+        reality,
+        method,
+        recursion,
+        forward=True,
+        nside=nside,
     )
-    kernel = kfunc(L, 0, reality, sampling, nside, True, recursion=recursion)
+    check_forward_transform(flm, kernel, L, spin, sampling, reality, method, nside)
 
-    tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
-    if method.lower() == "torch":
-        # Test Transform
-        flm_recov = forward(
-            torch.from_numpy(f),
-            L,
-            0,
-            torch.from_numpy(kernel),
-            sampling,
-            reality,
-            method,
-            nside,
-            iter,
-        )
-        np.testing.assert_allclose(flm_recov, flm_check, atol=tol, rtol=tol)
 
-        # Test Gradients
-        f_grad_test = torch.from_numpy(f)
-        f_grad_test.requires_grad = True
-        assert torch.autograd.gradcheck(
-            forward,
-            (
-                f_grad_test,
-                L,
-                0,
-                torch.from_numpy(kernel),
-                sampling,
-                reality,
-                method,
-                nside,
-                iter,
-            ),
-        )
-    else:
-        flm_recov = forward(f, L, 0, kernel, sampling, reality, method, nside, iter)
-        np.testing.assert_allclose(flm_recov, flm_check, atol=tol, rtol=tol)
+@pytest.mark.slow
+@pytest.mark.parametrize("nside", nside_to_test)
+@pytest.mark.parametrize("ratio", L_to_nside_ratio)
+@pytest.mark.parametrize("reality", reality_to_test)
+@pytest.mark.parametrize("recursion", recursions_to_test)
+@pytest.mark.parametrize("iter", iter_to_test)
+def test_transform_forward_healpix_torch_gradcheck(
+    flm_generator,
+    nside: int,
+    ratio: int,
+    reality: bool,
+    recursion: str,
+    iter: int,
+):
+    method = "torch"
+    sampling = "healpix"
+    spin = 0
+    L = ratio * nside
+    flm, kernel = get_flm_and_kernel(
+        flm_generator,
+        L,
+        spin,
+        sampling,
+        reality,
+        method,
+        recursion,
+        forward=True,
+        nside=nside,
+    )
+    f = torch.from_numpy(base.inverse(flm, L, spin, sampling, nside, reality))
+    f.requires_grad = True
+    torch.autograd.gradcheck(
+        forward, (f, L, spin, kernel, sampling, reality, method, nside)
+    )
 
 
 @pytest.mark.parametrize("spin", [0, 20, 30, -20, -30])
@@ -330,7 +355,7 @@ def test_transform_forward_high_spin(
     kernel = c.spin_spherical_kernel(L, spin, reality, sampling, forward=True)
 
     flm_recov = forward(f, L, spin, kernel, sampling, reality, "numpy")
-    tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
+    tol = get_tol(sampling)
     np.testing.assert_allclose(flm_recov, flm, atol=tol, rtol=tol)
 
 

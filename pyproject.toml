@@ -29,9 +29,8 @@ classifiers = [
 description = "Differentiable and accelerated spherical transforms with JAX"
 dependencies = [
     "numpy>=1.20",
-    "jax>=0.3.13",
+    "jax>=0.3.13,<0.6.0",
     "jaxlib",
-    "torch",
 ]
 dynamic = [
     "version",
@@ -75,6 +74,10 @@ tests = [
     "pytest-cov",
     "so3",
     "pyssht",
+    "torch",
+]
+torch = [
+    "torch",
 ]
 
 [tool.scikit-build]
@@ -99,6 +102,7 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore:FutureWarning",
 ]
+markers = ["slow: mark test as slow"]
 
 [tool.ruff]
 fix = true

@@ -16,8 +16,15 @@ L_to_test = [6, 7]
 N_to_test = [2]
 L_lower_to_test = [0, 2]
 sampling_to_test = ["mw", "mwss", "dh", "gl"]
-method_to_test = ["numpy", "jax"]
+method_to_test = ["numpy", "jax", "torch"]
 reality_to_test = [False, True]
+
+_generate_precomputes_functions = {
+    "jax": generate_precomputes_wigner_jax,
+    "numpy": generate_precomputes_wigner,
+    # torch method wraps jax so use jax to generate precomputess
+    "torch": generate_precomputes_wigner_jax,
+}
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -38,15 +45,9 @@ def test_inverse_wigner_transform(
 ):
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     f_check = base_wigner.inverse(flmn, L, N, L_lower, sampling, reality)
-
-    if method.lower() == "jax":
-        precomps = generate_precomputes_wigner_jax(
-            L, N, sampling, None, False, reality, L_lower
-        )
-    else:
-        precomps = generate_precomputes_wigner(
-            L, N, sampling, None, False, reality, L_lower
-        )
+    precomps = _generate_precomputes_functions[method](
+        L, N, sampling, None, False, reality, L_lower
+    )
     f = wigner.inverse(flmn, L, N, None, sampling, method, reality, precomps, L_lower)
     np.testing.assert_allclose(f, f_check, atol=1e-14)
 
@@ -69,15 +70,9 @@ def test_forward_wigner_transform(
 ):
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     f = base_wigner.inverse(flmn, L, N, L_lower, sampling, reality)
-
-    if method.lower() == "jax":
-        precomps = generate_precomputes_wigner_jax(
-            L, N, sampling, None, True, reality, L_lower
-        )
-    else:
-        precomps = generate_precomputes_wigner(
-            L, N, sampling, None, True, reality, L_lower
-        )
+    precomps = _generate_precomputes_functions[method](
+        L, N, sampling, None, True, reality, L_lower
+    )
     flmn_check = wigner.forward(
         f, L, N, None, sampling, method, reality, precomps, L_lower
     )
