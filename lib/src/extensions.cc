@@ -1,20 +1,21 @@
 #include <nanobind/nanobind.h>
-#include "xla/ffi/api/api.h"
-#include "xla/ffi/api/c_api.h"
-#include "xla/ffi/api/ffi.h"
 #include <cstddef>
 #include <complex>
 #include <type_traits>
 
-namespace ffi = xla::ffi;
 namespace nb = nanobind;
 
 #ifndef NO_CUDA_COMPILER
+#include "xla/ffi/api/api.h"
+#include "xla/ffi/api/c_api.h"
+#include "xla/ffi/api/ffi.h"
 #include "cuda_runtime.h"
 #include "plan_cache.h"
 #include "s2fft_kernels.h"
 #include "s2fft.h"
 #include "cudastreamhandler.hpp"  // For forking and joining CUDA streams
+
+namespace ffi = xla::ffi;
 
 namespace s2fft {
 

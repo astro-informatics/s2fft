@@ -261,7 +261,7 @@ def inverse_jax(
             "healpix"` and running on a CUDA compatible GPU device. Using a custom
             primitive reduces long compilation times when just-in-time compiling.
             Defaults to `False`.
-Z
+
     Returns:
         jnp.ndarray: Signal on the sphere.
 
