@@ -251,7 +251,7 @@ ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resu
  */
 template <ffi::DataType T>
 s2fftDescriptor build_descriptor(int64_t nside, int64_t harmonic_band_limit, bool reality, bool forward,
-                                 bool normalize, bool adjoint, bool must_exist , size_t& work_size) {
+                                 bool normalize, bool adjoint, bool must_exist, size_t& work_size) {
     using fft_complex_type = fft_complex_t<T>;
     // Step 1: Determine FFT normalization type based on forward/normalize flags.
     s2fftKernels::fft_norm norm = s2fftKernels::fft_norm::NONE;
@@ -285,7 +285,7 @@ s2fftDescriptor build_descriptor(int64_t nside, int64_t harmonic_band_limit, boo
     if (hr == S_OK) {
         executor->Initialize(descriptor);
     }
-    // Make sure workspace is set 
+    // Make sure workspace is set
     assert(executor->m_work_size > 0 && "S2FFT INTERNAL ERROR: Workspace size is zero after initialization.");
     work_size = executor->m_work_size;
     // Step 7: Return the created descriptor.
@@ -320,8 +320,8 @@ ffi::Error healpix_fft_cuda(cudaStream_t stream, int64_t nside, int64_t harmonic
                             ffi::Result<ffi::Buffer<ffi::DataType::S64>> callback_params) {
     // Step 1: Build the s2fftDescriptor based on the input parameters.
     size_t work_size = 0;  // Variable to hold the workspace size
-    s2fftDescriptor descriptor =
-            build_descriptor<T>(nside, harmonic_band_limit, reality, forward, normalize, adjoint, true , work_size);
+    s2fftDescriptor descriptor = build_descriptor<T>(nside, harmonic_band_limit, reality, forward, normalize,
+                                                     adjoint, true, work_size);
 
     // Step 2: Dispatch to either forward or backward transform based on the 'forward' flag.
     if (forward) {

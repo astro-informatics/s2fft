@@ -587,6 +587,7 @@ def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm, adjoint):
 
     Returns:
         Tuple of ShapedArray objects for output, workspace, and callback parameters.
+
     """
     # Step 1: Get lowering information (double precision, forward/backward, normalize).
     is_double, forward, normalize = _get_lowering_info(fft_type, norm, f.dtype)
@@ -632,7 +633,7 @@ def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm, adjoint):
         shape=batch_shape + workspace_shape, dtype=workspace_dtype
     )
     params_eval = ShapedArray(shape=batch_shape + params_shape, dtype=np.int64)
-    
+
     # Step 6: Return the ShapedArray objects.
     return (
         f.update(shape=out_shape, dtype=f.dtype),
@@ -666,6 +667,7 @@ def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm, adj
 
     Returns:
         The result of the FFI call.
+
     """
     # Step 1: Check if CUDA support is compiled in.
     if not _s2fft.COMPILED_WITH_CUDA:
@@ -715,6 +717,7 @@ def _healpix_fft_cuda_batching_rule(
 
     Returns:
         Tuple of (output, output_batch_axes).
+
     """
     # Step 1: Unpack batched arguments and batching axes.
     (x,) = batched_args
@@ -772,6 +775,7 @@ def _healpix_fft_cuda_transpose(
 
     Returns:
         The adjoint of the input.
+
     """
     # Step 1: Invert the FFT type and normalization for the adjoint operation.
     fft_type = "backward" if fft_type == "forward" else "forward"
