@@ -7,6 +7,7 @@ from types import ModuleType
 import jax.numpy as jnp
 import numpy as np
 from jax import core, custom_vjp
+from jax.extend.core import Primitive
 from jax.interpreters import ad
 
 from s2fft.sampling import reindex
@@ -342,7 +343,7 @@ def _healpy_map2alm_transpose(dflm: jnp.ndarray, L: int, nside: int):
     return (jnp.conj(healpy_alm2map(jnp.conj(dflm) / scale_factors, L, nside)),)
 
 
-_healpy_map2alm_p = core.Primitive("healpy_map2alm")
+_healpy_map2alm_p = Primitive("healpy_map2alm")
 _healpy_map2alm_p.def_impl(_healpy_map2alm_impl)
 _healpy_map2alm_p.def_abstract_eval(_healpy_map2alm_abstract_eval)
 ad.deflinear(_healpy_map2alm_p, _healpy_map2alm_transpose)
@@ -397,7 +398,7 @@ def _healpy_alm2map_transpose(df: jnp.ndarray, L: int, nside: int) -> tuple:
     return (scale_factors * jnp.conj(healpy_map2alm(jnp.conj(df), L, nside)),)
 
 
-_healpy_alm2map_p = core.Primitive("healpy_alm2map")
+_healpy_alm2map_p = Primitive("healpy_alm2map")
 _healpy_alm2map_p.def_impl(_healpy_alm2map_impl)
 _healpy_alm2map_p.def_abstract_eval(_healpy_alm2map_abstract_eval)
 ad.deflinear(_healpy_alm2map_p, _healpy_alm2map_transpose)
