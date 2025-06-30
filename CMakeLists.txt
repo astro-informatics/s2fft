@@ -53,16 +53,15 @@ if(CMAKE_CUDA_COMPILER)
       STABLE_ABI
       ${CMAKE_CURRENT_LIST_DIR}/lib/src/extensions.cc
       ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft.cu
-      ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft_callbacks.cu
       ${CMAKE_CURRENT_LIST_DIR}/lib/src/plan_cache.cc
       ${CMAKE_CURRENT_LIST_DIR}/lib/src/s2fft_kernels.cu)
 
-    target_link_libraries(_s2fft PRIVATE CUDA::cudart_static CUDA::cufft_static
-                                         CUDA::culibos)
+    target_link_libraries(_s2fft PRIVATE CUDA::cudart_static CUDA::cufft_static CUDA::culibos)
     target_include_directories(
-      _s2fft PUBLIC ${CMAKE_CURRENT_LIST_DIR}/lib/include ${XLA_DIR})
+      _s2fft PUBLIC ${CMAKE_CURRENT_LIST_DIR}/lib/include ${XLA_DIR} ${CUDAToolkit_INCLUDE_DIRS})
     set_target_properties(_s2fft PROPERTIES LINKER_LANGUAGE CUDA
                                             CUDA_SEPARABLE_COMPILATION ON)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true")
     set(CMAKE_CUDA_ARCHITECTURES
         "70;80;89"
         CACHE STRING "List of CUDA compute capabilities to build cuDecomp for.")
@@ -85,7 +84,7 @@ else()
     # Add the executable
     execute_process(
       COMMAND "${Python_EXECUTABLE}" "-c"
-              "from jax.extend import ffi; print(ffi.include_dir())"
+              "from jax import ffi; print(ffi.include_dir())"
       OUTPUT_STRIP_TRAILING_WHITESPACE
       OUTPUT_VARIABLE XLA_DIR)
     message(STATUS "XLA include directory: ${XLA_DIR}")

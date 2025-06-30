@@ -111,7 +111,7 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resul
                     reinterpret_cast<int64*>(callback_params->typed_data() + i * params_offset);
 
             // Step 2g: Launch the forward transform on this sub-stream.
-            executor->Forward(descriptor, sub_stream, data_c, workspace_c, callback_params_c);
+            executor->Forward(descriptor, sub_stream, data_c, workspace_c);
             // Step 2h: Launch spectral extension kernel.
             s2fftKernels::launch_spectral_extension(data_c, out_c, descriptor.nside,
                                                     descriptor.harmonic_band_limit, sub_stream);
@@ -131,7 +131,7 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resul
         auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
         PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
         // Step 2m: Launch the forward transform.
-        executor->Forward(descriptor, stream, data_c, workspace_c, callback_params_c);
+        executor->Forward(descriptor, stream, data_c, workspace_c);
         // Step 2n: Launch spectral extension kernel.
         s2fftKernels::launch_spectral_extension(data_c, out_c, descriptor.nside,
                                                 descriptor.harmonic_band_limit, stream);
@@ -205,7 +205,7 @@ ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resu
                                                   descriptor.harmonic_band_limit, descriptor.shift,
                                                   sub_stream);
             // Step 2h: Launch the backward transform on this sub-stream.
-            executor->Backward(descriptor, sub_stream, out_c, workspace_c, callback_params_c);
+            executor->Backward(descriptor, sub_stream, out_c, workspace_c);
         }
         // Step 2i: Join all forked streams back to the main stream.
         handler.join(stream);
@@ -228,7 +228,7 @@ ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resu
         s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside, descriptor.harmonic_band_limit,
                                               descriptor.shift, stream);
         // Step 2n: Launch the backward transform.
-        executor->Backward(descriptor, stream, out_c, workspace_c, callback_params_c);
+        executor->Backward(descriptor, stream, out_c, workspace_c);
         return ffi::Error::Success();
     }
 }

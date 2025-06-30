@@ -14,7 +14,8 @@
 #include "cufft.h"
 #include "cufftXt.h"
 #include "thrust/device_vector.h"
-#include "s2fft_callbacks.h"
+#include "s2fft_kernels.h"
+
 
 namespace s2fft {
 
@@ -168,11 +169,9 @@ public:
      * @param stream The CUDA stream to use for execution.
      * @param data Pointer to the input/output data on the device.
      * @param workspace Pointer to the workspace memory on the device.
-     * @param callback_params Pointer to device memory containing callback parameters.
      * @return HRESULT indicating success or failure.
      */
-    HRESULT Forward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data, Complex *workspace,
-                    int64 *callback_params);
+    HRESULT Forward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data, Complex *workspace);
 
     /**
      * @brief Executes the backward Spherical Harmonic Transform.
@@ -184,11 +183,9 @@ public:
      * @param stream The CUDA stream to use for execution.
      * @param data Pointer to the input/output data on the device.
      * @param workspace Pointer to the workspace memory on the device.
-     * @param callback_params Pointer to device memory containing callback parameters.
      * @return HRESULT indicating success or failure.
      */
-    HRESULT Backward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data, Complex *workspace,
-                     int64 *callback_params);
+    HRESULT Backward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data, Complex *workspace);
 
 public:
     // cuFFT handles for polar and equatorial FFT plans
