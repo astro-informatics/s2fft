@@ -12,10 +12,10 @@ typedef long long int int64;
 /**
  * @file s2fft_kernels.h
  * @brief CUDA kernels for HEALPix spherical harmonic transforms
- * 
+ *
  * @note CUFT CALLBACKS DEPRECATED: This implementation no longer uses cuFFT callbacks.
  * The previous callback-based approach has been replaced with direct kernel launches
- * for better performance and maintainability. The files s2fft_callbacks.h and 
+ * for better performance and maintainability. The files s2fft_callbacks.h and
  * s2fft_callbacks.cc are no longer used and can be considered orphaned.
  */
 

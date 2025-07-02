@@ -292,7 +292,6 @@ __global__ void spectral_extension(complex* data, complex* output, int nside, in
     }
 }
 
-
 /**
  * @brief CUDA kernel for FFT shifting and normalization of HEALPix data.
  *
@@ -341,14 +340,13 @@ __global__ void shift_normalize_kernel(complex* data, int nside, bool apply_shif
         long long int shifted_o = (o + nphi / 2) % nphi;
         shifted_o = shifted_o < 0 ? nphi + shifted_o : shifted_o;
         long long int dest_p = r_start + shifted_o;
-        //printf(" -> CUDA: Applying shift: p=%lld, dest_p=%lld, shifted_o=%lld\n", p, dest_p, shifted_o);
+        // printf(" -> CUDA: Applying shift: p=%lld, dest_p=%lld, shifted_o=%lld\n", p, dest_p, shifted_o);
         data[dest_p] = element;
     } else {
         // Step 4b: Write back to original position
         data[p] = element;
     }
 }
-
 
 // ============================================================================
 // C++ LAUNCH FUNCTIONS
