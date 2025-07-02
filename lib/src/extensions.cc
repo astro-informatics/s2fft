@@ -65,14 +65,12 @@ constexpr bool is_double_v = is_double<T>::value;
  * @param input Input buffer containing HEALPix pixel-space data.
  * @param output Output buffer to store the FTM result.
  * @param workspace Output buffer for temporary workspace memory.
- * @param callback_params Output buffer for callback parameters.
  * @param descriptor Descriptor containing transform parameters.
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
 ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Result<ffi::Buffer<T>> output,
                            ffi::Result<ffi::Buffer<T>> workspace,
-                           ffi::Result<ffi::Buffer<ffi::DataType::S64>> callback_params,
                            s2fftDescriptor descriptor) {
     // Step 1: Determine the complex type based on the XLA data type.
     using fft_complex_type = fft_complex_t<T>;
@@ -82,10 +80,9 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resul
     if (dim_in.size() == 2) {
         // Step 2a: Batched case.
         int batch_count = dim_in[0];
-        // Step 2b: Compute offsets for input, output, and callback parameters for each batch.
+        // Step 2b: Compute offsets for input and output for each batch.
         int64_t input_offset = descriptor.nside * descriptor.nside * 12;
         int64_t output_offset = (4 * descriptor.nside - 1) * (2 * descriptor.harmonic_band_limit);
-        int64_t params_offset = 2 * (descriptor.nside - 1) + 1;
 
         // Step 2c: Fork CUDA streams for parallel processing of batches.
         CudaStreamHandler handler;
@@ -99,16 +96,13 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resul
             auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
             PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
 
-            // Step 2f: Calculate device pointers for the current batch's data, output, workspace, and
-            // callback parameters.
+            // Step 2f: Calculate device pointers for the current batch's data, output, and workspace.
             fft_complex_type* data_c =
                     reinterpret_cast<fft_complex_type*>(input.typed_data() + i * input_offset);
             fft_complex_type* out_c =
                     reinterpret_cast<fft_complex_type*>(output->typed_data() + i * output_offset);
             fft_complex_type* workspace_c =
                     reinterpret_cast<fft_complex_type*>(workspace->typed_data() + i * executor->m_work_size);
-            int64* callback_params_c =
-                    reinterpret_cast<int64*>(callback_params->typed_data() + i * params_offset);
 
             // Step 2g: Launch the forward transform on this sub-stream.
             executor->Forward(descriptor, sub_stream, data_c, workspace_c);
@@ -121,11 +115,10 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resul
         return ffi::Error::Success();
     } else {
         // Step 2j: Non-batched case.
-        // Step 2k: Get device pointers for data, output, workspace, and callback parameters.
+        // Step 2k: Get device pointers for data, output, and workspace.
         fft_complex_type* data_c = reinterpret_cast<fft_complex_type*>(input.typed_data());
         fft_complex_type* out_c = reinterpret_cast<fft_complex_type*>(output->typed_data());
         fft_complex_type* workspace_c = reinterpret_cast<fft_complex_type*>(workspace->typed_data());
-        int64* callback_params_c = reinterpret_cast<int64*>(callback_params->typed_data());
 
         // Step 2l: Get or create an s2fftExec instance from the PlanCache.
         auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
@@ -152,14 +145,12 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resul
  * @param input Input buffer containing FTM data.
  * @param output Output buffer to store HEALPix pixel-space data.
  * @param workspace Output buffer for temporary workspace memory.
- * @param callback_params Output buffer for callback parameters.
  * @param descriptor Descriptor containing transform parameters.
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
 ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Result<ffi::Buffer<T>> output,
                             ffi::Result<ffi::Buffer<T>> workspace,
-                            ffi::Result<ffi::Buffer<ffi::DataType::S64>> callback_params,
                             s2fftDescriptor descriptor) {
     // Step 1: Determine the complex type based on the XLA data type.
     using fft_complex_type = fft_complex_t<T>;
@@ -189,16 +180,13 @@ ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resu
             auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
             PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
 
-            // Step 2f: Calculate device pointers for the current batch's data, output, workspace, and
-            // callback parameters.
+            // Step 2f: Calculate device pointers for the current batch's data, output, and workspace.
             fft_complex_type* data_c =
                     reinterpret_cast<fft_complex_type*>(input.typed_data() + i * input_offset);
             fft_complex_type* out_c =
                     reinterpret_cast<fft_complex_type*>(output->typed_data() + i * output_offset);
             fft_complex_type* workspace_c =
                     reinterpret_cast<fft_complex_type*>(workspace->typed_data() + i * executor->m_work_size);
-            int64* callback_params_c =
-                    reinterpret_cast<int64*>(callback_params->typed_data() + i * sizeof(int64) * 2);
 
             // Step 2g: Launch spectral folding kernel.
             s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside,
@@ -215,11 +203,10 @@ ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resu
         // Assertions to ensure correct input/output dimensions for non-batched operations.
         assert(dim_in.size() == 2);
         assert(dim_out.size() == 1);
-        // Step 2k: Get device pointers for data, output, workspace, and callback parameters.
+        // Step 2k: Get device pointers for data, output, and workspace.
         fft_complex_type* data_c = reinterpret_cast<fft_complex_type*>(input.typed_data());
         fft_complex_type* out_c = reinterpret_cast<fft_complex_type*>(output->typed_data());
         fft_complex_type* workspace_c = reinterpret_cast<fft_complex_type*>(workspace->typed_data());
-        int64* callback_params_c = reinterpret_cast<int64*>(callback_params->typed_data());
 
         // Step 2l: Get or create an s2fftExec instance from the PlanCache.
         auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
@@ -310,14 +297,12 @@ s2fftDescriptor build_descriptor(int64_t nside, int64_t harmonic_band_limit, boo
  * @param input Input buffer.
  * @param output Output buffer.
  * @param workspace Output buffer for temporary workspace memory.
- * @param callback_params Output buffer for callback parameters.
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
 ffi::Error healpix_fft_cuda(cudaStream_t stream, int64_t nside, int64_t harmonic_band_limit, bool reality,
                             bool forward, bool normalize, bool adjoint, ffi::Buffer<T> input,
-                            ffi::Result<ffi::Buffer<T>> output, ffi::Result<ffi::Buffer<T>> workspace,
-                            ffi::Result<ffi::Buffer<ffi::DataType::S64>> callback_params) {
+                            ffi::Result<ffi::Buffer<T>> output, ffi::Result<ffi::Buffer<T>> workspace) {
     // Step 1: Build the s2fftDescriptor based on the input parameters.
     size_t work_size = 0;  // Variable to hold the workspace size
     s2fftDescriptor descriptor = build_descriptor<T>(nside, harmonic_band_limit, reality, forward, normalize,
@@ -325,9 +310,9 @@ ffi::Error healpix_fft_cuda(cudaStream_t stream, int64_t nside, int64_t harmonic
 
     // Step 2: Dispatch to either forward or backward transform based on the 'forward' flag.
     if (forward) {
-        return healpix_forward<T>(stream, input, output, workspace, callback_params, descriptor);
+        return healpix_forward<T>(stream, input, output, workspace, descriptor);
     } else {
-        return healpix_backward<T>(stream, input, output, workspace, callback_params, descriptor);
+        return healpix_backward<T>(stream, input, output, workspace, descriptor);
     }
 }
 
@@ -348,8 +333,7 @@ XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C64, healpix_fft_cuda<ffi::DataTy
                                       .Attr<bool>("adjoint")
                                       .Arg<ffi::Buffer<ffi::DataType::C64>>()
                                       .Ret<ffi::Buffer<ffi::DataType::C64>>()
-                                      .Ret<ffi::Buffer<ffi::DataType::C64>>()
-                                      .Ret<ffi::Buffer<ffi::DataType::S64>>());
+                                      .Ret<ffi::Buffer<ffi::DataType::C64>>());
 
 XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C128, healpix_fft_cuda<ffi::DataType::C128>,
                               ffi::Ffi::Bind()
@@ -362,8 +346,7 @@ XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C128, healpix_fft_cuda<ffi::DataT
                                       .Attr<bool>("adjoint")
                                       .Arg<ffi::Buffer<ffi::DataType::C128>>()
                                       .Ret<ffi::Buffer<ffi::DataType::C128>>()
-                                      .Ret<ffi::Buffer<ffi::DataType::C128>>()
-                                      .Ret<ffi::Buffer<ffi::DataType::S64>>());
+                                      .Ret<ffi::Buffer<ffi::DataType::C128>>());
 
 /**
  * @brief Encapsulates an FFI handler into a nanobind capsule.

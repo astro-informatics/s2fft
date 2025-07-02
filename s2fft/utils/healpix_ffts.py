@@ -609,11 +609,7 @@ def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm, adjoint):
         worksize //= 8  # 8 bytes per C64 element
         workspace_shape = (worksize,)
         workspace_dtype = np.complex64
-    # Step 3: Calculate shape for callback parameters.
-    nb_params = 2 * (nside - 1) + 1
-    params_shape = (nb_params,)
-
-    # Step 4: Define output shapes based on FFT type.
+    # Step 3: Define output shapes based on FFT type.
     healpix_size = (nside**2 * 12,)
     ftm_size = (4 * nside - 1, 2 * L)
     if fft_type == "forward":
@@ -628,17 +624,15 @@ def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm, adjoint):
     else:
         raise ValueError(f"fft_type {fft_type} not recognised.")
 
-    # Step 5: Create ShapedArray objects for output, workspace, and callback parameters.
+    # Step 4: Create ShapedArray objects for output and workspace.
     workspace_aval = ShapedArray(
         shape=batch_shape + workspace_shape, dtype=workspace_dtype
     )
-    params_eval = ShapedArray(shape=batch_shape + params_shape, dtype=np.int64)
 
-    # Step 6: Return the ShapedArray objects.
+    # Step 5: Return the ShapedArray objects.
     return (
         f.update(shape=out_shape, dtype=f.dtype),
         workspace_aval,
-        params_eval,
     )
 
 
@@ -674,7 +668,7 @@ def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm, adj
         raise MissingCUDASupport()
 
     # Step 2: Get the abstract evaluation results for the outputs.
-    (aval_out, _, _) = ctx.avals_out
+    (aval_out, _) = ctx.avals_out
 
     # Step 3: Get lowering information (double precision, forward/backward, normalize).
     is_double, forward, normalize = _get_lowering_info(fft_type, norm, aval_out.dtype)
@@ -839,8 +833,8 @@ def healpix_fft_cuda(
     """
     # Step 1: Promote input data to complex dtype if necessary.
     (f,) = promote_dtypes_complex(f)
-    # Step 2: Bind the input to the CUDA primitive. It returns multiple outputs (out, workspace, callback_params).
-    out, _, _ = _healpix_fft_cuda_primitive.bind(
+    # Step 2: Bind the input to the CUDA primitive. It returns multiple outputs (out, workspace).
+    out, _ = _healpix_fft_cuda_primitive.bind(
         f,
         L=L,
         nside=nside,
@@ -879,8 +873,8 @@ def healpix_ifft_cuda(
     """
     # Step 1: Promote input data to complex dtype if necessary.
     (ftm,) = promote_dtypes_complex(ftm)
-    # Step 2: Bind the input to the CUDA primitive. It returns multiple outputs (out, workspace, callback_params).
-    out, _, _ = _healpix_fft_cuda_primitive.bind(
+    # Step 2: Bind the input to the CUDA primitive. It returns multiple outputs (out, workspace).
+    out, _ = _healpix_fft_cuda_primitive.bind(
         ftm,
         L=L,
         nside=nside,
