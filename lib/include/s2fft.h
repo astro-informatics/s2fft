@@ -16,7 +16,6 @@
 #include "thrust/device_vector.h"
 #include "s2fft_kernels.h"
 
-
 namespace s2fft {
 
 /**

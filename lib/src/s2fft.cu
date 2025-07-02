@@ -109,7 +109,6 @@ HRESULT s2fftExec<Complex>::Initialize(const s2fftDescriptor &descriptor) {
     return S_OK;
 }
 
-
 template <typename Complex>
 HRESULT s2fftExec<Complex>::Forward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data,
                                     Complex *workspace) {
@@ -148,7 +147,6 @@ HRESULT s2fftExec<Complex>::Forward(const s2fftDescriptor &desc, cudaStream_t st
             break;
         case s2fftKernels::fft_norm::FORWARD:
             // Normalize by sqrt(Npix).
-            std::cout << "Applying forward normalization." << std::endl;
             s2fftKernels::launch_shift_normalize_kernel(stream, data, m_nside, shift, 0);
             break;
         case s2fftKernels::fft_norm::ORTHO:
@@ -158,7 +156,6 @@ HRESULT s2fftExec<Complex>::Forward(const s2fftDescriptor &desc, cudaStream_t st
         default:
             return E_INVALIDARG;  // Invalid normalization type.
     }
-    
 
     return S_OK;
 }
