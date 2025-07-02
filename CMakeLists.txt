@@ -40,7 +40,7 @@ if(CMAKE_CUDA_COMPILER)
       OPTIONAL_COMPONENTS Development.SABIModule)
     execute_process(
       COMMAND "${Python_EXECUTABLE}" "-c"
-              "from jax.extend import ffi; print(ffi.include_dir())"
+              "from jax import ffi; print(ffi.include_dir())"
       OUTPUT_STRIP_TRAILING_WHITESPACE
       OUTPUT_VARIABLE XLA_DIR)
     message(STATUS "XLA include directory: ${XLA_DIR}")
