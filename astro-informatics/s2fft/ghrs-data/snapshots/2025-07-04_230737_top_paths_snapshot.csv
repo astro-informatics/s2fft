@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/astro-informatics/s2fft,80,47
+/astro-informatics/s2fft/issues,14,6
+/astro-informatics/s2fft/pulls,9,3
+/astro-informatics/s2fft/tree/main/s2fft,7,4
+/astro-informatics/s2fft/blob/main/pyproject.toml,7,3
+/astro-informatics/s2fft/pull/290,7,2
+/astro-informatics/s2fft/tree/main,5,4
+/astro-informatics/s2fft/tree/main/.github/workflows,5,2
+/astro-informatics/s2fft/blob/main/.github/workflows/build.yml,4,2
+/astro-informatics/s2fft/blob/main/s2fft/transforms/spherical.py,3,3
