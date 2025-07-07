@@ -32,6 +32,11 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
         os: [ubuntu-latest, macos-latest]
+        exclude:
+          # Skip Python 3.13 on MacOS as 1.20<=numpy<2 requirement inherited from so3
+          # requiring numpy<2 cannot be resolved there
+          - os: macos-latest
+            python-version: "3.13"
       fail-fast: false
     env:
       CMAKE_POLICY_VERSION_MINIMUM: 3.5
