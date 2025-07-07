@@ -49,6 +49,7 @@ jobs:
         
     - if: matrix.os == 'macos-latest'
       name: Install dependencies with conda on MacOS
+      shell: bash -el {0}
       # Avoid OpenMP runtime incompatibility when using PyPI wheels
       # by installing torch and healpy using conda
       # https://github.com/healpy/healpy/issues/1012
@@ -57,12 +58,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install --no-deps so3 pyssht
         pip install --no-deps .
-  
-    - if: matrix.os == 'macos-latest'
-      name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      with:
-        limit-access-to-actor: true
   
     - if: matrix.os != 'macos-latest'
       name: Set up Python ${{ matrix.python-version }}
