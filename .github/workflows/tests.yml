@@ -58,6 +58,12 @@ jobs:
         pip install --no-deps so3 pyssht
         pip install --no-deps .
   
+    - if: matrix.os == 'macos-latest'
+      name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: true
+  
     - if: matrix.os != 'macos-latest'
       name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
