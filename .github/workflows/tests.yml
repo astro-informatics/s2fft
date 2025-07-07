@@ -79,7 +79,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install .[tests]
 
+    - name: Run tests (skipping slow)
+      if: github.event_name == 'pull_request'
+      run: |
+        pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc -m "not slow"
+
     - name: Run tests
+      if: github.event_name != 'pull_request'
       run: |
         pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc
 
