@@ -39,8 +39,22 @@ jobs:
       with:
         fetch-depth: 0
         fetch-tags: true
+        
+    - if: matrix.os == 'macos-latest'
+      name: Set up Miniforge
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        miniforge-version: latest
+        python-version: ${{ matrix.python-version }}
+        
+    - if: matrix.os == 'macos-latest'
+      name: Install pytorch and healpy with conda on MacOS
+      # Avoid OpenMP runtime incompatibility when using PyPI wheels
+      # https://github.com/healpy/healpy/issues/1012
+      run: conda install pytorch healpy
 
-    - name: Set up Python ${{ matrix.python-version }}
+    - if: matrix.os != 'macos-latest'
+      name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
