@@ -50,10 +50,13 @@ jobs:
     - if: matrix.os == 'macos-latest'
       name: Install dependencies with conda on MacOS
       # Avoid OpenMP runtime incompatibility when using PyPI wheels
+      # by installing torch and healpy using conda
       # https://github.com/healpy/healpy/issues/1012
       run: |
-        conda install conda-pypi
-        conda pip install ".[tests]"
+        conda install jax "jax>=0.3.13,<0.6.0" "numpy>=1.20,<2" ducc0 healpy torch pytest pytest-cov
+        python -m pip install --upgrade pip
+        pip install --no-deps so3 pyssht
+        pip install --no-deps .
   
     - if: matrix.os != 'macos-latest'
       name: Set up Python ${{ matrix.python-version }}
