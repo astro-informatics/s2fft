@@ -9,18 +9,17 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.9]
 
     steps:
     - name: Checkout Source
       uses: actions/checkout@v4.2.2
 
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.x
+        cache: pip
+        cache-dependency-path: pyproject.toml
     
     - name: Install dependencies
       run: |
