@@ -1,5 +1,4 @@
 from functools import partial
-from typing import List, Optional
 
 import jax.numpy as jnp
 import numpy as np
@@ -27,7 +26,7 @@ def inverse(
     sampling: str = "mw",
     method: str = "numpy",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     spmd: bool = False,
     L_lower: int = 0,
     _ssht_backend: int = 1,
@@ -117,7 +116,7 @@ def inverse_numpy(
     nside: int = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     L_lower: int = 0,
 ) -> np.ndarray:
     r"""
@@ -217,7 +216,7 @@ def inverse_jax(
     nside: int = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     spmd: bool = False,
     L_lower: int = 0,
     use_healpix_custom_primitive: bool = False,
@@ -354,14 +353,14 @@ def forward(
     f: np.ndarray,
     L: int,
     spin: int = 0,
-    nside: Optional[int] = None,
+    nside: int | None = None,
     sampling: str = "mw",
     method: str = "numpy",
     reality: bool = False,
-    precomps: Optional[List] = None,
+    precomps: list | None = None,
     spmd: bool = False,
     L_lower: int = 0,
-    iter: Optional[int] = None,
+    iter: int | None = None,
     _ssht_backend: int = 1,
 ) -> np.ndarray:
     r"""
@@ -472,7 +471,7 @@ def forward_numpy(
     nside: int = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     L_lower: int = 0,
 ) -> np.ndarray:
     r"""
@@ -597,7 +596,7 @@ def forward_jax(
     nside: int = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     spmd: bool = False,
     L_lower: int = 0,
     use_healpix_custom_primitive: bool = False,

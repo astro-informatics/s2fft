@@ -1,5 +1,4 @@
 from functools import partial
-from typing import Tuple
 
 import jax.numpy as jnp
 import numpy as np
@@ -9,7 +8,7 @@ from jax import jit
 def wigner_subset_to_s2(
     flmn: np.ndarray,
     spins: np.ndarray,
-    DW: Tuple[np.ndarray, np.ndarray],
+    DW: tuple[np.ndarray, np.ndarray],
     L: int,
     sampling: str = "mw",
 ) -> np.ndarray:
@@ -91,7 +90,7 @@ def wigner_subset_to_s2(
 def wigner_subset_to_s2_jax(
     flmn: jnp.ndarray,
     spins: jnp.ndarray,
-    DW: Tuple[jnp.ndarray, jnp.ndarray],
+    DW: tuple[jnp.ndarray, jnp.ndarray],
     L: int,
     sampling: str = "mw",
 ) -> jnp.ndarray:
@@ -173,7 +172,7 @@ def wigner_subset_to_s2_jax(
 def so3_to_wigner_subset(
     f: np.ndarray,
     spins: np.ndarray,
-    DW: Tuple[np.ndarray, np.ndarray],
+    DW: tuple[np.ndarray, np.ndarray],
     L: int,
     N: int,
     sampling: str = "mw",
@@ -214,7 +213,7 @@ def so3_to_wigner_subset(
 def so3_to_wigner_subset_jax(
     f: jnp.ndarray,
     spins: jnp.ndarray,
-    DW: Tuple[jnp.ndarray, jnp.ndarray],
+    DW: tuple[jnp.ndarray, jnp.ndarray],
     L: int,
     N: int,
     sampling: str = "mw",
@@ -257,7 +256,7 @@ def so3_to_wigner_subset_jax(
 def s2_to_wigner_subset(
     fs: np.ndarray,
     spins: np.ndarray,
-    DW: Tuple[np.ndarray, np.ndarray],
+    DW: tuple[np.ndarray, np.ndarray],
     L: int,
     sampling: str = "mw",
 ) -> np.ndarray:
@@ -343,7 +342,7 @@ def s2_to_wigner_subset(
 def s2_to_wigner_subset_jax(
     fs: jnp.ndarray,
     spins: jnp.ndarray,
-    DW: Tuple[jnp.ndarray, jnp.ndarray],
+    DW: tuple[jnp.ndarray, jnp.ndarray],
     L: int,
     sampling: str = "mw",
 ) -> jnp.ndarray:

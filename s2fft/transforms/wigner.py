@@ -1,5 +1,4 @@
 from functools import partial
-from typing import List
 
 import jax.numpy as jnp
 import numpy as np
@@ -19,7 +18,7 @@ def inverse(
     sampling: str = "mw",
     method: str = "numpy",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     L_lower: int = 0,
     _ssht_backend: int = 1,
 ) -> np.ndarray:
@@ -115,7 +114,7 @@ def inverse_numpy(
     nside: int = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     L_lower: int = 0,
 ) -> np.ndarray:
     r"""
@@ -205,7 +204,7 @@ def inverse_jax(
     nside: int = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     L_lower: int = 0,
 ) -> jnp.ndarray:
     r"""
@@ -352,7 +351,7 @@ def forward(
     sampling: str = "mw",
     method: str = "numpy",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     L_lower: int = 0,
     _ssht_backend: int = 1,
 ) -> np.ndarray:
@@ -447,7 +446,7 @@ def forward_numpy(
     nside: int = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     L_lower: int = 0,
 ) -> np.ndarray:
     r"""
@@ -542,7 +541,7 @@ def forward_jax(
     nside: int = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     L_lower: int = 0,
 ) -> jnp.ndarray:
     r"""

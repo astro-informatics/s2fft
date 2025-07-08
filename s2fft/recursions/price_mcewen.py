@@ -1,6 +1,5 @@
 import warnings
 from functools import partial
-from typing import List
 
 import jax.lax as lax
 import jax.numpy as jnp
@@ -19,7 +18,7 @@ def generate_precomputes(
     nside: int = None,
     forward: bool = False,
     L_lower: int = 0,
-) -> List[np.ndarray]:
+) -> list[np.ndarray]:
     r"""
     Compute recursion coefficients with :math:`\mathcal{O}(L^3)` memory overhead.
 
@@ -125,7 +124,7 @@ def generate_precomputes_jax(
     forward: bool = False,
     L_lower: int = 0,
     betas: jnp.ndarray = None,
-) -> List[jnp.ndarray]:
+) -> list[jnp.ndarray]:
     r"""
     Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
     In practice one could compute these on-the-fly but the memory overhead is
@@ -264,7 +263,7 @@ def generate_precomputes_wigner(
     forward: bool = False,
     reality: bool = False,
     L_lower: int = 0,
-) -> List[List[np.ndarray]]:
+) -> list[list[np.ndarray]]:
     r"""
     Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
     In practice one could compute these on-the-fly but the memory overhead is
@@ -316,7 +315,7 @@ def generate_precomputes_wigner_jax(
     forward: bool = False,
     reality: bool = False,
     L_lower: int = 0,
-) -> List[List[jnp.ndarray]]:
+) -> list[list[jnp.ndarray]]:
     r"""
     Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
     In practice one could compute these on-the-fly but the memory overhead is

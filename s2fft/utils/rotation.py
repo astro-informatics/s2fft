@@ -1,5 +1,4 @@
 from functools import partial
-from typing import Tuple
 
 import jax.numpy as jnp
 from jax import jit
@@ -11,7 +10,7 @@ from s2fft.recursions.risbo_jax import compute_full
 def rotate_flms(
     flm: jnp.ndarray,
     L: int,
-    rotation: Tuple[float, float, float],
+    rotation: tuple[float, float, float],
     dl_array: jnp.ndarray = None,
 ) -> jnp.ndarray:
     """
