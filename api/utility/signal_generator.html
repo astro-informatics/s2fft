@@ -47,7 +47,7 @@
     <script src="../../_static/jquery.js?v=5d32c60e"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
     <script src="../../_static/documentation_options.js?v=6aee1ebc"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../_static/copybutton.js?v=f281be69"></script>
@@ -548,7 +548,7 @@ el and m indices.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="s2fft.utils.signal_generator.complex_normal">
-<span class="sig-prename descclassname"><span class="pre">s2fft.utils.signal_generator.</span></span><span class="sig-name descname"><span class="pre">complex_normal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">rng:</span> <span class="pre">np.random.Generator,</span> <span class="pre">size:</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">tuple[int],</span> <span class="pre">var:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1.0,</span> <span class="pre">dtype:</span> <span class="pre">DTypeLike</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.complex128'&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">np.ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.signal_generator.complex_normal" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">s2fft.utils.signal_generator.</span></span><span class="sig-name descname"><span class="pre">complex_normal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">rng:</span> <span class="pre">~numpy.random._generator.Generator,</span> <span class="pre">size:</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">tuple[int],</span> <span class="pre">var:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1.0,</span> <span class="pre">dtype:</span> <span class="pre">type[~typing.Any]</span> <span class="pre">|</span> <span class="pre">~numpy.dtype[~typing.Any]</span> <span class="pre">|</span> <span class="pre">~numpy._typing._dtype_like._SupportsDType[~numpy.dtype[~typing.Any]]</span> <span class="pre">|</span> <span class="pre">tuple[~typing.Any,</span> <span class="pre">~typing.Any]</span> <span class="pre">|</span> <span class="pre">list[~typing.Any]</span> <span class="pre">|</span> <span class="pre">~numpy._typing._dtype_like._DTypeDict</span> <span class="pre">|</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.complex128'&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#s2fft.utils.signal_generator.complex_normal" title="Link to this definition">#</a></dt>
 <dd><p>Generate array of samples from zero-mean complex normal distribution.</p>
 <p>For <cite>z ~ ComplexNormal(0, var)</cite> we have that <cite>imag(z) ~ Normal(0, var/2)</cite> and
 <cite>real(z) ~ Normal(0, var/2)</cite> where <cite>Normal(μ, σ²)</cite> is the (real-valued) normal
@@ -693,7 +693,7 @@ samples.</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
     <br/>
   </p>
 </div>
