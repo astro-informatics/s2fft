@@ -1,5 +1,4 @@
 from functools import partial
-from typing import List
 
 import jax.lax as lax
 import jax.numpy as jnp
@@ -21,7 +20,7 @@ def inverse_latitudinal_step(
     nside: int,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     L_lower: int = 0,
 ) -> np.ndarray:
     r"""
@@ -181,7 +180,7 @@ def inverse_latitudinal_step_jax(
     nside: int,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     spmd: bool = False,
     L_lower: int = 0,
 ) -> jnp.ndarray:
@@ -438,7 +437,7 @@ def forward_latitudinal_step(
     nside: int,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     L_lower: int = 0,
 ) -> np.ndarray:
     r"""
@@ -598,7 +597,7 @@ def forward_latitudinal_step_jax(
     nside: int,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: List = None,
+    precomps: list = None,
     spmd: bool = False,
     L_lower: int = 0,
 ) -> jnp.ndarray:
