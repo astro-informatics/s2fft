@@ -1,26 +1,38 @@
 name: Docs
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/docs.yml
+      - pyproject.toml
+      - s2fft/**
+      - docs/**
+      - notebooks/**
   push:
     branches:
     - main
-    
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   build:
 
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.9]
 
     steps:
     - name: Checkout Source
       uses: actions/checkout@v4.2.2
 
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.x
+        cache: pip
+        cache-dependency-path: pyproject.toml
     
     - name: Install dependencies
       run: |
@@ -33,7 +45,7 @@ jobs:
         cd docs && make html
 
     - name: Deploy
-      if: github.ref == 'refs/heads/main'
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: JamesIves/github-pages-deploy-action@v4.7.3
       with:
         branch: gh-pages # The branch the action should deploy to.
