@@ -42,7 +42,7 @@ def _plot_scaling_guide(
     )
 
 
-def plot_times(
+def plot_run_times(
     ax: plt.Axes, parameter_symbol: str, parameter_values: np.ndarray, results: dict
 ) -> None:
     min_times = np.array([min(r["run_times_in_seconds"]) for r in results])
@@ -51,6 +51,15 @@ def plot_times(
     ax.plot(parameter_values, mid_times, label="Measured")
     ax.fill_between(parameter_values, min_times, max_times, alpha=0.5)
     _plot_scaling_guide(ax, parameter_symbol, parameter_values, mid_times, 3)
+    ax.legend()
+
+
+def plot_compilation_times(
+    ax: plt.Axes, parameter_symbol: str, parameter_values: np.ndarray, results: dict
+) -> None:
+    compile_times = np.array([r["compilation_time_in_seconds"] for r in results])
+    ax.plot(parameter_values, compile_times, label="Measured")
+    _plot_scaling_guide(ax, parameter_symbol, parameter_values, compile_times, 1)
     ax.legend()
 
 
@@ -108,7 +117,8 @@ def plot_memory(
 
 
 _measurement_plot_functions_and_labels = {
-    "times": (plot_times, "Run time / s"),
+    "run_times": (plot_run_times, "Run time / s"),
+    "compilation_times": (plot_compilation_times, "Compilation time / s"),
     "flops": (plot_flops, "Floating point operations"),
     "memory": (plot_memory, "Memory / B"),
     "error": (plot_error, "Numerical error"),
@@ -118,7 +128,13 @@ _measurement_plot_functions_and_labels = {
 def plot_results_against_bandlimit(
     benchmark_results_path: str | Path,
     functions: tuple[str] = ("forward", "inverse"),
-    measurements: tuple[str] = ("times", "flops", "memory", "error"),
+    measurements: tuple[str] = (
+        "run_times",
+        "compilation_times",
+        "flops",
+        "memory",
+        "error",
+    ),
     axis_size: float = 3.0,
     fig_dpi: int = 100,
     functions_along_columns: bool = False,
@@ -204,7 +220,7 @@ if __name__ == "__main__":
         ("forward", "inverse") if args.functions is None else tuple(args.functions)
     )
     measurements = (
-        ("times", "flops", "memory", "error")
+        ("run_times", "compilation_times", "flops", "memory", "error")
         if args.measurements is None
         else tuple(args.measurements)
     )

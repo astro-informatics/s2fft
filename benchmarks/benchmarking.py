@@ -232,6 +232,11 @@ def _format_results_entry(results_entry: dict) -> str:
         + f"min(run times): {min(results_entry['run_times_in_seconds']):>#7.2g}s, "
         + f"max(run times): {max(results_entry['run_times_in_seconds']):>#7.2g}s"
         + (
+            f", compile time: {results_entry['compilation_time_in_seconds']:>#7.2g}s"
+            if "compilation_time_in_seconds" in results_entry
+            else ""
+        )
+        + (
             f", peak memory: {results_entry['traced_memory_peak_in_bytes']:>#7.2g}B"
             if "traced_memory_peak_in_bytes" in results_entry
             else ""
@@ -369,11 +374,27 @@ def trace_memory_allocations(n_frames: int = 1) -> Callable[[], tuple[int, int]]
         tracemalloc.stop()
 
 
+@contextlib.contextmanager
+def timer():
+    """Simple context manager to time operations in a block of code.
+
+    Yielded object is no-argument function which will evaluate to measured time in
+    seconds after exit from block.
+
+    Based on StackOverflow answer https://stackoverflow.com/a/69156219 by Justin Dehorty
+    """
+    time_0 = time_1 = timeit.default_timer()
+    yield lambda: time_1 - time_0
+    time_1 = timeit.default_timer()
+
+
 def _compile_jax_benchmark_and_analyse(
     benchmark_function: Callable, results_entry: dict
 ) -> Callable:
     """Compile a JAX benchmark function and extract cost estimates if available."""
-    compiled_benchmark_function = jax.jit(benchmark_function).lower().compile()
+    with timer() as t:
+        compiled_benchmark_function = jax.jit(benchmark_function).lower().compile()
+    results_entry["compilation_time_in_seconds"] = t()
     cost_analysis = compiled_benchmark_function.cost_analysis()
     if cost_analysis is not None:
         if isinstance(cost_analysis, list):
