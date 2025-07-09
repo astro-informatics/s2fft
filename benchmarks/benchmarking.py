@@ -392,6 +392,13 @@ def _compile_jax_benchmark_and_analyse(
     benchmark_function: Callable, args: dict, results_entry: dict
 ) -> Callable:
     """Compile a JAX benchmark function and extract cost estimates if available."""
+    # Convert any NumPy array arguments to JAX arrays which should ensure placed on
+    # default device here rather than triggering a host-device transfer during run time
+    args.update(
+        jax.tree.map(
+            lambda x: jax.numpy.asarray(x) if isinstance(x, np.ndarray) else x, args
+        )
+    )
     with timer() as t:
         compiled_benchmark_function = (
             jax.jit(benchmark_function).lower(**args).compile()
