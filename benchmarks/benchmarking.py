@@ -389,11 +389,13 @@ def timer():
 
 
 def _compile_jax_benchmark_and_analyse(
-    benchmark_function: Callable, results_entry: dict
+    benchmark_function: Callable, args: dict, results_entry: dict
 ) -> Callable:
     """Compile a JAX benchmark function and extract cost estimates if available."""
     with timer() as t:
-        compiled_benchmark_function = jax.jit(benchmark_function).lower().compile()
+        compiled_benchmark_function = (
+            jax.jit(benchmark_function).lower(**args).compile()
+        )
     results_entry["compilation_time_in_seconds"] = t()
     cost_analysis = compiled_benchmark_function.cost_analysis()
     if cost_analysis is not None:
@@ -418,7 +420,7 @@ def _compile_jax_benchmark_and_analyse(
         }
     # Ensure block_until_ready called on benchmark output due to JAX's asynchronous
     # dispatch model: https://jax.readthedocs.io/en/latest/async_dispatch.html
-    return lambda: compiled_benchmark_function().block_until_ready()
+    return lambda **kwargs: compiled_benchmark_function(**kwargs).block_until_ready()
 
 
 def run_benchmarks(
@@ -458,16 +460,23 @@ def run_benchmarks(
         for parameter_set in _dict_product(parameters):
             try:
                 args, reference_output, jit_benchmark = benchmark.setup(**parameter_set)
-                benchmark_function = partial(benchmark, **args, **parameter_set)
+                # We could also pass args to partial here to make benchmark_function
+                # argumentless however there is a risk when JIT compiled the compiler
+                # may recognize the output is constant and optimize away all the
+                # computation and just return the output. As args is intended to contain
+                # the key arguments to benchmark function which vary (in for example
+                # size) with parameters passing these explicitly to function should
+                # prevent this.
+                benchmark_function = partial(benchmark, **parameter_set)
                 results_entry = {"parameters": parameter_set}
                 if jit_benchmark:
                     benchmark_function = _compile_jax_benchmark_and_analyse(
-                        benchmark_function, results_entry
+                        benchmark_function, args, results_entry
                     )
                 # Run benchmark once without timing to record output for potentially
                 # computing numerical error and trace memory usage
                 with trace_memory_allocations() as traced_memory:
-                    output = benchmark_function()
+                    output = benchmark_function(**args)
                 current_size, peak_size = traced_memory()
                 results_entry["traced_memory_final_in_bytes"] = current_size
                 results_entry["traced_memory_peak_in_bytes"] = peak_size
@@ -481,7 +490,9 @@ def run_benchmarks(
                 run_times = [
                     time / number_runs
                     for time in timeit.repeat(
-                        benchmark_function, number=number_runs, repeat=number_repeats
+                        lambda: benchmark_function(**args),
+                        number=number_runs,
+                        repeat=number_repeats,
                     )
                 ]
                 results_entry["run_times_in_seconds"] = run_times
