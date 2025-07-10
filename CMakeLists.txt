@@ -77,7 +77,7 @@ else()
     message(WARNING "CUDA compiler not found, building without CUDA support")
 
     find_package(
-      Python 3.8
+      Python 3.11
       COMPONENTS Interpreter Development.Module
       REQUIRED)
 
