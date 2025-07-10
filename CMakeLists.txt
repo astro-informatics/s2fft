@@ -35,7 +35,7 @@ if(CMAKE_CUDA_COMPILER)
 
     # Add the executable
     find_package(
-      Python 3.8 REQUIRED
+      Python 3.11 REQUIRED
       COMPONENTS Interpreter Development.Module
       OPTIONAL_COMPONENTS Development.SABIModule)
     execute_process(
