@@ -53,13 +53,6 @@ def _plot_scaling_guide(
     )
 
 
-def _legend_label(results_label: str | None, base_label: str = "Measured") -> str:
-    if results_label is None:
-        return base_label
-    else:
-        return f"{base_label} ({results_label})"
-
-
 def _extract_and_plot_metric_values(
     ax: plt.Axes,
     metric: Metric,
@@ -76,7 +69,7 @@ def _extract_and_plot_metric_values(
         ax.plot(
             parameter_values,
             metric_values["median"],
-            label=_legend_label(results_label),
+            label=results_label,
         )
         ax.fill_between(
             parameter_values,
@@ -87,7 +80,7 @@ def _extract_and_plot_metric_values(
         return metric_values["median"]
     else:
         metric_values = np.array([metric.extract_metric(r) for r in results])
-        ax.plot(parameter_values, metric_values, label=_legend_label(results_label))
+        ax.plot(parameter_values, metric_values, label=results_label)
         return metric_values
 
 
@@ -126,7 +119,9 @@ _metrics = {
     "mean_abs_error": Metric(
         "Numerical error (mean)", lambda r: r["mean_abs_error"], None
     ),
-    "max_abs_error": Metric("Numerical error (max)", lambda r: r["max_abs_error"], None),
+    "max_abs_error": Metric(
+        "Numerical error (max)", lambda r: r["max_abs_error"], None
+    ),
 }
 
 
@@ -161,10 +156,18 @@ def plot_results_against_parameter(
         with benchmark_results_path.open("r") as f:
             benchmark_results = json.load(f)
         for axes_row, function in zip(axes, functions, strict=False):
-            results = benchmark_results["results"][function]
+            results = sorted(
+                benchmark_results["results"][function],
+                key=lambda r: r["parameters"][parameter_name],
+            )
             parameter_values = np.array(
                 [r["parameters"][parameter_name] for r in results]
             )
+            if len(set(parameter_values)) != len(parameter_values):
+                raise ValueError(
+                    f"Non unique parameter values detected for function {function} "
+                    f"in file {benchmark_results_path}."
+                )
             for ax, metric_name in zip(axes_row, metric_names, strict=False):
                 metric = _metrics[metric_name]
                 try:
@@ -193,7 +196,7 @@ def plot_results_against_parameter(
 
 
 def _parse_cli_arguments() -> argparse.Namespace:
-    """Parse rguments passed for plotting command line interface"""
+    """Parse arguments passed for plotting command line interface"""
     parser = argparse.ArgumentParser(
         description="Generate plot from benchmark results file.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -212,7 +215,7 @@ def _parse_cli_arguments() -> argparse.Namespace:
     parser.add_argument(
         "-functions",
         nargs="+",
-        help="Names of functions to plot. forward and inverse are plotted if omitted.",
+        help="Names of functions to plot.",
         metavar="FUNCTION",
         default=["forward", "inverse"],
     )
