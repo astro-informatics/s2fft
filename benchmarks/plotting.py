@@ -2,10 +2,19 @@
 
 import argparse
 import json
+from collections.abc import Callable
 from pathlib import Path
+from typing import NamedTuple
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+
+class Metric(NamedTuple):
+    label: str
+    extract_metric: Callable[[dict], float]
+    expected_scaling_order: int | None = (None,)
+    multiple_measurements: bool = False
 
 
 def _set_axis_properties(
@@ -13,6 +22,7 @@ def _set_axis_properties(
     parameter_values: np.ndarray,
     parameter_label: str,
     measurement_label: str,
+    function_label: str,
 ) -> None:
     ax.set(
         xlabel=parameter_label,
@@ -21,8 +31,9 @@ def _set_axis_properties(
         yscale="log",
         xticks=parameter_values,
         xticklabels=parameter_values,
+        title=function_label,
     )
-    ax.minorticks_off()
+    ax.xaxis.minorticks_off()
 
 
 def _plot_scaling_guide(
@@ -42,112 +53,99 @@ def _plot_scaling_guide(
     )
 
 
-def plot_run_times(
-    ax: plt.Axes, parameter_symbol: str, parameter_values: np.ndarray, results: dict
-) -> None:
-    min_times = np.array([min(r["run_times_in_seconds"]) for r in results])
-    mid_times = np.array([np.median(r["run_times_in_seconds"]) for r in results])
-    max_times = np.array([max(r["run_times_in_seconds"]) for r in results])
-    ax.plot(parameter_values, mid_times, label="Measured")
-    ax.fill_between(parameter_values, min_times, max_times, alpha=0.5)
-    _plot_scaling_guide(ax, parameter_symbol, parameter_values, mid_times, 3)
-    ax.legend()
+def _legend_label(results_label: str | None, base_label: str = "Measured") -> str:
+    if results_label is None:
+        return base_label
+    else:
+        return f"{base_label} ({results_label})"
 
 
-def plot_compilation_times(
-    ax: plt.Axes, parameter_symbol: str, parameter_values: np.ndarray, results: dict
-) -> None:
-    compile_times = np.array([r["compilation_time_in_seconds"] for r in results])
-    ax.plot(parameter_values, compile_times, label="Measured")
-    _plot_scaling_guide(ax, parameter_symbol, parameter_values, compile_times, 1)
-    ax.legend()
+def _extract_and_plot_metric_values(
+    ax: plt.Axes,
+    metric: Metric,
+    results: dict,
+    parameter_values: np.ndarray,
+    results_label: str | None = None,
+) -> np.ndarray:
+    if metric.multiple_measurements:
+        metric_values = {
+            "min": np.array([min(metric.extract_metric(r)) for r in results]),
+            "median": np.array([np.median(metric.extract_metric(r)) for r in results]),
+            "max": np.array([max(metric.extract_metric(r)) for r in results]),
+        }
+        ax.plot(
+            parameter_values,
+            metric_values["median"],
+            label=_legend_label(results_label),
+        )
+        ax.fill_between(
+            parameter_values,
+            metric_values["min"],
+            metric_values["max"],
+            alpha=0.5,
+        )
+        return metric_values["median"]
+    else:
+        metric_values = np.array([metric.extract_metric(r) for r in results])
+        ax.plot(parameter_values, metric_values, label=_legend_label(results_label))
+        return metric_values
 
 
-def plot_flops(
-    ax: plt.Axes, parameter_symbol: str, parameter_values: np.ndarray, results: dict
-) -> None:
-    flops = np.array([r["cost_analysis"]["flops"] for r in results])
-    ax.plot(parameter_values, flops, label="Measured")
-    _plot_scaling_guide(ax, parameter_symbol, parameter_values, flops, 2)
-    ax.legend()
-
-
-def plot_error(
-    ax: plt.Axes, parameter_symbol: str, parameter_values: np.ndarray, results: dict
-) -> None:
-    max_abs_errors = np.array([r["max_abs_error"] for r in results])
-    mean_abs_errors = np.array([r["mean_abs_error"] for r in results])
-    ax.plot(parameter_values, max_abs_errors, label="max(abs(error))")
-    ax.plot(parameter_values, mean_abs_errors, label="mean(abs(error))")
-    _plot_scaling_guide(
-        ax,
-        parameter_symbol,
-        parameter_values,
-        (max_abs_errors + mean_abs_errors) / 2,
+_metrics = {
+    "run_times": Metric("Run time / s", lambda r: r["run_times_in_seconds"], 3, True),
+    "compilation_times": Metric(
+        "Compilation time / s",
+        lambda r: r["compilation_time_in_seconds"],
+        None,
+    ),
+    "flops": Metric(
+        "Floating point operations", lambda r: r["cost_analysis"]["flops"], 2
+    ),
+    "memory_accesses": Metric(
+        "Memory accesses / B", lambda r: r["cost_analysis"]["bytes_accessed"], 2
+    ),
+    "memory_allocations": Metric(
+        "Memory allocations / B",
+        lambda r: r["memory_analysis"]["temp_size_in_bytes"],
         2,
-    )
-    ax.legend()
-
-
-def plot_memory(
-    ax: plt.Axes, parameter_symbol: str, parameter_values: np.ndarray, results: dict
-) -> None:
-    bytes_accessed = np.array([r["cost_analysis"]["bytes_accessed"] for r in results])
-    temp_size_in_bytes = np.array(
-        [r["memory_analysis"]["temp_size_in_bytes"] for r in results]
-    )
-    output_size_in_bytes = np.array(
-        [r["memory_analysis"]["output_size_in_bytes"] for r in results]
-    )
-    generated_code_size_in_bytes = np.array(
-        [r["memory_analysis"]["generated_code_size_in_bytes"] for r in results]
-    )
-    ax.plot(parameter_values, bytes_accessed, label="Accesses")
-    ax.plot(parameter_values, temp_size_in_bytes, label="Temporary allocations")
-    ax.plot(parameter_values, output_size_in_bytes, label="Output size")
-    ax.plot(parameter_values, generated_code_size_in_bytes, label="Generated code size")
-    _plot_scaling_guide(
-        ax,
-        parameter_symbol,
-        parameter_values,
-        (bytes_accessed + output_size_in_bytes) / 2,
-        2,
-    )
-    ax.legend()
-
-
-_measurement_plot_functions_and_labels = {
-    "run_times": (plot_run_times, "Run time / s"),
-    "compilation_times": (plot_compilation_times, "Compilation time / s"),
-    "flops": (plot_flops, "Floating point operations"),
-    "memory": (plot_memory, "Memory / B"),
-    "error": (plot_error, "Numerical error"),
+    ),
+    "argument_size": Metric(
+        "Argument size / B", lambda r: r["memory_analysis"]["argument_size_in_bytes"], 2
+    ),
+    "output_size": Metric(
+        "Output size / B", lambda r: r["memory_analysis"]["output_size_in_bytes"], 2
+    ),
+    "traced_memory_peak": Metric(
+        "Traced memory peak / B", lambda r: r["traced_memory_peak_in_bytes"], 3
+    ),
+    "code_size": Metric(
+        "Generated code size / B",
+        lambda r: r["memory_analysis"]["generated_code_size_in_bytes"],
+        None,
+    ),
+    "mean_abs_error": Metric(
+        "Numerical error (mean)", lambda r: r["mean_abs_error"], None
+    ),
+    "max_abs_error": Metric("Numerical error (max)", lambda r: r["max_abs_error"], None),
 }
 
 
-def plot_results_against_bandlimit(
-    benchmark_results_path: str | Path,
-    functions: tuple[str] = ("forward", "inverse"),
-    measurements: tuple[str] = (
-        "run_times",
-        "compilation_times",
-        "flops",
-        "memory",
-        "error",
-    ),
-    axis_size: float = 3.0,
+def plot_results_against_parameter(
+    benchmark_results_paths: list[str | Path],
+    functions: tuple[str],
+    metric_names: tuple[str],
+    parameter_name: str,
+    parameter_label: str,
+    axis_size: float = 5.0,
     fig_dpi: int = 100,
     functions_along_columns: bool = False,
 ) -> tuple[plt.Figure, plt.Axes]:
-    benchmark_results_path = Path(benchmark_results_path)
-    with benchmark_results_path.open("r") as f:
-        benchmark_results = json.load(f)
     n_functions = len(functions)
-    n_measurements = len(measurements)
+    n_metrics = len(metric_names)
     n_rows, n_cols = (
-        (n_measurements, n_functions)
+        (n_metrics, n_functions)
         if functions_along_columns
-        else (n_functions, n_measurements)
+        else (n_functions, n_metrics)
     )
     fig, axes = plt.subplots(
         n_rows,
@@ -157,17 +155,40 @@ def plot_results_against_bandlimit(
         squeeze=False,
     )
     axes = axes.T if functions_along_columns else axes
-    for axes_row, function in zip(axes, functions, strict=False):
-        results = benchmark_results["results"][function]
-        l_values = np.array([r["parameters"]["L"] for r in results])
-        for ax, measurement in zip(axes_row, measurements, strict=False):
-            plot_function, label = _measurement_plot_functions_and_labels[measurement]
-            try:
-                plot_function(ax, "L", l_values, results)
-                ax.set(title=function)
-            except KeyError:
-                ax.axis("off")
-            _set_axis_properties(ax, l_values, "Bandlimit $L$", label)
+    for results_index, benchmark_results_path in enumerate(benchmark_results_paths):
+        last_results = results_index == len(benchmark_results_paths) - 1
+        benchmark_results_path = Path(benchmark_results_path)
+        with benchmark_results_path.open("r") as f:
+            benchmark_results = json.load(f)
+        for axes_row, function in zip(axes, functions, strict=False):
+            results = benchmark_results["results"][function]
+            parameter_values = np.array(
+                [r["parameters"][parameter_name] for r in results]
+            )
+            for ax, metric_name in zip(axes_row, metric_names, strict=False):
+                metric = _metrics[metric_name]
+                try:
+                    metric_values = _extract_and_plot_metric_values(
+                        ax,
+                        metric,
+                        results,
+                        parameter_values,
+                        benchmark_results_path.stem,
+                    )
+                    if last_results and metric.expected_scaling_order is not None:
+                        _plot_scaling_guide(
+                            ax,
+                            parameter_name,
+                            parameter_values,
+                            metric_values,
+                            metric.expected_scaling_order,
+                        )
+                    ax.legend()
+                    _set_axis_properties(
+                        ax, parameter_values, parameter_label, metric.label, function
+                    )
+                except KeyError:
+                    ax.axis("off")
     return fig, ax
 
 
@@ -180,7 +201,8 @@ def _parse_cli_arguments() -> argparse.Namespace:
     parser.add_argument(
         "-results-path",
         type=Path,
-        help="Path to JSON file containing benchmark results to plot.",
+        nargs="+",
+        help="Path(s) to JSON file containing benchmark results to plot.",
     )
     parser.add_argument(
         "-output-path",
@@ -191,11 +213,26 @@ def _parse_cli_arguments() -> argparse.Namespace:
         "-functions",
         nargs="+",
         help="Names of functions to plot. forward and inverse are plotted if omitted.",
+        metavar="FUNCTION",
+        default=["forward", "inverse"],
     )
     parser.add_argument(
-        "-measurements",
+        "-metrics",
         nargs="+",
-        help="Names of measurements to plot. All functions are plotted if omitted.",
+        help="Names of metrics to plot.",
+        metavar="METRIC",
+        default=[
+            "run_times",
+            "compilation_times",
+            "memory_allocations",
+        ],
+    )
+    parser.add_argument(
+        "-parameter",
+        nargs=2,
+        help="Key and label for parameter to plot metrics against.",
+        metavar=("NAME", "LABEL"),
+        default=["L", "Bandlimit $L$"],
     )
     parser.add_argument(
         "-axis-size", type=float, default=5.0, help="Size of each plot axis in inches."
@@ -216,18 +253,13 @@ def _parse_cli_arguments() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = _parse_cli_arguments()
-    functions = (
-        ("forward", "inverse") if args.functions is None else tuple(args.functions)
-    )
-    measurements = (
-        ("run_times", "compilation_times", "flops", "memory", "error")
-        if args.measurements is None
-        else tuple(args.measurements)
-    )
-    fig, _ = plot_results_against_bandlimit(
+    parameter_name, parameter_label = args.parameter
+    fig, _ = plot_results_against_parameter(
         args.results_path,
-        functions=functions,
-        measurements=measurements,
+        functions=args.functions,
+        metric_names=args.metrics,
+        parameter_name=parameter_name,
+        parameter_label=parameter_label,
         axis_size=args.axis_size,
         fig_dpi=args.dpi,
         functions_along_columns=args.functions_along_columns,
