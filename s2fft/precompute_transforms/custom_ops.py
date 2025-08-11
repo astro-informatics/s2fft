@@ -1,8 +1,5 @@
-from functools import partial
-
 import jax.numpy as jnp
 import numpy as np
-from jax import jit
 
 
 def wigner_subset_to_s2(
