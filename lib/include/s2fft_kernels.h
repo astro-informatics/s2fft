@@ -70,20 +70,23 @@ HRESULT launch_spectral_extension(complex* data, complex* output, const int& nsi
  * This function configures and launches the shift_normalize_kernel with appropriate
  * grid and block dimensions. It handles both single and double precision complex
  * types and applies the requested normalization and shifting operations to HEALPix
- * pixel data on a per-ring basis.
+ * pixel data. Supports both in-place (with cooperative kernel) and out-of-place
+ * (with scratch buffer) modes to enable compatibility with JAX transforms.
  *
  * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
  * @param stream CUDA stream for kernel execution.
- * @param data Input/output array of HEALPix pixel data (in-place processing).
+ * @param data Input/output array of HEALPix pixel data.
+ * @param shift_buffer Scratch buffer for out-of-place shifting (can be nullptr for in-place).
  * @param nside The HEALPix Nside parameter.
  * @param apply_shift Flag indicating whether to apply FFT shifting.
  * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
+ * @param use_out_of_place If true, use out-of-place shifting with shift_buffer; if false, use in-place with
+ * cooperative kernel.
  * @return HRESULT indicating success or failure.
  */
 template <typename complex>
-HRESULT launch_shift_normalize_kernel(cudaStream_t stream,
-                                      complex* data,  // In-place data buffer
-                                      int nside, bool apply_shift, int norm);
+HRESULT launch_shift_normalize_kernel(cudaStream_t stream, complex* data, complex* shift_buffer, int nside,
+                                      bool apply_shift, int norm, bool use_out_of_place);
 
 }  // namespace s2fftKernels
 

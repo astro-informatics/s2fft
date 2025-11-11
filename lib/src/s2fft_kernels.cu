@@ -3,6 +3,7 @@
 #include <cmath>  // has to be included before cuda/std/complex
 #include <cstddef>
 #include <cuda/std/complex>
+#include <cooperative_groups.h>
 #include <iostream>
 
 namespace s2fftKernels {
@@ -297,17 +298,22 @@ __global__ void spectral_extension(complex* data, complex* output, int nside, in
  *
  * This kernel applies per-ring normalization and optional FFT shifting to HEALPix
  * pixel data. It processes each pixel independently, computing its ring coordinates
- * and applying the appropriate transformations based on the ring geometry.
+ * and applying the appropriate transformations. Supports both in-place (with cooperative
+ * synchronization) and out-of-place (with separate buffer) modes.
  *
  * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
  * @tparam T The floating-point type (float or double) for normalization.
  * @param data Input/output array of HEALPix pixel data.
+ * @param shift_buffer Scratch buffer for out-of-place shifting (can be nullptr).
  * @param nside The HEALPix Nside parameter.
  * @param apply_shift Flag indicating whether to apply FFT shifting.
  * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
+ * @param use_out_of_place If true, write shifted data to shift_buffer; if false, use in-place with
+ * grid.sync().
  */
 template <typename complex, typename T>
-__global__ void shift_normalize_kernel(complex* data, int nside, bool apply_shift, int norm) {
+__global__ void shift_normalize_kernel(complex* data, complex* shift_buffer, int nside, bool apply_shift,
+                                       int norm, bool use_out_of_place) {
     // Step 1: Get pixel index and check bounds
     long long int p = blockIdx.x * blockDim.x + threadIdx.x;
     long long int Npix = npix(nside);
@@ -315,7 +321,7 @@ __global__ void shift_normalize_kernel(complex* data, int nside, bool apply_shif
     if (p >= Npix) return;
 
     // Step 2: Convert pixel index to ring coordinates
-    int r, o, nphi, r_start;
+    int r = 0, o = 0, nphi = 1, r_start = 0;
     pixel_to_ring_offset_nphi(p, nside, r, o, nphi, r_start);
 
     // Step 3: Read and normalize the pixel data
@@ -332,7 +338,6 @@ __global__ void shift_normalize_kernel(complex* data, int nside, bool apply_shif
         element.y /= norm_val;
     }
     // Step 3c: No normalization for norm == 2
-    __syncthreads();  // Ensure all threads have completed normalization
 
     // Step 4: Apply FFT shifting if requested
     if (apply_shift) {
@@ -340,10 +345,18 @@ __global__ void shift_normalize_kernel(complex* data, int nside, bool apply_shif
         long long int shifted_o = (o + nphi / 2) % nphi;
         shifted_o = shifted_o < 0 ? nphi + shifted_o : shifted_o;
         long long int dest_p = r_start + shifted_o;
-        // printf(" -> CUDA: Applying shift: p=%lld, dest_p=%lld, shifted_o=%lld\n", p, dest_p, shifted_o);
-        data[dest_p] = element;
+
+        if (use_out_of_place) {
+            // Step 4b: Out-of-place mode - write to separate buffer (no sync needed)
+            shift_buffer[dest_p] = element;
+        } else {
+            // Step 4c: In-place mode - sync then write
+            cooperative_groups::grid_group grid = cooperative_groups::this_grid();
+            grid.sync();
+            data[dest_p] = element;
+        }
     } else {
-        // Step 4b: Write back to original position
+        // Step 4d: No shift - write back to original position
         data[p] = element;
     }
 }
@@ -419,36 +432,68 @@ HRESULT launch_spectral_extension(complex* data, complex* output, const int& nsi
  * @brief Launches the shift/normalize CUDA kernel for HEALPix data processing.
  *
  * This function configures and launches the shift_normalize_kernel with appropriate
- * grid and block dimensions. It handles both single and double precision complex types
- * and applies the requested normalization and shifting operations.
+ * grid and block dimensions. Supports both in-place (cooperative kernel) and out-of-place
+ * (regular kernel with scratch buffer) modes. For out-of-place mode with shifting, the
+ * shifted data is copied back from the scratch buffer after the kernel completes.
  *
  * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
  * @param stream CUDA stream for kernel execution.
  * @param data Input/output array of HEALPix pixel data.
+ * @param shift_buffer Scratch buffer for out-of-place shifting (can be nullptr for in-place).
  * @param nside The HEALPix Nside parameter.
  * @param apply_shift Flag indicating whether to apply FFT shifting.
  * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
+ * @param use_out_of_place If true, use regular launch with out-of-place buffer; if false, use cooperative
+ * launch with in-place.
  * @return HRESULT indicating success or failure.
  */
 template <typename complex>
-HRESULT launch_shift_normalize_kernel(cudaStream_t stream, complex* data, int nside, bool apply_shift,
-                                      int norm) {
+HRESULT launch_shift_normalize_kernel(cudaStream_t stream, complex* data, complex* shift_buffer, int nside,
+                                      bool apply_shift, int norm, bool use_out_of_place) {
     // Step 1: Configure kernel launch parameters
     long long int Npix = 12 * nside * nside;
     int block_size = 256;
     int grid_size = (Npix + block_size - 1) / block_size;
 
-    // Step 2: Launch kernel with appropriate precision
-    if constexpr (std::is_same_v<complex, cufftComplex>) {
-        shift_normalize_kernel<cufftComplex, float>
-                <<<grid_size, block_size, 0, stream>>>((cufftComplex*)data, nside, apply_shift, norm);
+    if (use_out_of_place) {
+        // Step 2a: Regular launch for out-of-place mode
+        if constexpr (std::is_same_v<complex, cufftComplex>) {
+            shift_normalize_kernel<cufftComplex, float><<<grid_size, block_size, 0, stream>>>(
+                    (cufftComplex*)data, (cufftComplex*)shift_buffer, nside, apply_shift, norm, true);
+        } else {
+            shift_normalize_kernel<cufftDoubleComplex, double><<<grid_size, block_size, 0, stream>>>(
+                    (cufftDoubleComplex*)data, (cufftDoubleComplex*)shift_buffer, nside, apply_shift, norm,
+                    true);
+        }
+        checkCudaErrors(cudaGetLastError());
+
+        // Step 2b: If shifting was applied, copy result back from scratch buffer
+        if (apply_shift && shift_buffer != nullptr) {
+            checkCudaErrors(cudaMemcpyAsync(data, shift_buffer, Npix * sizeof(complex),
+                                            cudaMemcpyDeviceToDevice, stream));
+        }
     } else {
-        shift_normalize_kernel<cufftDoubleComplex, double>
-                <<<grid_size, block_size, 0, stream>>>((cufftDoubleComplex*)data, nside, apply_shift, norm);
+        // Step 3a: Set up kernel arguments for cooperative launch
+        void* kernel_args[6];
+        kernel_args[0] = &data;
+        kernel_args[1] = &shift_buffer;
+        kernel_args[2] = &nside;
+        kernel_args[3] = &apply_shift;
+        kernel_args[4] = &norm;
+        kernel_args[5] = &use_out_of_place;
+
+        // Step 3b: Launch cooperative kernel for in-place mode
+        if constexpr (std::is_same_v<complex, cufftComplex>) {
+            checkCudaErrors(cudaLaunchCooperativeKernel((void*)shift_normalize_kernel<cufftComplex, float>,
+                                                        grid_size, block_size, kernel_args, 0, stream));
+        } else {
+            checkCudaErrors(
+                    cudaLaunchCooperativeKernel((void*)shift_normalize_kernel<cufftDoubleComplex, double>,
+                                                grid_size, block_size, kernel_args, 0, stream));
+        }
+        checkCudaErrors(cudaGetLastError());
     }
 
-    // Step 3: Check for kernel launch errors
-    checkCudaErrors(cudaGetLastError());
     return S_OK;
 }
 
@@ -474,10 +519,14 @@ template HRESULT launch_spectral_extension<cufftDoubleComplex>(cufftDoubleComple
 
 // Explicit template specializations for shift/normalize functions
 template HRESULT launch_shift_normalize_kernel<cufftComplex>(cudaStream_t stream, cufftComplex* data,
-                                                             int nside, bool apply_shift, int norm);
+                                                             cufftComplex* shift_buffer, int nside,
+                                                             bool apply_shift, int norm,
+                                                             bool use_out_of_place);
 
 template HRESULT launch_shift_normalize_kernel<cufftDoubleComplex>(cudaStream_t stream,
-                                                                   cufftDoubleComplex* data, int nside,
-                                                                   bool apply_shift, int norm);
+                                                                   cufftDoubleComplex* data,
+                                                                   cufftDoubleComplex* shift_buffer,
+                                                                   int nside, bool apply_shift, int norm,
+                                                                   bool use_out_of_place);
 
 }  // namespace s2fftKernels
