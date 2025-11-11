@@ -112,9 +112,6 @@ def test_healpix_fft_cuda_transforms(flm_generator, nside):
     def healpix_cuda(f):
         return healpix_fft_cuda(f, L, nside, False).real
 
-    vmapped_jax = jax.vmap(healpix_jax)(f_stacked)
-    vmapped_cuda = jax.vmap(healpix_cuda)(f_stacked)
-
     f = f_stacked[0]
     # Test VMAP
     MSE = jnp.mean(
