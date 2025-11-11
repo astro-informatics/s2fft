@@ -87,7 +87,7 @@ public:
      */
     s2fftDescriptor(int64_t nside, int64_t harmonic_band_limit, bool reality, bool adjoint,
                     bool forward = true, s2fftKernels::fft_norm norm = s2fftKernels::BACKWARD,
-                    bool shift = true, bool double_precision = false)
+                    bool shift = true, bool double_precision = false, bool use_out_of_place = false)
             : nside(nside),
               harmonic_band_limit(harmonic_band_limit),
               reality(reality),
@@ -168,13 +168,9 @@ public:
      * @param stream The CUDA stream to use for execution.
      * @param data Pointer to the input/output data on the device.
      * @param workspace Pointer to the workspace memory on the device.
-     * @param shift_scratch Pointer to scratch buffer for out-of-place shifting (can be nullptr for in-place).
-     * @param use_out_of_place If true, use out-of-place shifting with shift_scratch; if false, use in-place
-     * with cooperative kernel.
      * @return HRESULT indicating success or failure.
      */
-    HRESULT Forward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data, Complex *workspace,
-                    Complex *shift_scratch, bool use_out_of_place);
+    HRESULT Forward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data, Complex *workspace);
 
     /**
      * @brief Executes the backward Spherical Harmonic Transform.
@@ -186,13 +182,9 @@ public:
      * @param stream The CUDA stream to use for execution.
      * @param data Pointer to the input/output data on the device.
      * @param workspace Pointer to the workspace memory on the device.
-     * @param shift_scratch Pointer to scratch buffer for out-of-place shifting (can be nullptr for in-place).
-     * @param use_out_of_place If true, use out-of-place shifting with shift_scratch; if false, use in-place
-     * with cooperative kernel.
      * @return HRESULT indicating success or failure.
      */
-    HRESULT Backward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data, Complex *workspace,
-                     Complex *shift_scratch, bool use_out_of_place);
+    HRESULT Backward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data, Complex *workspace);
 
 public:
     // cuFFT handles for polar and equatorial FFT plans

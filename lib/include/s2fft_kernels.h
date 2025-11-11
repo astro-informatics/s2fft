@@ -29,20 +29,21 @@ enum fft_norm { FORWARD = 1, BACKWARD = 2, ORTHO = 3, NONE = 4 };
  * This function configures and launches the spectral_folding kernel with
  * appropriate grid and block dimensions. It performs spectral folding operations
  * on ring-ordered data, transforming from Fourier coefficient space to HEALPix
- * pixel space with optional FFT shifting.
+ * pixel space with optional FFT shifting and normalization.
  *
  * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
  * @param data Input data array containing Fourier coefficients per ring.
  * @param output Output array for folded HEALPix pixel data.
  * @param nside The HEALPix Nside parameter.
  * @param L The harmonic band limit.
- * @param shift Flag indicating whether to apply FFT shifting.
+ * @param apply_shift Flag indicating whether to apply FFT shifting.
+ * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
  * @param stream CUDA stream for kernel execution.
  * @return HRESULT indicating success or failure.
  */
 template <typename complex>
 HRESULT launch_spectral_folding(complex* data, complex* output, const int& nside, const int& L,
-                                const bool& shift, cudaStream_t stream);
+                                const bool& apply_shift, const int& norm, cudaStream_t stream);
 
 /**
  * @brief Launches the spectral extension CUDA kernel.
@@ -50,43 +51,21 @@ HRESULT launch_spectral_folding(complex* data, complex* output, const int& nside
  * This function configures and launches the spectral_extension kernel with
  * appropriate grid and block dimensions. It performs the inverse operation of
  * spectral folding, extending HEALPix pixel data back to full Fourier coefficient
- * space by mapping folded frequency components to their appropriate positions.
+ * space with optional FFT shifting and normalization.
  *
  * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
  * @param data Input array containing folded HEALPix pixel data.
  * @param output Output array for extended Fourier coefficients per ring.
  * @param nside The HEALPix Nside parameter.
  * @param L The harmonic band limit.
+ * @param apply_shift Flag indicating whether to apply FFT shifting.
+ * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
  * @param stream CUDA stream for kernel execution.
  * @return HRESULT indicating success or failure.
  */
 template <typename complex>
 HRESULT launch_spectral_extension(complex* data, complex* output, const int& nside, const int& L,
-                                  cudaStream_t stream);
-
-/**
- * @brief Launches the shift/normalize CUDA kernel for HEALPix data processing.
- *
- * This function configures and launches the shift_normalize_kernel with appropriate
- * grid and block dimensions. It handles both single and double precision complex
- * types and applies the requested normalization and shifting operations to HEALPix
- * pixel data. Supports both in-place (with cooperative kernel) and out-of-place
- * (with scratch buffer) modes to enable compatibility with JAX transforms.
- *
- * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
- * @param stream CUDA stream for kernel execution.
- * @param data Input/output array of HEALPix pixel data.
- * @param shift_buffer Scratch buffer for out-of-place shifting (can be nullptr for in-place).
- * @param nside The HEALPix Nside parameter.
- * @param apply_shift Flag indicating whether to apply FFT shifting.
- * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
- * @param use_out_of_place If true, use out-of-place shifting with shift_buffer; if false, use in-place with
- * cooperative kernel.
- * @return HRESULT indicating success or failure.
- */
-template <typename complex>
-HRESULT launch_shift_normalize_kernel(cudaStream_t stream, complex* data, complex* shift_buffer, int nside,
-                                      bool apply_shift, int norm, bool use_out_of_place);
+                                  const bool& apply_shift, const int& norm, cudaStream_t stream);
 
 }  // namespace s2fftKernels
 

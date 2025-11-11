@@ -111,7 +111,7 @@ HRESULT s2fftExec<Complex>::Initialize(const s2fftDescriptor &descriptor) {
 
 template <typename Complex>
 HRESULT s2fftExec<Complex>::Forward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data,
-                                    Complex *workspace, Complex *shift_scratch, bool use_out_of_place) {
+                                    Complex *workspace) {
     // Step 1: Determine the FFT direction (forward or inverse based on adjoint flag).
     const int DIRECTION = desc.adjoint ? CUFFT_INVERSE : CUFFT_FORWARD;
     // Step 2: Extract normalization, shift, and double precision flags from the descriptor.
@@ -138,34 +138,13 @@ HRESULT s2fftExec<Complex>::Forward(const s2fftDescriptor &desc, cudaStream_t st
     CUFFT_CALL(cufftXtExec(m_equator_plan, data + m_equatorial_offset_start, data + m_equatorial_offset_start,
                            DIRECTION));
 
-    // Step 5: Launch the custom kernel for normalization and shifting.
-    switch (norm) {
-        case s2fftKernels::fft_norm::NONE:
-        case s2fftKernels::fft_norm::BACKWARD:
-            // No normalization, only shift if required.
-            s2fftKernels::launch_shift_normalize_kernel(stream, data, shift_scratch, m_nside, shift, 2,
-                                                        use_out_of_place);
-            break;
-        case s2fftKernels::fft_norm::FORWARD:
-            // Normalize by sqrt(Npix).
-            s2fftKernels::launch_shift_normalize_kernel(stream, data, shift_scratch, m_nside, shift, 0,
-                                                        use_out_of_place);
-            break;
-        case s2fftKernels::fft_norm::ORTHO:
-            // Normalize by Npix.
-            s2fftKernels::launch_shift_normalize_kernel(stream, data, shift_scratch, m_nside, shift, 1,
-                                                        use_out_of_place);
-            break;
-        default:
-            return E_INVALIDARG;  // Invalid normalization type.
-    }
-
+    // Step 5: Normalization will be applied in spectral_extension kernel (no separate kernel needed)
     return S_OK;
 }
 
 template <typename Complex>
 HRESULT s2fftExec<Complex>::Backward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data,
-                                     Complex *workspace, Complex *shift_scratch, bool use_out_of_place) {
+                                     Complex *workspace) {
     // Step 1: Determine the FFT direction (forward or inverse based on adjoint flag).
     const int DIRECTION = desc.adjoint ? CUFFT_FORWARD : CUFFT_INVERSE;
     // Step 2: Extract normalization, shift, and double precision flags from the descriptor.
@@ -191,26 +170,7 @@ HRESULT s2fftExec<Complex>::Backward(const s2fftDescriptor &desc, cudaStream_t s
     CUFFT_CALL(cufftXtExec(m_inverse_equator_plan, data + m_equatorial_offset_start,
                            data + m_equatorial_offset_start, DIRECTION));
 
-    // Step 5: Launch the custom kernel for normalization and shifting.
-    switch (norm) {
-        case s2fftKernels::fft_norm::NONE:
-        case s2fftKernels::fft_norm::FORWARD:
-            // No normalization, do nothing.
-            break;
-        case s2fftKernels::fft_norm::BACKWARD:
-            // Normalize by sqrt(Npix).
-            s2fftKernels::launch_shift_normalize_kernel(stream, data, shift_scratch, m_nside, false, 0,
-                                                        use_out_of_place);
-            break;
-        case s2fftKernels::fft_norm::ORTHO:
-            // Normalize by Npix.
-            s2fftKernels::launch_shift_normalize_kernel(stream, data, shift_scratch, m_nside, false, 1,
-                                                        use_out_of_place);
-            break;
-        default:
-            return E_INVALIDARG;  // Invalid normalization type.
-    }
-
+    // Step 5: Normalization will be applied in spectral_folding kernel (no separate kernel needed)
     return S_OK;
 }
 

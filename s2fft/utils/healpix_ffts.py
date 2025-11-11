@@ -847,7 +847,7 @@ def healpix_fft_cuda(
     return out
 
 
-@partial(jit, static_argnums=(1, 2, 3))
+@partial(jit, static_argnums=(1, 2, 3, 4))
 def healpix_ifft_cuda(
     ftm: jnp.ndarray, L: int, nside: int, reality: bool, norm: str = "forward"
 ) -> jnp.ndarray:

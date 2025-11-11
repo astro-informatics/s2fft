@@ -71,33 +71,16 @@ constexpr bool is_double_v = is_double<T>::value;
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
-ffi::Error healpix_forward(cudaStream_t stream, ffi::ScratchAllocator& scratch, ffi::Buffer<T> input,
+ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input,
                            ffi::Result<ffi::Buffer<T>> output, ffi::Result<ffi::Buffer<T>> workspace,
                            s2fftDescriptor descriptor) {
     // Step 1: Determine the complex type based on the XLA data type.
     using fft_complex_type = fft_complex_t<T>;
     const auto& dim_in = input.dimensions();
 
-    // Step 1a: Parse environment variable for shift strategy (static for thread safety).
-    static const std::string shift_strategy = []() {
-        const char* env = std::getenv("S2FFT_CUDA_SHIFT_STRATEGY");
-        return env ? std::string(env) : "in_place";
-    }();
-    bool use_out_of_place = (shift_strategy == "out_of_place");
+    // Step 1a: Get shift strategy from descriptor.
     bool is_batched = (dim_in.size() == 2);
 
-    // Step 1b: Allocate scratch buffer if using out-of-place mode.
-    fft_complex_type* shift_scratch = nullptr;
-    if (use_out_of_place && descriptor.shift) {
-        int64_t Npix = descriptor.nside * descriptor.nside * 12;
-        int batch_count = is_batched ? dim_in[0] : 1;
-        size_t scratch_size = Npix * sizeof(fft_complex_type) * batch_count;
-        auto scratch_result = scratch.Allocate(scratch_size);
-        if (!scratch_result.has_value()) {
-            return ffi::Error::Internal("Failed to allocate scratch buffer for shift operation");
-        }
-        shift_scratch = reinterpret_cast<fft_complex_type*>(scratch_result.value());
-    }
 
     // Step 2: Handle batched and non-batched cases separately.
     if (is_batched) {
@@ -128,15 +111,13 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::ScratchAllocator& scratch, 
                     reinterpret_cast<fft_complex_type*>(workspace->typed_data() + i * executor->m_work_size);
 
             // Step 2g: Launch the forward transform on this sub-stream.
-            fft_complex_type* shift_scratch_batch =
-                    use_out_of_place && shift_scratch
-                            ? shift_scratch + i * (descriptor.nside * descriptor.nside * 12)
-                            : nullptr;
-            executor->Forward(descriptor, sub_stream, data_c, workspace_c, shift_scratch_batch,
-                              use_out_of_place);
-            // Step 2h: Launch spectral extension kernel.
+            executor->Forward(descriptor, sub_stream, data_c, workspace_c);
+            // Step 2h: Launch spectral extension kernel with shift and normalization.
+            int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::FORWARD) ? 0 :
+                              (descriptor.norm == s2fftKernels::fft_norm::ORTHO) ? 1 : 2;
             s2fftKernels::launch_spectral_extension(data_c, out_c, descriptor.nside,
-                                                    descriptor.harmonic_band_limit, sub_stream);
+                                                    descriptor.harmonic_band_limit, descriptor.shift,
+                                                    kernel_norm, sub_stream);
         }
         // Step 2i: Join all forked streams back to the main stream.
         handler.join(stream);
@@ -152,10 +133,13 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::ScratchAllocator& scratch, 
         auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
         PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
         // Step 2m: Launch the forward transform.
-        executor->Forward(descriptor, stream, data_c, workspace_c, shift_scratch, use_out_of_place);
-        // Step 2n: Launch spectral extension kernel.
+        executor->Forward(descriptor, stream, data_c, workspace_c);
+        // Step 2n: Launch spectral extension kernel with shift and normalization.
+        int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::FORWARD) ? 0 :
+                          (descriptor.norm == s2fftKernels::fft_norm::ORTHO) ? 1 : 2;
         s2fftKernels::launch_spectral_extension(data_c, out_c, descriptor.nside,
-                                                descriptor.harmonic_band_limit, stream);
+                                                descriptor.harmonic_band_limit, descriptor.shift,
+                                                kernel_norm, stream);
         return ffi::Error::Success();
     }
 }
@@ -178,7 +162,7 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::ScratchAllocator& scratch, 
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
-ffi::Error healpix_backward(cudaStream_t stream, ffi::ScratchAllocator& scratch, ffi::Buffer<T> input,
+ffi::Error healpix_backward(cudaStream_t stream,ffi::Buffer<T> input,
                             ffi::Result<ffi::Buffer<T>> output, ffi::Result<ffi::Buffer<T>> workspace,
                             s2fftDescriptor descriptor) {
     // Step 1: Determine the complex type based on the XLA data type.
@@ -186,26 +170,8 @@ ffi::Error healpix_backward(cudaStream_t stream, ffi::ScratchAllocator& scratch,
     const auto& dim_in = input.dimensions();
     const auto& dim_out = output->dimensions();
 
-    // Step 1a: Parse environment variable for shift strategy (static for thread safety).
-    static const std::string shift_strategy = []() {
-        const char* env = std::getenv("S2FFT_CUDA_SHIFT_STRATEGY");
-        return env ? std::string(env) : "in_place";
-    }();
-    bool use_out_of_place = (shift_strategy == "out_of_place");
+    // Step 1a: Get shift strategy from descriptor.
     bool is_batched = (dim_in.size() == 3);
-
-    // Step 1b: Allocate scratch buffer if using out-of-place mode.
-    fft_complex_type* shift_scratch = nullptr;
-    if (use_out_of_place && descriptor.shift) {
-        int64_t Npix = descriptor.nside * descriptor.nside * 12;
-        int batch_count = is_batched ? dim_in[0] : 1;
-        size_t scratch_size = Npix * sizeof(fft_complex_type) * batch_count;
-        auto scratch_result = scratch.Allocate(scratch_size);
-        if (!scratch_result.has_value()) {
-            return ffi::Error::Internal("Failed to allocate scratch buffer for shift operation");
-        }
-        shift_scratch = reinterpret_cast<fft_complex_type*>(scratch_result.value());
-    }
 
     // Step 2: Handle batched and non-batched cases separately.
     if (is_batched) {
@@ -238,17 +204,16 @@ ffi::Error healpix_backward(cudaStream_t stream, ffi::ScratchAllocator& scratch,
             fft_complex_type* workspace_c =
                     reinterpret_cast<fft_complex_type*>(workspace->typed_data() + i * executor->m_work_size);
 
+            int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::BACKWARD) ? 0 :
+                        (descriptor.norm == s2fftKernels::fft_norm::ORTHO) ? 1 : 2;
+
+
             // Step 2g: Launch spectral folding kernel.
             s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside,
-                                                  descriptor.harmonic_band_limit, descriptor.shift,
+                                                  descriptor.harmonic_band_limit, descriptor.shift,kernel_norm,
                                                   sub_stream);
             // Step 2h: Launch the backward transform on this sub-stream.
-            fft_complex_type* shift_scratch_batch =
-                    use_out_of_place && shift_scratch
-                            ? shift_scratch + i * (descriptor.nside * descriptor.nside * 12)
-                            : nullptr;
-            executor->Backward(descriptor, sub_stream, out_c, workspace_c, shift_scratch_batch,
-                               use_out_of_place);
+            executor->Backward(descriptor, sub_stream, out_c, workspace_c);
         }
         // Step 2i: Join all forked streams back to the main stream.
         handler.join(stream);
@@ -262,15 +227,18 @@ ffi::Error healpix_backward(cudaStream_t stream, ffi::ScratchAllocator& scratch,
         fft_complex_type* data_c = reinterpret_cast<fft_complex_type*>(input.typed_data());
         fft_complex_type* out_c = reinterpret_cast<fft_complex_type*>(output->typed_data());
         fft_complex_type* workspace_c = reinterpret_cast<fft_complex_type*>(workspace->typed_data());
+        int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::BACKWARD) ? 0 :
+                              (descriptor.norm == s2fftKernels::fft_norm::ORTHO) ? 1 : 2;
+
 
         // Step 2l: Get or create an s2fftExec instance from the PlanCache.
         auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
         PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
         // Step 2m: Launch spectral folding kernel.
         s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside, descriptor.harmonic_band_limit,
-                                              descriptor.shift, stream);
+                                              descriptor.shift,kernel_norm, stream);
         // Step 2n: Launch the backward transform.
-        executor->Backward(descriptor, stream, out_c, workspace_c, shift_scratch, use_out_of_place);
+        executor->Backward(descriptor, stream, out_c, workspace_c);
         return ffi::Error::Success();
     }
 }
@@ -355,7 +323,7 @@ s2fftDescriptor build_descriptor(int64_t nside, int64_t harmonic_band_limit, boo
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
-ffi::Error healpix_fft_cuda(cudaStream_t stream, ffi::ScratchAllocator scratch, int64_t nside,
+ffi::Error healpix_fft_cuda(cudaStream_t stream, int64_t nside,
                             int64_t harmonic_band_limit, bool reality, bool forward, bool normalize,
                             bool adjoint, ffi::Buffer<T> input, ffi::Result<ffi::Buffer<T>> output,
                             ffi::Result<ffi::Buffer<T>> workspace) {
@@ -366,9 +334,9 @@ ffi::Error healpix_fft_cuda(cudaStream_t stream, ffi::ScratchAllocator scratch, 
 
     // Step 2: Dispatch to either forward or backward transform based on the 'forward' flag.
     if (forward) {
-        return healpix_forward<T>(stream, scratch, input, output, workspace, descriptor);
+        return healpix_forward<T>(stream, input, output, workspace, descriptor);
     } else {
-        return healpix_backward<T>(stream, scratch, input, output, workspace, descriptor);
+        return healpix_backward<T>(stream, input, output, workspace, descriptor);
     }
 }
 
@@ -381,7 +349,6 @@ ffi::Error healpix_fft_cuda(cudaStream_t stream, ffi::ScratchAllocator scratch, 
 XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C64, healpix_fft_cuda<ffi::DataType::C64>,
                               ffi::Ffi::Bind()
                                       .Ctx<ffi::PlatformStream<cudaStream_t>>()
-                                      .Ctx<ffi::ScratchAllocator>()
                                       .Attr<int64_t>("nside")
                                       .Attr<int64_t>("harmonic_band_limit")
                                       .Attr<bool>("reality")
@@ -395,7 +362,6 @@ XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C64, healpix_fft_cuda<ffi::DataTy
 XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C128, healpix_fft_cuda<ffi::DataType::C128>,
                               ffi::Ffi::Bind()
                                       .Ctx<ffi::PlatformStream<cudaStream_t>>()
-                                      .Ctx<ffi::ScratchAllocator>()
                                       .Attr<int64_t>("nside")
                                       .Attr<int64_t>("harmonic_band_limit")
                                       .Attr<bool>("reality")

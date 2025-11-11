@@ -106,8 +106,6 @@ def test_healpix_fft_cuda_transforms(flm_generator, nside):
         axis=0,
     )
 
-    print(f"max of f_stacked: {jnp.max(f_stacked)}")
-
     def healpix_jax(f):
         return healpix_fft_jax(f, L, nside, False).real
 
@@ -116,30 +114,22 @@ def test_healpix_fft_cuda_transforms(flm_generator, nside):
 
     vmapped_jax = jax.vmap(healpix_jax)(f_stacked)
     vmapped_cuda = jax.vmap(healpix_cuda)(f_stacked)
-    print(f"is close: {jnp.allclose(vmapped_jax, vmapped_cuda, atol=1e-7, rtol=1e-7)}")
-    print(f"MSE: {jnp.mean((vmapped_jax - vmapped_cuda) ** 2)}")
 
     f = f_stacked[0]
     # Test VMAP
     MSE = jnp.mean(
         (jax.vmap(healpix_jax)(f_stacked) - jax.vmap(healpix_cuda)(f_stacked)) ** 2
     )
-    print(f"VMAP MSE: {MSE}")
     assert MSE < 1e-14
-    print(
-        f"diff max: {jnp.max(jnp.abs(jax.vmap(healpix_jax)(f_stacked) - jax.vmap(healpix_cuda)(f_stacked)))}"
-    )
     # test jacfwd
     MSE = jnp.mean(
         (jax.jacfwd(healpix_jax)(f.real) - jax.jacfwd(healpix_cuda)(f.real)) ** 2
     )
-    print(f"JACFWD MSE: {MSE}")
     assert MSE < 1e-14
     # test jacrev
     MSE = jnp.mean(
         (jax.jacrev(healpix_jax)(f.real) - jax.jacrev(healpix_cuda)(f.real)) ** 2
     )
-    print(f"JACREV MSE: {MSE}")
     assert MSE < 1e-14
 
 
@@ -174,18 +164,12 @@ def test_healpix_ifft_cuda_transforms(flm_generator, nside):
         )
         ** 2
     )
-    print(f"VMAP MSE inv: {MSE}")
     assert MSE < 1e-14
-    print(
-        f"diff max inv: {jnp.max(jnp.abs(jax.vmap(healpix_inv_jax)(ftm_stacked) - jax.vmap(healpix_inv_cuda)(ftm_stacked)))}"
-    )
-
     # test jacfwd
     MSE = jnp.mean(
         (jax.jacfwd(healpix_inv_jax)(ftm.real) - jax.jacfwd(healpix_inv_cuda)(ftm.real))
         ** 2
     )
-    print(f"JACFWD MSE inv: {MSE}")
     assert MSE < 1e-14
 
     # test jacrev
@@ -193,5 +177,4 @@ def test_healpix_ifft_cuda_transforms(flm_generator, nside):
         (jax.jacrev(healpix_inv_jax)(ftm.real) - jax.jacrev(healpix_inv_cuda)(ftm.real))
         ** 2
     )
-    print(f"JACREV MSE inv: {MSE}")
     assert MSE < 1e-14

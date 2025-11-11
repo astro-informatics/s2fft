@@ -3,7 +3,6 @@
 #include <cmath>  // has to be included before cuda/std/complex
 #include <cstddef>
 #include <cuda/std/complex>
-#include <cooperative_groups.h>
 #include <iostream>
 
 namespace s2fftKernels {
@@ -159,6 +158,48 @@ __device__ void inline swap(T& a, T& b) {
     b = c;
 }
 
+/**
+ * @brief Reads a HEALPix pixel value with optional shifting and normalization.
+ *
+ * This helper function reads from a HEALPix array, optionally applying FFT shifting
+ * and per-ring normalization. Used in spectral extension to fuse shift+normalize
+ * operations into the read.
+ *
+ * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
+ * @tparam T The floating-point type (float or double) for normalization.
+ * @param data Input HEALPix pixel array.
+ * @param indx The HEALPix pixel index to read from.
+ * @param nside The HEALPix Nside parameter.
+ * @param apply_shift Flag indicating whether to apply FFT shifting.
+ * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
+ * @return The shifted and normalized complex value.
+ */
+template <typename complex, typename T>
+__device__ complex read_shifted_normalized(complex* data, int indx, int nside, bool apply_shift, int norm) {
+    int r = 0, o = 0, nphi = 1, r_start = 0;
+    pixel_to_ring_offset_nphi(indx, nside, r, o, nphi, r_start);
+
+    int actual_o = o;
+    if (apply_shift) {
+        actual_o = (o + nphi / 2) % nphi;
+        actual_o = actual_o < 0 ? nphi + actual_o : actual_o;
+    }
+
+    int actual_indx = r_start + actual_o;
+    complex value = data[actual_indx];
+
+    if (norm == 0) {
+        value.x /= T(nphi);
+        value.y /= T(nphi);
+    } else if (norm == 1) {
+        T norm_val = sqrt(T(nphi));
+        value.x /= norm_val;
+        value.y /= norm_val;
+    }
+
+    return value;
+}
+
 // ============================================================================
 // GLOBAL KERNELS
 // ============================================================================
@@ -169,17 +210,19 @@ __device__ void inline swap(T& a, T& b) {
  * This kernel performs spectral folding operations on ring-ordered data,
  * transforming from Fourier coefficient space to HEALPix pixel space.
  * It handles both positive and negative frequency components and applies
- * optional FFT shifting.
+ * optional FFT shifting and normalization in a single pass.
  *
  * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
+ * @tparam T The floating-point type (float or double) for normalization.
  * @param data Input data array containing Fourier coefficients per ring.
  * @param output Output array for folded HEALPix pixel data.
  * @param nside The HEALPix Nside parameter.
  * @param L The harmonic band limit.
- * @param shift Flag indicating whether to apply FFT shifting.
+ * @param apply_shift Flag indicating whether to apply FFT shifting.
+ * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
  */
-template <typename complex>
-__global__ void spectral_folding(complex* data, complex* output, int nside, int L, bool shift) {
+template <typename complex, typename T>
+__global__ void spectral_folding(complex* data, complex* output, int nside, int L, bool apply_shift, int norm) {
     // Step 1: Determine which ring this thread is processing
     int current_indx = blockIdx.x * blockDim.x + threadIdx.x;
     if (current_indx >= (4 * nside - 1)) {
@@ -197,11 +240,20 @@ __global__ void spectral_folding(complex* data, complex* output, int nside, int 
     int slice_start = (L - nphi / 2);       // Start of central slice
     int slice_end = slice_start + nphi;     // End of central slice
 
+    // Step 3a: Compute normalization factor based on norm type
+    T norm_factor = T(1.0);
+    if (norm == 0) {
+        norm_factor = T(1.0) / T(nphi);
+    } else if (norm == 1) {
+        norm_factor = T(1.0) / sqrt(T(nphi));
+    }
+
     // Step 4: Copy the central part of the spectrum directly
     for (int i = 0; i < nphi; i++) {
         int folded_index = i + ring_offset;
         int target_index = i + ftm_offset + slice_start;
-        output[folded_index] = data[target_index];
+        output[folded_index].x = data[target_index].x * norm_factor;
+        output[folded_index].y = data[target_index].y * norm_factor;
     }
 
     // Step 5: Fold the negative part of the spectrum
@@ -212,8 +264,8 @@ __global__ void spectral_folding(complex* data, complex* output, int nside, int 
 
         folded_index = folded_index + ring_offset;
         target_index = target_index + ftm_offset;
-        output[folded_index].x += data[target_index].x;
-        output[folded_index].y += data[target_index].y;
+        output[folded_index].x += data[target_index].x * norm_factor;
+        output[folded_index].y += data[target_index].y * norm_factor;
     }
 
     // Step 6: Fold the positive part of the spectrum
@@ -224,12 +276,12 @@ __global__ void spectral_folding(complex* data, complex* output, int nside, int 
 
         folded_index = folded_index + ring_offset;
         target_index = target_index + ftm_offset;
-        output[folded_index].x += data[target_index].x;
-        output[folded_index].y += data[target_index].y;
+        output[folded_index].x += data[target_index].x * norm_factor;
+        output[folded_index].y += data[target_index].y * norm_factor;
     }
 
     // Step 7: Apply FFT shifting if requested
-    if (shift) {
+    if (apply_shift) {
         int half_nphi = nphi / 2;
         for (int i = 0; i < half_nphi; i++) {
             int origin_index = i + ring_offset;
@@ -244,16 +296,20 @@ __global__ void spectral_folding(complex* data, complex* output, int nside, int 
  *
  * This kernel performs the inverse operation of spectral folding, extending
  * HEALPix pixel data back to full Fourier coefficient space. It maps folded
- * frequency components back to their appropriate positions in the extended spectrum.
+ * frequency components back to their appropriate positions in the extended spectrum
+ * and applies FFT shifting and normalization in a single pass.
  *
  * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
+ * @tparam T The floating-point type (float or double) for normalization.
  * @param data Input array containing folded HEALPix pixel data.
  * @param output Output array for extended Fourier coefficients per ring.
  * @param nside The HEALPix Nside parameter.
  * @param L The harmonic band limit.
+ * @param apply_shift Flag indicating whether to apply FFT shifting.
+ * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
  */
-template <typename complex>
-__global__ void spectral_extension(complex* data, complex* output, int nside, int L) {
+template <typename complex, typename T>
+__global__ void spectral_extension(complex* data, complex* output, int nside, int L, bool apply_shift, int norm) {
     // Step 1: Initialize basic parameters
     int ftm_size = 2 * L;
     int current_indx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -277,87 +333,19 @@ __global__ void spectral_extension(complex* data, complex* output, int nside, in
         int indx = (-(L - nphi / 2 - offset)) % nphi;
         indx = indx < 0 ? nphi + indx : indx;
         indx = indx + offset_ring;
-        output[current_indx] = data[indx];
+        output[current_indx] = read_shifted_normalized<complex, T>(data, indx, nside, apply_shift, norm);
     } else if (offset >= L - nphi / 2 && offset < L + nphi / 2) {
         // Step 4b: Central part of the spectrum (direct mapping)
         int center_offset = offset - (L - nphi / 2);
         int indx = center_offset + offset_ring;
-        output[current_indx] = data[indx];
+        output[current_indx] = read_shifted_normalized<complex, T>(data, indx, nside, apply_shift, norm);
     } else {
         // Step 4c: Positive frequency part
         int reverse_offset = ftm_size - offset;
         int indx = (L - (int)((nphi + 1) / 2) - reverse_offset) % nphi;
         indx = indx < 0 ? nphi + indx : indx;
         indx = indx + offset_ring;
-        output[current_indx] = data[indx];
-    }
-}
-
-/**
- * @brief CUDA kernel for FFT shifting and normalization of HEALPix data.
- *
- * This kernel applies per-ring normalization and optional FFT shifting to HEALPix
- * pixel data. It processes each pixel independently, computing its ring coordinates
- * and applying the appropriate transformations. Supports both in-place (with cooperative
- * synchronization) and out-of-place (with separate buffer) modes.
- *
- * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
- * @tparam T The floating-point type (float or double) for normalization.
- * @param data Input/output array of HEALPix pixel data.
- * @param shift_buffer Scratch buffer for out-of-place shifting (can be nullptr).
- * @param nside The HEALPix Nside parameter.
- * @param apply_shift Flag indicating whether to apply FFT shifting.
- * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
- * @param use_out_of_place If true, write shifted data to shift_buffer; if false, use in-place with
- * grid.sync().
- */
-template <typename complex, typename T>
-__global__ void shift_normalize_kernel(complex* data, complex* shift_buffer, int nside, bool apply_shift,
-                                       int norm, bool use_out_of_place) {
-    // Step 1: Get pixel index and check bounds
-    long long int p = blockIdx.x * blockDim.x + threadIdx.x;
-    long long int Npix = npix(nside);
-
-    if (p >= Npix) return;
-
-    // Step 2: Convert pixel index to ring coordinates
-    int r = 0, o = 0, nphi = 1, r_start = 0;
-    pixel_to_ring_offset_nphi(p, nside, r, o, nphi, r_start);
-
-    // Step 3: Read and normalize the pixel data
-    complex element = data[p];
-
-    if (norm == 0) {
-        // Step 3a: Normalize by nphi
-        element.x /= nphi;
-        element.y /= nphi;
-    } else if (norm == 1) {
-        // Step 3b: Normalize by sqrt(nphi)
-        T norm_val = sqrt((T)nphi);
-        element.x /= norm_val;
-        element.y /= norm_val;
-    }
-    // Step 3c: No normalization for norm == 2
-
-    // Step 4: Apply FFT shifting if requested
-    if (apply_shift) {
-        // Step 4a: Compute shifted position within ring
-        long long int shifted_o = (o + nphi / 2) % nphi;
-        shifted_o = shifted_o < 0 ? nphi + shifted_o : shifted_o;
-        long long int dest_p = r_start + shifted_o;
-
-        if (use_out_of_place) {
-            // Step 4b: Out-of-place mode - write to separate buffer (no sync needed)
-            shift_buffer[dest_p] = element;
-        } else {
-            // Step 4c: In-place mode - sync then write
-            cooperative_groups::grid_group grid = cooperative_groups::this_grid();
-            grid.sync();
-            data[dest_p] = element;
-        }
-    } else {
-        // Step 4d: No shift - write back to original position
-        data[p] = element;
+        output[current_indx] = read_shifted_normalized<complex, T>(data, indx, nside, apply_shift, norm);
     }
 }
 
@@ -383,14 +371,20 @@ __global__ void shift_normalize_kernel(complex* data, complex* shift_buffer, int
  */
 template <typename complex>
 HRESULT launch_spectral_folding(complex* data, complex* output, const int& nside, const int& L,
-                                const bool& shift, cudaStream_t stream) {
+                                const bool& apply_shift, const int& norm, cudaStream_t stream) {
     // Step 1: Configure kernel launch parameters
     int block_size = 128;
     int ftm_elements = (4 * nside - 1);
     int grid_size = (ftm_elements + block_size - 1) / block_size;
 
-    // Step 2: Launch the kernel
-    spectral_folding<complex><<<grid_size, block_size, 0, stream>>>(data, output, nside, L, shift);
+    // Step 2: Launch the kernel with appropriate precision
+    if constexpr (std::is_same_v<complex, cufftComplex>) {
+        spectral_folding<cufftComplex, float><<<grid_size, block_size, 0, stream>>>(
+                data, output, nside, L, apply_shift, norm);
+    } else {
+        spectral_folding<cufftDoubleComplex, double><<<grid_size, block_size, 0, stream>>>(
+                data, output, nside, L, apply_shift, norm);
+    }
 
     // Step 3: Check for kernel launch errors
     checkCudaErrors(cudaGetLastError());
@@ -414,86 +408,23 @@ HRESULT launch_spectral_folding(complex* data, complex* output, const int& nside
  */
 template <typename complex>
 HRESULT launch_spectral_extension(complex* data, complex* output, const int& nside, const int& L,
-                                  cudaStream_t stream) {
+                                  const bool& apply_shift, const int& norm, cudaStream_t stream) {
     // Step 1: Configure kernel launch parameters
     int block_size = 128;
     int ftm_elements = 2 * L * (4 * nside - 1);
     int grid_size = (ftm_elements + block_size - 1) / block_size;
 
-    // Step 2: Launch the kernel
-    spectral_extension<complex><<<grid_size, block_size, 0, stream>>>(data, output, nside, L);
+    // Step 2: Launch the kernel with appropriate precision
+    if constexpr (std::is_same_v<complex, cufftComplex>) {
+        spectral_extension<cufftComplex, float><<<grid_size, block_size, 0, stream>>>(
+                data, output, nside, L, apply_shift, norm);
+    } else {
+        spectral_extension<cufftDoubleComplex, double><<<grid_size, block_size, 0, stream>>>(
+                data, output, nside, L, apply_shift, norm);
+    }
 
     // Step 3: Check for kernel launch errors
     checkCudaErrors(cudaGetLastError());
-    return S_OK;
-}
-
-/**
- * @brief Launches the shift/normalize CUDA kernel for HEALPix data processing.
- *
- * This function configures and launches the shift_normalize_kernel with appropriate
- * grid and block dimensions. Supports both in-place (cooperative kernel) and out-of-place
- * (regular kernel with scratch buffer) modes. For out-of-place mode with shifting, the
- * shifted data is copied back from the scratch buffer after the kernel completes.
- *
- * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
- * @param stream CUDA stream for kernel execution.
- * @param data Input/output array of HEALPix pixel data.
- * @param shift_buffer Scratch buffer for out-of-place shifting (can be nullptr for in-place).
- * @param nside The HEALPix Nside parameter.
- * @param apply_shift Flag indicating whether to apply FFT shifting.
- * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
- * @param use_out_of_place If true, use regular launch with out-of-place buffer; if false, use cooperative
- * launch with in-place.
- * @return HRESULT indicating success or failure.
- */
-template <typename complex>
-HRESULT launch_shift_normalize_kernel(cudaStream_t stream, complex* data, complex* shift_buffer, int nside,
-                                      bool apply_shift, int norm, bool use_out_of_place) {
-    // Step 1: Configure kernel launch parameters
-    long long int Npix = 12 * nside * nside;
-    int block_size = 256;
-    int grid_size = (Npix + block_size - 1) / block_size;
-
-    if (use_out_of_place) {
-        // Step 2a: Regular launch for out-of-place mode
-        if constexpr (std::is_same_v<complex, cufftComplex>) {
-            shift_normalize_kernel<cufftComplex, float><<<grid_size, block_size, 0, stream>>>(
-                    (cufftComplex*)data, (cufftComplex*)shift_buffer, nside, apply_shift, norm, true);
-        } else {
-            shift_normalize_kernel<cufftDoubleComplex, double><<<grid_size, block_size, 0, stream>>>(
-                    (cufftDoubleComplex*)data, (cufftDoubleComplex*)shift_buffer, nside, apply_shift, norm,
-                    true);
-        }
-        checkCudaErrors(cudaGetLastError());
-
-        // Step 2b: If shifting was applied, copy result back from scratch buffer
-        if (apply_shift && shift_buffer != nullptr) {
-            checkCudaErrors(cudaMemcpyAsync(data, shift_buffer, Npix * sizeof(complex),
-                                            cudaMemcpyDeviceToDevice, stream));
-        }
-    } else {
-        // Step 3a: Set up kernel arguments for cooperative launch
-        void* kernel_args[6];
-        kernel_args[0] = &data;
-        kernel_args[1] = &shift_buffer;
-        kernel_args[2] = &nside;
-        kernel_args[3] = &apply_shift;
-        kernel_args[4] = &norm;
-        kernel_args[5] = &use_out_of_place;
-
-        // Step 3b: Launch cooperative kernel for in-place mode
-        if constexpr (std::is_same_v<complex, cufftComplex>) {
-            checkCudaErrors(cudaLaunchCooperativeKernel((void*)shift_normalize_kernel<cufftComplex, float>,
-                                                        grid_size, block_size, kernel_args, 0, stream));
-        } else {
-            checkCudaErrors(
-                    cudaLaunchCooperativeKernel((void*)shift_normalize_kernel<cufftDoubleComplex, double>,
-                                                grid_size, block_size, kernel_args, 0, stream));
-        }
-        checkCudaErrors(cudaGetLastError());
-    }
-
     return S_OK;
 }
 
@@ -503,30 +434,21 @@ HRESULT launch_shift_normalize_kernel(cudaStream_t stream, complex* data, comple
 
 // Explicit template specializations for spectral folding functions
 template HRESULT launch_spectral_folding<cufftComplex>(cufftComplex* data, cufftComplex* output,
-                                                       const int& nside, const int& L, const bool& shift,
-                                                       cudaStream_t stream);
+                                                       const int& nside, const int& L, const bool& apply_shift,
+                                                       const int& norm, cudaStream_t stream);
 template HRESULT launch_spectral_folding<cufftDoubleComplex>(cufftDoubleComplex* data,
                                                              cufftDoubleComplex* output, const int& nside,
-                                                             const int& L, const bool& shift,
-                                                             cudaStream_t stream);
+                                                             const int& L, const bool& apply_shift,
+                                                             const int& norm, cudaStream_t stream);
 
 // Explicit template specializations for spectral extension functions
 template HRESULT launch_spectral_extension<cufftComplex>(cufftComplex* data, cufftComplex* output,
-                                                         const int& nside, const int& L, cudaStream_t stream);
+                                                         const int& nside, const int& L, const bool& apply_shift,
+                                                         const int& norm, cudaStream_t stream);
 template HRESULT launch_spectral_extension<cufftDoubleComplex>(cufftDoubleComplex* data,
                                                                cufftDoubleComplex* output, const int& nside,
-                                                               const int& L, cudaStream_t stream);
+                                                               const int& L, const bool& apply_shift,
+                                                               const int& norm, cudaStream_t stream);
 
-// Explicit template specializations for shift/normalize functions
-template HRESULT launch_shift_normalize_kernel<cufftComplex>(cudaStream_t stream, cufftComplex* data,
-                                                             cufftComplex* shift_buffer, int nside,
-                                                             bool apply_shift, int norm,
-                                                             bool use_out_of_place);
-
-template HRESULT launch_shift_normalize_kernel<cufftDoubleComplex>(cudaStream_t stream,
-                                                                   cufftDoubleComplex* data,
-                                                                   cufftDoubleComplex* shift_buffer,
-                                                                   int nside, bool apply_shift, int norm,
-                                                                   bool use_out_of_place);
 
 }  // namespace s2fftKernels
