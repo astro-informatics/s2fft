@@ -71,16 +71,14 @@ constexpr bool is_double_v = is_double<T>::value;
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
-ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input,
-                           ffi::Result<ffi::Buffer<T>> output, ffi::Result<ffi::Buffer<T>> workspace,
-                           s2fftDescriptor descriptor) {
+ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Result<ffi::Buffer<T>> output,
+                           ffi::Result<ffi::Buffer<T>> workspace, s2fftDescriptor descriptor) {
     // Step 1: Determine the complex type based on the XLA data type.
     using fft_complex_type = fft_complex_t<T>;
     const auto& dim_in = input.dimensions();
 
     // Step 1a: Get shift strategy from descriptor.
     bool is_batched = (dim_in.size() == 2);
-
 
     // Step 2: Handle batched and non-batched cases separately.
     if (is_batched) {
@@ -113,8 +111,9 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input,
             // Step 2g: Launch the forward transform on this sub-stream.
             executor->Forward(descriptor, sub_stream, data_c, workspace_c);
             // Step 2h: Launch spectral extension kernel with shift and normalization.
-            int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::FORWARD) ? 0 :
-                              (descriptor.norm == s2fftKernels::fft_norm::ORTHO) ? 1 : 2;
+            int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::FORWARD) ? 0
+                              : (descriptor.norm == s2fftKernels::fft_norm::ORTHO) ? 1
+                                                                                   : 2;
             s2fftKernels::launch_spectral_extension(data_c, out_c, descriptor.nside,
                                                     descriptor.harmonic_band_limit, descriptor.shift,
                                                     kernel_norm, sub_stream);
@@ -135,11 +134,12 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input,
         // Step 2m: Launch the forward transform.
         executor->Forward(descriptor, stream, data_c, workspace_c);
         // Step 2n: Launch spectral extension kernel with shift and normalization.
-        int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::FORWARD) ? 0 :
-                          (descriptor.norm == s2fftKernels::fft_norm::ORTHO) ? 1 : 2;
+        int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::FORWARD) ? 0
+                          : (descriptor.norm == s2fftKernels::fft_norm::ORTHO) ? 1
+                                                                               : 2;
         s2fftKernels::launch_spectral_extension(data_c, out_c, descriptor.nside,
-                                                descriptor.harmonic_band_limit, descriptor.shift,
-                                                kernel_norm, stream);
+                                                descriptor.harmonic_band_limit, descriptor.shift, kernel_norm,
+                                                stream);
         return ffi::Error::Success();
     }
 }
@@ -162,9 +162,8 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input,
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
-ffi::Error healpix_backward(cudaStream_t stream,ffi::Buffer<T> input,
-                            ffi::Result<ffi::Buffer<T>> output, ffi::Result<ffi::Buffer<T>> workspace,
-                            s2fftDescriptor descriptor) {
+ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Result<ffi::Buffer<T>> output,
+                            ffi::Result<ffi::Buffer<T>> workspace, s2fftDescriptor descriptor) {
     // Step 1: Determine the complex type based on the XLA data type.
     using fft_complex_type = fft_complex_t<T>;
     const auto& dim_in = input.dimensions();
@@ -204,14 +203,14 @@ ffi::Error healpix_backward(cudaStream_t stream,ffi::Buffer<T> input,
             fft_complex_type* workspace_c =
                     reinterpret_cast<fft_complex_type*>(workspace->typed_data() + i * executor->m_work_size);
 
-            int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::BACKWARD) ? 0 :
-                        (descriptor.norm == s2fftKernels::fft_norm::ORTHO) ? 1 : 2;
-
+            int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::BACKWARD) ? 0
+                              : (descriptor.norm == s2fftKernels::fft_norm::ORTHO)  ? 1
+                                                                                    : 2;
 
             // Step 2g: Launch spectral folding kernel.
             s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside,
-                                                  descriptor.harmonic_band_limit, descriptor.shift,kernel_norm,
-                                                  sub_stream);
+                                                  descriptor.harmonic_band_limit, descriptor.shift,
+                                                  kernel_norm, sub_stream);
             // Step 2h: Launch the backward transform on this sub-stream.
             executor->Backward(descriptor, sub_stream, out_c, workspace_c);
         }
@@ -227,16 +226,16 @@ ffi::Error healpix_backward(cudaStream_t stream,ffi::Buffer<T> input,
         fft_complex_type* data_c = reinterpret_cast<fft_complex_type*>(input.typed_data());
         fft_complex_type* out_c = reinterpret_cast<fft_complex_type*>(output->typed_data());
         fft_complex_type* workspace_c = reinterpret_cast<fft_complex_type*>(workspace->typed_data());
-        int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::BACKWARD) ? 0 :
-                              (descriptor.norm == s2fftKernels::fft_norm::ORTHO) ? 1 : 2;
-
+        int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::BACKWARD) ? 0
+                          : (descriptor.norm == s2fftKernels::fft_norm::ORTHO)  ? 1
+                                                                                : 2;
 
         // Step 2l: Get or create an s2fftExec instance from the PlanCache.
         auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
         PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
         // Step 2m: Launch spectral folding kernel.
         s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside, descriptor.harmonic_band_limit,
-                                              descriptor.shift,kernel_norm, stream);
+                                              descriptor.shift, kernel_norm, stream);
         // Step 2n: Launch the backward transform.
         executor->Backward(descriptor, stream, out_c, workspace_c);
         return ffi::Error::Success();
@@ -323,10 +322,9 @@ s2fftDescriptor build_descriptor(int64_t nside, int64_t harmonic_band_limit, boo
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
-ffi::Error healpix_fft_cuda(cudaStream_t stream, int64_t nside,
-                            int64_t harmonic_band_limit, bool reality, bool forward, bool normalize,
-                            bool adjoint, ffi::Buffer<T> input, ffi::Result<ffi::Buffer<T>> output,
-                            ffi::Result<ffi::Buffer<T>> workspace) {
+ffi::Error healpix_fft_cuda(cudaStream_t stream, int64_t nside, int64_t harmonic_band_limit, bool reality,
+                            bool forward, bool normalize, bool adjoint, ffi::Buffer<T> input,
+                            ffi::Result<ffi::Buffer<T>> output, ffi::Result<ffi::Buffer<T>> workspace) {
     // Step 1: Build the s2fftDescriptor based on the input parameters.
     size_t work_size = 0;  // Variable to hold the workspace size
     s2fftDescriptor descriptor = build_descriptor<T>(nside, harmonic_band_limit, reality, forward, normalize,

@@ -222,7 +222,8 @@ __device__ complex read_shifted_normalized(complex* data, int indx, int nside, b
  * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
  */
 template <typename complex, typename T>
-__global__ void spectral_folding(complex* data, complex* output, int nside, int L, bool apply_shift, int norm) {
+__global__ void spectral_folding(complex* data, complex* output, int nside, int L, bool apply_shift,
+                                 int norm) {
     // Step 1: Determine which ring this thread is processing
     int current_indx = blockIdx.x * blockDim.x + threadIdx.x;
     if (current_indx >= (4 * nside - 1)) {
@@ -309,7 +310,8 @@ __global__ void spectral_folding(complex* data, complex* output, int nside, int 
  * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
  */
 template <typename complex, typename T>
-__global__ void spectral_extension(complex* data, complex* output, int nside, int L, bool apply_shift, int norm) {
+__global__ void spectral_extension(complex* data, complex* output, int nside, int L, bool apply_shift,
+                                   int norm) {
     // Step 1: Initialize basic parameters
     int ftm_size = 2 * L;
     int current_indx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -379,11 +381,11 @@ HRESULT launch_spectral_folding(complex* data, complex* output, const int& nside
 
     // Step 2: Launch the kernel with appropriate precision
     if constexpr (std::is_same_v<complex, cufftComplex>) {
-        spectral_folding<cufftComplex, float><<<grid_size, block_size, 0, stream>>>(
-                data, output, nside, L, apply_shift, norm);
+        spectral_folding<cufftComplex, float>
+                <<<grid_size, block_size, 0, stream>>>(data, output, nside, L, apply_shift, norm);
     } else {
-        spectral_folding<cufftDoubleComplex, double><<<grid_size, block_size, 0, stream>>>(
-                data, output, nside, L, apply_shift, norm);
+        spectral_folding<cufftDoubleComplex, double>
+                <<<grid_size, block_size, 0, stream>>>(data, output, nside, L, apply_shift, norm);
     }
 
     // Step 3: Check for kernel launch errors
@@ -416,11 +418,11 @@ HRESULT launch_spectral_extension(complex* data, complex* output, const int& nsi
 
     // Step 2: Launch the kernel with appropriate precision
     if constexpr (std::is_same_v<complex, cufftComplex>) {
-        spectral_extension<cufftComplex, float><<<grid_size, block_size, 0, stream>>>(
-                data, output, nside, L, apply_shift, norm);
+        spectral_extension<cufftComplex, float>
+                <<<grid_size, block_size, 0, stream>>>(data, output, nside, L, apply_shift, norm);
     } else {
-        spectral_extension<cufftDoubleComplex, double><<<grid_size, block_size, 0, stream>>>(
-                data, output, nside, L, apply_shift, norm);
+        spectral_extension<cufftDoubleComplex, double>
+                <<<grid_size, block_size, 0, stream>>>(data, output, nside, L, apply_shift, norm);
     }
 
     // Step 3: Check for kernel launch errors
@@ -434,8 +436,9 @@ HRESULT launch_spectral_extension(complex* data, complex* output, const int& nsi
 
 // Explicit template specializations for spectral folding functions
 template HRESULT launch_spectral_folding<cufftComplex>(cufftComplex* data, cufftComplex* output,
-                                                       const int& nside, const int& L, const bool& apply_shift,
-                                                       const int& norm, cudaStream_t stream);
+                                                       const int& nside, const int& L,
+                                                       const bool& apply_shift, const int& norm,
+                                                       cudaStream_t stream);
 template HRESULT launch_spectral_folding<cufftDoubleComplex>(cufftDoubleComplex* data,
                                                              cufftDoubleComplex* output, const int& nside,
                                                              const int& L, const bool& apply_shift,
@@ -443,12 +446,12 @@ template HRESULT launch_spectral_folding<cufftDoubleComplex>(cufftDoubleComplex*
 
 // Explicit template specializations for spectral extension functions
 template HRESULT launch_spectral_extension<cufftComplex>(cufftComplex* data, cufftComplex* output,
-                                                         const int& nside, const int& L, const bool& apply_shift,
-                                                         const int& norm, cudaStream_t stream);
+                                                         const int& nside, const int& L,
+                                                         const bool& apply_shift, const int& norm,
+                                                         cudaStream_t stream);
 template HRESULT launch_spectral_extension<cufftDoubleComplex>(cufftDoubleComplex* data,
                                                                cufftDoubleComplex* output, const int& nside,
                                                                const int& L, const bool& apply_shift,
                                                                const int& norm, cudaStream_t stream);
-
 
 }  // namespace s2fftKernels
