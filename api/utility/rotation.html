@@ -516,58 +516,8 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-s2fft.utils.rotation">
-<span id="rotations"></span><h1>rotations<a class="headerlink" href="#module-s2fft.utils.rotation" title="Link to this heading">#</a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.utils.rotation.generate_rotate_dls">
-<span class="sig-prename descclassname"><span class="pre">s2fft.utils.rotation.</span></span><span class="sig-name descname"><span class="pre">generate_rotate_dls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.utils.rotation.generate_rotate_dls" title="Link to this definition">#</a></dt>
-<dd><dl class="simple">
-<dt>Function which recursively generates the complete plane of reduced</dt><dd><p>Wigner d-function coefficients at a given rotation beta.</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>beta</strong> (<em>float</em>) – Rotation on the sphere.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>Complete array of [L, 2L-1,2L-1] Wigner d-function coefficients</dt><dd><p>for a fixed rotation beta.</p>
-</dd>
-</dl>
-</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>jnp.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="s2fft.utils.rotation.rotate_flms">
-<span class="sig-prename descclassname"><span class="pre">s2fft.utils.rotation.</span></span><span class="sig-name descname"><span class="pre">rotate_flms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dl_array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="headerlink" href="#s2fft.utils.rotation.rotate_flms" title="Link to this definition">#</a></dt>
-<dd><p>Rotates an array of spherical harmonic coefficients by angle rotation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>flm</strong> (<em>jnp.ndarray</em>) – Array of spherical harmonic coefficients.</p></li>
-<li><p><strong>L</strong> (<em>int</em>) – Harmonic band-limit.</p></li>
-<li><p><strong>rotation</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>, </em><em>float</em><em>]</em>) – Rotation on the sphere (alpha, beta, gamma).</p></li>
-<li><p><strong>dl_array</strong> (<em>jnp.ndarray</em><em>, </em><em>optional</em>) – Precomputed array of reduced Wigner d-function
-coefficients, see :func:~`generate_rotate_dls`. Defaults to None.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Rotated spherical harmonic coefficients with shape [L,2L-1].</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>jnp.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
+  <section id="rotations">
+<h1>rotations<a class="headerlink" href="#rotations" title="Link to this heading">#</a></h1>
 </section>
 
 
