@@ -132,3 +132,34 @@ def cached_test_case_wrapper(
         return cached_generate_data
 
     return wrapper
+
+
+@pytest.fixture
+def cached_so3_test_case(
+    cached_test_case_wrapper: Callable[[Callable[P, TestData]], Callable[P, TestData]],
+    flmn_generator: Callable[..., np.ndarray],
+    s2fft_to_so3_sampling: Callable[[str], str],
+) -> Callable[P, TestData]:
+    def generate_data(
+        L: int, N: int, L_lower: int, sampling: str, reality: bool
+    ) -> dict[str, np.ndarray]:
+        import so3
+
+        from s2fft.sampling import so3_samples
+
+        flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
+
+        so3_parameters = so3.create_parameter_dict(
+            L=L,
+            N=N,
+            L0=L_lower,
+            sampling_scheme_str=s2fft_to_so3_sampling(sampling),
+            reality=False,
+        )
+
+        f_so3 = so3.inverse(so3_samples.flmn_3d_to_1d(flmn, L, N), so3_parameters)
+        flmn_so3 = so3_samples.flmn_1d_to_3d(so3.forward(f_so3, so3_parameters), L, N)
+
+        return {"flmn": flmn, "f_so3": f_so3, "flmn_so3": flmn_so3}
+
+    return cached_test_case_wrapper(generate_data)
