@@ -1,6 +1,8 @@
 """Collection of shared fixtures"""
 
+from collections.abc import Callable
 from functools import partial
+from pathlib import Path
 
 import pytest
 
@@ -19,11 +21,33 @@ def pytest_addoption(parser):
             "seeds specified."
         ),
     )
+    parser.addoption(
+        "--cache-directory",
+        type=Path,
+        default=Path(__file__).parent / "cached-test-data",
+        help="Path to access / store cached test data from / to.",
+    )
+    parser.addoption(
+        "--regenerate-cached-data",
+        action="store_true",
+        help="Regenerate cached test data rather than using stored values.",
+    )
 
 
 def pytest_generate_tests(metafunc):
-    if "seed" in metafunc.fixturenames:
-        metafunc.parametrize("seed", metafunc.config.getoption("seed"))
+    for option in ("seed",):
+        if option in metafunc.fixturenames:
+            metafunc.parametrize(option, metafunc.config.getoption(option))
+
+
+@pytest.fixture
+def cache_directory(request) -> Path:
+    return request.config.getoption("cache_directory")
+
+
+@pytest.fixture
+def regenerate_cached_data(request) -> Path:
+    return request.config.getoption("regenerate_cached_data")
 
 
 @pytest.fixture
@@ -68,3 +92,41 @@ def s2fft_to_so3_sampling():
         return so3_sampling
 
     return so3_sampling
+
+
+def cache_subdirectory_path(cache_directory: Path, subdirectory: str) -> Path:
+    cache_subdirectory = cache_directory / subdirectory
+    if not cache_subdirectory.exists():
+        cache_subdirectory.mkdir(parents=True)
+    return cache_subdirectory
+
+
+def cache_filename(parameters: dict, extension: str = "npz") -> str:
+    return "__".join(f"{k}={v}" for k, v in parameters.items()) + "." + extension
+
+
+@pytest.fixture
+def cached_test_case_wrapper(
+    cache_directory: Path, regenerate_cached_data: bool, seed: int
+) -> Callable[[Callable], Callable]:
+    import numpy as np
+
+    def wrapper(generate_data):
+        cache_subdirectory = cache_subdirectory_path(
+            cache_directory / generate_data.__module__, generate_data.__qualname__
+        )
+
+        def cached_generate_data(**parameters) -> dict[str, np.ndarray]:
+            cache_path = cache_subdirectory / cache_filename(
+                {"seed": seed} | parameters
+            )
+            if regenerate_cached_data:
+                data = generate_data(**parameters)
+                np.savez(cache_path, **data)
+                return data
+            else:
+                return np.load(cache_path)
+
+        return cached_generate_data
+
+    return wrapper
