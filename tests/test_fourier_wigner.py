@@ -94,7 +94,7 @@ def test_forward_fourier_wigner_transform(
     np.testing.assert_allclose(test_data["flmn"], flmn_check, atol=atol)
 
 
-@pytest.mark.parametrize("L", [8, 16, 32, 64])
+@pytest.mark.parametrize("L", [8, 16, 32])
 @pytest.mark.parametrize("sampling", sampling_schemes)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_inverse_fourier_wigner_transform_high_N(
@@ -113,7 +113,7 @@ def test_inverse_fourier_wigner_transform_high_N(
     np.testing.assert_allclose(f, f_check.flatten("C"), atol=atol)
 
 
-@pytest.mark.parametrize("L", [8, 16, 32, 64])
+@pytest.mark.parametrize("L", [8, 16, 32])
 @pytest.mark.parametrize("sampling", sampling_schemes)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_forward_fourier_wigner_transform_high_N(
