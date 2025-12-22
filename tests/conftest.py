@@ -203,3 +203,36 @@ def cached_so3_test_case(
         return {"flmn": flmn, "f_so3": f_so3, "flmn_so3": flmn_so3}
 
     return cached_test_case_wrapper(generate_data, "npz")
+
+
+@pytest.fixture
+def cached_so3_samples_test_case(
+    cached_test_case_wrapper: Callable[
+        [Callable[P, TestData], str], Callable[P, TestData]
+    ],
+    s2fft_to_so3_sampling: Callable[[str], str],
+) -> Callable[P, TestData]:
+    def generate_data(L: int, N: int, sampling: str) -> dict[str, np.ndarray]:
+        import so3
+
+        so3_parameters = so3.create_parameter_dict(
+            L=L,
+            N=N,
+            sampling_scheme_str=s2fft_to_so3_sampling(sampling),
+        )
+
+        return {
+            "f_size": so3.f_size(so3_parameters),
+            "flmn_size": so3.flmn_size(so3_parameters),
+            "n_alpha": so3.n_alpha(so3_parameters),
+            "n_beta": so3.n_beta(so3_parameters),
+            "n_gamma": so3.n_gamma(so3_parameters),
+            "elmn2ind": {
+                f"{el}_{m}_{n}": so3.elmn2ind(el, m, n, so3_parameters)
+                for el in range(L)
+                for m in range(-el, el + 1)
+                for n in range(-N + 1, N)
+            },
+        }
+
+    return cached_test_case_wrapper(generate_data, "json")
