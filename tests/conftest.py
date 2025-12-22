@@ -1,9 +1,11 @@
 """Collection of shared fixtures"""
 
+import json
+
 from collections.abc import Callable, Mapping
 from functools import partial
 from pathlib import Path
-from typing import ParamSpec, TypeAlias
+from typing import Any, NamedTuple, ParamSpec, TypeAlias
 
 import numpy as np
 import pytest
@@ -93,18 +95,48 @@ def cache_subdirectory_path(cache_directory: Path, subdirectory: str) -> Path:
     return cache_subdirectory
 
 
-def cache_filename(parameters: dict, extension: str = "npz") -> str:
+def cache_filename(parameters: dict, extension: str) -> str:
     return "__".join(f"{k}={v}" for k, v in parameters.items()) + "." + extension
 
 
 P = ParamSpec("P")
-TestData: TypeAlias = Mapping[str, np.ndarray]
+TestData: TypeAlias = Mapping[str, Any]
+
+
+class TestDataFormat(NamedTuple):
+    extension: str
+    load: Callable[[Path], TestData]
+    save: Callable[[Path, TestData], None]
+
+
+def npz_load(path: Path) -> TestData:
+    return np.load(path)
+
+
+def npz_save(path: Path, data: TestData) -> None:
+    return np.savez(path, **data)
+
+
+def json_load(path: Path) -> TestData:
+    with path.open("r") as f:
+        return json.load(f)
+
+
+def json_save(path: Path, data: TestData) -> None:
+    with path.open("w") as f:
+        json.dump(data, f)
+
+
+TEST_DATA_FORMATS = {
+    "npz": TestDataFormat("npz", npz_load, npz_save),
+    "json": TestDataFormat("json", json_load, json_save),
+}
 
 
 @pytest.fixture
 def cached_test_case_wrapper(
     cache_directory: Path, regenerate_cached_data: bool, seed: int
-) -> Callable[[Callable[P, TestData]], Callable[P, TestData]]:
+) -> Callable[[Callable[P, TestData], str], Callable[P, TestData]]:
     """Fixture for caching generated test data to file.
 
     Returns a wrapper function which when applied to a function `generate_data` which
@@ -112,22 +144,28 @@ def cached_test_case_wrapper(
     `regenerate_cached_data` is True and cache the generated test data in a file named
     according to the keyword arguments to `generate_data` under a module / function
     specific subdirectory in `cache_directory`, and otherwise will attempt to load
-    previously cached data from `cache_directory`.
+    previously cached data from `cache_directory`. The format the cached data is written
+    to and read from is specified by `format`.
     """
 
-    def wrapper(generate_data: Callable[P, TestData]) -> Callable[P, TestData]:
+    def wrapper(
+        generate_data: Callable[P, TestData], format: str
+    ) -> Callable[P, TestData]:
+        data_format = TEST_DATA_FORMATS[format]
         cache_subdirectory = cache_subdirectory_path(
             cache_directory / generate_data.__module__, generate_data.__qualname__
         )
 
         def cached_generate_data(*args: P.args, **kwargs: P.kwargs) -> TestData:
-            cache_path = cache_subdirectory / cache_filename({"seed": seed} | kwargs)
+            cache_path = cache_subdirectory / cache_filename(
+                {"seed": seed} | kwargs, data_format.extension
+            )
             if regenerate_cached_data:
                 data = generate_data(*args, **kwargs)
-                np.savez(cache_path, **data)
+                data_format.save(cache_path, data)
                 return data
             else:
-                return np.load(cache_path)
+                return data_format.load(cache_path)
 
         return cached_generate_data
 
@@ -136,7 +174,9 @@ def cached_test_case_wrapper(
 
 @pytest.fixture
 def cached_so3_test_case(
-    cached_test_case_wrapper: Callable[[Callable[P, TestData]], Callable[P, TestData]],
+    cached_test_case_wrapper: Callable[
+        [Callable[P, TestData], str], Callable[P, TestData]
+    ],
     flmn_generator: Callable[..., np.ndarray],
     s2fft_to_so3_sampling: Callable[[str], str],
 ) -> Callable[P, TestData]:
@@ -162,4 +202,4 @@ def cached_so3_test_case(
 
         return {"flmn": flmn, "f_so3": f_so3, "flmn_so3": flmn_so3}
 
-    return cached_test_case_wrapper(generate_data)
+    return cached_test_case_wrapper(generate_data, "npz")
