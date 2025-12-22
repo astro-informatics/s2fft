@@ -32,11 +32,6 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
         os: [ubuntu-latest, macos-latest]
-        exclude:
-          # Skip Python 3.13 on MacOS as 1.20<=numpy<2 requirement inherited from so3
-          # requiring numpy<2 cannot be resolved there
-          - os: macos-latest
-            python-version: "3.13"
       fail-fast: false
     env:
       CMAKE_POLICY_VERSION_MINIMUM: 3.5
@@ -63,7 +58,7 @@ jobs:
       run: |
         conda install jax "jax>=0.3.13,<0.6.0" "numpy>=1.20,<2" ducc0 healpy pytorch pytest pytest-cov
         python -m pip install --upgrade pip
-        pip install --no-deps so3 pyssht
+        pip install --no-deps pyssht
         pip install --no-deps .
   
     - if: matrix.os != 'macos-latest'
