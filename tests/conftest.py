@@ -1,7 +1,6 @@
 """Collection of shared fixtures"""
 
 import json
-
 from collections.abc import Callable, Mapping
 from functools import partial
 from pathlib import Path
