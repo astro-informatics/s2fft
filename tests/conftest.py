@@ -4,7 +4,10 @@ from collections.abc import Callable
 from functools import partial
 from pathlib import Path
 
+import numpy as np
 import pytest
+
+from s2fft.utils import signal_generator
 
 DEFAULT_SEED = 8966433580120847635
 
@@ -52,28 +55,16 @@ def regenerate_cached_data(request) -> Path:
 
 @pytest.fixture
 def rng(seed):
-    # Import numpy locally to avoid `RuntimeWarning: numpy.ndarray size changed`
-    # when importing at module level
-    import numpy as np
-
     return np.random.default_rng(seed)
 
 
 @pytest.fixture
 def flm_generator(rng):
-    # Import s2fft (and indirectly numpy) locally to avoid
-    # `RuntimeWarning: numpy.ndarray size changed` when importing at module level
-    from s2fft.utils import signal_generator
-
     return partial(signal_generator.generate_flm, rng)
 
 
 @pytest.fixture
 def flmn_generator(rng):
-    # Import s2fft (and indirectly numpy) locally to avoid
-    # `RuntimeWarning: numpy.ndarray size changed` when importing at module level
-    from s2fft.utils import signal_generator
-
     return partial(signal_generator.generate_flmn, rng)
 
 
@@ -109,8 +100,6 @@ def cache_filename(parameters: dict, extension: str = "npz") -> str:
 def cached_test_case_wrapper(
     cache_directory: Path, regenerate_cached_data: bool, seed: int
 ) -> Callable[[Callable], Callable]:
-    import numpy as np
-
     def wrapper(generate_data):
         cache_subdirectory = cache_subdirectory_path(
             cache_directory / generate_data.__module__, generate_data.__qualname__
