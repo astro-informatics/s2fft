@@ -114,7 +114,7 @@ def npz_load(path: Path) -> TestData:
 
 
 def npz_save(path: Path, data: TestData) -> None:
-    return np.savez(path, **data)
+    return np.savez_compressed(path, **data)
 
 
 def json_load(path: Path) -> TestData:
