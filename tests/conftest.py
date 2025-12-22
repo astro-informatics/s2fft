@@ -1,8 +1,9 @@
 """Collection of shared fixtures"""
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from functools import partial
 from pathlib import Path
+from typing import ParamSpec, TypeAlias
 
 import numpy as np
 import pytest
@@ -54,23 +55,23 @@ def regenerate_cached_data(request) -> Path:
 
 
 @pytest.fixture
-def rng(seed):
+def rng(seed: int) -> np.random.Generator:
     return np.random.default_rng(seed)
 
 
 @pytest.fixture
-def flm_generator(rng):
+def flm_generator(rng: np.random.Generator) -> Callable[..., np.ndarray]:
     return partial(signal_generator.generate_flm, rng)
 
 
 @pytest.fixture
-def flmn_generator(rng):
+def flmn_generator(rng: np.random.Generator) -> Callable[..., np.ndarray]:
     return partial(signal_generator.generate_flmn, rng)
 
 
 @pytest.fixture
-def s2fft_to_so3_sampling():
-    def so3_sampling(s2fft_sampling):
+def s2fft_to_so3_sampling() -> Callable[[str], str]:
+    def so3_sampling(s2fft_sampling: str) -> str:
         if s2fft_sampling.lower() == "mw":
             so3_sampling = "SO3_SAMPLING_MW"
         elif s2fft_sampling.lower() == "mwss":
@@ -96,21 +97,33 @@ def cache_filename(parameters: dict, extension: str = "npz") -> str:
     return "__".join(f"{k}={v}" for k, v in parameters.items()) + "." + extension
 
 
+P = ParamSpec("P")
+TestData: TypeAlias = Mapping[str, np.ndarray]
+
+
 @pytest.fixture
 def cached_test_case_wrapper(
     cache_directory: Path, regenerate_cached_data: bool, seed: int
-) -> Callable[[Callable], Callable]:
-    def wrapper(generate_data):
+) -> Callable[[Callable[P, TestData]], Callable[P, TestData]]:
+    """Fixture for caching generated test data to file.
+
+    Returns a wrapper function which when applied to a function `generate_data` which
+    generates test data will call the `generate_data` function if
+    `regenerate_cached_data` is True and cache the generated test data in a file named
+    according to the keyword arguments to `generate_data` under a module / function
+    specific subdirectory in `cache_directory`, and otherwise will attempt to load
+    previously cached data from `cache_directory`.
+    """
+
+    def wrapper(generate_data: Callable[P, TestData]) -> Callable[P, TestData]:
         cache_subdirectory = cache_subdirectory_path(
             cache_directory / generate_data.__module__, generate_data.__qualname__
         )
 
-        def cached_generate_data(**parameters) -> dict[str, np.ndarray]:
-            cache_path = cache_subdirectory / cache_filename(
-                {"seed": seed} | parameters
-            )
+        def cached_generate_data(*args: P.args, **kwargs: P.kwargs) -> TestData:
+            cache_path = cache_subdirectory / cache_filename({"seed": seed} | kwargs)
             if regenerate_cached_data:
-                data = generate_data(**parameters)
+                data = generate_data(*args, **kwargs)
                 np.savez(cache_path, **data)
                 return data
             else:
