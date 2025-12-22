@@ -37,7 +37,6 @@ def test_inverse_fourier_wigner_transform(
     method: str,
     delta_method: str,
 ):
-
     test_data = cached_so3_test_case(
         L=L, N=N, L_lower=0, sampling=sampling, reality=reality
     )
@@ -70,7 +69,6 @@ def test_forward_fourier_wigner_transform(
     method: str,
     delta_method: str,
 ):
-
     test_data = cached_so3_test_case(
         L=L, N=N, L_lower=0, sampling=sampling, reality=reality
     )
@@ -101,7 +99,7 @@ def test_inverse_fourier_wigner_transform_high_N(
     cached_so3_test_case: Callable, L: int, sampling: str, reality: bool
 ):
     N = L
-    
+
     test_data = cached_so3_test_case(
         L=L, N=N, L_lower=0, sampling=sampling, reality=reality
     )
