@@ -2,7 +2,7 @@
 
 import json
 from collections.abc import Callable, Mapping
-from functools import partial
+from functools import partial, wraps
 from pathlib import Path
 from typing import Any, NamedTuple, ParamSpec, TypeAlias
 
@@ -155,6 +155,7 @@ def cached_test_case_wrapper(
             cache_directory / generate_data.__module__, generate_data.__qualname__
         )
 
+        @wraps(generate_data)
         def cached_generate_data(*args: P.args, **kwargs: P.kwargs) -> TestData:
             cache_path = cache_subdirectory / cache_filename(
                 {"seed": seed} | kwargs, data_format.extension
