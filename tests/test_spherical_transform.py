@@ -78,7 +78,8 @@ def test_transform_inverse_healpix(
 ):
     sampling = "healpix"
     L = 2 * nside
-    test_data = cached_healpy_test_case(L=L, nside=nside)
+    reality = True
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality)
     precomps = generate_precomputes(L, 0, sampling, nside, False)
     f = spherical.inverse(
         torch.from_numpy(test_data["flm"]) if method == "torch" else test_data["flm"],
@@ -87,7 +88,7 @@ def test_transform_inverse_healpix(
         nside=nside,
         sampling=sampling,
         method=method,
-        reality=True,
+        reality=reality,
         precomps=precomps,
         spmd=spmd,
     )
@@ -157,7 +158,8 @@ def test_transform_forward_healpix(
 ):
     sampling = "healpix"
     L = 2 * nside
-    test_data = cached_healpy_test_case(L=L, nside=nside, n_iter=iter)
+    reality = True
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality, n_iter=iter)
 
     precomps = generate_precomputes(L, 0, sampling, nside, True)
     flm_check = spherical.forward(

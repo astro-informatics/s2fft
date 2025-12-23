@@ -51,7 +51,7 @@ def test_transform_inverse_healpix(
 ):
     sampling = "healpix"
     L = ratio * nside
-    test_data = cached_healpy_test_case(L=L, nside=nside)
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality)
 
     f = spherical._inverse(
         test_data["flm"], L, 0, sampling, method=method, nside=nside, reality=reality
@@ -97,7 +97,7 @@ def test_transform_forward_healpix(
 ):
     sampling = "healpix"
     L = ratio * nside
-    test_data = cached_healpy_test_case(L=L, nside=nside, n_iter=0)
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality, n_iter=0)
 
     flm_direct = spherical._forward(
         test_data["f_hp"],
@@ -121,7 +121,7 @@ def test_transform_forward_healpix_iter(
     L = 2 * nside
     reality = True
 
-    test_data = cached_healpy_test_case(L=L, nside=nside, n_iter=iter)
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality, n_iter=iter)
 
     flm_direct = spherical.forward(
         test_data["f_hp"],

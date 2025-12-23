@@ -34,7 +34,7 @@ def test_healpix_fft_jax_numpy_consistency(
     cached_healpy_test_case: Callable, nside, reality
 ):
     L = 2 * nside
-    test_data = cached_healpy_test_case(L=L, nside=nside)
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality)
     assert np.allclose(
         healpix_fft_numpy(test_data["f_hp"], L, nside, reality),
         healpix_fft_jax(test_data["f_hp"], L, nside, reality),
@@ -47,7 +47,7 @@ def test_healpix_ifft_jax_numpy_consistency(
     cached_healpy_test_case: Callable, nside, reality
 ):
     L = 2 * nside
-    test_data = cached_healpy_test_case(L=L, nside=nside)
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality)
     ftm = healpix_fft_numpy(test_data["f_hp"], L, nside, reality)
     ftm_copy = np.copy(ftm)
     # Test consistency
@@ -61,11 +61,12 @@ def test_healpix_ifft_jax_numpy_consistency(
 @pytest.mark.parametrize("nside", nside_to_test)
 def test_healpix_fft_cuda(cached_healpy_test_case: Callable, nside):
     L = 2 * nside
-    test_data = cached_healpy_test_case(L=L, nside=nside)
+    reality = False
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality)
     # Test consistency
     assert_allclose(
-        healpix_fft_jax(test_data["f_hp"], L, nside, False),
-        healpix_fft_cuda(test_data["f_hp"], L, nside, False),
+        healpix_fft_jax(test_data["f_hp"], L, nside, reality),
+        healpix_fft_cuda(test_data["f_hp"], L, nside, reality),
         atol=1e-7,
         rtol=1e-7,
     )
@@ -75,12 +76,13 @@ def test_healpix_fft_cuda(cached_healpy_test_case: Callable, nside):
 @pytest.mark.parametrize("nside", nside_to_test)
 def test_healpix_ifft_cuda(cached_healpy_test_case: Callable, nside):
     L = 2 * nside
-    test_data = cached_healpy_test_case(L=L, nside=nside)
-    ftm = healpix_fft_jax(test_data["f_hp"], L, nside, False)
+    reality = False
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality)
+    ftm = healpix_fft_jax(test_data["f_hp"], L, nside, reality)
     # Test consistency
     assert_allclose(
-        healpix_ifft_jax(ftm, L, nside, False).flatten(),
-        healpix_ifft_cuda(ftm, L, nside, False).flatten(),
+        healpix_ifft_jax(ftm, L, nside, reality).flatten(),
+        healpix_ifft_cuda(ftm, L, nside, reality).flatten(),
         atol=1e-7,
         rtol=1e-7,
     )
