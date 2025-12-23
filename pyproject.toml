@@ -64,13 +64,13 @@ plotting = [
     "ipywidgets",
 ]
 tests = [
-    "ducc0",
-    "healpy",
     "pytest",
     "pytest-cov",
     "torch",
 ]
 tests-non-cached = [
+    "ducc0",
+    "healpy",
     "numpy<2",  # Required currently due to lack of Numpy v2 compatible pyssht release
     "pyssht",
     "so3",
