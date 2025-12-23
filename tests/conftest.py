@@ -232,3 +232,30 @@ def cached_so3_samples_test_case(
         }
 
     return cached_test_case_wrapper(generate_data, "json")
+
+
+@pytest.fixture
+def cached_ssht_test_case(
+    cached_test_case_wrapper: Callable[
+        [Callable[P, TestData], str], Callable[P, TestData]
+    ],
+    flm_generator: Callable[..., np.ndarray],
+) -> Callable[P, TestData]:
+    def generate_data(
+        L: int, L_lower: int, spin: int, sampling: str, reality: bool
+    ) -> dict[str, np.ndarray]:
+        import pyssht
+
+        from s2fft.sampling import s2_samples
+
+        flm = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
+        f_ssht = pyssht.inverse(
+            s2_samples.flm_2d_to_1d(flm, L),
+            L,
+            Method=sampling.upper(),
+            Spin=spin,
+            Reality=reality if spin == 0 else False,
+        )
+        return {"flm": flm, "f_ssht": f_ssht}
+
+    return cached_test_case_wrapper(generate_data, "npz")
