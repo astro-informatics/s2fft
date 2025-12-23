@@ -259,3 +259,26 @@ def cached_ssht_test_case(
         return {"flm": flm, "f_ssht": f_ssht}
 
     return cached_test_case_wrapper(generate_data, "npz")
+
+
+@pytest.fixture
+def cached_healpy_test_case(
+    cached_test_case_wrapper: Callable[
+        [Callable[P, TestData], str], Callable[P, TestData]
+    ],
+    flm_generator: Callable[..., np.ndarray],
+) -> Callable[P, TestData]:
+    def generate_data(
+        L: int, nside: int, reality: bool, n_iter: int = 0
+    ) -> dict[str, np.ndarray]:
+        import healpy
+
+        from s2fft.sampling import s2_samples
+
+        flm = flm_generator(L=L, spin=0, reality=True)
+        flm_hp = s2_samples.flm_2d_to_hp(flm, L)
+        f_hp = healpy.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
+        flm_hp = healpy.sphtfunc.map2alm(f_hp, lmax=L - 1, iter=n_iter)
+        return {"flm": flm, "f_hp": f_hp, "flm_hp": flm_hp}
+
+    return cached_test_case_wrapper(generate_data, "npz")

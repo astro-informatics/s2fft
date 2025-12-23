@@ -1,6 +1,5 @@
 from collections.abc import Callable
 
-import healpy as hp
 import jax
 import numpy as np
 import pytest
@@ -72,19 +71,17 @@ def test_transform_inverse(
 @pytest.mark.parametrize("spmd", multiple_gpus)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_inverse_healpix(
-    flm_generator,
+    cached_healpy_test_case: Callable,
     nside: int,
     method: str,
     spmd: bool,
 ):
     sampling = "healpix"
     L = 2 * nside
-    flm = flm_generator(L=L, spin=0, reality=True)
-    flm_hp = samples.flm_2d_to_hp(flm, L)
-    f_check = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
+    test_data = cached_healpy_test_case(L=L, nside=nside)
     precomps = generate_precomputes(L, 0, sampling, nside, False)
     f = spherical.inverse(
-        torch.from_numpy(flm) if method == "torch" else flm,
+        torch.from_numpy(test_data["flm"]) if method == "torch" else test_data["flm"],
         L,
         spin=0,
         nside=nside,
@@ -95,7 +92,7 @@ def test_transform_inverse_healpix(
         spmd=spmd,
     )
 
-    np.testing.assert_allclose(np.real(f), np.real(f_check), atol=1e-14)
+    np.testing.assert_allclose(np.real(f), np.real(test_data["f_hp"]), atol=1e-14)
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -152,7 +149,7 @@ def test_transform_forward(
 @pytest.mark.parametrize("iter", [0, 1, 2, 3])
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_forward_healpix(
-    flm_generator,
+    cached_healpy_test_case: Callable,
     nside: int,
     method: str,
     spmd: bool,
@@ -160,12 +157,11 @@ def test_transform_forward_healpix(
 ):
     sampling = "healpix"
     L = 2 * nside
-    flm = flm_generator(L=L, spin=0, reality=True)
-    flm_hp = samples.flm_2d_to_hp(flm, L)
-    f = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
+    test_data = cached_healpy_test_case(L=L, nside=nside, n_iter=iter)
+
     precomps = generate_precomputes(L, 0, sampling, nside, True)
     flm_check = spherical.forward(
-        torch.from_numpy(f) if method == "torch" else f,
+        torch.from_numpy(test_data["f_hp"]) if method == "torch" else test_data["f_hp"],
         L,
         spin=0,
         nside=nside,
@@ -178,9 +174,7 @@ def test_transform_forward_healpix(
     )
     flm_check = samples.flm_2d_to_hp(flm_check, L)
 
-    flm = hp.sphtfunc.map2alm(f, lmax=L - 1, iter=iter)
-
-    np.testing.assert_allclose(flm, flm_check, atol=1e-14)
+    np.testing.assert_allclose(test_data["flm_hp"], flm_check, atol=1e-14)
 
 
 def test_spin_exceptions(flm_generator):
