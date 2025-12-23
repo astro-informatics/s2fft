@@ -71,19 +71,15 @@ def flmn_generator(rng: np.random.Generator) -> Callable[..., np.ndarray]:
     return partial(signal_generator.generate_flmn, rng)
 
 
-@pytest.fixture
-def s2fft_to_so3_sampling() -> Callable[[str], str]:
-    def so3_sampling(s2fft_sampling: str) -> str:
-        if s2fft_sampling.lower() == "mw":
-            so3_sampling = "SO3_SAMPLING_MW"
-        elif s2fft_sampling.lower() == "mwss":
-            so3_sampling = "SO3_SAMPLING_MWSS"
-        else:
-            raise ValueError(
-                f"Sampling scheme sampling={s2fft_sampling} not supported by so3."
-            )
-
-        return so3_sampling
+def s2fft_to_so3_sampling(s2fft_sampling: str) -> str:
+    if s2fft_sampling.lower() == "mw":
+        so3_sampling = "SO3_SAMPLING_MW"
+    elif s2fft_sampling.lower() == "mwss":
+        so3_sampling = "SO3_SAMPLING_MWSS"
+    else:
+        raise ValueError(
+            f"Sampling scheme sampling={s2fft_sampling} not supported by so3."
+        )
 
     return so3_sampling
 
@@ -180,7 +176,6 @@ def cached_so3_test_case(
         [Callable[P, TestData], str], Callable[P, TestData]
     ],
     flmn_generator: Callable[..., np.ndarray],
-    s2fft_to_so3_sampling: Callable[[str], str],
 ) -> Callable[P, TestData]:
     def generate_data(
         L: int, N: int, L_lower: int, sampling: str, reality: bool
@@ -212,7 +207,6 @@ def cached_so3_samples_test_case(
     cached_test_case_wrapper: Callable[
         [Callable[P, TestData], str], Callable[P, TestData]
     ],
-    s2fft_to_so3_sampling: Callable[[str], str],
 ) -> Callable[P, TestData]:
     def generate_data(L: int, N: int, sampling: str) -> dict[str, np.ndarray]:
         import so3
