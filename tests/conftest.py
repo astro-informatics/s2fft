@@ -92,7 +92,16 @@ def cache_subdirectory_path(cache_directory: Path, subdirectory: str) -> Path:
 
 
 def cache_filename(parameters: dict, extension: str) -> str:
-    return "__".join(f"{k}={v}" for k, v in parameters.items()) + "." + extension
+    return (
+        "__".join(
+            # Only recording floating-point values to 15 decimal significant digits to
+            # avoid cache misses due to variations in less significant digits
+            f"{k}={v:.15g}" if isinstance(v, float) else f"{k}={v}"
+            for k, v in parameters.items()
+        )
+        + "."
+        + extension
+    )
 
 
 P = ParamSpec("P")
