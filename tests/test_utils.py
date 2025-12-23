@@ -148,6 +148,6 @@ def test_try_import_module():
     # Use an intentionally long and unlikely to clash module name
     module_name = "_a_random_module_name_that_should_not_exist"
     with pytest.raises(
-        MissingWrapperDependencyError, match="requires {module_name} to be installed"
+        MissingWrapperDependencyError, match=f"requires {module_name} to be installed"
     ):
         _try_import_module(module_name)
