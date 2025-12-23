@@ -1,5 +1,6 @@
 """Collection of shared fixtures"""
 
+import inspect
 import json
 from collections.abc import Callable, Mapping
 from functools import partial, wraps
@@ -157,8 +158,9 @@ def cached_test_case_wrapper(
 
         @wraps(generate_data)
         def cached_generate_data(*args: P.args, **kwargs: P.kwargs) -> TestData:
+            call_args = inspect.getcallargs(generate_data, *args, **kwargs)
             cache_path = cache_subdirectory / cache_filename(
-                {"seed": seed} | kwargs, data_format.extension
+                {"seed": seed} | call_args, data_format.extension
             )
             if regenerate_cached_data:
                 data = generate_data(*args, **kwargs)
