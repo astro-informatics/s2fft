@@ -91,6 +91,7 @@ def test_ssht_c_backend_inverse_wigner_custom_gradients(
     reality: bool,
     _ssht_backend: int,
 ):
+    pytest.importorskip("pyssht")
     if sampling.lower() == "dh" and _ssht_backend == 1:
         pytest.skip("Driscoll Healy ducc0 backend gradient calculation tempremental.")
 
@@ -133,6 +134,7 @@ def test_ssht_c_backend_forward_wigner_custom_gradients(
     reality: bool,
     _ssht_backend: int,
 ):
+    pytest.importorskip("pyssht")
     if sampling.lower() == "dh" and _ssht_backend == 1:
         pytest.skip("Driscoll Healy ducc0 backend gradient calculation tempremental.")
 

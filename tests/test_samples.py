@@ -1,13 +1,41 @@
-import healpy as hp
+from collections.abc import Callable
+
 import jax.numpy as jnp
 import numpy as np
-import pyssht as ssht
 import pytest
 
 from s2fft.sampling import reindex
 from s2fft.sampling import s2_samples as samples
 
 nside_to_test = [16, 32]
+
+
+@pytest.fixture
+def cached_healpy_angles_test_case(cached_test_case_wrapper: Callable) -> Callable:
+    def generate_data(nside: int) -> dict[str, np.ndarray]:
+        import healpy
+
+        npix = healpy.nside2npix(nside)
+        hp_angles = np.zeros((npix, 2))
+        for i in range(npix):
+            hp_angles[i] = healpy.pix2ang(nside, i)
+
+        return {"hp_angles": hp_angles}
+
+    return cached_test_case_wrapper(generate_data, "npz")
+
+
+@pytest.fixture
+def cached_ssht_samples_test_case(cached_test_case_wrapper: Callable) -> Callable:
+    def generate_data(L: int, sampling: str) -> dict[str, np.ndarray]:
+        import pyssht
+
+        ntheta, nphi = pyssht.sample_shape(L, sampling.upper())
+        thetas, phis = pyssht.sample_positions(L, sampling.upper())
+
+        return {"ntheta": ntheta, "nphi": nphi, "thetas": thetas, "phis": phis}
+
+    return cached_test_case_wrapper(generate_data, "npz")
 
 
 @pytest.mark.parametrize("L", [15, 16])
@@ -34,12 +62,14 @@ def test_fast_reindexing_functions(L: int):
 
 @pytest.mark.parametrize("L", [15, 16])
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "gl"])
-def test_samples_n_and_angles(L: int, sampling: str):
+def test_samples_n_and_angles(
+    cached_ssht_samples_test_case: Callable, L: int, sampling: str
+):
     # Test ntheta and nphi
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
-    (ntheta_ssht, nphi_ssht) = ssht.sample_shape(L, sampling.upper())
-    assert (ntheta, nphi) == pytest.approx((ntheta_ssht, nphi_ssht))
+    ssht_data = cached_ssht_samples_test_case(L, sampling)
+    assert (ntheta, nphi) == (ssht_data["ntheta"], ssht_data["nphi"])
 
     # Test thetas and phis
     if sampling.lower() == "gl":
@@ -49,13 +79,16 @@ def test_samples_n_and_angles(L: int, sampling: str):
         thetas = samples.t2theta(t, L, sampling)
     p = np.arange(0, nphi)
     phis = samples.p2phi_equiang(L, p, sampling)
-    thetas_ssht, phis_ssht = ssht.sample_positions(L, sampling.upper())
-    np.testing.assert_allclose(thetas, thetas_ssht, atol=1e-14)
-    np.testing.assert_allclose(phis, phis_ssht, atol=1e-14)
+    np.testing.assert_allclose(thetas, ssht_data["thetas"], atol=1e-14)
+    np.testing.assert_allclose(phis, ssht_data["phis"], atol=1e-14)
 
     # Test direct thetas and phis
-    np.testing.assert_allclose(samples.thetas(L, sampling), thetas_ssht, atol=1e-14)
-    np.testing.assert_allclose(samples.phis_equiang(L, sampling), phis_ssht, atol=1e-14)
+    np.testing.assert_allclose(
+        samples.thetas(L, sampling), ssht_data["thetas"], atol=1e-14
+    )
+    np.testing.assert_allclose(
+        samples.phis_equiang(L, sampling), ssht_data["phis"], atol=1e-14
+    )
 
 
 @pytest.mark.parametrize("ind", [15, 16])
@@ -78,16 +111,13 @@ def test_samples_ncoeff(L: int):
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
-def test_samples_n_and_angles_hp(nside: int):
+def test_samples_n_and_angles_hp(cached_healpy_angles_test_case: Callable, nside: int):
     ntheta = samples.ntheta(L=0, sampling="healpix", nside=nside)
     assert ntheta == 4 * nside - 1
 
-    npix = hp.nside2npix(nside)
-    hp_angles = np.zeros((npix, 2))
-    for i in range(npix):
-        hp_angles[i] = hp.pix2ang(nside, i)
+    healpy_data = cached_healpy_angles_test_case(nside)
 
-    s2f_hp_angles = np.zeros((npix, 2))
+    s2f_hp_angles = np.zeros((12 * nside**2, 2))
     thetas = samples.thetas(L=0, sampling="healpix", nside=nside)
     entry = 0
     for ring in range(ntheta):
@@ -96,13 +126,14 @@ def test_samples_n_and_angles_hp(nside: int):
         s2f_hp_angles[entry : entry + len(phis), 1] = phis
         entry += len(phis)
 
-    np.testing.assert_allclose(s2f_hp_angles, hp_angles, atol=1e-14)
+    np.testing.assert_allclose(s2f_hp_angles, healpy_data["hp_angles"], atol=1e-14)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
-def test_hp_ang2pix(nside: int):
+def test_hp_ang2pix(cached_healpy_angles_test_case: Callable, nside: int):
+    healpy_data = cached_healpy_angles_test_case(nside)
     for i in range(12 * nside**2):
-        theta, phi = hp.pix2ang(nside, i)
+        theta, phi = healpy_data["hp_angles"][i]
         j = samples.hp_ang2pix(nside, theta, phi)
         assert i == j
 

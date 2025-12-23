@@ -226,6 +226,7 @@ def test_ssht_c_backend_inverse_custom_gradients(
     reality: bool,
     _ssht_backend: int,
 ):
+    pytest.importorskip("pyssht")
     if reality and spin != 0:
         pytest.skip("Reality only valid for scalar fields (spin=0).")
 
@@ -275,6 +276,7 @@ def test_ssht_c_backend_forward_custom_gradients(
     reality: bool,
     _ssht_backend: int,
 ):
+    pytest.importorskip("pyssht")
     if reality and spin != 0:
         pytest.skip("Reality only valid for scalar fields (spin=0).")
 
@@ -311,6 +313,7 @@ def test_ssht_c_backend_forward_custom_gradients(
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_healpix_c_backend_inverse_custom_gradients(flm_generator, nside: int):
+    pytest.importorskip("healpy")
     L = 2 * nside
     reality = True
     flm = flm_generator(L=L, reality=reality)
@@ -329,6 +332,7 @@ def test_healpix_c_backend_inverse_custom_gradients(flm_generator, nside: int):
 def test_healpix_c_backend_forward_custom_gradients(
     flm_generator, nside: int, iter: int
 ):
+    pytest.importorskip("healpy")
     sampling = "healpix"
     L = 2 * nside
     reality = True

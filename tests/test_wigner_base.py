@@ -1,6 +1,7 @@
+from collections.abc import Callable
+
 import numpy as np
 import pytest
-import so3
 
 from s2fft.base_transforms import wigner
 from s2fft.sampling import so3_samples as samples
@@ -19,31 +20,21 @@ reality_to_test = [False, True]
 @pytest.mark.parametrize("sampling", sampling_schemes_so3)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_inverse_wigner_transform(
-    flmn_generator,
-    s2fft_to_so3_sampling,
+    cached_so3_test_case: Callable,
     L: int,
     N: int,
     L_lower: int,
     sampling: str,
     reality: bool,
 ):
-    params = so3.create_parameter_dict(
-        L=L,
-        N=N,
-        L0=L_lower,
-        sampling_scheme_str=s2fft_to_so3_sampling(sampling),
-        reality=False,
+    test_data = cached_so3_test_case(
+        L=L, N=N, L_lower=L_lower, sampling=sampling, reality=reality
     )
 
-    flmn_3D = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
-    flmn_1D = samples.flmn_3d_to_1d(flmn_3D, L, N)
-
-    f_check = so3.inverse(flmn_1D, params)
-
-    f = wigner.inverse(flmn_3D, L, N, L_lower, sampling, reality)
+    f = wigner.inverse(test_data["flmn"], L, N, L_lower, sampling, reality)
     f = f.flatten("C")
 
-    np.testing.assert_allclose(f, f_check, atol=1e-14)
+    np.testing.assert_allclose(f, test_data["f_so3"], atol=1e-14)
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -52,35 +43,25 @@ def test_inverse_wigner_transform(
 @pytest.mark.parametrize("sampling", sampling_schemes_so3)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_forward_wigner_transform(
-    flmn_generator,
-    s2fft_to_so3_sampling,
+    cached_so3_test_case: Callable,
     L: int,
     N: int,
     L_lower: int,
     sampling: str,
     reality: bool,
 ):
-    params = so3.create_parameter_dict(
-        L=L,
-        N=N,
-        L0=L_lower,
-        sampling_scheme_str=s2fft_to_so3_sampling(sampling),
+    test_data = cached_so3_test_case(
+        L=L, N=N, L_lower=L_lower, sampling=sampling, reality=reality
     )
 
-    flmn_3D = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
-    flmn_1D = samples.flmn_3d_to_1d(flmn_3D, L, N)
-
-    f_1D = so3.inverse(flmn_1D, params)
-    f_3D = f_1D.reshape(
+    f = test_data["f_so3"].reshape(
         samples._ngamma(N),
         samples._nbeta(L, sampling),
         samples._nalpha(L, sampling),
     )
+    flmn = wigner.forward(f, L, N, L_lower, sampling, reality)
 
-    flmn_check = samples.flmn_1d_to_3d(so3.forward(f_1D, params), L, N)
-    flmn = wigner.forward(f_3D, L, N, L_lower, sampling, reality)
-
-    np.testing.assert_allclose(flmn, flmn_check, atol=1e-14)
+    np.testing.assert_allclose(flmn, test_data["flmn_so3"], atol=1e-14)
 
 
 @pytest.mark.parametrize("L", L_to_test)
