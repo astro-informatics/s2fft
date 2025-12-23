@@ -185,7 +185,7 @@ def test_spin_exceptions(flm_generator):
     sampling = "mw"
 
     flm = flm_generator(L=L, reality=False)
-    f = spherical.inverse(flm, L, spin=0, sampling=sampling, method="jax_ssht")
+    f = spherical.inverse(flm, L, spin=0, sampling=sampling, method="jax")
 
     with pytest.raises(Warning):
         spherical.inverse(flm, L, spin=spin, sampling=sampling, method="jax")
@@ -195,6 +195,8 @@ def test_spin_exceptions(flm_generator):
 
 
 def test_sampling_ssht_backend_exceptions(flm_generator):
+    pytest.importorskip("healpy")
+    pytest.importorskip("pyssht")
     sampling = "healpix"
     nside = 6
     L = 2 * nside
@@ -210,6 +212,8 @@ def test_sampling_ssht_backend_exceptions(flm_generator):
 
 
 def test_sampling_healpy_backend_exceptions(flm_generator):
+    pytest.importorskip("healpy")
+    pytest.importorskip("pyssht")
     sampling = "mw"
     L = 12
 

@@ -79,7 +79,6 @@ def test_forward_wigner_transform(
     np.testing.assert_allclose(flmn, flmn_check, atol=1e-14)
 
 
-@pytest.mark.pyssht
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
@@ -89,6 +88,7 @@ def test_forward_wigner_transform(
 def test_ssht_c_backend_inverse_wigner_transform(
     flmn_generator, L: int, N: int, L_lower: int, sampling: str, reality: bool
 ):
+    pytest.importorskip("pyssht")
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     f_check = base_wigner.inverse(flmn, L, N, L_lower, sampling, reality)
 
@@ -97,7 +97,6 @@ def test_ssht_c_backend_inverse_wigner_transform(
     np.testing.assert_allclose(f, f_check, atol=1e-12)
 
 
-@pytest.mark.pyssht
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
@@ -107,6 +106,7 @@ def test_ssht_c_backend_inverse_wigner_transform(
 def test_ssht_c_backend_forward_wigner_transform(
     flmn_generator, L: int, N: int, L_lower: int, sampling: str, reality: bool
 ):
+    pytest.importorskip("pyssht")
     flmn = flmn_generator(L=L, N=N, L_lower=L_lower, reality=reality)
     f = base_wigner.inverse(flmn, L, N, L_lower, sampling, reality)
 
