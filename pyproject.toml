@@ -90,7 +90,7 @@ metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
 sdist.include = ["s2fft/_version.py"]
 
 [tool.pytest.ini_options]
-addopts = "--color=yes -v"
+addopts = "--color=yes -v -m 'not pyssht' -m 'not healpy'"
 testpaths = [
     "tests",
 ]
@@ -100,7 +100,11 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore:FutureWarning",
 ]
-markers = ["slow: mark test as slow"]
+markers = [
+    "slow: mark test as slow",
+    "pyssht: mark test as requiring pyssht",
+    "healpy: mark test as requiring healpy",
+]
 
 [tool.ruff]
 fix = true
