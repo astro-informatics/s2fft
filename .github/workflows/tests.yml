@@ -42,14 +42,33 @@ jobs:
       with:
         fetch-depth: 0
         fetch-tags: true
-
-    - name: Set up Python ${{ matrix.python-version }}
+        
+    - if: matrix.os == 'macos-latest'
+      name: Set up Miniforge on MacOS
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        miniforge-version: latest
+        python-version: ${{ matrix.python-version }}
+        
+    - if: matrix.os == 'macos-latest'
+      name: Install dependencies with conda on MacOS
+      # Avoid OpenMP runtime incompatibility when using PyPI wheels
+      # by installing torch and healpy using conda
+      # https://github.com/healpy/healpy/issues/1012
+      run: |
+        conda install jax "jax>=0.3.13,<0.6.0" numpy ducc0 healpy pytorch pytest pytest-cov
+        python -m pip install --upgrade pip
+        pip install --no-deps .
+  
+    - if: matrix.os != 'macos-latest'
+      name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
 
-    - name: Install dependencies
+    - if: matrix.os != 'macos-latest'
+      name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install .[tests]
