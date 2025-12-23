@@ -66,11 +66,14 @@ plotting = [
 tests = [
     "ducc0",
     "healpy",
-    "numpy<2",  # Required currently due to lack of Numpy v2 compatible pyssht release
     "pytest",
     "pytest-cov",
-    "pyssht",
     "torch",
+]
+tests-non-cached = [
+    "numpy<2",  # Required currently due to lack of Numpy v2 compatible pyssht release
+    "pyssht",
+    "so3",
 ]
 torch = [
     "torch",

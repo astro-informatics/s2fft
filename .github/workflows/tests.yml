@@ -56,9 +56,8 @@ jobs:
       # by installing torch and healpy using conda
       # https://github.com/healpy/healpy/issues/1012
       run: |
-        conda install jax "jax>=0.3.13,<0.6.0" "numpy>=1.20,<2" ducc0 healpy pytorch pytest pytest-cov
+        conda install jax "jax>=0.3.13,<0.6.0" numpy ducc0 healpy pytorch pytest pytest-cov
         python -m pip install --upgrade pip
-        pip install --no-deps pyssht
         pip install --no-deps .
   
     - if: matrix.os != 'macos-latest'
