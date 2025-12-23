@@ -1,7 +1,8 @@
+from collections.abc import Callable
+
 import healpy as hp
 import jax
 import numpy as np
-import pyssht as ssht
 import pytest
 import torch
 
@@ -31,7 +32,7 @@ multiple_gpus = [False, True]
 @pytest.mark.parametrize("use_generate_precomputes", [True, False])
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_inverse(
-    flm_generator,
+    cached_ssht_test_case: Callable,
     L: int,
     L_lower: int,
     spin: int,
@@ -46,21 +47,14 @@ def test_transform_inverse(
     if spmd and method != "jax":
         pytest.skip("GPU distribution only valid for JAX.")
 
-    flm = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
-    f_check = ssht.inverse(
-        samples.flm_2d_to_1d(flm, L),
-        L,
-        Method=sampling.upper(),
-        Spin=spin,
-        Reality=reality,
-    )
+    test_data = cached_ssht_test_case(L, L_lower, spin, sampling, reality)
 
     if use_generate_precomputes:
         precomps = generate_precomputes(L, spin, sampling, L_lower=L_lower)
     else:
         precomps = None
     f = spherical.inverse(
-        torch.from_numpy(flm) if method == "orch" else flm,
+        torch.from_numpy(test_data["flm"]) if method == "torch" else test_data["flm"],
         L,
         spin,
         sampling=sampling,
@@ -70,7 +64,7 @@ def test_transform_inverse(
         spmd=spmd,
         L_lower=L_lower,
     )
-    np.testing.assert_allclose(f, f_check, atol=1e-14)
+    np.testing.assert_allclose(f, test_data["f_ssht"], atol=1e-14)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -114,7 +108,7 @@ def test_transform_inverse_healpix(
 @pytest.mark.parametrize("use_generate_precomputes", [True, False])
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_forward(
-    flm_generator,
+    cached_ssht_test_case: Callable,
     L: int,
     L_lower: int,
     spin: int,
@@ -129,22 +123,17 @@ def test_transform_forward(
     if spmd and method != "jax":
         pytest.skip("GPU distribution only valid for JAX.")
 
-    flm = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
+    test_data = cached_ssht_test_case(L, L_lower, spin, sampling, reality)
 
-    f = ssht.inverse(
-        samples.flm_2d_to_1d(flm, L),
-        L,
-        Method=sampling.upper(),
-        Spin=spin,
-        Reality=reality,
-    )
     if use_generate_precomputes:
         precomps = generate_precomputes(L, spin, sampling, None, True, L_lower)
     else:
         precomps = None
 
     flm_check = spherical.forward(
-        torch.from_numpy(f) if method == "torch" else f,
+        torch.from_numpy(test_data["f_ssht"])
+        if method == "torch"
+        else test_data["f_ssht"],
         L,
         spin,
         sampling=sampling,
@@ -154,7 +143,7 @@ def test_transform_forward(
         spmd=spmd,
         L_lower=L_lower,
     )
-    np.testing.assert_allclose(flm, flm_check, atol=1e-14)
+    np.testing.assert_allclose(test_data["flm"], flm_check, atol=1e-14)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)

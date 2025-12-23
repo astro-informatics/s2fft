@@ -1,13 +1,27 @@
+from collections.abc import Callable
+
 import healpy as hp
 import jax.numpy as jnp
 import numpy as np
-import pyssht as ssht
 import pytest
 
 from s2fft.sampling import reindex
 from s2fft.sampling import s2_samples as samples
 
 nside_to_test = [16, 32]
+
+
+@pytest.fixture
+def cached_ssht_samples_test_case(cached_test_case_wrapper: Callable) -> Callable:
+    def generate_data(L: int, sampling: str) -> dict[str, np.ndarray]:
+        import pyssht
+
+        ntheta, nphi = pyssht.sample_shape(L, sampling.upper())
+        thetas, phis = pyssht.sample_positions(L, sampling.upper())
+
+        return {"ntheta": ntheta, "nphi": nphi, "thetas": thetas, "phis": phis}
+
+    return cached_test_case_wrapper(generate_data, "npz")
 
 
 @pytest.mark.parametrize("L", [15, 16])
@@ -34,12 +48,14 @@ def test_fast_reindexing_functions(L: int):
 
 @pytest.mark.parametrize("L", [15, 16])
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "gl"])
-def test_samples_n_and_angles(L: int, sampling: str):
+def test_samples_n_and_angles(
+    cached_ssht_samples_test_case: Callable, L: int, sampling: str
+):
     # Test ntheta and nphi
     ntheta = samples.ntheta(L, sampling)
     nphi = samples.nphi_equiang(L, sampling)
-    (ntheta_ssht, nphi_ssht) = ssht.sample_shape(L, sampling.upper())
-    assert (ntheta, nphi) == pytest.approx((ntheta_ssht, nphi_ssht))
+    ssht_data = cached_ssht_samples_test_case(L, sampling)
+    assert (ntheta, nphi) == (ssht_data["ntheta"], ssht_data["nphi"])
 
     # Test thetas and phis
     if sampling.lower() == "gl":
@@ -49,13 +65,16 @@ def test_samples_n_and_angles(L: int, sampling: str):
         thetas = samples.t2theta(t, L, sampling)
     p = np.arange(0, nphi)
     phis = samples.p2phi_equiang(L, p, sampling)
-    thetas_ssht, phis_ssht = ssht.sample_positions(L, sampling.upper())
-    np.testing.assert_allclose(thetas, thetas_ssht, atol=1e-14)
-    np.testing.assert_allclose(phis, phis_ssht, atol=1e-14)
+    np.testing.assert_allclose(thetas, ssht_data["thetas"], atol=1e-14)
+    np.testing.assert_allclose(phis, ssht_data["phis"], atol=1e-14)
 
     # Test direct thetas and phis
-    np.testing.assert_allclose(samples.thetas(L, sampling), thetas_ssht, atol=1e-14)
-    np.testing.assert_allclose(samples.phis_equiang(L, sampling), phis_ssht, atol=1e-14)
+    np.testing.assert_allclose(
+        samples.thetas(L, sampling), ssht_data["thetas"], atol=1e-14
+    )
+    np.testing.assert_allclose(
+        samples.phis_equiang(L, sampling), ssht_data["phis"], atol=1e-14
+    )
 
 
 @pytest.mark.parametrize("ind", [15, 16])

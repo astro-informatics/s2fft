@@ -1,6 +1,7 @@
+from collections.abc import Callable
+
 import healpy as hp
 import numpy as np
-import pyssht as ssht
 import pytest
 
 from s2fft.base_transforms import spherical
@@ -23,7 +24,7 @@ reality_to_test = [False, True]
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_inverse(
-    flm_generator,
+    cached_ssht_test_case: Callable,
     L: int,
     L_lower: int,
     spin: int,
@@ -31,20 +32,11 @@ def test_transform_inverse(
     method: str,
     reality: bool,
 ):
-    flm = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
-    f_check = ssht.inverse(
-        samples.flm_2d_to_1d(flm, L),
-        L,
-        Method=sampling.upper(),
-        Spin=spin,
-        Reality=False,
-    )
-
+    test_data = cached_ssht_test_case(L, L_lower, spin, sampling, reality)
     f = spherical._inverse(
-        flm, L, spin, sampling, method, L_lower=L_lower, reality=reality
+        test_data["flm"], L, spin, sampling, method, L_lower=L_lower, reality=reality
     )
-
-    np.testing.assert_allclose(f, f_check, atol=1e-14)
+    np.testing.assert_allclose(f, test_data["f_ssht"], atol=1e-14)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -78,7 +70,7 @@ def test_transform_inverse_healpix(
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_forward(
-    flm_generator,
+    cached_ssht_test_case: Callable,
     L: int,
     L_lower: int,
     spin: int,
@@ -86,21 +78,13 @@ def test_transform_forward(
     method: str,
     reality: bool,
 ):
-    flm = flm_generator(L=L, spin=spin, reality=reality, L_lower=L_lower)
-
-    f = ssht.inverse(
-        samples.flm_2d_to_1d(flm, L),
-        L,
-        Method=sampling.upper(),
-        Spin=spin,
-        Reality=False,
-    )
+    test_data = cached_ssht_test_case(L, L_lower, spin, sampling, reality)
 
     flm_recov = spherical._forward(
-        f, L, spin, sampling, method, L_lower=L_lower, reality=reality
+        test_data["f_ssht"], L, spin, sampling, method, L_lower=L_lower, reality=reality
     )
 
-    np.testing.assert_allclose(flm, flm_recov, atol=1e-14)
+    np.testing.assert_allclose(test_data["flm"], flm_recov, atol=1e-14)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)

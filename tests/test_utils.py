@@ -1,7 +1,8 @@
+from collections.abc import Callable
+
 import jax
 import jax.numpy as jnp
 import numpy as np
-import pyssht as ssht
 import pytest
 from jax.test_util import check_grads
 
@@ -16,6 +17,25 @@ jax.config.update("jax_enable_x64", True)
 
 L_to_test = [6, 8, 10]
 angles_to_test = [np.pi / 2, np.pi / 6]
+
+
+@pytest.fixture
+def cached_pyssht_rotate_flms_test_case(
+    cached_test_case_wrapper: Callable,
+    flm_generator: Callable,
+) -> Callable:
+    def generate_data(
+        L: int, alpha: float, beta: float, gamma: float
+    ) -> dict[str, np.ndarray]:
+        import pyssht
+
+        flm = flm_generator(L=L)
+        flm_rot_ssht = samples.flm_1d_to_2d(
+            pyssht.rotate_flms(samples.flm_2d_to_1d(flm, L), alpha, beta, gamma, L), L
+        )
+        return {"flm": flm, "flm_rot_ssht": flm_rot_ssht}
+
+    return cached_test_case_wrapper(generate_data, "npz")
 
 
 def test_flm_reindexing_functions(flm_generator):
@@ -70,17 +90,17 @@ def test_flm_reindexing_exceptions(flm_generator):
 @pytest.mark.parametrize("gamma", angles_to_test)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 @pytest.mark.filterwarnings("ignore::FutureWarning")
-def test_rotate_flms(flm_generator, L: int, alpha: float, beta: float, gamma: float):
-    flm = flm_generator(L=L)
-    rot = (alpha, beta, gamma)
-    flm_1d = samples.flm_2d_to_1d(flm, L)
+def test_rotate_flms(
+    cached_pyssht_rotate_flms_test_case: Callable,
+    L: int,
+    alpha: float,
+    beta: float,
+    gamma: float,
+):
+    test_data = cached_pyssht_rotate_flms_test_case(L, alpha, beta, gamma)
+    flm_rot_s2fft = rotate_flms(test_data["flm"], L, (alpha, beta, gamma))
 
-    flm_rot_ssht = samples.flm_1d_to_2d(
-        ssht.rotate_flms(flm_1d, alpha, beta, gamma, L), L
-    )
-    flm_rot_s2fft = rotate_flms(flm, L, rot)
-
-    np.testing.assert_allclose(flm_rot_ssht, flm_rot_s2fft, atol=1e-14)
+    np.testing.assert_allclose(test_data["flm_rot_ssht"], flm_rot_s2fft, atol=1e-14)
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -90,19 +110,17 @@ def test_rotate_flms(flm_generator, L: int, alpha: float, beta: float, gamma: fl
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 @pytest.mark.filterwarnings("ignore::FutureWarning")
 def test_rotate_flms_precompute_dls(
-    flm_generator, L: int, alpha: float, beta: float, gamma: float
+    cached_pyssht_rotate_flms_test_case: Callable,
+    L: int,
+    alpha: float,
+    beta: float,
+    gamma: float,
 ):
     dl = generate_rotate_dls(L, beta)
-    flm = flm_generator(L=L)
-    rot = (alpha, beta, gamma)
-    flm_1d = samples.flm_2d_to_1d(flm, L)
+    test_data = cached_pyssht_rotate_flms_test_case(L, alpha, beta, gamma)
+    flm_rot_s2fft = rotate_flms(test_data["flm"], L, (alpha, beta, gamma), dl)
 
-    flm_rot_ssht = samples.flm_1d_to_2d(
-        ssht.rotate_flms(flm_1d, alpha, beta, gamma, L), L
-    )
-    flm_rot_s2fft = rotate_flms(flm, L, rot, dl)
-
-    np.testing.assert_allclose(flm_rot_ssht, flm_rot_s2fft, atol=1e-14)
+    np.testing.assert_allclose(test_data["flm_rot_ssht"], flm_rot_s2fft, atol=1e-14)
 
 
 @pytest.mark.parametrize("L", L_to_test)
