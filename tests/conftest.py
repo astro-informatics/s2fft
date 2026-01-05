@@ -33,10 +33,16 @@ def pytest_addoption(parser):
         default=Path(__file__).parent / "cached-test-data",
         help="Path to access / store cached test data from / to.",
     )
-    parser.addoption(
-        "--regenerate-cached-data",
+    group = parser.add_mutually_exclusive_group()
+    group.addoption(
+        "--use-cache",
         action="store_true",
-        help="Regenerate cached test data rather than using stored values.",
+        help="Use cached test data rather than generating dynamically.",
+    )
+    group.addoption(
+        "--update-cache",
+        action="store_true",
+        help="Dynamically compute test data and update cached values.",
     )
 
 
@@ -58,8 +64,13 @@ def cache_directory(request) -> Path:
 
 
 @pytest.fixture
-def regenerate_cached_data(request) -> Path:
-    return request.config.getoption("regenerate_cached_data")
+def use_cache(request) -> Path:
+    return request.config.getoption("use_cache")
+
+
+@pytest.fixture
+def update_cache(request) -> Path:
+    return request.config.getoption("update_cache")
 
 
 @pytest.fixture
@@ -146,13 +157,13 @@ TEST_DATA_FORMATS = {
 
 @pytest.fixture
 def cached_test_case_wrapper(
-    cache_directory: Path, regenerate_cached_data: bool, seed: int
+    cache_directory: Path, use_cache: bool, update_cache: bool, seed: int
 ) -> Callable[[Callable[P, TestData], str], Callable[P, TestData]]:
     """Fixture for caching generated test data to file.
 
     Returns a wrapper function which when applied to a function `generate_data` which
-    generates test data will call the `generate_data` function if
-    `regenerate_cached_data` is True and cache the generated test data in a file named
+    generates test data will call the `generate_data` function if `use_cache` is False
+    and, if `update_cache` is True, cache the generated test data in a file named
     according to the keyword arguments to `generate_data` under a module / function
     specific subdirectory in `cache_directory`, and otherwise will attempt to load
     previously cached data from `cache_directory`. The format the cached data is written
@@ -173,12 +184,13 @@ def cached_test_case_wrapper(
             cache_path = cache_subdirectory / cache_filename(
                 {"seed": seed} | call_args, data_format.extension
             )
-            if regenerate_cached_data:
-                data = generate_data(*args, **kwargs)
-                data_format.save(cache_path, data)
-                return data
+            if use_cache:
+                data = data_format.load(cache_path)
             else:
-                return data_format.load(cache_path)
+                data = generate_data(*args, **kwargs)
+            if update_cache:
+                data_format.save(cache_path, data)
+            return data
 
         return cached_generate_data
 
