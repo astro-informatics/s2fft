@@ -41,7 +41,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--update-cache",
         action="store_true",
-        help="Dynamically compute test data and update cached values.",
+        help="Update cached test data values.",
     )
 
 
@@ -64,19 +64,11 @@ def cache_directory(request) -> Path:
 
 @pytest.fixture
 def use_cache(request) -> Path:
-    if request.config.getoption("update_cache") and request.config.getoption(
-        "use_cache"
-    ):
-        raise pytest.UsageError("update_cache and use_cache cannot both be set to True")
     return request.config.getoption("use_cache")
 
 
 @pytest.fixture
 def update_cache(request) -> Path:
-    if request.config.getoption("update_cache") and request.config.getoption(
-        "use_cache"
-    ):
-        raise pytest.UsageError("update_cache and use_cache cannot both be set to True")
     return request.config.getoption("update_cache")
 
 
@@ -191,7 +183,10 @@ def cached_test_case_wrapper(
             cache_path = cache_subdirectory / cache_filename(
                 {"seed": seed} | call_args, data_format.extension
             )
-            if use_cache:
+            if use_cache and not cache_path.exists():
+                msg = f"Cache enabled but cached test data file {cache_path} not found."
+                raise FileNotFoundError(msg)
+            elif use_cache:
                 data = data_format.load(cache_path)
             else:
                 data = generate_data(*args, **kwargs)
