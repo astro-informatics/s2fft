@@ -24,6 +24,8 @@ jobs:
   tests-non-cached:
     
     runs-on: ubuntu-latest
+    env:
+      CMAKE_POLICY_VERSION_MINIMUM: 3.5
     steps: 
     - name: Checkout Source
       uses: actions/checkout@v5.0.0
@@ -66,8 +68,6 @@ jobs:
         python-version: ["3.11", "3.12", "3.13"]
         os: [ubuntu-latest, macos-latest]
       fail-fast: false
-    env:
-      CMAKE_POLICY_VERSION_MINIMUM: 3.5
 
     steps:
     - name: Checkout Source
