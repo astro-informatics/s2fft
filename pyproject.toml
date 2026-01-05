@@ -103,7 +103,11 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore:FutureWarning",
 ]
-markers = ["slow: mark test as slow"]
+markers = [
+    "slow: mark test as slow",
+    "pyssht: test requiring pyssht",
+    "healpy: test requiring healpy",
+]
 
 [tool.ruff]
 fix = true

@@ -210,6 +210,7 @@ def test_healpix_forward_custom_gradients(
     check_grads(func, (f,), order=1, modes=("rev"))
 
 
+@pytest.mark.pyssht
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
@@ -226,7 +227,6 @@ def test_ssht_c_backend_inverse_custom_gradients(
     reality: bool,
     _ssht_backend: int,
 ):
-    pytest.importorskip("pyssht")
     if reality and spin != 0:
         pytest.skip("Reality only valid for scalar fields (spin=0).")
 
@@ -260,6 +260,7 @@ def test_ssht_c_backend_inverse_custom_gradients(
     check_grads(func, (flm,), order=1, modes=("rev"))
 
 
+@pytest.mark.pyssht
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
@@ -276,7 +277,6 @@ def test_ssht_c_backend_forward_custom_gradients(
     reality: bool,
     _ssht_backend: int,
 ):
-    pytest.importorskip("pyssht")
     if reality and spin != 0:
         pytest.skip("Reality only valid for scalar fields (spin=0).")
 
@@ -310,10 +310,10 @@ def test_ssht_c_backend_forward_custom_gradients(
     check_grads(func, (f,), order=1, modes=("rev"))
 
 
+@pytest.mark.healpy
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_healpix_c_backend_inverse_custom_gradients(flm_generator, nside: int):
-    pytest.importorskip("healpy")
     L = 2 * nside
     reality = True
     flm = flm_generator(L=L, reality=reality)
@@ -326,13 +326,13 @@ def test_healpix_c_backend_inverse_custom_gradients(flm_generator, nside: int):
     check_grads(func, (flm,), order=2, modes=("fwd", "rev"))
 
 
+@pytest.mark.healpy
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.parametrize("iter", [0, 1, 2, 3])
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_healpix_c_backend_forward_custom_gradients(
     flm_generator, nside: int, iter: int
 ):
-    pytest.importorskip("healpy")
     sampling = "healpix"
     L = 2 * nside
     reality = True
