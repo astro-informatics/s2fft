@@ -46,6 +46,12 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize(option, metafunc.config.getoption(option))
 
 
+def pytest_collection_modifyitems(items):
+    for item in items:
+        if "cached_test_case_wrapper" in getattr(item, "fixturenames", ()):
+            item.add_marker("uses_cached_data")
+
+
 @pytest.fixture
 def cache_directory(request) -> Path:
     return request.config.getoption("cache_directory")
