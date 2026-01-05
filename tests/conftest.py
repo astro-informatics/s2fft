@@ -33,13 +33,12 @@ def pytest_addoption(parser):
         default=Path(__file__).parent / "cached-test-data",
         help="Path to access / store cached test data from / to.",
     )
-    group = parser.add_mutually_exclusive_group()
-    group.addoption(
+    parser.addoption(
         "--use-cache",
         action="store_true",
         help="Use cached test data rather than generating dynamically.",
     )
-    group.addoption(
+    parser.addoption(
         "--update-cache",
         action="store_true",
         help="Dynamically compute test data and update cached values.",
@@ -65,11 +64,15 @@ def cache_directory(request) -> Path:
 
 @pytest.fixture
 def use_cache(request) -> Path:
+    if request.config.getoption("update_cache"):
+        raise ValueError("update_cache and use_cache cannot both be set to True")
     return request.config.getoption("use_cache")
 
 
 @pytest.fixture
 def update_cache(request) -> Path:
+    if request.config.getoption("use_cache"):
+        raise ValueError("update_cache and use_cache cannot both be set to True")
     return request.config.getoption("update_cache")
 
 
