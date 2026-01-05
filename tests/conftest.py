@@ -173,8 +173,11 @@ def cached_test_case_wrapper(
         generate_data: Callable[P, TestData], format: str
     ) -> Callable[P, TestData]:
         data_format = TEST_DATA_FORMATS[format]
+        # Manually remove <> characters from <locals> instances to avoid filepath issues
+        # on NTFS
+        function_qualname = generate_data.__qualname__.replace("<", "").replace(">", "")
         cache_subdirectory = cache_subdirectory_path(
-            cache_directory / generate_data.__module__, generate_data.__qualname__
+            cache_directory / generate_data.__module__, function_qualname
         )
 
         @wraps(generate_data)
