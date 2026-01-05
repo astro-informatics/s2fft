@@ -64,15 +64,19 @@ def cache_directory(request) -> Path:
 
 @pytest.fixture
 def use_cache(request) -> Path:
-    if request.config.getoption("update_cache"):
-        raise ValueError("update_cache and use_cache cannot both be set to True")
+    if request.config.getoption("update_cache") and request.config.getoption(
+        "use_cache"
+    ):
+        raise pytest.UsageError("update_cache and use_cache cannot both be set to True")
     return request.config.getoption("use_cache")
 
 
 @pytest.fixture
 def update_cache(request) -> Path:
-    if request.config.getoption("use_cache"):
-        raise ValueError("update_cache and use_cache cannot both be set to True")
+    if request.config.getoption("update_cache") and request.config.getoption(
+        "use_cache"
+    ):
+        raise pytest.UsageError("update_cache and use_cache cannot both be set to True")
     return request.config.getoption("update_cache")
 
 
