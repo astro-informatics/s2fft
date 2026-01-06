@@ -63,7 +63,7 @@ jobs:
       with:
         name: cached-test-data
         path: tests/cached-test-data
-        retention-days: 7
+        retention-days: 30
   
   tests-with-cached-data:
 
