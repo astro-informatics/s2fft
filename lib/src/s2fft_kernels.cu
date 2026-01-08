@@ -7,74 +7,257 @@
 
 namespace s2fftKernels {
 
-__device__ void computeNphi(int nside, int ring_index, int L, int& nphi, int& offset_ring) {
-    // Compute number of pixels
+// ============================================================================
+// HELPER DEVICE FUNCTIONS
+// ============================================================================
+
+/**
+ * @brief Computes the number of pixels in the polar caps for a given Nside.
+ *
+ * This function calculates the total number of pixels contained within both
+ * polar caps (north and south) of a HEALPix sphere for the given Nside parameter.
+ *
+ * @param nside The HEALPix Nside parameter.
+ * @return The number of pixels in both polar caps combined.
+ */
+__device__ int ncap(int nside) { return 2 * nside * (nside - 1); }
+
+/**
+ * @brief Computes the total number of pixels for a given Nside.
+ *
+ * This function calculates the total number of pixels in a HEALPix sphere
+ * for the given Nside parameter.
+ *
+ * @param nside The HEALPix Nside parameter.
+ * @return The total number of pixels (12 * nside^2).
+ */
+__device__ int npix(int nside) { return 12 * nside * nside; }
+
+/**
+ * @brief Computes the maximum ring index for a given Nside.
+ *
+ * This function calculates the highest ring index in the HEALPix tessellation
+ * for the given Nside parameter.
+ *
+ * @param nside The HEALPix Nside parameter.
+ * @return The maximum ring index (4 * nside - 2).
+ */
+__device__ int rmax(int nside) { return 4 * nside - 2; }
+
+/**
+ * @brief Computes the number of pixels and ring offset for a given ring index.
+ *
+ * This function calculates the number of pixels (nphi) in a specific ring and
+ * the offset to the start of that ring in the HEALPix pixel numbering scheme.
+ * It handles polar caps and equatorial rings differently according to HEALPix geometry.
+ *
+ * @param nside The HEALPix Nside parameter.
+ * @param ring_index The index of the ring (0-based).
+ * @param L The harmonic band limit (unused in current implementation).
+ * @param nphi Reference to store the number of pixels in the ring.
+ * @param offset_ring Reference to store the offset to the start of the ring.
+ */
+__device__ void compute_nphi_offset_from_ring(int nside, int ring_index, int L, int& nphi, int& offset_ring) {
+    // Step 1: Compute basic HEALPix parameters
     int total_pixels = 12 * nside * nside;
     int total_rings = 4 * nside - 1;
     int upper_pixels = nside * (nside - 1) * 2;
 
-    // offset for original healpix ring
-    // Sum of all elements from 0 to n is  n * (n + 1) / 2 in o(1) time .. times 4 to get the number of
-    // elements before current ring
+    // Step 2: Determine ring type and compute nphi and offset
+    // Use triangular number formula: sum from 0 to n = n * (n + 1) / 2
 
-    // Upper Polar rings
+    // Step 2a: Upper Polar rings (0 to nside-2)
     if (ring_index < nside - 1) {
         nphi = 4 * (ring_index + 1);
         offset_ring = ring_index * (ring_index + 1) * 2;
     }
-    // Lower Polar rings
+    // Step 2b: Lower Polar rings (3*nside to 4*nside-2)
     else if (ring_index > 3 * nside - 1) {
-        // Compute lower pixel offset
+        // Compute lower pixel offset using symmetry
         nphi = 4 * (total_rings - ring_index);
-        nphi = nphi == 0 ? 4 : nphi;
+        nphi = nphi == 0 ? 4 : nphi;  // Handle edge case
         int reverse_ring_index = total_rings - ring_index;
         offset_ring = total_pixels - (reverse_ring_index * (reverse_ring_index + 1) * 2);
     }
-    // Equatorial ring
+    // Step 2c: Equatorial rings (nside-1 to 3*nside-1)
     else {
         nphi = 4 * nside;
         offset_ring = upper_pixels + (ring_index - nside + 1) * 4 * nside;
     }
 }
 
+/**
+ * @brief Converts HEALPix pixel index to ring coordinates and pixel information.
+ *
+ * This function maps a HEALPix pixel index to its corresponding ring index,
+ * offset within the ring, number of pixels in the ring, and the start index
+ * of the ring. It correctly handles all three HEALPix regions: upper polar cap,
+ * equatorial belt, and lower polar cap.
+ *
+ * @param p The HEALPix pixel index (0-based).
+ * @param nside The HEALPix Nside parameter.
+ * @param r Reference to store the ring index.
+ * @param o Reference to store the offset within the ring.
+ * @param nphi Reference to store the number of pixels in the ring.
+ * @param r_start Reference to store the starting pixel index of the ring.
+ */
+__device__ void pixel_to_ring_offset_nphi(long long int p, int nside, int& r, int& o, int& nphi,
+                                          int& r_start) {
+    // Step 1: Compute HEALPix parameters
+    long long int Ncap = ncap(nside);
+    long long int Npix = npix(nside);
+    int Rmax = rmax(nside);
+
+    // Step 2: Determine which region the pixel belongs to and compute coordinates
+    if (p < Ncap) {
+        // Step 2a: Upper Polar Cap
+        double p_d = static_cast<double>(p);
+        // Use inverse triangular number formula to find ring
+        int k = static_cast<int>(floor(0.5 * (sqrt(1.0 + 2.0 * p_d) - 1.0)));
+        r = k;
+        o = p - 2 * k * (k + 1);
+        r_start = 2 * k * (k + 1);
+        nphi = 4 * (k + 1);
+    } else if (p < Npix - Ncap) {
+        // Step 2b: Equatorial Belt
+        long long int q = p - Ncap;
+        int k = q / (4 * nside);
+        r = (nside - 1) + k;
+        o = q % (4 * nside);
+        o = o < 0 ? 4 * nside + o : o;  // Ensure positive offset
+        r_start = Ncap + 4 * nside * k;
+        nphi = 4 * nside;
+    } else {
+        // Step 2c: Lower Polar Cap (use symmetry with upper cap)
+        long long int pprime = Npix - 1 - p;
+        double pprime_d = static_cast<double>(pprime);
+        int k_south = static_cast<int>(floor(0.5 * (sqrt(1.0 + 2.0 * pprime_d) - 1.0)));
+        r = Rmax - k_south;
+        long long o_prime = pprime - 2 * k_south * (k_south + 1);
+        int nphi_lo = 4 * (k_south + 1);
+        o = nphi_lo - 1 - o_prime;
+        r_start = Npix - (2 * k_south * (k_south + 1) + nphi_lo);
+        nphi = nphi_lo;
+    }
+}
+
+/**
+ * @brief Generic inline swap function for device code.
+ *
+ * This function swaps the values of two variables of any type T.
+ * It's used within CUDA kernels for efficient data manipulation.
+ *
+ * @tparam T The type of the variables to swap.
+ * @param a Reference to the first variable.
+ * @param b Reference to the second variable.
+ */
 template <typename T>
 __device__ void inline swap(T& a, T& b) {
     T c(a);
     a = b;
     b = c;
 }
-template <typename complex>
-__global__ void spectral_folding(complex* data, complex* output, int nside, int L, bool shift) {
-    // Which ring are we working on
+
+/**
+ * @brief Reads a HEALPix pixel value with optional shifting and normalization.
+ *
+ * This helper function reads from a HEALPix array, optionally applying FFT shifting
+ * and per-ring normalization. Used in spectral extension to fuse shift+normalize
+ * operations into the read.
+ *
+ * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
+ * @tparam T The floating-point type (float or double) for normalization.
+ * @param data Input HEALPix pixel array.
+ * @param indx The HEALPix pixel index to read from.
+ * @param nside The HEALPix Nside parameter.
+ * @param apply_shift Flag indicating whether to apply FFT shifting.
+ * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
+ * @return The shifted and normalized complex value.
+ */
+template <typename complex, typename T>
+__device__ complex read_shifted_normalized(complex* data, int indx, int nside, bool apply_shift, int norm) {
+    int r = 0, o = 0, nphi = 1, r_start = 0;
+    pixel_to_ring_offset_nphi(indx, nside, r, o, nphi, r_start);
+
+    int actual_o = o;
+    if (apply_shift) {
+        actual_o = (o + nphi / 2) % nphi;
+        actual_o = actual_o < 0 ? nphi + actual_o : actual_o;
+    }
+
+    int actual_indx = r_start + actual_o;
+    complex value = data[actual_indx];
+
+    if (norm == 0) {
+        value.x /= T(nphi);
+        value.y /= T(nphi);
+    } else if (norm == 1) {
+        T norm_val = sqrt(T(nphi));
+        value.x /= norm_val;
+        value.y /= norm_val;
+    }
+
+    return value;
+}
+
+// ============================================================================
+// GLOBAL KERNELS
+// ============================================================================
+
+/**
+ * @brief CUDA kernel for spectral folding in spherical harmonic transforms.
+ *
+ * This kernel performs spectral folding operations on ring-ordered data,
+ * transforming from Fourier coefficient space to HEALPix pixel space.
+ * It handles both positive and negative frequency components and applies
+ * optional FFT shifting and normalization in a single pass.
+ *
+ * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
+ * @tparam T The floating-point type (float or double) for normalization.
+ * @param data Input data array containing Fourier coefficients per ring.
+ * @param output Output array for folded HEALPix pixel data.
+ * @param nside The HEALPix Nside parameter.
+ * @param L The harmonic band limit.
+ * @param apply_shift Flag indicating whether to apply FFT shifting.
+ * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
+ */
+template <typename complex, typename T>
+__global__ void spectral_folding(complex* data, complex* output, int nside, int L, bool apply_shift,
+                                 int norm) {
+    // Step 1: Determine which ring this thread is processing
     int current_indx = blockIdx.x * blockDim.x + threadIdx.x;
     if (current_indx >= (4 * nside - 1)) {
         return;
     }
 
+    // Step 2: Initialize ring parameters
     int ring_index = current_indx;
-    // Compute nphi of current ring
     int nphi(0);
     int ring_offset(0);
-    computeNphi(nside, ring_index, L, nphi, ring_offset);
+    compute_nphi_offset_from_ring(nside, ring_index, L, nphi, ring_offset);
 
-    // ring index
+    // Step 3: Compute indices for Fourier coefficient and HEALPix data
+    int ftm_offset = ring_index * (2 * L);  // Offset for this ring's FTM data
+    int slice_start = (L - nphi / 2);       // Start of central slice
+    int slice_end = slice_start + nphi;     // End of central slice
 
-    int ftm_offset = ring_index * (2 * L);
-    // offset for original healpix ring
-    // Sum of all elements from 0 to n is  n * (n + 1) / 2 in o(1) time .. times 4 to get the number of
-    // elements before current ring
+    // Step 3a: Compute normalization factor based on norm type
+    T norm_factor = T(1.0);
+    if (norm == 0) {
+        norm_factor = T(1.0) / T(nphi);
+    } else if (norm == 1) {
+        norm_factor = T(1.0) / sqrt(T(nphi));
+    }
 
-    int slice_start = (L - nphi / 2);
-    int slice_end = slice_start + nphi;
-
-    // Fill up the healpix ring
+    // Step 4: Copy the central part of the spectrum directly
     for (int i = 0; i < nphi; i++) {
         int folded_index = i + ring_offset;
         int target_index = i + ftm_offset + slice_start;
-
-        output[folded_index] = data[target_index];
+        output[folded_index].x = data[target_index].x * norm_factor;
+        output[folded_index].y = data[target_index].y * norm_factor;
     }
-    // fold the negative part of the spectrum
+
+    // Step 5: Fold the negative part of the spectrum
     for (int i = 0; i < slice_start; i++) {
         int folded_index = -(1 + i) % nphi;
         folded_index = folded_index < 0 ? nphi + folded_index : folded_index;
@@ -82,10 +265,11 @@ __global__ void spectral_folding(complex* data, complex* output, int nside, int 
 
         folded_index = folded_index + ring_offset;
         target_index = target_index + ftm_offset;
-        output[folded_index].x += data[target_index].x;
-        output[folded_index].y += data[target_index].y;
+        output[folded_index].x += data[target_index].x * norm_factor;
+        output[folded_index].y += data[target_index].y * norm_factor;
     }
-    // fold the positive part of the spectrum
+
+    // Step 6: Fold the positive part of the spectrum
     for (int i = 0; i < L - nphi / 2; i++) {
         int folded_index = i % nphi;
         folded_index = folded_index < 0 ? nphi + folded_index : folded_index;
@@ -93,13 +277,13 @@ __global__ void spectral_folding(complex* data, complex* output, int nside, int 
 
         folded_index = folded_index + ring_offset;
         target_index = target_index + ftm_offset;
-        output[folded_index].x += data[target_index].x;
-        output[folded_index].y += data[target_index].y;
+        output[folded_index].x += data[target_index].x * norm_factor;
+        output[folded_index].y += data[target_index].y * norm_factor;
     }
 
-    if (shift) {
+    // Step 7: Apply FFT shifting if requested
+    if (apply_shift) {
         int half_nphi = nphi / 2;
-        // Shift the spectrum
         for (int i = 0; i < half_nphi; i++) {
             int origin_index = i + ring_offset;
             int shifted_index = origin_index + half_nphi;
@@ -107,146 +291,167 @@ __global__ void spectral_folding(complex* data, complex* output, int nside, int 
         }
     }
 }
-template <typename complex>
-__global__ void spectral_folding_parallel(complex* data, complex* output, int nside, int L) {
-    // Which ring are we working on
-    int current_indx = blockIdx.x * blockDim.x + threadIdx.x;
 
-    // Compute nphi of current ring
-    int nphi(0);
-    int offset_ring(0);
-    computeNphi(nside, current_indx, L, nphi, offset_ring);
-
-    // ring index
-    int ring_index = current_indx / (2 * L);
-    // offset for the FTM slice
-    int offset = current_indx % (2 * L);
-    int ftm_offset = ring_index * (2 * L);
-    // offset for original healpix ring
-    // Sum of all elements from 0 to n is  n * (n + 1) / 2 in o(1) time .. times 4 to get the number of
-    // elements before current ring
-
-    int slice_start = (L - nphi / 2);
-    int slice_end = slice_start + nphi;
-
-    // Fill up the healpix ring
-    if (offset >= slice_start && offset < slice_end) {
-        int center_offset = offset - slice_start;
-        int indx = center_offset + offset_ring;
-
-        output[indx] = data[current_indx];
-    }
-    __syncthreads();
-    // fold the negative part of the spectrum
-    if (offset < slice_start && true) {
-        int folded_index = -(1 + offset) % nphi;
-        folded_index = folded_index < 0 ? nphi + folded_index : folded_index;
-        int target_index = slice_start - (1 + offset);
-
-        folded_index = folded_index + offset_ring;
-        target_index = target_index + ftm_offset;
-        atomicAdd(&output[folded_index].x, data[target_index].x);
-        atomicAdd(&output[folded_index].y, data[target_index].y);
-    }
-    // fold the positive part of the spectrum
-    __syncthreads();
-    if (offset >= slice_end && true) {
-        int folded_index = (offset - slice_end) % nphi;
-        folded_index = folded_index < 0 ? nphi + folded_index : folded_index;
-        int target_index = slice_end + (offset - slice_end);
-
-        folded_index = folded_index + offset_ring;
-        target_index = target_index + ftm_offset;
-        atomicAdd(&output[folded_index].x, data[target_index].x);
-        atomicAdd(&output[folded_index].y, data[target_index].y);
-    }
-}
-
-template <typename complex>
-__global__ void spectral_extension(complex* data, complex* output, int nside, int L) {
-    // few inits
+/**
+ * @brief CUDA kernel for spectral extension in spherical harmonic transforms.
+ *
+ * This kernel performs the inverse operation of spectral folding, extending
+ * HEALPix pixel data back to full Fourier coefficient space. It maps folded
+ * frequency components back to their appropriate positions in the extended spectrum
+ * and applies FFT shifting and normalization in a single pass.
+ *
+ * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
+ * @tparam T The floating-point type (float or double) for normalization.
+ * @param data Input array containing folded HEALPix pixel data.
+ * @param output Output array for extended Fourier coefficients per ring.
+ * @param nside The HEALPix Nside parameter.
+ * @param L The harmonic band limit.
+ * @param apply_shift Flag indicating whether to apply FFT shifting.
+ * @param norm Normalization type (0=by nphi, 1=by sqrt(nphi), 2=no normalization).
+ */
+template <typename complex, typename T>
+__global__ void spectral_extension(complex* data, complex* output, int nside, int L, bool apply_shift,
+                                   int norm) {
+    // Step 1: Initialize basic parameters
     int ftm_size = 2 * L;
-    // Which ring are we working on
     int current_indx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (current_indx >= (4 * nside - 1) * ftm_size) {
         return;
     }
-    // Compute nphi of current ring
+
+    // Step 2: Determine ring and frequency offset
+    int ring_index = current_indx / (2 * L);
+    int offset = current_indx % (2 * L);  // Frequency offset within this ring
+
+    // Step 3: Get ring parameters
     int nphi(0);
     int offset_ring(0);
-    // ring index
-    int ring_index = current_indx / (2 * L);
-    computeNphi(nside, ring_index, L, nphi, offset_ring);
+    compute_nphi_offset_from_ring(nside, ring_index, L, nphi, offset_ring);
 
-    // offset for the FTM slice
-    int offset = current_indx % (2 * L);
-    // offset for original healpix ring
-    // Sum of all elements from 0 to n is  n * (n + 1) / 2 in o(1) time .. times 4 to get the number of
-    // elements before current ring
-
+    // Step 4: Map frequency components based on their position in spectrum
     if (offset < L - nphi / 2) {
+        // Step 4a: Negative frequency part
         int indx = (-(L - nphi / 2 - offset)) % nphi;
         indx = indx < 0 ? nphi + indx : indx;
         indx = indx + offset_ring;
-        output[current_indx] = data[indx];
-    }
-
-    // Compute the central part of the spectrum
-    else if (offset >= L - nphi / 2 && offset < L + nphi / 2) {
-        int center_offset = offset - /*negative part offset*/ (L - nphi / 2);
+        output[current_indx] = read_shifted_normalized<complex, T>(data, indx, nside, apply_shift, norm);
+    } else if (offset >= L - nphi / 2 && offset < L + nphi / 2) {
+        // Step 4b: Central part of the spectrum (direct mapping)
+        int center_offset = offset - (L - nphi / 2);
         int indx = center_offset + offset_ring;
-        output[current_indx] = data[indx];
-    }
-    // Compute the positive part of the spectrum
-    else {
+        output[current_indx] = read_shifted_normalized<complex, T>(data, indx, nside, apply_shift, norm);
+    } else {
+        // Step 4c: Positive frequency part
         int reverse_offset = ftm_size - offset;
         int indx = (L - (int)((nphi + 1) / 2) - reverse_offset) % nphi;
         indx = indx < 0 ? nphi + indx : indx;
         indx = indx + offset_ring;
-        output[current_indx] = data[indx];
+        output[current_indx] = read_shifted_normalized<complex, T>(data, indx, nside, apply_shift, norm);
     }
 }
 
+// ============================================================================
+// C++ LAUNCH FUNCTIONS
+// ============================================================================
+
+/**
+ * @brief Launches the spectral folding CUDA kernel.
+ *
+ * This function configures and launches the spectral_folding kernel with
+ * appropriate grid and block dimensions. It performs error checking and
+ * returns the execution status.
+ *
+ * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
+ * @param data Input data array containing Fourier coefficients per ring.
+ * @param output Output array for folded HEALPix pixel data.
+ * @param nside The HEALPix Nside parameter.
+ * @param L The harmonic band limit.
+ * @param shift Flag indicating whether to apply FFT shifting.
+ * @param stream CUDA stream for kernel execution.
+ * @return HRESULT indicating success or failure.
+ */
 template <typename complex>
 HRESULT launch_spectral_folding(complex* data, complex* output, const int& nside, const int& L,
-                                const bool& shift, cudaStream_t stream) {
+                                const bool& apply_shift, const int& norm, cudaStream_t stream) {
+    // Step 1: Configure kernel launch parameters
     int block_size = 128;
     int ftm_elements = (4 * nside - 1);
     int grid_size = (ftm_elements + block_size - 1) / block_size;
 
-    spectral_folding<complex><<<grid_size, block_size, 0, stream>>>(data, output, nside, L, shift);
+    // Step 2: Launch the kernel with appropriate precision
+    if constexpr (std::is_same_v<complex, cufftComplex>) {
+        spectral_folding<cufftComplex, float>
+                <<<grid_size, block_size, 0, stream>>>(data, output, nside, L, apply_shift, norm);
+    } else {
+        spectral_folding<cufftDoubleComplex, double>
+                <<<grid_size, block_size, 0, stream>>>(data, output, nside, L, apply_shift, norm);
+    }
+
+    // Step 3: Check for kernel launch errors
     checkCudaErrors(cudaGetLastError());
     return S_OK;
 }
 
+/**
+ * @brief Launches the spectral extension CUDA kernel.
+ *
+ * This function configures and launches the spectral_extension kernel with
+ * appropriate grid and block dimensions. It performs error checking and
+ * returns the execution status.
+ *
+ * @tparam complex The complex type (cufftComplex or cufftDoubleComplex).
+ * @param data Input array containing folded HEALPix pixel data.
+ * @param output Output array for extended Fourier coefficients per ring.
+ * @param nside The HEALPix Nside parameter.
+ * @param L The harmonic band limit.
+ * @param stream CUDA stream for kernel execution.
+ * @return HRESULT indicating success or failure.
+ */
 template <typename complex>
 HRESULT launch_spectral_extension(complex* data, complex* output, const int& nside, const int& L,
-                                  cudaStream_t stream) {
-    // Launch the kernel
+                                  const bool& apply_shift, const int& norm, cudaStream_t stream) {
+    // Step 1: Configure kernel launch parameters
     int block_size = 128;
     int ftm_elements = 2 * L * (4 * nside - 1);
     int grid_size = (ftm_elements + block_size - 1) / block_size;
 
-    spectral_extension<complex><<<grid_size, block_size, 0, stream>>>(data, output, nside, L);
+    // Step 2: Launch the kernel with appropriate precision
+    if constexpr (std::is_same_v<complex, cufftComplex>) {
+        spectral_extension<cufftComplex, float>
+                <<<grid_size, block_size, 0, stream>>>(data, output, nside, L, apply_shift, norm);
+    } else {
+        spectral_extension<cufftDoubleComplex, double>
+                <<<grid_size, block_size, 0, stream>>>(data, output, nside, L, apply_shift, norm);
+    }
 
+    // Step 3: Check for kernel launch errors
     checkCudaErrors(cudaGetLastError());
     return S_OK;
 }
 
-// Specializations
+// ============================================================================
+// C++ TEMPLATE SPECIALIZATIONS
+// ============================================================================
+
+// Explicit template specializations for spectral folding functions
 template HRESULT launch_spectral_folding<cufftComplex>(cufftComplex* data, cufftComplex* output,
-                                                       const int& nside, const int& L, const bool& shift,
+                                                       const int& nside, const int& L,
+                                                       const bool& apply_shift, const int& norm,
                                                        cudaStream_t stream);
 template HRESULT launch_spectral_folding<cufftDoubleComplex>(cufftDoubleComplex* data,
                                                              cufftDoubleComplex* output, const int& nside,
-                                                             const int& L, const bool& shift,
-                                                             cudaStream_t stream);
+                                                             const int& L, const bool& apply_shift,
+                                                             const int& norm, cudaStream_t stream);
 
+// Explicit template specializations for spectral extension functions
 template HRESULT launch_spectral_extension<cufftComplex>(cufftComplex* data, cufftComplex* output,
-                                                         const int& nside, const int& L, cudaStream_t stream);
+                                                         const int& nside, const int& L,
+                                                         const bool& apply_shift, const int& norm,
+                                                         cudaStream_t stream);
 template HRESULT launch_spectral_extension<cufftDoubleComplex>(cufftDoubleComplex* data,
                                                                cufftDoubleComplex* output, const int& nside,
-                                                               const int& L, cudaStream_t stream);
+                                                               const int& L, const bool& apply_shift,
+                                                               const int& norm, cudaStream_t stream);
 
 }  // namespace s2fftKernels
