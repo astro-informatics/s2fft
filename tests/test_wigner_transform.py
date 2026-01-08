@@ -79,6 +79,7 @@ def test_forward_wigner_transform(
     np.testing.assert_allclose(flmn, flmn_check, atol=1e-14)
 
 
+@pytest.mark.pyssht
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
@@ -96,6 +97,7 @@ def test_ssht_c_backend_inverse_wigner_transform(
     np.testing.assert_allclose(f, f_check, atol=1e-12)
 
 
+@pytest.mark.pyssht
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
 @pytest.mark.parametrize("L_lower", L_lower_to_test)

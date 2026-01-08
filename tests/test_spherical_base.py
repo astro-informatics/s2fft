@@ -1,6 +1,6 @@
-import healpy as hp
+from collections.abc import Callable
+
 import numpy as np
-import pyssht as ssht
 import pytest
 
 from s2fft.base_transforms import spherical
@@ -23,7 +23,7 @@ reality_to_test = [False, True]
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_inverse(
-    flm_generator,
+    cached_ssht_test_case: Callable,
     L: int,
     L_lower: int,
     spin: int,
@@ -31,20 +31,11 @@ def test_transform_inverse(
     method: str,
     reality: bool,
 ):
-    flm = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
-    f_check = ssht.inverse(
-        samples.flm_2d_to_1d(flm, L),
-        L,
-        Method=sampling.upper(),
-        Spin=spin,
-        Reality=False,
-    )
-
+    test_data = cached_ssht_test_case(L, L_lower, spin, sampling, reality)
     f = spherical._inverse(
-        flm, L, spin, sampling, method, L_lower=L_lower, reality=reality
+        test_data["flm"], L, spin, sampling, method, L_lower=L_lower, reality=reality
     )
-
-    np.testing.assert_allclose(f, f_check, atol=1e-14)
+    np.testing.assert_allclose(f, test_data["f_ssht"], atol=1e-14)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -52,7 +43,7 @@ def test_transform_inverse(
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_inverse_healpix(
-    flm_generator,
+    cached_healpy_test_case: Callable,
     nside: int,
     ratio: int,
     method: str,
@@ -60,15 +51,13 @@ def test_transform_inverse_healpix(
 ):
     sampling = "healpix"
     L = ratio * nside
-    flm = flm_generator(L=L, reality=True)
-    flm_hp = samples.flm_2d_to_hp(flm, L)
-    f_check = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality)
 
     f = spherical._inverse(
-        flm, L, 0, sampling, method=method, nside=nside, reality=reality
+        test_data["flm"], L, 0, sampling, method=method, nside=nside, reality=reality
     )
 
-    np.testing.assert_allclose(np.real(f), np.real(f_check), atol=1e-14)
+    np.testing.assert_allclose(np.real(f), np.real(test_data["f_hp"]), atol=1e-14)
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -78,7 +67,7 @@ def test_transform_inverse_healpix(
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_forward(
-    flm_generator,
+    cached_ssht_test_case: Callable,
     L: int,
     L_lower: int,
     spin: int,
@@ -86,21 +75,13 @@ def test_transform_forward(
     method: str,
     reality: bool,
 ):
-    flm = flm_generator(L=L, spin=spin, reality=reality, L_lower=L_lower)
-
-    f = ssht.inverse(
-        samples.flm_2d_to_1d(flm, L),
-        L,
-        Method=sampling.upper(),
-        Spin=spin,
-        Reality=False,
-    )
+    test_data = cached_ssht_test_case(L, L_lower, spin, sampling, reality)
 
     flm_recov = spherical._forward(
-        f, L, spin, sampling, method, L_lower=L_lower, reality=reality
+        test_data["f_ssht"], L, spin, sampling, method, L_lower=L_lower, reality=reality
     )
 
-    np.testing.assert_allclose(flm, flm_recov, atol=1e-14)
+    np.testing.assert_allclose(test_data["flm"], flm_recov, atol=1e-14)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -108,7 +89,7 @@ def test_transform_forward(
 @pytest.mark.parametrize("method", method_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_forward_healpix(
-    flm_generator,
+    cached_healpy_test_case: Callable,
     nside: int,
     ratio: int,
     method: str,
@@ -116,31 +97,34 @@ def test_transform_forward_healpix(
 ):
     sampling = "healpix"
     L = ratio * nside
-    flm = flm_generator(L=L, reality=True)
-    f = spherical._inverse(
-        flm, L, sampling=sampling, method=method, nside=nside, reality=reality
-    )
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality, n_iter=0)
 
     flm_direct = spherical._forward(
-        f, L, sampling=sampling, method=method, nside=nside, reality=reality
+        test_data["f_hp"],
+        L,
+        sampling=sampling,
+        method=method,
+        nside=nside,
+        reality=reality,
     )
     flm_direct_hp = samples.flm_2d_to_hp(flm_direct, L)
 
-    flm_check = hp.sphtfunc.map2alm(np.real(f), lmax=L - 1, iter=0)
-
-    np.testing.assert_allclose(flm_direct_hp, flm_check, atol=1e-14)
+    np.testing.assert_allclose(flm_direct_hp, test_data["flm_hp"], atol=1e-14)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
 @pytest.mark.parametrize("iter", [8, 10])
-def test_transform_forward_healpix_iter(flm_generator, nside: int, iter: int):
+def test_transform_forward_healpix_iter(
+    cached_healpy_test_case: Callable, nside: int, iter: int
+):
     sampling = "healpix"
     L = 2 * nside
     reality = True
-    flm = flm_generator(L=L, reality=reality)
-    f = spherical.inverse(flm, L, sampling=sampling, nside=nside, reality=reality)
+
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality, n_iter=iter)
+
     flm_direct = spherical.forward(
-        f,
+        test_data["f_hp"],
         L,
         sampling=sampling,
         nside=nside,
@@ -148,11 +132,10 @@ def test_transform_forward_healpix_iter(flm_generator, nside: int, iter: int):
         iter=iter,
     )
     # With iter >> 0 round-trip error should be small
-    np.testing.assert_allclose(flm_direct, flm, atol=1e-14)
+    np.testing.assert_allclose(flm_direct, test_data["flm"], atol=1e-14)
     # Also check for consistency with healpy with iter > 0
     flm_direct_hp = samples.flm_2d_to_hp(flm_direct, L)
-    flm_check = hp.sphtfunc.map2alm(np.real(f), lmax=L - 1, iter=iter)
-    np.testing.assert_allclose(flm_direct_hp, flm_check, atol=1e-14)
+    np.testing.assert_allclose(flm_direct_hp, test_data["flm_hp"], atol=1e-14)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)

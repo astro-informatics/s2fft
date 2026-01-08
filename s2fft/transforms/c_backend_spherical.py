@@ -23,7 +23,7 @@ def _try_import_module(module_name: str) -> ModuleType:
         module = importlib.import_module(module_name)
     except ImportError as e:
         raise MissingWrapperDependencyError(
-            "Wrapper function requires {module_name} to be installed"
+            f"Wrapper function requires {module_name} to be installed"
         ) from e
     return module
 
