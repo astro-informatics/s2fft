@@ -13,3 +13,10 @@
    :caption: API
 
    api/index
+
+.. toctree::
+   :hidden:
+   :maxdepth: 3
+   :caption: Sampling Schemes
+
+   sampling
