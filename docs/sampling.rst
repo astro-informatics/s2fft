@@ -73,8 +73,8 @@ Samples are placed at positions :math:`(\theta_t, \varphi_p)` where
 
 .. math::
 
-  \theta_t  &= \frac{\pi (2t+1)}{2L-1}, &\quad t\in\lbrace 0,1,...,L-1\rbrace, \\
-  \varphi_p &= \frac{2\pi p}{2L-1}, &\quad p\in\lbrace 0,1,...,2L-2\rbrace.
+  \theta_t  &= \frac{\pi (2t+1)}{2L-1}, &\quad t\in\lbrace 0,1,...,L-1 \rbrace, \\
+  \varphi_p &= \frac{2\pi p}{2L-1},     &\quad p\in\lbrace 0,1,...,2L-2\rbrace.
 
 The total number of samples is $N_{MW} = (L-1)(2L-1)+1$.
 This sampling scheme requires symmetric sampling in $\theta$ about the South pole; repeat samples at the poles are eliminated, but the $\theta=\pi$ repeated sample cannot be eliminated since a discretisation `with an odd number of points` that is symmetric about $\pi$ is needed.
@@ -86,7 +86,22 @@ Complexity for forward/inverse transforms is $O(L^3)$, and the method is stable 
 
 FIXME MWSS as a subsection here?
 
+Driscoll & Healy
+----------------
 
+Samples are placed at positions :math:`(\theta_t, \varphi_p)` where
+
+.. math::
+
+  \theta_t  &= \frac{\pi t}{2L},  &\quad t\in\lbrace 0, 1, ..., 2L-1\rbrace, \\
+  \varphi_p &= \frac{2\pi p}{2L}, &\quad p\in\lbrace 0, 1, ..., 2L-1\rbrace.
+
+This results in a total of $(2L-1)^2$ sampling points, which are denser near the poles than the equator.
+
+Complexity for forward/inverse transforms is $O(L^2(\log L)^2)$, and the method is stable to band-limits $L$ between 1024 and 2048.
+
+Gauss-Legendre
+--------------
 .. GL:
 
 .. $N = 2L-1$ I think....(paper notation translation)
@@ -95,16 +110,5 @@ FIXME MWSS as a subsection here?
 .. - Sampling theorem requires order $2L^2$ samples
 
 .. Complexity for forward/inverse transforms is $O(L^3)$?
-
-.. Go unstable between $L = 1024$ and $L = 2048$.
-
-.. DH:
-
-.. Sample points are denser near the poles (than the equator), and so the sample points must be weighted to reflect this.
-
-.. - $\theta_t = \frac{\pi t}{2L}$, $t\in\lbrace 0, 1, ..., 2L-1\rbrace$
-.. - $\varphi_p = \frac{2\pi p}{2L}$, $t\in\lbrace 0, 1, ..., 2L-1\rbrace$
-.. - Sampling theorem requires order $4L^2$ samples
-.. - Paper claims that we can transform in $O(L^2(\log L)^2)$, this would make it asymptotically faster than MW? MW paper does quote approx 25% slower than DH, so maybe this is to be expected?
 
 .. Go unstable between $L = 1024$ and $L = 2048$.
