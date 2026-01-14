@@ -1,7 +1,7 @@
 Sampling Schemes
-----------------
+================
 
-The structure of the algorithms implemented in `S2FFT` can support any isolatitude sampling scheme.
+The structure of the algorithms implemented in ``S2FFT`` can support any isolatitude sampling scheme.
 A number of sampling schemes are currently supported.
 
 The equiangular sampling schemes of `McEwen & Wiaux (2012) <https://arxiv.org/abs/1110.6298>`_, `Driscoll & Healy
@@ -17,3 +17,9 @@ However, the HEALPix sampling provides pixels of equal areas, which has many pra
     :width: 700
     :alt: Visualization of spherical sampling schemes
     :align: center
+
+Specifying Sampling Schemes with the ``S2FFT`` API
+--------------------------------------------------
+
+Comparison Of Sampling Schemes
+------------------------------
