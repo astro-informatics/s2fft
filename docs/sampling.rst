@@ -36,4 +36,37 @@ FIXME add an example for simple inverse / forward? Use some code from the tests 
 Comparison Of Sampling Schemes
 ------------------------------
 
-FIXME comparison table.
+MW:
+
+- $\theta_t = \frac{\pi (2t+1)}{2L-1}$, $t\in\lbrace 0,1,...,L-1\rbrace$.
+- $\varphi_p = \frac{2\pi p}{2L-1}$, $p\in\lbrace 0,1,...,2L-2\rbrace$.
+- $N_{MW} = (L-1)(2L-1)+1$, so order $2L^2$ samples on the sphere.
+- Requires symmetric sampling in $\theta$ about the South pole; repeat samples at the poles are eliminated, but the $\theta=\pi$ repeated sample cannot be eliminated since we need a discretisation that is symmetric about $\pi$ but which also contains an odd number of points.
+
+Requires less than half the number of samples to represents a band-limited signal on the sphere exactly, compared to other equiangular sampling theorems. Requires asymptotically the same, but smaller, number of samples than GL.
+
+Complexity for forward/inverse transforms is $O(L^3)$.
+
+Stable to $L = 4096$.
+
+GL:
+
+$N = 2L-1$ I think....(paper notation translation)
+- $\theta_t = \frac{\pi (t + \frac{1}{2})}{2L}$
+- $\varphi_p = \frac{2\pi p}{2L}$
+- Sampling theorem requires order $2L^2$ samples
+
+Complexity for forward/inverse transforms is $O(L^3)$?
+
+Go unstable between $L = 1024$ and $L = 2048$.
+
+DH:
+
+Sample points are denser near the poles (than the equator), and so the sample points must be weighted to reflect this.
+
+- $\theta_t = \frac{\pi t}{2L}$, $t\in\lbrace 0, 1, ..., 2L-1\rbrace$
+- $\varphi_p = \frac{2\pi p}{2L}$, $t\in\lbrace 0, 1, ..., 2L-1\rbrace$
+- Sampling theorem requires order $4L^2$ samples
+- Paper claims that we can transform in $O(L^2(\log L)^2)$, this would make it asymptotically faster than MW? MW paper does quote approx 25% slower than DH, so maybe this is to be expected?
+
+Go unstable between $L = 1024$ and $L = 2048$.
