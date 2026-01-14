@@ -77,12 +77,12 @@ Samples are placed at positions :math:`(\theta_t, \varphi_p)` where
   \varphi_p &= \frac{2\pi p}{2L-1},     &\quad p\in\lbrace 0,1,...,2L-2\rbrace.
 
 The total number of samples is $N_{MW} = (L-1)(2L-1)+1$.
-This sampling scheme requires symmetric sampling in $\theta$ about the South pole; repeat samples at the poles are eliminated, but the $\theta=\pi$ repeated sample cannot be eliminated since a discretisation `with an odd number of points` that is symmetric about $\pi$ is needed.
+This sampling scheme requires symmetric sampling in $\theta$ about the South pole; repeat samples at the poles are eliminated, but the :math:`\theta=\pi` repeated sample cannot be eliminated since a discretisation `with an odd number of points` that is symmetric about :math:`\pi` is needed.
 
 This scheme requires less than half the number of samples to represents a band-limited signal on the sphere exactly, compared to other equiangular sampling theorems.
 The exception being for the Gauss-Legendre scheme, which requires asymptotically the same number of sampling points (though GL still requires more samples).
 
-Complexity for forward/inverse transforms is $O(L^3)$, and the method is stable to band-limits of $L = 4096$.
+Complexity for forward/inverse transforms is :math:`\mathcal{O}(L^3)`, and the method is stable to band-limits of $L = 4096$.
 
 FIXME MWSS as a subsection here?
 
@@ -98,13 +98,23 @@ Samples are placed at positions :math:`(\theta_t, \varphi_p)` where
 
 This results in a total of $(2L-1)^2$ sampling points, which are denser near the poles than the equator.
 
-Complexity for forward/inverse transforms is $O(L^2(\log L)^2)$, and the method is stable to band-limits $L$ between 1024 and 2048.
+Complexity for forward/inverse transforms is :math:`\mathcal{O}(L^2(\log L)^2)`, and the method is stable to band-limits $L$ between 1024 and 2048.
 
 Gauss-Legendre
 --------------
-.. GL:
 
-.. $N = 2L-1$ I think....(paper notation translation)
+Samples are placed at positions :math:`(\theta_t, \varphi_p)` where
+
+.. math::
+
+  \theta_t  &= \frac{\pi (t + \frac{1}{2})}{2L},  &\quad t\in\lbrace 0, 1, ..., 2L-1\rbrace, \\
+  \varphi_p &= \frac{2\pi p}{2L},                 &\quad p\in\lbrace 0, 1, ..., 2L-1\rbrace.
+
+Complexity for forward/inverse transforms is :math:`\mathcal{O}(L^3)`, and the method is stable to band-limits $L$ between 1024 and 2048.
+
+FIXME re-read paper... would'nt this be 4l^2 points too?
+
+.. $N = 2L-1$ I think....(paper notation translation - but check this!)
 .. - $\theta_t = \frac{\pi (t + \frac{1}{2})}{2L}$
 .. - $\varphi_p = \frac{2\pi p}{2L}$
 .. - Sampling theorem requires order $2L^2$ samples
