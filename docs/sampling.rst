@@ -1,21 +1,14 @@
 Sampling Schemes
 ================
 
-The structure of the algorithms implemented in ``S2FFT`` can support any isolatitude sampling scheme.
-A number of sampling schemes are currently supported.
+The structure of the algorithms implemented in ``S2FFT`` can support a number of sampling schemes.
 
 The equiangular sampling schemes of `McEwen & Wiaux (2012) <https://arxiv.org/abs/1110.6298>`_, `Driscoll & Healy (1995) <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_, and `Gauss-Legendre (1986) <https://link.springer.com/article/10.1007/BF02519350>`_ are supported, which exhibit associated sampling theorems and so
 harmonic transforms can be computed to machine precision.
-Note that the McEwen & Wiaux sampling theorem reduces the Nyquist rate on the sphere by a factor of two compared to the Driscoll & Healy approach, halving the number of spherical samples required.
 
 The popular `HEALPix <https://healpix.jpl.nasa.gov>`_ sampling scheme (`Gorski et al. 2005 <https://arxiv.org/abs/astro-ph/0409513>`_) is also supported.
 The HEALPix sampling does not exhibit a sampling theorem and so the corresponding harmonic transforms do not achieve machine precision but exhibit some error.
 However, the HEALPix sampling provides pixels of equal areas, which has many practical advantages.
-
-.. image:: https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/spherical_sampling.png
-    :width: 700
-    :alt: Visualization of spherical sampling schemes
-    :align: center
 
 .. list-table:: At-a-glance comparison of sampling schemes
     :header-rows: 1
@@ -58,6 +51,11 @@ However, the HEALPix sampling provides pixels of equal areas, which has many pra
       - :math:`L \approx`
       - No
 
+.. image:: https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/spherical_sampling.png
+    :width: 700
+    :alt: Visualization of spherical sampling schemes
+    :align: center
+
 Specifying Sampling Schemes with the ``S2FFT`` API
 --------------------------------------------------
 
@@ -79,12 +77,13 @@ Samples are placed at positions :math:`(\theta_t, \varphi_p)` where
 The total number of samples is $N_{MW} = (L-1)(2L-1)+1$.
 This sampling scheme requires symmetric sampling in $\theta$ about the South pole; repeat samples at the poles are eliminated, but the :math:`\theta=\pi` repeated sample cannot be eliminated since a discretisation `with an odd number of points` that is symmetric about :math:`\pi` is needed.
 
-This scheme requires less than half the number of samples to represents a band-limited signal on the sphere exactly, compared to other equiangular sampling theorems.
-The exception being for the Gauss-Legendre scheme, which requires asymptotically the same number of sampling points (though GL still requires more samples).
+Note that the McEwen & Wiaux sampling theorem reduces the Nyquist rate on the sphere by a factor of two compared to the Driscoll & Healy approach, halving the number of spherical samples required.
+It also requires fewer sampling points than the Gauss-Legendre scheme, though asymptotically the number of sampling points is the same as this scheme.
 
 Complexity for forward/inverse transforms is :math:`\mathcal{O}(L^3)`, and the method is stable to band-limits of $L = 4096$.
 
-FIXME MWSS as a subsection here?
+McEwen & Wiaux SS
+-----------------
 
 Driscoll & Healy
 ----------------
@@ -115,10 +114,7 @@ Complexity for forward/inverse transforms is :math:`\mathcal{O}(L^3)`, and the m
 FIXME re-read paper... would'nt this be 4l^2 points too?
 
 .. $N = 2L-1$ I think....(paper notation translation - but check this!)
-.. - $\theta_t = \frac{\pi (t + \frac{1}{2})}{2L}$
-.. - $\varphi_p = \frac{2\pi p}{2L}$
 .. - Sampling theorem requires order $2L^2$ samples
 
-.. Complexity for forward/inverse transforms is $O(L^3)$?
-
-.. Go unstable between $L = 1024$ and $L = 2048$.
+HEALPix
+-------
