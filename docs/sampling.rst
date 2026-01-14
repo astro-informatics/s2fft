@@ -65,3 +65,46 @@ Most public ``S2FFT`` functions accept a ``sampling`` optional argument, which w
 Sampling schemes are specified by providing the corresponding character string to the ``sampling`` argument (listed in the "API string" column of the table above).
 
 Not all functions support all available sampling schemes; the function docstring will clarify which schemes are accepted by the function.
+
+McEwen & Wiaux
+--------------
+
+Samples are placed at positions :math:`(\theta_t, \varphi_p)` where
+
+.. math::
+
+  \theta_t  &= \frac{\pi (2t+1)}{2L-1}, &\quad t\in\lbrace 0,1,...,L-1\rbrace, \\
+  \varphi_p &= \frac{2\pi p}{2L-1}, &\quad p\in\lbrace 0,1,...,2L-2\rbrace.
+
+The total number of samples is $N_{MW} = (L-1)(2L-1)+1$.
+This sampling scheme requires symmetric sampling in $\theta$ about the South pole; repeat samples at the poles are eliminated, but the $\theta=\pi$ repeated sample cannot be eliminated since a discretisation `with an odd number of points` that is symmetric about $\pi$ is needed.
+
+This scheme requires less than half the number of samples to represents a band-limited signal on the sphere exactly, compared to other equiangular sampling theorems.
+The exception being for the Gauss-Legendre scheme, which requires asymptotically the same number of sampling points (though GL still requires more samples).
+
+Complexity for forward/inverse transforms is $O(L^3)$, and the method is stable to band-limits of $L = 4096$.
+
+FIXME MWSS as a subsection here?
+
+
+.. GL:
+
+.. $N = 2L-1$ I think....(paper notation translation)
+.. - $\theta_t = \frac{\pi (t + \frac{1}{2})}{2L}$
+.. - $\varphi_p = \frac{2\pi p}{2L}$
+.. - Sampling theorem requires order $2L^2$ samples
+
+.. Complexity for forward/inverse transforms is $O(L^3)$?
+
+.. Go unstable between $L = 1024$ and $L = 2048$.
+
+.. DH:
+
+.. Sample points are denser near the poles (than the equator), and so the sample points must be weighted to reflect this.
+
+.. - $\theta_t = \frac{\pi t}{2L}$, $t\in\lbrace 0, 1, ..., 2L-1\rbrace$
+.. - $\varphi_p = \frac{2\pi p}{2L}$, $t\in\lbrace 0, 1, ..., 2L-1\rbrace$
+.. - Sampling theorem requires order $4L^2$ samples
+.. - Paper claims that we can transform in $O(L^2(\log L)^2)$, this would make it asymptotically faster than MW? MW paper does quote approx 25% slower than DH, so maybe this is to be expected?
+
+.. Go unstable between $L = 1024$ and $L = 2048$.
