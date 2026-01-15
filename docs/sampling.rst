@@ -1,15 +1,56 @@
-Sampling Schemes
-================
+Sampling
+========
 
 .. image:: https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/spherical_sampling.png
     :width: 700
     :alt: Visualization of spherical sampling schemes
     :align: center
 
-The structure of the algorithms implemented in ``S2FFT`` can support a number of sampling schemes.
-On this page we give a brief overview of how samples are drawn from the sphere, for each of the sampling schemes that are supported.
-A summary of the key differences between the supported sampling schemes is also provided :ref:`in the table below <sampling-comparison-table>`, with further information available in the dedicated section for each scheme.
+The structure of the algorithms implemented in ``S2FFT`` can support a number of sampling schemes, which we give a brief overview of here.
+An at-a-glance summary of the differences between the supported sampling schemes is also provided :ref:`in the table below <sampling-comparison-table>`, with further information available in the dedicated section for each scheme.
 A more thorough overview of the schemes can be found in section 4.2 of `Price & McEwen (2025) <https://arxiv.org/abs/2311.14670>`_.
+
+.. FIXME another column for 'additional benefits or something?'
+
+.. _sampling-comparison-table:
+
+.. list-table:: At-a-glance comparison of sampling schemes
+    :header-rows: 1
+    :align: center
+
+    * - Scheme
+      - API string
+      - Equiangular
+      - Equal region area
+      - Sampling theorem
+    * - :ref:`mcewen-wiaux-mw`
+      - ``"mw"``
+      - Yes
+      - No
+      - Yes
+    * - :ref:`mcewen-wiaux-mwss`
+      - ``"mwss"``
+      - Yes
+      - No
+      - Yes
+    * - :ref:`driscoll-healy-dh`
+      - ``"dh"``
+      - Yes
+      - No
+      - Yes
+    * - :ref:`guass-legendre-gl`
+      - ``"gl"``
+      - Yes
+      - No
+      - Yes
+    * - :ref:`healpix`
+      - ``"healpix"``
+      - No
+      - Yes
+      - No
+
+Specifying Sampling Schemes in ``S2FFT``
+----------------------------------------
 
 All transforms implemented by ``S2FFT`` must be informed of which sampling scheme has been used to draw signal values on the sphere (with the default typically being the :ref:`MW <mcewen-wiaux-mw>` scheme).
 This is specified by providing the ``sampling`` argument to the transform in question, when the transform is called.
@@ -60,42 +101,8 @@ In each case, since our sample was "obtained" using a different sampling scheme,
   # FIXME: This throws, so my understanding of the package is clearly wrong!
   jnp.assert_allclose(flm_mw, flm_gl)
 
-.. _sampling-comparison-table:
-
-.. list-table:: At-a-glance comparison of sampling schemes
-    :header-rows: 1
-    :align: center
-
-    * - Scheme
-      - API string
-      - Equiangular
-      - Equal region area
-      - Sampling theorem
-    * - :ref:`mcewen-wiaux-mw`
-      - ``"mw"``
-      - Yes
-      - No
-      - Yes
-    * - :ref:`mcewen-wiaux-mwss`
-      - ``"mwss"``
-      - Yes
-      - No
-      - Yes
-    * - :ref:`driscoll-healy-dh`
-      - ``"dh"``
-      - Yes
-      - No
-      - Yes
-    * - :ref:`guass-legendre-gl`
-      - ``"gl"``
-      - Yes
-      - No
-      - Yes
-    * - :ref:`healpix`
-      - ``"healpix"``
-      - No
-      - Yes
-      - No
+Sampling schemes
+================
 
 We adopt the usual ``S2FFT`` conventions for spherical coordinates; :math:`\theta\in[0, \pi]` (colatitude) and :math:`\varphi\in[0,2\pi)` (longitude), with :math:`\theta_t` and :math:`\varphi_p` being the discretised samples (indexed by $t$ and $p$) drawn by the sampling scheme.
 We denote by $L$ the band-limit of the signals we are considering.
