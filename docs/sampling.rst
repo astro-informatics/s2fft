@@ -93,7 +93,7 @@ Samples are placed at positions :math:`(\theta_t, \varphi_p)` where
   \theta_t  &= \frac{\pi t}{2L},  &\quad t\in\lbrace 0, 1, ..., 2L-1\rbrace, \\
   \varphi_p &= \frac{2\pi p}{2L}, &\quad p\in\lbrace 0, 1, ..., 2L-1\rbrace.
 
-This results in a total of $(2L-1)^2$ sampling points, which are denser near the poles than the equator.
+This results in a total of $2L(2L-1) + 1$ sampling points, which are denser near the poles than the equator.
 
 Complexity for forward/inverse transforms is :math:`\mathcal{O}(L^2(\log L)^2)`, and the method is stable to band-limits $L$ between 1024 and 2048.
 
@@ -104,10 +104,10 @@ Samples are placed at positions :math:`(\theta_t, \varphi_p)` where
 
 .. math::
 
-  \theta_t  &= \frac{\pi (t + \frac{1}{2})}{L+1},  &\quad t\in\lbrace 0, 1, ..., L\rbrace, \\
-  \varphi_p &= \frac{2\pi p}{L+1},                 &\quad p\in\lbrace 0, 1, ..., L\rbrace.
+  \theta_t  &= \frac{\pi (2t+1)}{2L},  &\quad t\in\lbrace 0, 1, ..., L-1\rbrace, \\
+  \varphi_p &= \frac{\pi p}{L},        &\quad p\in\lbrace 0, 1, ...,2L-2\rbrace.
 
-This results in a total of $(L+1)^2$ sampling points.
+This results in a total of $L(2L-1)$ sampling points.
 
 Complexity for forward/inverse transforms is :math:`\mathcal{O}(L^3)`, and the method is stable to band-limits $L$ between 1024 and 2048.
 
