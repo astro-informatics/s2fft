@@ -111,9 +111,9 @@ Note that ``S2FFT`` uses the equiangular Gauss-Legendre sampling scheme, so it i
 
 .. math::
 
-  \Delta \lambda = \frac{\pi}{2N+1}, &\quad j\in\lbrace 0, ..., 2N\rbrace
+  \Delta \lambda = \frac{\pi}{N+1}, \quad j\in\lbrace 0, ..., 2N\rbrace,
 
-for consistency with our notation here.
+for consistency with the notation we use in this section.
 
 Complexity for forward/inverse transforms is :math:`\mathcal{O}(L^3)`, and the method is stable to band-limits $L$ between 1024 and 2048.
 
