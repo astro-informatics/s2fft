@@ -3,11 +3,10 @@ Sampling Schemes
 
 The structure of the algorithms implemented in ``S2FFT`` can support a number of sampling schemes.
 
-The equiangular sampling schemes of `McEwen & Wiaux (2012) <https://arxiv.org/abs/1110.6298>`_, `Driscoll & Healy (1995) <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_, and `Gauss-Legendre (1986) <https://link.springer.com/article/10.1007/BF02519350>`_ are supported, which exhibit associated sampling theorems and so
-harmonic transforms can be computed to machine precision.
+The equiangular sampling schemes of McEwen & Wiaux [#mw]_, Driscoll & Healy [#dh]_, and Gauss-Legendre [#gl]_ are supported, which exhibit associated sampling theorems and so harmonic transforms can be computed to machine precision.
 
-The popular `HEALPix <https://healpix.jpl.nasa.gov>`_ sampling scheme (`Gorski et al. 2005 <https://arxiv.org/abs/astro-ph/0409513>`_) is also supported.
-The HEALPix sampling does not exhibit a sampling theorem and so the corresponding harmonic transforms do not achieve machine precision but exhibit some error.
+The popular `HEALPix <https://healpix.jpl.nasa.gov>`_ sampling scheme (Gorski et al. [#hp]_ ) is also supported.
+HEALPix sampling does not exhibit a sampling theorem and so the corresponding harmonic transforms do not achieve machine precision but exhibit some error.
 However, the HEALPix sampling provides pixels of equal areas, which has many practical advantages.
 
 .. list-table:: At-a-glance comparison of sampling schemes
@@ -113,3 +112,14 @@ Complexity for forward/inverse transforms is :math:`\mathcal{O}(L^3)`, and the m
 
 HEALPix
 -------
+
+.. TODO: Could create a citations file since I imagine this is not the only place we'll want to reference 
+.. these files: https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#citations
+
+.. rubric:: References
+
+.. [#mw] `McEwen & Wiaux (2012) <https://arxiv.org/abs/1110.6298>`_
+.. [#mwss] FIXME
+.. [#dh] `Driscoll & Healy (1995) <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_
+.. [#gl] `Gauss-Legendre (1986) <https://link.springer.com/article/10.1007/BF02519350>`_
+.. [#hp] `Gorski et al. 2005 <https://arxiv.org/abs/astro-ph/0409513>`_
