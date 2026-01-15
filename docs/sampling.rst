@@ -11,6 +11,55 @@ On this page we give a brief overview of how samples are drawn from the sphere, 
 A summary of the key differences between the supported sampling schemes is also provided :ref:`in the table below <sampling-comparison-table>`, with further information available in the dedicated section for each scheme.
 A more thorough overview of the schemes can be found in section 4.2 of `Price & McEwen (2025) <https://arxiv.org/abs/2311.14670>`_.
 
+All transforms implemented by ``S2FFT`` must be informed of which sampling scheme has been used to draw signal values on the sphere (with the default typically being the :ref:`MW <mcewen-wiaux-mw>` scheme).
+This is specified by providing the ``sampling`` argument to the transform in question, when the transform is called.
+Other utility functions also accept a ``sampling`` argument, which is used to adjust the behaviour of the function accordingly based on the sampling scheme being used.
+
+As a (somewhat trivial) example to illustrate these conventions, we can generate 'samples' from different schemes from a known signal, and have ``S2FFT`` perform forward transforms on these signals.
+First, we perform some setup and imports;
+
+.. code-block:: python
+
+  import jax
+  jax.config.update("jax_enable_x64", True)
+
+  import jax.numpy as jnp
+
+  from s2fft.base_transforms.spherical import forward, inverse
+  from s2fft.sampling.s2_samples import thetas, phis_equiang
+
+  L = 128
+
+  def signal(theta, phi):
+      """Our known signal function, that we will 'sample' from"""
+      return jnp.cos(theta + phi)**2
+
+We can generate arrays containing the :math:`\theta_t` and :math:`\varphi_p` coordinates for the MW and GL schemes using :func:`~s2fft.sampling.s2_sampling.thetas` and :func:`~s2fft.sampling.s2_sampling.phis_equiang`.
+Passing the ``sampling`` argument to each of these functions specifies which scheme we want to generate sample coordinates for:
+
+.. code-block:: python
+
+  # Generate (theta, phi) points used by the MW scheme
+  mw_thetas, mw_phis = thetas(L, sampling="mw"), phis_equiang(L, sampling="mw")
+  # Our signal 'sampled' according to the MW scheme
+  mw_signal_samples = signal(*jnp.meshgrid(mw_thetas, mw_phis, indexing='ij'))
+
+  # Generate (theta, phi) points used by the GL scheme
+  gl_thetas, gl_phis = thetas(L, sampling="gl"), phis_equiang(L, sampling="gl")
+  # Our signal 'sampled' according to the MW scheme
+  gl_signal_samples = signal(*jnp.meshgrid(gl_thetas, gl_phis, indexing='ij'))
+
+Now that we have samples from two signals, we can forward transform obtain the harmonic coefficients.
+In each case, since our sample was "obtained" using a different sampling scheme, we need to specify this to the :func:`~s2fft.base_transforms.spherical.forward` transform when we call it.
+
+.. code-block:: python
+
+  flm_mw = forward(mw_signal_samples, L, sampling="mw")
+  flm_gl = forward(gl_signal_samples, L, sampling="gl")
+  
+  # FIXME: This throws, so my understanding of the package is clearly wrong!
+  jnp.assert_allclose(flm_mw, flm_gl)
+
 .. _sampling-comparison-table:
 
 .. list-table:: At-a-glance comparison of sampling schemes
@@ -39,7 +88,7 @@ A more thorough overview of the schemes can be found in section 4.2 of `Price & 
       - Yes
     * - :ref:`guass-legendre-gl`
       - ``"gl"``
-      - No
+      - Yes
       - No
       - Yes
     * - :ref:`healpix`
