@@ -75,8 +75,6 @@ Samples are placed at positions :math:`(\theta_t, \varphi_p)` where
   \varphi_p &= \frac{2\pi p}{2L-1},     &\quad p\in\lbrace 0,1,...,2L-2\rbrace.
 
 The total number of samples is $N_{MW} = (L-1)(2L-1)+1$.
-This sampling scheme requires symmetric sampling in $\theta$ about the South pole; repeat samples at the poles are eliminated, but the :math:`\theta=\pi` repeated sample cannot be eliminated since a discretisation `with an odd number of points` that is symmetric about :math:`\pi` is needed.
-
 Note that the McEwen & Wiaux sampling theorem reduces the Nyquist rate on the sphere by a factor of two compared to the Driscoll & Healy approach, halving the number of spherical samples required.
 It also requires fewer sampling points than the Gauss-Legendre scheme, though asymptotically the number of sampling points is the same as this scheme.
 
@@ -106,15 +104,12 @@ Samples are placed at positions :math:`(\theta_t, \varphi_p)` where
 
 .. math::
 
-  \theta_t  &= \frac{\pi (t + \frac{1}{2})}{2L},  &\quad t\in\lbrace 0, 1, ..., 2L-1\rbrace, \\
-  \varphi_p &= \frac{2\pi p}{2L},                 &\quad p\in\lbrace 0, 1, ..., 2L-1\rbrace.
+  \theta_t  &= \frac{\pi (t + \frac{1}{2})}{L+1},  &\quad t\in\lbrace 0, 1, ..., L\rbrace, \\
+  \varphi_p &= \frac{2\pi p}{L+1},                 &\quad p\in\lbrace 0, 1, ..., L\rbrace.
+
+This results in a total of $(L+1)^2$ sampling points.
 
 Complexity for forward/inverse transforms is :math:`\mathcal{O}(L^3)`, and the method is stable to band-limits $L$ between 1024 and 2048.
-
-FIXME re-read paper... would'nt this be 4l^2 points too?
-
-.. $N = 2L-1$ I think....(paper notation translation - but check this!)
-.. - Sampling theorem requires order $2L^2$ samples
 
 HEALPix
 -------
