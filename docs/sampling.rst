@@ -158,7 +158,7 @@ Sample positions are defined by
 
 This results in :math:`\sim 4L^2` samples on the sphere, which are denser near the poles than the equator.
 
-Further information; `Driscoll & Healy (1995) <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_, though also see FIXME for the :math:`\theta_t, \varphi_p` scheme adopted here.
+Further information; `Driscoll & Healy (1995) <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_, (however it should be noted that ``S2FFT`` adopts the :math:`\theta` positions given in `Healy et al. (2003) <https://link.springer.com/article/10.1007/s00041-003-0018-9>`_ and a slightly more efficient :math:`\varphi` sampling scheme).
 
 .. _guass-legendre-gl:
 
