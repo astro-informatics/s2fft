@@ -1,15 +1,11 @@
 Sampling Schemes
 ================
 
-.. FIXME give the table a reference!
-
 The structure of the algorithms implemented in ``S2FFT`` can support a number of sampling schemes.
 On this page we give a brief overview and comparison of the sampling schemes that are supported, which largely follows the review in section 4.2 of [#price_mcewen_2025]_ .
-A summary of the key differences between the supported sampling schemes is also provided in the table below, with further information available in the dedicated section for each scheme.
+A summary of the key differences between the supported sampling schemes is also provided :ref:`in the table below <sampling-comparison-table>`, with further information available in the dedicated section for each scheme.
 
-Most public ``S2FFT`` functions accept a ``sampling`` optional argument, which will be interpreted as the sampling scheme to be used in that call to the function.
-Sampling schemes are specified by providing the corresponding character string to the ``sampling`` argument (see the table below).
-Not all functions support all available sampling schemes; the function docstring will clarify which schemes are accepted by the function.
+.. _sampling-comparison-table:
 
 .. list-table:: At-a-glance comparison of sampling schemes
     :header-rows: 1
@@ -19,7 +15,7 @@ Not all functions support all available sampling schemes; the function docstring
       - API string
       - Equiangular
       - Equal region area
-      - Has sampling theorem
+      - Sampling theorem
     * - McEwen & Wiaux
       - ``"mw"``
       - Yes
@@ -50,14 +46,6 @@ Not all functions support all available sampling schemes; the function docstring
     :width: 700
     :alt: Visualization of spherical sampling schemes
     :align: center
-
-Specifying Sampling Schemes with the ``S2FFT`` API
---------------------------------------------------
-
-Most public ``S2FFT`` functions accept a ``sampling`` optional argument, which will be interpreted as the sampling scheme to be used in that call to the function.
-Sampling schemes are specified by providing the corresponding character string to the ``sampling`` argument (listed in the "API string" column of the table above).
-
-Not all functions support all available sampling schemes; the function docstring will clarify which schemes are accepted by the function.
 
 McEwen & Wiaux (MW)
 -------------------
