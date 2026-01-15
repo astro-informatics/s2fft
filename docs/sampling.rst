@@ -107,6 +107,13 @@ Samples are placed at positions :math:`(\theta_t, \varphi_p)` where
   \varphi_p &= \frac{\pi p}{L},        &\quad p\in\lbrace 0, 1, ...,2L-2\rbrace.
 
 This results in a total of $L(2L-1)$ sampling points.
+Note that ``S2FFT`` uses the equiangular Gauss-Legendre sampling scheme, so it is necessary to replace the definition of :math:`\Delta \lambda` in equation (12) of [#gl]_ with
+
+.. math::
+
+  \Delta \lambda = \frac{\pi}{2N+1}, &\quad j\in\lbrace 0, ..., 2N\rbrace
+
+for consistency with our notation here.
 
 Complexity for forward/inverse transforms is :math:`\mathcal{O}(L^3)`, and the method is stable to band-limits $L$ between 1024 and 2048.
 
