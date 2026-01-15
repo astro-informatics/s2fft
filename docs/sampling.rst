@@ -5,6 +5,8 @@ The structure of the algorithms implemented in ``S2FFT`` can support a number of
 
 The equiangular sampling schemes of McEwen & Wiaux [#mw]_, Driscoll & Healy [#dh]_, and Gauss-Legendre [#gl]_ are supported, which exhibit associated sampling theorems and so harmonic transforms can be computed to machine precision.
 
+.. HEALPIX link below is broken, https://en.wikipedia.org/wiki/HEALPix
+
 The popular `HEALPix <https://healpix.jpl.nasa.gov>`_ sampling scheme (Gorski et al. [#hp]_ ) is also supported.
 HEALPix sampling does not exhibit a sampling theorem and so the corresponding harmonic transforms do not achieve machine precision but exhibit some error.
 However, the HEALPix sampling provides pixels of equal areas, which has many practical advantages.
@@ -119,6 +121,14 @@ Complexity for forward/inverse transforms is :math:`\mathcal{O}(L^3)`, and the m
 
 HEALPix
 -------
+
+A HEALPix grid is defined by a resolution parameter $N_{side}$.
+Given a resolution parameter, the grid will contain $N_{hp} = 12 N_{side}^2$ regions of the same area $\frac{\pi}{3N_{side}^2$.
+The regions will be laid out on $4N_{side}-1$ iso-latitude rings, and the distribution of regions will be symmetric about the equator.
+For the equations defining the exact positioning of the regions, their centres, and their boundaries, see section 5 of [#hp]_ .
+
+HEALPix sampling is not equiangular, but does provide pixels of equal areas which can have many practical advantages.
+However, HEALPix sampling **does not** exhibit a sampling theorem and so the corresponding harmonic transforms **do not** achieve machine precision but exhibit some error.
 
 .. TODO: Could create a citations file since I imagine this is not the only place we'll want to reference 
 .. these files: https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#citations
