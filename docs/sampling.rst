@@ -24,7 +24,7 @@ However, the HEALPix sampling provides pixels of equal areas, which has many pra
     * - McEwen & Wiaux
       - ``"mw"``
       - Yes
-      - 
+      - Yes
       - No
       - Yes
     * - McEwen & Wiaux SS
@@ -36,19 +36,19 @@ However, the HEALPix sampling provides pixels of equal areas, which has many pra
     * - Driscoll & Healy
       - ``"dh"``
       - Yes
-      - 
+      - Yes
       - No
       - Yes
     * - Gauss-Legendre
       - ``"gl"``
       - Yes
-      - 
+      - Yes
       - No
       - Yes
     * - HEALPix
       - ``"healpix"``
       - No
-      - 
+      - Yes
       - Yes
       - No
 
@@ -96,7 +96,10 @@ Samples are placed at positions :math:`(\theta_t, \varphi_p)` where
 
 This results in a total of $2L(2L-1) + 1$ sampling points, which are denser near the poles than the equator.
 
-Complexity for forward/inverse transforms is :math:`\mathcal{O}(L^2(\log L)^2)`, and the method is stable to band-limits $L$ between 1024 and 2048.
+Complexity for forward/inverse transforms is :math:`\mathcal{O}(L^2(\log L)^2)`, however not all variants of such algorithms are universally stable.
+The so-called "semi-naive" algorithm is universally stable, but has complexity :math:`\mathcal{O}(L^3)`.
+
+The method is stable to band-limits $L$ between 1024 and 2048.
 
 Gauss-Legendre
 --------------
