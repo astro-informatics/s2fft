@@ -17,39 +17,39 @@ However, the HEALPix sampling provides pixels of equal areas, which has many pra
 
     * - Scheme
       - API string
-      - Number of samples
-      - (I)FFT complexity
-      - Stable to band-limit
+      - Equiangular
+      - Iso-latitudinal
+      - Equal region area
       - Has sampling theorem
     * - McEwen & Wiaux
       - ``"mw"``
-      - Order $2L^2$
-      - :math:`\mathcal{O}(L^3)`
-      - :math:`L \approx 4096`
+      - Yes
+      - 
+      - No
       - Yes
     * - McEwen & Wiaux SS
       - ``"mwss"``
-      - Order
-      - :math:`\mathcal{O}()`
-      - :math:`L \approx`
+      - 
+      - 
+      - No
       - Yes
     * - Driscoll & Healy
       - ``"dh"``
-      - Order $4L^2$
-      - :math:`\mathcal{O}(L^2(\log L)^2)`
-      - :math:`1024 \leq L \leq 2048`
+      - Yes
+      - 
+      - No
       - Yes
     * - Gauss-Legendre
       - ``"gl"``
-      - Order $2L^2$
-      - :math:`\mathcal{O}(L^3)`
-      - :math:`1024 \leq L \leq 2048`
+      - Yes
+      - 
+      - No
       - Yes
     * - HEALPix
       - ``"healpix"``
-      - Order
-      - :math:`\mathcal{O}()`
-      - :math:`L \approx`
+      - No
+      - 
+      - Yes
       - No
 
 .. image:: https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/spherical_sampling.png
