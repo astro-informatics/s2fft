@@ -56,8 +56,12 @@ All transforms implemented by ``S2FFT`` must be informed of which sampling schem
 This is specified by providing the ``sampling`` argument to the transform in question, when the transform is called.
 Other utility functions also accept a ``sampling`` argument, which is used to adjust the behaviour of the function accordingly based on the sampling scheme being used.
 
-As a (somewhat trivial) example to illustrate these conventions, we can generate 'samples' from different schemes from a known signal, and have ``S2FFT`` perform forward transforms on these signals.
-First, we perform some setup and imports;
+.. FIXME might work better as a full-on notebook example?
+
+As a (somewhat trivial) example to illustrate these conventions, we will generate the :math:`\theta_t, `varphi_p` sample grids for the MW and GL schemes.
+Then, we will sample a known signal at these grid points, and have ``S2FFT`` perform forward transforms on the resulting samples in accordance with the sampling schemes.
+We will then confirm that the harmonic coefficients computed from each set of sample data are close, to within computational error.
+First, we must perform some setup:
 
 .. code-block:: python
 
@@ -69,36 +73,40 @@ First, we perform some setup and imports;
   from s2fft.base_transforms.spherical import forward, inverse
   from s2fft.sampling.s2_samples import thetas, phis_equiang
 
-  L = 128
+  L = 512
 
   def signal(theta, phi):
-      """Our known signal function, that we will 'sample' from"""
-      return jnp.cos(theta + phi)**2
+      """Our known signal function, that we will 'sample' from."""
+      return jnp.sin(theta)**2 * jnp.sin(phi)
 
-We can generate arrays containing the :math:`\theta_t` and :math:`\varphi_p` coordinates for the MW and GL schemes using :func:`~s2fft.sampling.s2_sampling.thetas` and :func:`~s2fft.sampling.s2_sampling.phis_equiang`.
-Passing the ``sampling`` argument to each of these functions specifies which scheme we want to generate sample coordinates for:
+We can generate arrays containing the :math:`\theta_t` and :math:`\varphi_p` sample coordinates for the MW and GL schemes using :func:`~s2fft.sampling.s2_sampling.thetas` and :func:`~s2fft.sampling.s2_sampling.phis_equiang`.
+Passing the ``sampling`` argument to each of these functions specifies which scheme we want to generate sample coordinates for.
+We then evaluate our known signal function at the sample points to generate our 'samples' / 'observations' for each scheme.
 
 .. code-block:: python
 
   # Generate (theta, phi) points used by the MW scheme
   mw_thetas, mw_phis = thetas(L, sampling="mw"), phis_equiang(L, sampling="mw")
-  # Our signal 'sampled' according to the MW scheme
-  mw_signal_samples = signal(*jnp.meshgrid(mw_thetas, mw_phis, indexing='ij'))
-
   # Generate (theta, phi) points used by the GL scheme
   gl_thetas, gl_phis = thetas(L, sampling="gl"), phis_equiang(L, sampling="gl")
-  # Our signal 'sampled' according to the MW scheme
+
+  # We now pretend we have two different observations of this signal,
+  # but which sampled it using different schemes.
+  mw_signal_samples = signal(*jnp.meshgrid(mw_thetas, mw_phis, indexing='ij'))
   gl_signal_samples = signal(*jnp.meshgrid(gl_thetas, gl_phis, indexing='ij'))
 
-Now that we have samples from two signals, we can forward transform obtain the harmonic coefficients.
-In each case, since our sample was "obtained" using a different sampling scheme, we need to specify this to the :func:`~s2fft.base_transforms.spherical.forward` transform when we call it.
+Now that we have two sets of samples from the same signal, we can forward transform obtain the harmonic coefficients.
+In each case, we need to specify which sampling scheme was used to obtain the data, by passing the ``sampling`` argument to the :func:`~s2fft.base_transforms.spherical.forward` transform when we call it.
 
 .. code-block:: python
 
+  # Forward-transform the same signal, but sampled using different schemes
   flm_mw = forward(mw_signal_samples, L, sampling="mw")
   flm_gl = forward(gl_signal_samples, L, sampling="gl")
   
-  # FIXME: This throws, so my understanding of the package is clearly wrong!
+  # jnp.max(jnp.abs(flm_mw - flm_gl)) is ~1e-8 for L=512,
+  # ~1e-7 for L=216
+  # Confirm that the computed coefficients are close
   jnp.assert_allclose(flm_mw, flm_gl)
 
 Sampling schemes
