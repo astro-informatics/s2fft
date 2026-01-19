@@ -42,7 +42,7 @@ urls.homepage = "https://github.com/astro-informatics/s2fft"
 
 [project.optional-dependencies]
 docs = [
-    "sphinx>=5.0.0",
+    "sphinx>=5.0.0,<9",
     "nbsphinx-link>=1.3.0",
     "pydata-sphinx-theme>=0.12.0",
     "sphinx_toolbox>=2.15.0",
