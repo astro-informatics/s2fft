@@ -97,6 +97,7 @@ We then evaluate our known signal function at the sample points to generate our 
 
 Now that we have two sets of samples from the same signal, we can forward transform obtain the harmonic coefficients.
 In each case, we need to specify which sampling scheme was used to obtain the data, by passing the ``sampling`` argument to the :func:`~s2fft.base_transforms.spherical.forward` transform when we call it.
+Our signal is not band-limited, but using by using a suitably high band-limit we expect the computed harmonic coefficients for both transforms to be close.
 
 .. code-block:: python
 
@@ -104,10 +105,10 @@ In each case, we need to specify which sampling scheme was used to obtain the da
   flm_mw = forward(mw_signal_samples, L, sampling="mw")
   flm_gl = forward(gl_signal_samples, L, sampling="gl")
   
-  # jnp.max(jnp.abs(flm_mw - flm_gl)) is ~1e-8 for L=512,
-  # ~1e-7 for L=216
-  # Confirm that the computed coefficients are close
+  # The norm of the greatest different between harmonic coefficients
+  # is approximately 2e-8 with L = 512.
   jnp.assert_allclose(flm_mw, flm_gl)
+  print("max| flm_mw - flm_gl | = {jnp.max(jnp.abs(flm_mw - flm_gl)):.5e}")
 
 Sampling schemes
 ================
