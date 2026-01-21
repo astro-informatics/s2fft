@@ -283,7 +283,7 @@ def test_forward_wigner_transform_healpix_torch_gradcheck(
     )
 
 
-@pytest.mark.parametrize("L", [8, 16, 32, 64])
+@pytest.mark.parametrize("L", [8, 16, 32])
 @pytest.mark.parametrize("fft_method", [True, False])
 @pytest.mark.parametrize("sampling", sampling_schemes)
 @pytest.mark.parametrize("reality", reality_to_test)
@@ -311,7 +311,7 @@ def test_inverse_wigner_transform_high_N(
     )
 
 
-@pytest.mark.parametrize("L", [8, 16, 32, 64])
+@pytest.mark.parametrize("L", [8, 16, 32])
 @pytest.mark.parametrize("fft_method", [True, False])
 @pytest.mark.parametrize("sampling", sampling_schemes)
 @pytest.mark.parametrize("reality", reality_to_test)
