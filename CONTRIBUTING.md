@@ -1,12 +1,17 @@
 # Contributing
 
-Thank you for your interest in contributing to S2FFT 🎉! We welcome contributions of all forms, including writing tutorials, improving documentation, creating bug reports or feature requests and updates to the package's code and infrastructure. 
+Thank you for your interest in contributing to S2FFT 🎉!
+We welcome contributions of all forms, including writing tutorials, improving documentation, creating bug reports or feature requests and updates to the package's code and infrastructure. 
 
-If you don't feel like you currently have time to contribute but would like to show your support, [starring the repository](https://github.com/astro-informatics/s2fft/stargazers) or posting about it on social media is always appreciated!
+If you don't feel like you currently have time to contribute but would like to show your support, 
+[starring the repository](https://github.com/astro-informatics/s2fft/stargazers) or posting about it on social media is always appreciated!
 
 ## All contributors
 
-We use the [All Contributors bot](https://allcontributors.org/) to record all forms of contribution to the project; you can see the list of all the wonderful people who have contributed to the project so far in the [README](README.md#contributors-). If you make a contribution to the project one of [the maintainers](https://github.com/orgs/astro-informatics/teams/s2fft-maintainers) should record your contribution [by adding a message tagging the bot](https://allcontributors.org/bot/usage/) in the relevant issue or pull request thread. If we forget to do this please remind us!
+We use the [All Contributors bot](https://allcontributors.org/) to record all forms of contribution to the project;
+you can see the list of all the wonderful people who have contributed to the project so far in the [README](README.md#contributors-).
+If you make a contribution to the project one of [the maintainers](https://github.com/orgs/astro-informatics/teams/s2fft-maintainers) should record your contribution [by adding a message tagging the bot](https://allcontributors.org/bot/usage/) in the relevant issue or pull request thread.
+If we forget to do this please remind us!
 
 ## Reporting bugs or requesting new features
 
@@ -19,9 +24,12 @@ Ideally this should be in the form of a [_minimal reproducible example_](https:/
 
 ## Proposing changes to repository
 
-We use a [fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) and [pull-request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests) model for external contributions. Before opening a pull request that proposes substantial changes to the repository, for example adding a new feature or changing the public interface of the package, please first [raise an issue](https://github.com/astro-informatics/s2fft/issues/new) outlining the problem the proposed changes would address to allow for some discussion about the problem and proposed solution before significant time is invested.
+We use a [fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) and [pull-request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests) model for external contributions. Before opening a pull request that proposes substantial changes to the repository, 
+for example adding a new feature or changing the public interface of the package,
+please first [raise an issue](https://github.com/astro-informatics/s2fft/issues/new) outlining the problem the proposed changes would address to allow for some discussion about the problem and proposed solution before significant time is invested.
 
-If you have not made an open-source contribution via a pull request before you may find this [detailed guide](https://www.asmeurer.com/git-workflow/) by [asmeurer](https://github.com/asmeurer) helpful. A summary of the main steps is as follows:
+If you have not made an open-source contribution via a pull request before you may find this [detailed guide](https://www.asmeurer.com/git-workflow/) by [asmeurer](https://github.com/asmeurer) helpful.
+A summary of the main steps is as follows:
 
 
 1. [Fork the repository](https://github.com/astro-informatics/s2fft/fork) and create a local clone of the fork.
@@ -36,7 +44,8 @@ If you have not made an open-source contribution via a pull request before you m
 
 ## Python version support
 
-We aim to broadly follow Scientific Python's [SPEC0 recommendation](https://scientific-python.org/specs/spec-0000/) - that is we will support Python versions for three years after their initial release and core scientific Python packages such as NumPy for two years after their initial release. 
+We aim to broadly follow Scientific Python's [SPEC0 recommendation](https://scientific-python.org/specs/spec-0000/) -
+that is we will support Python versions for three years after their initial release and core scientific Python packages such as NumPy for two years after their initial release. 
 
 
 ## Code style and linting
@@ -45,7 +54,8 @@ The Python code in S2FFT uses the [Black code style](https://test-black.readthed
 
 C++ code in S2FFT follows the [Google C++ code style](https://google.github.io/styleguide/cppguide.html) and we use [ClangFormat](https://clang.llvm.org/docs/ClangFormat.html) to autoformat the code.
 
-We use pre-commit hooks to automatically check changes respect formatting and linting rules. You can install these hooks in your local repository by [installing pre-commit](https://pre-commit.com/#install) and running
+We use pre-commit hooks to automatically check changes respect formatting and linting rules.
+You can install these hooks in your local repository by [installing pre-commit](https://pre-commit.com/#install) and running
 
 ```bash
 pre-commit install
@@ -53,5 +63,7 @@ pre-commit install
 
 from the root of the repository.
 
-The installed pre-commit hooks will run a series of checks on any staged changes when initiating a commit.  If there are problems with the changes this will be flagged in the terminal output. Where possible some problems may be automatically fixed - in this case the updated changes will need to be staged and committed again.
+The installed pre-commit hooks will run a series of checks on any staged changes when initiating a commit.
+If there are problems with the changes this will be flagged in the terminal output.
+Where possible some problems may be automatically fixed - in this case the updated changes will need to be staged and committed again.
 
