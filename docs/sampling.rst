@@ -193,7 +193,9 @@ HEALPix
 
 HEALPix sampling provides regions (pixels) of equal areas which can have many practical advantages.
 
-However, HEALPix sampling **does not** exhibit a sampling theorem and so the corresponding harmonic transforms **do not** achieve machine precision but exhibit some error.
+However, HEALPix sampling **does not** exhibit a sampling theorem and so round-tripping through the corresponding harmonic transforms **does not** recover the original signal or coefficients to machine precision but instead exhibits some non-negligible error.
+An `iterative refinement <https://en.wikipedia.org/wiki/Iterative_refinement>`_ scheme can be applied to the forward transform to reduce this round-trip error at the cost of additional computation.
+This can be applied in ``S2FFT``'s forward transforms by setting the `iter` argument to the number of iterations to perform, with more iterations giving a smaller round-trip error.
 
 A HEALPix grid is defined by a resolution parameter $N_{side}$.
 Given a resolution parameter, the grid will contain $N_{hp} = 12 N_{side}^2$ regions of the same area $\frac{\pi}{3N_{side}^2}$.
