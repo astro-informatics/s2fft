@@ -41,7 +41,7 @@ A more thorough overview of the schemes can be found in section 4.2 of `Price & 
       - Yes
     * - :ref:`gauss-legendre-gl`
       - ``"gl"``
-      - Yes
+      - No
       - No
       - Yes
     * - :ref:`healpix`
