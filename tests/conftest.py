@@ -87,7 +87,7 @@ def flmn_generator(rng: np.random.Generator) -> Callable[..., np.ndarray]:
     return partial(signal_generator.generate_flmn, rng)
 
 
-def s2fft_to_so3_sampling(s2fft_sampling: str) -> str:
+def _s2fft_to_so3_sampling(s2fft_sampling: str) -> str:
     if s2fft_sampling.lower() == "mw":
         so3_sampling = "SO3_SAMPLING_MW"
     elif s2fft_sampling.lower() == "mwss":
@@ -100,14 +100,14 @@ def s2fft_to_so3_sampling(s2fft_sampling: str) -> str:
     return so3_sampling
 
 
-def cache_subdirectory_path(cache_directory: Path, subdirectory: str) -> Path:
+def _cache_subdirectory_path(cache_directory: Path, subdirectory: str) -> Path:
     cache_subdirectory = cache_directory / subdirectory
     if not cache_subdirectory.exists():
         cache_subdirectory.mkdir(parents=True)
     return cache_subdirectory
 
 
-def cache_filename(parameters: dict, extension: str) -> str:
+def _cache_filename(parameters: dict, extension: str) -> str:
     return (
         "__".join(
             # Only recording floating-point values to 15 decimal significant digits to
@@ -124,33 +124,33 @@ P = ParamSpec("P")
 TestData: TypeAlias = Mapping[str, Any]
 
 
-class TestDataFormat(NamedTuple):
+class _TestDataFormat(NamedTuple):
     extension: str
     load: Callable[[Path], TestData]
     save: Callable[[Path, TestData], None]
 
 
-def npz_load(path: Path) -> TestData:
+def _npz_load(path: Path) -> TestData:
     return np.load(path)
 
 
-def npz_save(path: Path, data: TestData) -> None:
+def _npz_save(path: Path, data: TestData) -> None:
     return np.savez_compressed(path, **data)
 
 
-def json_load(path: Path) -> TestData:
+def _json_load(path: Path) -> TestData:
     with path.open("r") as f:
         return json.load(f)
 
 
-def json_save(path: Path, data: TestData) -> None:
+def _json_save(path: Path, data: TestData) -> None:
     with path.open("w") as f:
         json.dump(data, f)
 
 
-TEST_DATA_FORMATS = {
-    "npz": TestDataFormat("npz", npz_load, npz_save),
-    "json": TestDataFormat("json", json_load, json_save),
+_TEST_DATA_FORMATS = {
+    "npz": _TestDataFormat("npz", _npz_load, _npz_save),
+    "json": _TestDataFormat("json", _json_load, _json_save),
 }
 
 
@@ -180,18 +180,18 @@ def cached_test_case_wrapper(
     def wrapper(
         generate_data: Callable[P, TestData], format: str
     ) -> Callable[P, TestData]:
-        data_format = TEST_DATA_FORMATS[format]
+        data_format = _TEST_DATA_FORMATS[format]
         # Manually remove <> characters from <locals> instances to avoid filepath issues
         # on NTFS
         function_qualname = generate_data.__qualname__.replace("<", "").replace(">", "")
-        cache_subdirectory = cache_subdirectory_path(
+        cache_subdirectory = _cache_subdirectory_path(
             cache_directory / generate_data.__module__, function_qualname
         )
 
         @wraps(generate_data)
         def cached_generate_data(*args: P.args, **kwargs: P.kwargs) -> TestData:
             call_args = inspect.getcallargs(generate_data, *args, **kwargs)
-            cache_path = cache_subdirectory / cache_filename(
+            cache_path = cache_subdirectory / _cache_filename(
                 {"seed": seed} | call_args, data_format.extension
             )
             if use_cache and not cache_path.exists():
@@ -230,7 +230,7 @@ def cached_so3_test_case(
             L=L,
             N=N,
             L0=L_lower,
-            sampling_scheme_str=s2fft_to_so3_sampling(sampling),
+            sampling_scheme_str=_s2fft_to_so3_sampling(sampling),
             reality=False,
         )
 
@@ -254,7 +254,7 @@ def cached_so3_samples_test_case(
         so3_parameters = so3.create_parameter_dict(
             L=L,
             N=N,
-            sampling_scheme_str=s2fft_to_so3_sampling(sampling),
+            sampling_scheme_str=_s2fft_to_so3_sampling(sampling),
         )
 
         return {
