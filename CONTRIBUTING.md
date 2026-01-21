@@ -47,7 +47,7 @@ C++ code in S2FFT follows the [Google C++ code style](https://google.github.io/s
 
 We use pre-commit hooks to automatically check changes respect formatting and linting rules. You can install these hooks in your local repository by [installing pre-commit](https://pre-commit.com/#install) and running
 
-```
+```bash
 pre-commit install
 ```
 
