@@ -1,7 +1,7 @@
-import healpy as hp
+from collections.abc import Callable
+
 import jax
 import numpy as np
-import pyssht as ssht
 import pytest
 import torch
 
@@ -31,7 +31,7 @@ multiple_gpus = [False, True]
 @pytest.mark.parametrize("use_generate_precomputes", [True, False])
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_inverse(
-    flm_generator,
+    cached_ssht_test_case: Callable,
     L: int,
     L_lower: int,
     spin: int,
@@ -46,21 +46,14 @@ def test_transform_inverse(
     if spmd and method != "jax":
         pytest.skip("GPU distribution only valid for JAX.")
 
-    flm = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
-    f_check = ssht.inverse(
-        samples.flm_2d_to_1d(flm, L),
-        L,
-        Method=sampling.upper(),
-        Spin=spin,
-        Reality=reality,
-    )
+    test_data = cached_ssht_test_case(L, L_lower, spin, sampling, reality)
 
     if use_generate_precomputes:
         precomps = generate_precomputes(L, spin, sampling, L_lower=L_lower)
     else:
         precomps = None
     f = spherical.inverse(
-        torch.from_numpy(flm) if method == "orch" else flm,
+        torch.from_numpy(test_data["flm"]) if method == "torch" else test_data["flm"],
         L,
         spin,
         sampling=sampling,
@@ -70,7 +63,7 @@ def test_transform_inverse(
         spmd=spmd,
         L_lower=L_lower,
     )
-    np.testing.assert_allclose(f, f_check, atol=1e-14)
+    np.testing.assert_allclose(f, test_data["f_ssht"], atol=1e-14)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -78,30 +71,29 @@ def test_transform_inverse(
 @pytest.mark.parametrize("spmd", multiple_gpus)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_inverse_healpix(
-    flm_generator,
+    cached_healpy_test_case: Callable,
     nside: int,
     method: str,
     spmd: bool,
 ):
     sampling = "healpix"
     L = 2 * nside
-    flm = flm_generator(L=L, spin=0, reality=True)
-    flm_hp = samples.flm_2d_to_hp(flm, L)
-    f_check = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
+    reality = True
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality)
     precomps = generate_precomputes(L, 0, sampling, nside, False)
     f = spherical.inverse(
-        torch.from_numpy(flm) if method == "torch" else flm,
+        torch.from_numpy(test_data["flm"]) if method == "torch" else test_data["flm"],
         L,
         spin=0,
         nside=nside,
         sampling=sampling,
         method=method,
-        reality=True,
+        reality=reality,
         precomps=precomps,
         spmd=spmd,
     )
 
-    np.testing.assert_allclose(np.real(f), np.real(f_check), atol=1e-14)
+    np.testing.assert_allclose(np.real(f), np.real(test_data["f_hp"]), atol=1e-14)
 
 
 @pytest.mark.parametrize("L", L_to_test)
@@ -114,7 +106,7 @@ def test_transform_inverse_healpix(
 @pytest.mark.parametrize("use_generate_precomputes", [True, False])
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_forward(
-    flm_generator,
+    cached_ssht_test_case: Callable,
     L: int,
     L_lower: int,
     spin: int,
@@ -129,22 +121,17 @@ def test_transform_forward(
     if spmd and method != "jax":
         pytest.skip("GPU distribution only valid for JAX.")
 
-    flm = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
+    test_data = cached_ssht_test_case(L, L_lower, spin, sampling, reality)
 
-    f = ssht.inverse(
-        samples.flm_2d_to_1d(flm, L),
-        L,
-        Method=sampling.upper(),
-        Spin=spin,
-        Reality=reality,
-    )
     if use_generate_precomputes:
         precomps = generate_precomputes(L, spin, sampling, None, True, L_lower)
     else:
         precomps = None
 
     flm_check = spherical.forward(
-        torch.from_numpy(f) if method == "torch" else f,
+        torch.from_numpy(test_data["f_ssht"])
+        if method == "torch"
+        else test_data["f_ssht"],
         L,
         spin,
         sampling=sampling,
@@ -154,7 +141,7 @@ def test_transform_forward(
         spmd=spmd,
         L_lower=L_lower,
     )
-    np.testing.assert_allclose(flm, flm_check, atol=1e-14)
+    np.testing.assert_allclose(test_data["flm"], flm_check, atol=1e-14)
 
 
 @pytest.mark.parametrize("nside", nside_to_test)
@@ -163,7 +150,7 @@ def test_transform_forward(
 @pytest.mark.parametrize("iter", [0, 1, 2, 3])
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_transform_forward_healpix(
-    flm_generator,
+    cached_healpy_test_case: Callable,
     nside: int,
     method: str,
     spmd: bool,
@@ -171,12 +158,12 @@ def test_transform_forward_healpix(
 ):
     sampling = "healpix"
     L = 2 * nside
-    flm = flm_generator(L=L, spin=0, reality=True)
-    flm_hp = samples.flm_2d_to_hp(flm, L)
-    f = hp.sphtfunc.alm2map(flm_hp, nside, lmax=L - 1)
+    reality = True
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality, n_iter=iter)
+
     precomps = generate_precomputes(L, 0, sampling, nside, True)
     flm_check = spherical.forward(
-        torch.from_numpy(f) if method == "torch" else f,
+        torch.from_numpy(test_data["f_hp"]) if method == "torch" else test_data["f_hp"],
         L,
         spin=0,
         nside=nside,
@@ -189,9 +176,7 @@ def test_transform_forward_healpix(
     )
     flm_check = samples.flm_2d_to_hp(flm_check, L)
 
-    flm = hp.sphtfunc.map2alm(f, lmax=L - 1, iter=iter)
-
-    np.testing.assert_allclose(flm, flm_check, atol=1e-14)
+    np.testing.assert_allclose(test_data["flm_hp"], flm_check, atol=1e-14)
 
 
 def test_spin_exceptions(flm_generator):
@@ -200,7 +185,7 @@ def test_spin_exceptions(flm_generator):
     sampling = "mw"
 
     flm = flm_generator(L=L, reality=False)
-    f = spherical.inverse(flm, L, spin=0, sampling=sampling, method="jax_ssht")
+    f = spherical.inverse(flm, L, spin=0, sampling=sampling, method="jax")
 
     with pytest.raises(Warning):
         spherical.inverse(flm, L, spin=spin, sampling=sampling, method="jax")
@@ -209,6 +194,8 @@ def test_spin_exceptions(flm_generator):
         spherical.forward(f, L, spin=spin, sampling=sampling, method="jax")
 
 
+@pytest.mark.healpy
+@pytest.mark.pyssht
 def test_sampling_ssht_backend_exceptions(flm_generator):
     sampling = "healpix"
     nside = 6
@@ -224,6 +211,8 @@ def test_sampling_ssht_backend_exceptions(flm_generator):
         spherical.forward(f, L, 0, nside, sampling, "jax_ssht")
 
 
+@pytest.mark.healpy
+@pytest.mark.pyssht
 def test_sampling_healpy_backend_exceptions(flm_generator):
     sampling = "mw"
     L = 12

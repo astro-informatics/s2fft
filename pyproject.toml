@@ -65,13 +65,18 @@ plotting = [
     "ipywidgets",
 ]
 tests = [
+    "pytest",
+    "pytest-cov",
+    "torch",
     "ducc0",
     "healpy",
     "numpy<2",  # Required currently due to lack of Numpy v2 compatible pyssht release
+    "pyssht",
+    "so3",
+]
+tests-cached = [
     "pytest",
     "pytest-cov",
-    "so3",
-    "pyssht",
     "torch",
 ]
 torch = [
@@ -99,7 +104,11 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore:FutureWarning",
 ]
-markers = ["slow: mark test as slow"]
+markers = [
+    "slow: mark test as slow",
+    "pyssht: test requiring pyssht",
+    "healpy: test requiring healpy",
+]
 
 [tool.ruff]
 fix = true
