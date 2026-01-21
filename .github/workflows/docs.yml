@@ -48,6 +48,7 @@ jobs:
       uses: actions/upload-pages-artifact@v3
       with:
         path: docs/_build/html
+        retention-days: 30
 
   deploy:
     environment:
