@@ -10,11 +10,12 @@ We use the [All Contributors bot](https://allcontributors.org/) to record all fo
 
 ## Reporting bugs or requesting new features
 
-If you have a question please first check if it is covered in the [documentation](https://astro-informatics.github.io/s2fft) or if there is an existing issue which answers your query.
+If you have a question please first check if it is covered in the [documentation](https://astro-informatics.github.io/s2fft) or if there is an [existing issue](https://github.com/astro-informatics/s2fft/issues) which answers your query.
 
 If there is not a relevant existing issue, to report a problem you are having with the package or request a new feature please [raise an issue](https://github.com/astro-informatics/s2fft/issues/new).
 
-When reporting a bug, please describe the expected behaviour and what you actual observe, and sufficient information for someone else to reproduce the problem. Ideally this should be in the form of a [_minimal reproducible example_](https://en.wikipedia.org/wiki/Minimal_reproducible_example) which reproduces the error while as being as small and simple as possible.
+When reporting a bug; please describe the expected behaviour, what you actually observe, and provide sufficient information for someone else to reproduce the problem.
+Ideally this should be in the form of a [_minimal reproducible example_](https://en.wikipedia.org/wiki/Minimal_reproducible_example) which reproduces the error while as being as small and simple as possible.
 
 ## Proposing changes to repository
 
