@@ -163,14 +163,14 @@ def cached_test_case_wrapper(
     Let `generate_data` be a function which generates test data.
     Applying this decorator to `generate_data` returns a function that takes the same
     arguments as `generate_data`, and which acts as:
-    
+
     - If `use_cache` is `True`, attempt to load previously cached data from
       `cache_directory`.
       An error will be thrown if the cached data cannot be found.
     - Otherwise (`use_cache` is `False`), `generate_data` will be called to create the
       data to be used in the test.
     - If `update_cache` is `True`, any data generated for the test will be written to
-      the cache (overwriting previous values if present). 
+      the cache (overwriting previous values if present).
 
     Any generated test data will be written to a file named according to the keyword
     arguments passed to `generate_data`, under a module / function specific
