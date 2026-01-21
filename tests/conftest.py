@@ -46,9 +46,9 @@ def pytest_addoption(parser):
 
 
 def pytest_generate_tests(metafunc):
-    for option in ("seed",):
-        if option in metafunc.fixturenames:
-            metafunc.parametrize(option, metafunc.config.getoption(option))
+    option = "seed"
+    if option in metafunc.fixturenames:
+        metafunc.parametrize(option, metafunc.config.getoption(option))
 
 
 def pytest_collection_modifyitems(items):
