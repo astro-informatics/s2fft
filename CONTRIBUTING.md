@@ -6,7 +6,7 @@ If you don't feel like you currently have time to contribute but would like to s
 
 ## All contributors
 
-We use the [All Contributors bot](https://allcontributors.org/) to record all forms of contribution to the project; you can see the list of all the wonderful people who have contributed to the project so far in the [README](README.md#contributors-). If you make a contribution to the project one of the maintainers should record your contribution [by adding a message tagging the bot](https://allcontributors.org/bot/usage/) in the relevant issue or pull request thread. If we forget to do this please remind us!
+We use the [All Contributors bot](https://allcontributors.org/) to record all forms of contribution to the project; you can see the list of all the wonderful people who have contributed to the project so far in the [README](README.md#contributors-). If you make a contribution to the project one of [the maintainers](https://github.com/orgs/astro-informatics/teams/s2fft-maintainers) should record your contribution [by adding a message tagging the bot](https://allcontributors.org/bot/usage/) in the relevant issue or pull request thread. If we forget to do this please remind us!
 
 ## Reporting bugs or requesting new features
 
@@ -30,7 +30,7 @@ If you have not made an open-source contribution via a pull request before you m
 4. Push the changes on the local branch to your fork on GitHub.
 5. Create a [pull request](https://github.com/astro-informatics/s2fft/compare), specifying the fork branch as the source of the changes, giving the pull request a descriptive title and explaining what you are changing and why in the description. If the pull-request is resolving a specific issue, use [keywords](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/using-keywords-in-issues-and-pull-requests) to link the appropriate issue.
 6. Make sure all automated status checks pass on the pull request.
-7. Await a review on the changes by one of the project maintainers, and address any review comments.
+7. Await a review on the changes by one of [the project maintainers](https://github.com/orgs/astro-informatics/teams/s2fft-maintainers), and address any review comments.
 8. Once all status checks pass and the changes have been approved by a maintainer the pull request can be merged.
 
 
