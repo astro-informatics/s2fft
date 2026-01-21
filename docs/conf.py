@@ -72,7 +72,7 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -89,9 +89,6 @@ html_theme = "pydata_sphinx_theme"
 
 html_logo = "assets/sax_logo.png"
 html_theme_options = {
-    "footer_items": "copyright.html",
-    "logo_only": True,
-    "display_version": False,
     "navbar_align": "left",
     "announcement": "s2fft is currently in an open beta, please provide feedback on GitHub",
     "show_toc_level": 2,

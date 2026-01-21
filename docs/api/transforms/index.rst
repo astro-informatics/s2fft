@@ -83,5 +83,4 @@ Transforms
    on_the_fly_recursions
    spin_spherical_transform
    wigner
-  ..  c_backend_spherical
-
+   c_backend_spherical
