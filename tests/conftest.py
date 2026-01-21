@@ -201,8 +201,8 @@ def cached_test_case_wrapper(
                 data = data_format.load(cache_path)
             else:
                 data = generate_data(*args, **kwargs)
-            if update_cache:
-                data_format.save(cache_path, data)
+                if update_cache:
+                    data_format.save(cache_path, data)
             return data
 
         return cached_generate_data
