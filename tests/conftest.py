@@ -158,15 +158,23 @@ TEST_DATA_FORMATS = {
 def cached_test_case_wrapper(
     cache_directory: Path, use_cache: bool, update_cache: bool, seed: int
 ) -> Callable[[Callable[P, TestData], str], Callable[P, TestData]]:
-    """Fixture for caching generated test data to file.
+    """Fixture (decorator) for loading/writing test data to/from the cache.
 
-    Returns a wrapper function which when applied to a function `generate_data` which
-    generates test data will call the `generate_data` function if `use_cache` is False
-    and, if `update_cache` is True, cache the generated test data in a file named
-    according to the keyword arguments to `generate_data` under a module / function
-    specific subdirectory in `cache_directory`, and otherwise will attempt to load
-    previously cached data from `cache_directory`. The format the cached data is written
-    to and read from is specified by `format`.
+    Let `generate_data` be a function which generates test data.
+    Applying this decorator to `generate_data` returns a function that takes the same
+    arguments as `generate_data`, and which acts as:
+    
+    - If `use_cache` is `True`, attempt to load previously cached data from
+      `cache_directory`.
+      An error will be thrown if the cached data cannot be found.
+    - Otherwise (`use_cache` is `False`), `generate_data` will be called to create the
+      data to be used in the test.
+    - If `update_cache` is `True`, any data generated for the test will be written to
+      the cache (overwriting previous values if present). 
+
+    Any generated test data will be written to a file named according to the keyword
+    arguments passed to `generate_data`, under a module / function specific
+    subdirectory in `cache_directory`.
     """
 
     def wrapper(

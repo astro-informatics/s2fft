@@ -103,13 +103,13 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install .[tests-cached]
 
-    - name: Run tests using cached data (skipping slow)
+    - name: Run tests using cached data (skipping slow, on PRs only)
       if: github.event_name == 'pull_request'
       # Skip additional tests explicitly requiring pyssht or healpy as well as slow tests
       run: |
         pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc -m "not slow and not pyssht and not healpy" --use-cache
 
-    - name: Run tests using cached data
+    - name: Run tests using cached data (non-PRs)
       if: github.event_name != 'pull_request'
       # Skip additional tests explicitly requiring pyssht or healpy
       run: |
