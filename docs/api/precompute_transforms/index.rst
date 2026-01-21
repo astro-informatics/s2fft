@@ -111,7 +111,6 @@ Precompute Functions
    :caption: Precompute Transforms
 
    construct
-   alt_construct
    spin_spherical 
    wigner
    fourier_wigner
