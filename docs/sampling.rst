@@ -1,10 +1,11 @@
-Sampling
-========
+Sampling schemes
+===============
 
 .. image:: https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/spherical_sampling.png
     :width: 700
     :alt: Visualization of spherical sampling schemes
     :align: center
+    :class: dark-light
 
 The structure of the algorithms implemented in ``S2FFT`` can support a number of sampling schemes, which we give a brief overview of here.
 An at-a-glance summary of the differences between the supported sampling schemes is also provided :ref:`in the table below <sampling-comparison-table>`, with further information available in the dedicated section for each scheme.
@@ -38,7 +39,7 @@ A more thorough overview of the schemes can be found in section 4.2 of `Price & 
       - Yes
       - No
       - Yes
-    * - :ref:`guass-legendre-gl`
+    * - :ref:`gauss-legendre-gl`
       - ``"gl"``
       - Yes
       - No
@@ -49,7 +50,7 @@ A more thorough overview of the schemes can be found in section 4.2 of `Price & 
       - Yes
       - No
 
-Specifying Sampling Schemes in ``S2FFT``
+Specifying sampling schemes in ``S2FFT``
 ----------------------------------------
 
 All transforms implemented by ``S2FFT`` must be informed of which sampling scheme has been used to draw signal values on the sphere (with the default typically being the :ref:`MW <mcewen-wiaux-mw>` scheme).
@@ -58,7 +59,7 @@ Other utility functions also accept a ``sampling`` argument, which is used to ad
 
 .. FIXME might work better as a full-on notebook example?
 
-As a (somewhat trivial) example to illustrate these conventions, we will generate the :math:`\theta_t, `varphi_p` sample grids for the MW and GL schemes.
+As a (somewhat trivial) example to illustrate these conventions, we will generate the :math:`\theta_t, \varphi_p` sample grids for the MW and GL schemes.
 Then, we will sample a known signal at these grid points, and have ``S2FFT`` perform forward transforms on the resulting samples in accordance with the sampling schemes.
 We will then confirm that the harmonic coefficients computed from each set of sample data are close, to within computational error.
 First, we must perform some setup:
@@ -70,7 +71,7 @@ First, we must perform some setup:
 
   import jax.numpy as jnp
 
-  from s2fft.base_transforms.spherical import forward, inverse
+  from s2fft.transforms.spherical import forward, inverse
   from s2fft.sampling.s2_samples import thetas, phis_equiang
 
   L = 512
@@ -79,7 +80,7 @@ First, we must perform some setup:
       """Our known signal function, that we will 'sample' from."""
       return jnp.sin(theta)**2 * jnp.sin(phi)
 
-We can generate arrays containing the :math:`\theta_t` and :math:`\varphi_p` sample coordinates for the MW and GL schemes using :func:`~s2fft.sampling.s2_sampling.thetas` and :func:`~s2fft.sampling.s2_sampling.phis_equiang`.
+We can generate arrays containing the :math:`\theta_t` and :math:`\varphi_p` sample coordinates for the MW and GL schemes using :func:`~s2fft.sampling.s2_samples.thetas` and :func:`~s2fft.sampling.s2_samples.phis_equiang`.
 Passing the ``sampling`` argument to each of these functions specifies which scheme we want to generate sample coordinates for.
 We then evaluate our known signal function at the sample points to generate our 'samples' / 'observations' for each scheme.
 
@@ -96,19 +97,20 @@ We then evaluate our known signal function at the sample points to generate our 
   gl_signal_samples = signal(*jnp.meshgrid(gl_thetas, gl_phis, indexing='ij'))
 
 Now that we have two sets of samples from the same signal, we can forward transform obtain the harmonic coefficients.
-In each case, we need to specify which sampling scheme was used to obtain the data, by passing the ``sampling`` argument to the :func:`~s2fft.base_transforms.spherical.forward` transform when we call it.
+In each case, we need to specify which sampling scheme was used to obtain the data, by passing the ``sampling`` argument to the :func:`~s2fft.transforms.spherical.forward` transform when we call it.
 Our signal is not band-limited, but using by using a suitably high band-limit we expect the computed harmonic coefficients for both transforms to be close.
 
 .. code-block:: python
 
   # Forward-transform the same signal, but sampled using different schemes
-  flm_mw = forward(mw_signal_samples, L, sampling="mw")
-  flm_gl = forward(gl_signal_samples, L, sampling="gl")
+  flm_mw = forward(mw_signal_samples, L, sampling="mw", method="jax")
+  flm_gl = forward(gl_signal_samples, L, sampling="gl", method="jax")
   
   # The norm of the greatest different between harmonic coefficients
   # is approximately 2e-8 with L = 512.
   jnp.assert_allclose(flm_mw, flm_gl)
-  print("max| flm_mw - flm_gl | = {jnp.max(jnp.abs(flm_mw - flm_gl)):.5e}")
+  print(f"max| flm_mw - flm_gl | = {jnp.max(jnp.abs(flm_mw - flm_gl)):.5e}")
+  # Output: max| flm_mw - flm_gl | = 2.03065e-08
 
 Sampling schemes
 ================
@@ -169,7 +171,7 @@ This results in :math:`\sim 4L^2` samples on the sphere, which are denser near t
 
 Further information; `Driscoll & Healy (1995) <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_, (however it should be noted that ``S2FFT`` adopts the :math:`\theta` positions given in `Healy et al. (2003) <https://link.springer.com/article/10.1007/s00041-003-0018-9>`_ and a slightly more efficient :math:`\varphi` sampling scheme).
 
-.. _guass-legendre-gl:
+.. _gauss-legendre-gl:
 
 Gauss-Legendre (GL)
 -------------------
@@ -194,7 +196,7 @@ HEALPix sampling provides regions (pixels) of equal areas which can have many pr
 However, HEALPix sampling **does not** exhibit a sampling theorem and so the corresponding harmonic transforms **do not** achieve machine precision but exhibit some error.
 
 A HEALPix grid is defined by a resolution parameter $N_{side}$.
-Given a resolution parameter, the grid will contain $N_{hp} = 12 N_{side}^2$ regions of the same area $\frac{\pi}{3N_{side}^2$.
+Given a resolution parameter, the grid will contain $N_{hp} = 12 N_{side}^2$ regions of the same area $\frac{\pi}{3N_{side}^2}$.
 The regions will be laid out on $4N_{side}-1$ iso-latitude rings, and the distribution of regions will be symmetric about the equator.
 For the equations defining the exact positioning of the regions, their centres, and their boundaries, see section 5 of `Gorski et al. (2005) <https://arxiv.org/abs/astro-ph/0409513>`_.
 
