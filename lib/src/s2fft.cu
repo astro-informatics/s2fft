@@ -12,24 +12,27 @@
 #include <numeric>
 
 #include <vector>
-#include "s2fft_callbacks.h"
+#include "s2fft_kernels.h"
 
 namespace s2fft {
 
 template <typename Complex>
-HRESULT s2fftExec<Complex>::Initialize(const s2fftDescriptor &descriptor, size_t &worksize) {
+HRESULT s2fftExec<Complex>::Initialize(const s2fftDescriptor &descriptor) {
+    // Step 1: Store the Nside parameter from the descriptor.
     m_nside = descriptor.nside;
 
+    // Step 2: Initialize variables for ring offsets and workspace size.
     size_t start_index(0);
     size_t end_index(12 * m_nside * m_nside);
     size_t nphi(0);
+    size_t worksize(0);
+    // Step 3: Determine the cuFFT C2C type based on the complex type.
     const cufftType C2C_TYPE = get_cufft_type_c2c(Complex({0.0, 0.0}));
-    const s2fftKernels::fft_norm &norm = descriptor.norm;
-    const bool &shift = descriptor.shift;
-    const bool &isDouble = descriptor.double_precision;
+    // Step 4: Reserve space for upper and lower ring offset vectors.
     m_upper_ring_offsets.reserve(m_nside - 1);
     m_lower_ring_offsets.reserve(m_nside - 1);
 
+    // Step 5: Calculate and store offsets for polar rings.
     for (size_t i = 0; i < m_nside - 1; i++) {
         nphi = 4 * (i + 1);
         m_upper_ring_offsets.push_back(start_index);
@@ -37,119 +40,137 @@ HRESULT s2fftExec<Complex>::Initialize(const s2fftDescriptor &descriptor, size_t
 
         start_index += nphi;
         end_index -= nphi;
-    }
+    }  //
+    // Step 6: Store offsets and number of equatorial rings.
     m_equatorial_offset_start = start_index;
     m_equatorial_offset_end = end_index;
     m_equatorial_ring_num = (end_index - start_index) / (4 * m_nside);
 
-    // Plan creation
+    // Step 7: Create cuFFT plans for polar rings.
     for (size_t i = 0; i < m_nside - 1; i++) {
         size_t polar_worksize{0};
         int64 upper_ring_offset = m_upper_ring_offsets[i];
         int64 lower_ring_offset = m_lower_ring_offsets[i];
 
+        // Step 7a: Create cuFFT handles for forward and inverse plans.
         cufftHandle plan{};
         cufftHandle inverse_plan{};
         CUFFT_CALL(cufftCreate(&plan));
         CUFFT_CALL(cufftCreate(&inverse_plan));
-        // Plans are done on upper and lower polar rings
-        int rank = 1;                      // 1D FFT  : In our case the rank is always 1
-        int batch_size = 2;                // Number of rings to transform
-        int64 n[] = {4 * ((int64)i + 1)};  // Size of each FFT 4 times the ring number (first is 4, second is
-                                           // 8, third is 12, etc)
-        int64 inembed[] = {0};             // Stride of input data (meaningless but has to be set)
-        int64 istride = 1;  // Distance between consecutive elements in the same batch always 1 since we
-                            // have contiguous data
-        int64 idist = lower_ring_offset -
-                      upper_ring_offset;  // Distance between the starting points of two consecutive
-                                          // batches, it is equal to the distance between the two rings
-        int64 onembed[] = {0};            // Stride of output data (meaningless but has to be set)
-        int64 ostride = 1;  // Distance between consecutive elements in the output batch, also 1 since
-                            // everything is done in place
-        int64 odist =
-                lower_ring_offset - upper_ring_offset;  // Same as idist since we want to transform in place
 
-        // TODO CUFFT_C2C
+        // Step 7b: Define parameters for 1D FFTs on polar rings.
+        int rank = 1;                      // 1D FFT
+        int batch_size = 2;                // Number of rings to transform (upper and lower)
+        int64 n[] = {4 * ((int64)i + 1)};  // Size of each FFT
+        int64 inembed[] = {0};             // Stride of input data (meaningless but has to be set)
+        int64 istride = 1;                 // Distance between consecutive elements in the same batch
+        int64 idist = lower_ring_offset -
+                      upper_ring_offset;  // Distance between starting points of two consecutive batches
+        int64 onembed[] = {0};            // Stride of output data (meaningless but has to be set)
+        int64 ostride = 1;                // Distance between consecutive elements in the output batch
+        int64 odist = lower_ring_offset - upper_ring_offset;  // Same as idist for in-place transform
+
+        // Step 7c: Create cuFFT plans for forward and inverse polar transforms.
         CUFFT_CALL(cufftMakePlanMany64(plan, rank, n, inembed, istride, idist, onembed, ostride, odist,
                                        C2C_TYPE, batch_size, &polar_worksize));
+        // Step 7d: Update overall maximum workspace size.
+        worksize = std::max(worksize, polar_worksize);
 
         CUFFT_CALL(cufftMakePlanMany64(inverse_plan, rank, n, inembed, istride, idist, onembed, ostride,
                                        odist, C2C_TYPE, batch_size, &polar_worksize));
-        int64 params[2];
-        int64 *params_dev;
-        params[0] = n[0];
-        params[1] = idist;
-        cudaMalloc(&params_dev, 2 * sizeof(int64));
-        cudaMemcpy(params_dev, params, 2 * sizeof(int64), cudaMemcpyHostToDevice);
+        // Step 7e: Update overall maximum workspace size again.
+        worksize = std::max(worksize, polar_worksize);
 
-        s2fftKernels::setCallback(plan, inverse_plan, params_dev, shift, false, isDouble, norm);
-
+        // Step 7f: Store the created plans.
         m_polar_plans.push_back(plan);
         m_inverse_polar_plans.push_back(inverse_plan);
     }
-    // Equator plan
 
-    // Equator is a matrix with size 4 * m_nside x equatorial_ring_num
-    // cufftMakePlan1d is enough for this case
-
+    // Step 8: Create cuFFT plans for the equatorial ring.
     size_t equator_worksize{0};
     int64 equator_size = (4 * m_nside);
-    // TODO CUFFT_C2C
-    // Forward plan
+
+    // Step 8a: Create cuFFT handle for the forward equatorial plan.
     CUFFT_CALL(cufftCreate(&m_equator_plan));
     CUFFT_CALL(cufftMakePlanMany64(m_equator_plan, 1, &equator_size, nullptr, 1, 1, nullptr, 1, 1, C2C_TYPE,
                                    m_equatorial_ring_num, &equator_worksize));
-    // Inverse plan
+    // Step 8b: Update overall maximum workspace size.
+    worksize = std::max(worksize, equator_worksize);
+
+    // Step 8c: Create cuFFT handle for the inverse equatorial plan.
     CUFFT_CALL(cufftCreate(&m_inverse_equator_plan));
     CUFFT_CALL(cufftMakePlanMany64(m_inverse_equator_plan, 1, &equator_size, nullptr, 1, 1, nullptr, 1, 1,
                                    C2C_TYPE, m_equatorial_ring_num, &equator_worksize));
-
-    int64 equator_params[1];
-    equator_params[0] = equator_size;
-    int64 *equator_params_dev;
-    cudaMalloc(&equator_params_dev, sizeof(int64));
-    cudaMemcpy(equator_params_dev, equator_params, sizeof(int64), cudaMemcpyHostToDevice);
-
-    s2fftKernels::setCallback(m_equator_plan, m_inverse_equator_plan, equator_params_dev, shift, true,
-                              isDouble, norm);
+    // Step 8d: Update overall maximum workspace size again.
+    worksize = std::max(worksize, equator_worksize);
+    // Step 9: Store the final maximum workspace size.
+    this->m_work_size = worksize;
 
     return S_OK;
 }
 
 template <typename Complex>
-HRESULT s2fftExec<Complex>::Forward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data) {
-    // Polar rings ffts*/
+HRESULT s2fftExec<Complex>::Forward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data,
+                                    Complex *workspace) {
+    // Step 1: Determine the FFT direction (forward or inverse based on adjoint flag).
+    const int DIRECTION = desc.adjoint ? CUFFT_INVERSE : CUFFT_FORWARD;
+    // Step 2: Extract normalization, shift, and double precision flags from the descriptor.
+    const s2fftKernels::fft_norm &norm = desc.norm;
+    const bool &shift = desc.shift;
 
+    // Step 3: Execute FFTs for polar rings.
     for (int i = 0; i < m_nside - 1; i++) {
+        // Step 3a: Get upper and lower ring offsets.
         int upper_ring_offset = m_upper_ring_offsets[i];
 
-        CUFFT_CALL(cufftSetStream(m_polar_plans[i], stream))
-        CUFFT_CALL(cufftXtExec(m_polar_plans[i], data + upper_ring_offset, data + upper_ring_offset,
-                               CUFFT_FORWARD));
+        // Step 3e: Set the CUDA stream and work area for the cuFFT plan.
+        CUFFT_CALL(cufftSetStream(m_polar_plans[i], stream));
+        CUFFT_CALL(cufftSetWorkArea(m_polar_plans[i], workspace));
+        // Step 3f: Execute the cuFFT transform.
+        CUFFT_CALL(
+                cufftXtExec(m_polar_plans[i], data + upper_ring_offset, data + upper_ring_offset, DIRECTION));
     }
-    // Equator fft
-    CUFFT_CALL(cufftSetStream(m_equator_plan, stream))
+    // Step 4: Execute FFT for the equatorial ring.
+    // Step 4d: Set the CUDA stream and work area for the equatorial cuFFT plan.
+    CUFFT_CALL(cufftSetStream(m_equator_plan, stream));
+    CUFFT_CALL(cufftSetWorkArea(m_equator_plan, workspace));
+    // Step 4e: Execute the cuFFT transform for the equator.
     CUFFT_CALL(cufftXtExec(m_equator_plan, data + m_equatorial_offset_start, data + m_equatorial_offset_start,
-                           CUFFT_FORWARD));
+                           DIRECTION));
 
+    // Step 5: Normalization will be applied in spectral_extension kernel (no separate kernel needed)
     return S_OK;
 }
 
 template <typename Complex>
-HRESULT s2fftExec<Complex>::Backward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data) {
-    // Polar rings inverse FFTs
+HRESULT s2fftExec<Complex>::Backward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data,
+                                     Complex *workspace) {
+    // Step 1: Determine the FFT direction (forward or inverse based on adjoint flag).
+    const int DIRECTION = desc.adjoint ? CUFFT_FORWARD : CUFFT_INVERSE;
+    // Step 2: Extract normalization, shift, and double precision flags from the descriptor.
+    const s2fftKernels::fft_norm &norm = desc.norm;
+
+    // Step 3: Execute inverse FFTs for polar rings.
     for (int i = 0; i < m_nside - 1; i++) {
+        // Step 3a: Get upper and lower ring offsets.
         int upper_ring_offset = m_upper_ring_offsets[i];
 
-        CUFFT_CALL(cufftSetStream(m_inverse_polar_plans[i], stream))
+        // Step 3e: Set the CUDA stream and work area for the cuFFT plan.
+        CUFFT_CALL(cufftSetStream(m_inverse_polar_plans[i], stream));
+        CUFFT_CALL(cufftSetWorkArea(m_inverse_polar_plans[i], workspace));
+        // Step 3f: Execute the cuFFT transform.
         CUFFT_CALL(cufftXtExec(m_inverse_polar_plans[i], data + upper_ring_offset, data + upper_ring_offset,
-                               CUFFT_INVERSE));
+                               DIRECTION));
     }
-    // Equator inverse FFT
-    CUFFT_CALL(cufftSetStream(m_inverse_equator_plan, stream))
+    // Step 4: Execute inverse FFT for the equatorial ring.
+    // Step 4d: Set the CUDA stream and work area for the equatorial cuFFT plan.
+    CUFFT_CALL(cufftSetStream(m_inverse_equator_plan, stream));
+    CUFFT_CALL(cufftSetWorkArea(m_inverse_equator_plan, workspace));
+    // Step 4e: Execute the cuFFT transform for the equator.
     CUFFT_CALL(cufftXtExec(m_inverse_equator_plan, data + m_equatorial_offset_start,
-                           data + m_equatorial_offset_start, CUFFT_INVERSE));
-    //
+                           data + m_equatorial_offset_start, DIRECTION));
+
+    // Step 5: Normalization will be applied in spectral_folding kernel (no separate kernel needed)
     return S_OK;
 }
 

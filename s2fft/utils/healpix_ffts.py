@@ -1,14 +1,14 @@
 from functools import partial
 
+import jax
 import jax.numpy as jnp
-import jaxlib.mlir.ir as ir
 import numpy as np
 from jax import jit, vmap
 
 # did not find promote_dtypes_complex outside _src
 from jax._src.numpy.util import promote_dtypes_complex
-from jax.lib import xla_client
-from jaxlib.hlo_helpers import custom_call
+from jax.core import ShapedArray
+from jax.interpreters import batching
 from s2fft_lib import _s2fft
 
 from s2fft.sampling import s2_samples as samples
@@ -537,49 +537,29 @@ def ring_phase_shifts_hp_jax(
     phi_offsets = p2phi_rings_jax(t, nside)
     sign = -1 if forward else 1
     m_start_ind = 0 if reality else -L + 1
+    # Step 5: Calculate the exponent for the phase shifts using JAX einsum.
     exponent = jnp.einsum(
         "t, m->tm", phi_offsets, jnp.arange(m_start_ind, L), optimize=True
     )
+    # Step 6: Return the complex exponential of the exponent.
     return jnp.exp(sign * 1j * exponent)
 
 
 # Custom healpix_fft_cuda primitive
 
 
-def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm):
-    # For the forward pass, the input is a HEALPix pixel-space array of size nside^2 *
-    # 12 and the output is a FTM array of shape (number of rings , width of FTM slice)
-    # which is (4 * nside - 1 , 2 * L  )
-    healpix_size = (nside**2 * 12,)
-    ftm_size = (4 * nside - 1, 2 * L)
-    if fft_type == "forward":
-        assert f.shape == healpix_size
-        return f.update(shape=ftm_size, dtype=f.dtype)
-    elif fft_type == "backward":
-        print(f"f.shape {f.shape}")
-        assert f.shape == ftm_size
-        return f.update(shape=healpix_size, dtype=f.dtype)
-    else:
-        raise ValueError(f"fft_type {fft_type} not recognised.")
-
-
-def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm):
-    (aval_out,) = ctx.avals_out
-    a_type = ir.RankedTensorType(f.type)
-
-    out_dtype = aval_out.dtype
+def _get_lowering_info(fft_type, norm, out_dtype):
+    # Step 1: Determine if double precision is used based on output dtype.
     if out_dtype == np.complex64:
-        out_type = ir.ComplexType.get(ir.F32Type.get())
         is_double = False
     elif out_dtype == np.complex128:
-        out_type = ir.ComplexType.get(ir.F64Type.get())
         is_double = True
     else:
         raise ValueError(f"Unknown output type {out_dtype}")
 
-    out_type = ir.RankedTensorType.get(aval_out.shape, out_type)
-
+    # Step 2: Determine if it's a forward transform.
     forward = fft_type == "forward"
+    # Step 3: Determine if normalization should be applied.
     if (forward and norm == "backward") or (not forward and norm == "forward"):
         normalize = False
     elif (forward and norm == "forward") or (not forward and norm == "backward"):
@@ -587,34 +567,243 @@ def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm):
     else:
         raise ValueError(f"Unknown norm {norm}")
 
-    descriptor = _s2fft.build_healpix_fft_descriptor(
-        nside, L, reality, forward, normalize, is_double
+    # Step 4: Return the determined flags.
+    return is_double, forward, normalize
+
+
+def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm, adjoint):
+    """
+    Abstract evaluation for the HEALPix FFT CUDA primitive.
+    This function defines the output shapes and dtypes for the JAX primitive.
+
+    Args:
+        f: Input array.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        reality: Whether the signal is real.
+        fft_type: Type of FFT ("forward" or "backward").
+        norm: Normalization type.
+        adjoint: Whether it's an adjoint operation.
+
+    Returns:
+        Tuple of ShapedArray objects for output, workspace, and callback parameters.
+
+    """
+    # Step 1: Get lowering information (double precision, forward/backward, normalize).
+    is_double, forward, normalize = _get_lowering_info(fft_type, norm, f.dtype)
+
+    # Step 2: Determine workspace size and type based on precision.
+    if is_double:
+        # For double precision, build descriptor for C128 and calculate workspace size.
+        worksize = _s2fft.build_descriptor_C128(
+            nside, L, reality, forward, normalize, adjoint
+        )
+        worksize //= 16  # 16 bytes per C128 element
+        workspace_shape = (worksize,)
+        workspace_dtype = np.complex128
+    else:
+        # For single precision, build descriptor for C64 and calculate workspace size.
+        worksize = _s2fft.build_descriptor_C64(
+            nside, L, reality, forward, normalize, adjoint
+        )
+        worksize //= 8  # 8 bytes per C64 element
+        workspace_shape = (worksize,)
+        workspace_dtype = np.complex64
+    # Step 3: Define output shapes based on FFT type.
+    healpix_size = (nside**2 * 12,)
+    ftm_size = (4 * nside - 1, 2 * L)
+    if fft_type == "forward":
+        batch_shape = (f.shape[0],) if f.ndim == 2 else ()
+        out_shape = batch_shape + ftm_size
+        assert (f.shape[-1],) == healpix_size
+
+    elif fft_type == "backward":
+        batch_shape = (f.shape[0],) if f.ndim == 3 else ()
+        out_shape = batch_shape + healpix_size
+        assert f.shape[-2:] == ftm_size
+    else:
+        raise ValueError(f"fft_type {fft_type} not recognised.")
+
+    # Step 4: Create ShapedArray objects for output and workspace.
+    workspace_aval = ShapedArray(
+        shape=batch_shape + workspace_shape, dtype=workspace_dtype
     )
 
-    layout = tuple(range(len(a_type.shape) - 1, -1, -1))
-    out_layout = tuple(range(len(out_type.shape) - 1, -1, -1))
-
-    result = custom_call(
-        "healpix_fft_cuda",
-        result_types=[out_type],
-        operands=[f],
-        operand_layouts=[layout],
-        result_layouts=[out_layout],
-        has_side_effect=True,
-        backend_config=descriptor,
+    # Step 5: Return the ShapedArray objects.
+    return (
+        f.update(shape=out_shape, dtype=f.dtype),
+        workspace_aval,
     )
-    return result.results
+
+
+class MissingCUDASupport(Exception):  # noqa : D107
+    def __init__(self):  # noqa : D107
+        super().__init__("""
+                        S2FFT was compiled without CUDA support. Cuda functions are not supported.
+                        Please make sure that nvcc is in your path and $CUDA_HOME is set then reinstall s2fft using pip.
+                        """)
+
+
+def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm, adjoint):
+    """
+    Lowering rule for the HEALPix FFT CUDA primitive.
+    This function translates the JAX primitive call into a call to the underlying CUDA FFI.
+
+    Args:
+        ctx: Lowering context.
+        f: Input array.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        reality: Whether the signal is real.
+        fft_type: Type of FFT ("forward" or "backward").
+        norm: Normalization type.
+        adjoint: Whether it's an adjoint operation.
+
+    Returns:
+        The result of the FFI call.
+
+    """
+    # Step 1: Check if CUDA support is compiled in.
+    if not _s2fft.COMPILED_WITH_CUDA:
+        raise MissingCUDASupport()
+
+    # Step 2: Get the abstract evaluation results for the outputs.
+    (aval_out, _) = ctx.avals_out
+
+    # Step 3: Get lowering information (double precision, forward/backward, normalize).
+    is_double, forward, normalize = _get_lowering_info(fft_type, norm, aval_out.dtype)
+
+    # Step 4: Select the appropriate FFI lowering function based on precision.
+    if is_double:
+        ffi_lowered = jax.ffi.ffi_lowering("healpix_fft_cuda_c128")
+    else:
+        ffi_lowered = jax.ffi.ffi_lowering("healpix_fft_cuda_c64")
+
+    # Step 5: Call the FFI lowering function with the context and parameters.
+    return ffi_lowered(
+        ctx,
+        f,
+        nside=nside,
+        harmonic_band_limit=L,
+        reality=reality,
+        normalize=normalize,
+        forward=forward,
+        adjoint=adjoint,
+    )
+
+
+def _healpix_fft_cuda_batching_rule(
+    batched_args, batched_axis, L, nside, reality, fft_type, norm, adjoint
+):
+    """
+    Batching rule for the HEALPix FFT CUDA primitive.
+    This function defines how the primitive behaves under JAX's automatic batching.
+
+    Args:
+        batched_args: Tuple of batched arguments.
+        batched_axis: Tuple of axes along which arguments are batched.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        reality: Whether the signal is real.
+        fft_type: Type of FFT ("forward" or "backward").
+        norm: Normalization type.
+        adjoint: Whether it's an adjoint operation.
+
+    Returns:
+        Tuple of (output, output_batch_axes).
+
+    """
+    # Step 1: Unpack batched arguments and batching axes.
+    (x,) = batched_args
+    (bd,) = batched_axis
+
+    # Step 2: Assert correct input dimensions based on FFT type.
+    if fft_type == "forward":
+        assert x.ndim == 2
+    elif fft_type == "backward":
+        assert x.ndim == 3
+    else:
+        raise ValueError(f"fft_type {fft_type} not recognised.")
+
+    # Step 3: Move the batching axis to the front.
+    x = batching.moveaxis(x, bd, 0)
+
+    # Step 4: Bind the primitive with the batched input.
+    out = _healpix_fft_cuda_primitive.bind(
+        x,
+        L=L,
+        nside=nside,
+        reality=reality,
+        fft_type=fft_type,
+        norm=norm,
+        adjoint=adjoint,
+    )
+    # Step 5: Define batching axes for the outputs (all at axis 0).
+    batchout = (0,) * len(out)
+
+    # Step 6: Return the output and their batching axes.
+    return out, batchout
+
+
+def _healpix_fft_cuda_transpose(
+    df: jnp.ndarray,
+    L: int,
+    nside: int,
+    reality: bool,
+    fft_type: str,
+    norm: str,
+    adjoint: bool,
+) -> jnp.ndarray:
+    """
+    Transpose rule for the HEALPix FFT CUDA primitive.
+    This function defines how the adjoint of the primitive is computed for automatic differentiation.
+
+    Args:
+        df: Tangent (gradient) of the output.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        reality: Whether the signal is real.
+        fft_type: Type of FFT ("forward" or "backward").
+        norm: Normalization type.
+        adjoint: Whether it's an adjoint operation.
+
+    Returns:
+        The adjoint of the input.
+
+    """
+    # Step 1: Invert the FFT type and normalization for the adjoint operation.
+    fft_type = "backward" if fft_type == "forward" else "forward"
+    norm = "backward" if norm == "forward" else "forward"
+
+    # Step 2: Bind the primitive with the tangent and inverted parameters.
+    # Access df[0] as df is a tuple of tangents for multiple outputs.
+    # Return [0] as the primitive also returns multiple outputs, and we only need the first one for the adjoint.
+    return (
+        _healpix_fft_cuda_primitive.bind(
+            df[0],
+            L=L,
+            nside=nside,
+            reality=reality,
+            fft_type=fft_type,
+            norm=norm,
+            adjoint=not adjoint,
+        )[0],
+    )
 
 
 # Register healpfix_fft_cuda custom call target
 for name, fn in _s2fft.registration().items():
-    xla_client.register_custom_call_target(name, fn, platform="gpu")
+    jax.ffi.register_ffi_target(name, fn, platform="CUDA")
 
+# Step 1: Register the HEALPix FFT CUDA primitive with JAX.
 _healpix_fft_cuda_primitive = register_primitive(
     "healpix_fft_cuda",
-    multiple_results=False,
+    multiple_results=True,  # Indicates that the primitive returns multiple outputs.
     abstract_evaluation=_healpix_fft_cuda_abstract,
     lowering_per_platform={None: _healpix_fft_cuda_lowering},
+    transpose=_healpix_fft_cuda_transpose,
+    batcher=_healpix_fft_cuda_batching_rule,
+    is_linear=True,
 )
 
 
@@ -642,13 +831,23 @@ def healpix_fft_cuda(
         jnp.ndarray: Array of Fourier coefficients for all latitudes.
 
     """
+    # Step 1: Promote input data to complex dtype if necessary.
     (f,) = promote_dtypes_complex(f)
-    return _healpix_fft_cuda_primitive.bind(
-        f, L=L, nside=nside, reality=reality, fft_type="forward", norm=norm
+    # Step 2: Bind the input to the CUDA primitive. It returns multiple outputs (out, workspace).
+    out, _ = _healpix_fft_cuda_primitive.bind(
+        f,
+        L=L,
+        nside=nside,
+        reality=reality,
+        fft_type="forward",
+        norm=norm,
+        adjoint=False,
     )
+    # Step 3: Return only the primary output (Fourier coefficients).
+    return out
 
 
-@partial(jit, static_argnums=(1, 2, 3))
+@partial(jit, static_argnums=(1, 2, 3, 4))
 def healpix_ifft_cuda(
     ftm: jnp.ndarray, L: int, nside: int, reality: bool, norm: str = "forward"
 ) -> jnp.ndarray:
@@ -672,10 +871,20 @@ def healpix_ifft_cuda(
         jnp.ndarray: HEALPix pixel-space array.
 
     """
+    # Step 1: Promote input data to complex dtype if necessary.
     (ftm,) = promote_dtypes_complex(ftm)
-    return _healpix_fft_cuda_primitive.bind(
-        ftm, L=L, nside=nside, reality=reality, fft_type="backward", norm=norm
+    # Step 2: Bind the input to the CUDA primitive. It returns multiple outputs (out, workspace).
+    out, _ = _healpix_fft_cuda_primitive.bind(
+        ftm,
+        L=L,
+        nside=nside,
+        reality=reality,
+        fft_type="backward",
+        norm=norm,
+        adjoint=False,
     )
+    # Step 3: Return only the primary output (pixel-space array).
+    return out
 
 
 _healpix_fft_functions = {
