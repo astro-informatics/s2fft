@@ -24,31 +24,31 @@ We denote by $L$ the band-limit of the signals we are considering.
 
     * - Scheme
       - API string
-      - # Sample points
+      - Number of sample points [#n-samples-vs-memory-storage]_
       - Equi- angular
       - Equal region area
       - Sampling theorem
     * - :ref:`mcewen-wiaux-mw`
       - ``"mw"``
-      - $2L^2 - 3L$
+      - :math:`L\times(2L-1)`
       - Yes
       - No
       - Yes
     * - :ref:`mcewen-wiaux-mwss`
       - ``"mwss"``
-      - $2L^2 - 2L + 2$
+      - :math:`(L+1)\times 2L`
       - Yes
       - No
       - Yes
     * - :ref:`driscoll-healy-dh`
       - ``"dh"``
-      - $4L^2 - 2L$
+      - :math:`2L\times (2L-1)`
       - Yes
       - No
       - Yes
     * - :ref:`gauss-legendre-gl`
       - ``"gl"``
-      - $2L^2 - L$
+      - :math:`L\times (2L-1)`
       - No
       - No
       - Yes
@@ -140,7 +140,8 @@ Sample positions are defined by
   \theta_t  &= \frac{\pi (2t+1)}{2L-1}, &\quad t\in\lbrace 0,1,...,L-1 \rbrace, \\
   \varphi_p &= \frac{2\pi p}{2L-1},     &\quad p\in\lbrace 0,1,...,2L-2\rbrace.
 
-The total number of samples is :math:`N_{MW} = (L-1)(2L-1)+1 \sim 2L^2`.
+The scheme uses an array of size :math:`L \times (2L-1)` to store the signal.
+However, total number of distinct sites on the sphere used by this sampling scheme is :math:`N_{MW} = (L-1)(2L-1)+1 \sim 2L^2`.
 
 Further information; `McEwen & Wiaux (2012) <https://arxiv.org/abs/1110.6298>`_.
 
@@ -149,8 +150,9 @@ Further information; `McEwen & Wiaux (2012) <https://arxiv.org/abs/1110.6298>`_.
 McEwen & Wiaux with Symmetric Sampling (MWSS)
 ---------------------------------------------
 
-This sampling scheme uses slightly more samples than MW, but still :math:`\sim 2L^2`.
-In exchange, the sample locations possess antipodal symmetry.
+This sampling scheme uses slightly more samples than MW, requiring an array holding :math:`(L+1)\times 2L` elements (with $2(L^2 - L + 1)$ independent degrees of freedom).
+Asymptotically, we still only require :math:`\sim 2L^2` elements in memory as $L$ increases.
+In exchange for slightly higher memory usage, the sample locations possess antipodal symmetry.
 
 Sample positions are defined by
 
@@ -173,7 +175,7 @@ Sample positions are defined by
   \theta_t  &= \frac{\pi (2t+1)}{4L},  &\quad t\in\lbrace 0, 1, ..., 2L-1\rbrace, \\
   \varphi_p &= \frac{2\pi p}{2L-1},    &\quad p\in\lbrace 0, 1, ..., 2L-2\rbrace.
 
-This results in :math:`\sim 4L^2` samples.
+This requires :math:`2L \times (2L-1) \sim 4L^2` elements to be held in memory, and since the poles are not sample points, the same number of independent degrees of freedom to represent the signal.
 
 Further information; `Driscoll & Healy (1995) <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_, (however it should be noted that ``S2FFT`` adopts the :math:`\theta` positions given in `Healy et al. (2003) <https://link.springer.com/article/10.1007/s00041-003-0018-9>`_ and a slightly more efficient :math:`\varphi` sampling scheme).
 
@@ -182,7 +184,8 @@ Further information; `Driscoll & Healy (1995) <https://www.sciencedirect.com/sci
 Gauss-Legendre (GL)
 -------------------
 
-The GL sampling theorem also requires :math:`\sim 2L^2` samples on the sphere, though in practice it requires more samples to be placed than MW.
+The GL sampling theorem also requires an array of :math:`L\times (2L-1) \sim 2L^2` elements to represent the signal.
+Like :ref:`DH <driscoll-healy-dh>`, there is no redundancy in samples at the poles, so the same number of independent degrees of freedom are needed.
 
 The :math:`\theta_t` are determined by the roots of the Legendre polynomials of order $L$, whilst the :math:`\varphi_p` are defined by
 
@@ -204,9 +207,15 @@ However, HEALPix sampling **does not** exhibit a sampling theorem and so round-t
 An `iterative refinement <https://en.wikipedia.org/wiki/Iterative_refinement>`_ scheme can be applied to the forward transform to reduce this round-trip error at the cost of additional computation.
 This can be applied in ``S2FFT``'s forward transforms by setting the `iter` argument to the number of iterations to perform, with more iterations giving a smaller round-trip error.
 
-A HEALPix grid is defined by a resolution parameter $N_{side}$.
+A HEALPix grid is defined by a resolution parameter $N_{side}$, requiring $12 N_{side}^2$ elements (and independent degrees of freedom) stored in memory.
 Given a resolution parameter, the grid will contain $N_{hp} = 12 N_{side}^2$ regions of the same area :math:`\frac{\pi}{3N_{side}^2}`.
 The regions will be laid out on $4N_{side}-1$ iso-latitude rings, and the distribution of regions will be symmetric about the equator.
-For the equations defining the exact positioning of the regions, their centres, and their boundaries, see section 5 of `Gorski et al. (2005) <https://arxiv.org/abs/astro-ph/0409513>`_.
+For the equations defining the exact positioning of the regions, their centres, their boundaries, and how they are organised into an array, see section 5 of `Gorski et al. (2005) <https://arxiv.org/abs/astro-ph/0409513>`_.
 
 Further information; `Gorski et al. (2005) <https://arxiv.org/abs/astro-ph/0409513>`_.
+
+.. rubric:: Footnotes
+
+.. [#n-samples-vs-memory-storage] The "number of sample points" listed here refers to the size of the array recording sample values in memory.
+  This is distinct from the "number of independent degrees of freedom" (the "number of sites on the sphere that we are required to sample") to represent a signal, since many sampling schemes have overlapping sample points at the north (:math:`\theta=0`) and south (:math:`\theta=\pi`) poles.
+  Both values are quoted in the corresponding section for each scheme, but :ref:`the table <sampling-comparison-table>` only lists the former (size of the array representing a signal).
