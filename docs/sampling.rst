@@ -129,9 +129,9 @@ Sampling schemes
 McEwen & Wiaux (MW)
 -------------------
 
-The MW sampling theorem reduces the Nyquist rate on the sphere by a factor of two compared to the DH approach, halving the number of spherical samples required.
+The MW sampling theorem reduces the Nyquist rate on the sphere by a factor of two compared to the :ref:`DH scheme <driscoll-healy-dh>`, halving the number of spherical samples required.
 
-It also requires fewer sampling points than the GL scheme, though asymptotically the number of sampling points used by GL is the same as MW.
+It also requires fewer sampling points than the :ref:`GL scheme <gauss-legendre-gl>`, though asymptotically the number of sampling points used by GL is the same as MW.
 
 Sample positions are defined by
 
@@ -173,7 +173,7 @@ Sample positions are defined by
   \theta_t  &= \frac{\pi (2t+1)}{4L},  &\quad t\in\lbrace 0, 1, ..., 2L-1\rbrace, \\
   \varphi_p &= \frac{2\pi p}{2L-1},    &\quad p\in\lbrace 0, 1, ..., 2L-2\rbrace.
 
-This results in :math:`\sim 4L^2` samples on the sphere, which are denser near the poles than the equator.
+This results in :math:`\sim 4L^2` samples.
 
 Further information; `Driscoll & Healy (1995) <https://www.sciencedirect.com/science/article/pii/S0196885884710086>`_, (however it should be noted that ``S2FFT`` adopts the :math:`\theta` positions given in `Healy et al. (2003) <https://link.springer.com/article/10.1007/s00041-003-0018-9>`_ and a slightly more efficient :math:`\varphi` sampling scheme).
 
@@ -198,13 +198,14 @@ HEALPix
 -------
 
 HEALPix sampling provides regions (pixels) of equal areas which can have many practical advantages.
+Unlike the other schemes, the sample points do not get denser as one approaches the poles, for example.
 
 However, HEALPix sampling **does not** exhibit a sampling theorem and so round-tripping through the corresponding harmonic transforms **does not** recover the original signal or coefficients to machine precision but instead exhibits some non-negligible error.
 An `iterative refinement <https://en.wikipedia.org/wiki/Iterative_refinement>`_ scheme can be applied to the forward transform to reduce this round-trip error at the cost of additional computation.
 This can be applied in ``S2FFT``'s forward transforms by setting the `iter` argument to the number of iterations to perform, with more iterations giving a smaller round-trip error.
 
 A HEALPix grid is defined by a resolution parameter $N_{side}$.
-Given a resolution parameter, the grid will contain $N_{hp} = 12 N_{side}^2$ regions of the same area $\frac{\pi}{3N_{side}^2}$.
+Given a resolution parameter, the grid will contain $N_{hp} = 12 N_{side}^2$ regions of the same area :math:`\frac{\pi}{3N_{side}^2}`.
 The regions will be laid out on $4N_{side}-1$ iso-latitude rings, and the distribution of regions will be symmetric about the equator.
 For the equations defining the exact positioning of the regions, their centres, and their boundaries, see section 5 of `Gorski et al. (2005) <https://arxiv.org/abs/astro-ph/0409513>`_.
 
