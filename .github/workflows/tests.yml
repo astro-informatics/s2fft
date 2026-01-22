@@ -5,8 +5,6 @@ on:
     branches:
       - main
   pull_request:
-    branches:
-      - main
     paths:
       - .github/workflows/tests.yml
       - pyproject.toml
@@ -22,72 +20,100 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  build:
-
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash -el {0}
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.12", "3.13"]
-        os: [ubuntu-latest, macos-latest]
-        exclude:
-          # Skip Python 3.13 on MacOS as 1.20<=numpy<2 requirement inherited from so3
-          # requiring numpy<2 cannot be resolved there
-          - os: macos-latest
-            python-version: "3.13"
-      fail-fast: false
+  
+  tests-non-cached:
+    
+    # Test job run on Ubuntu runner only which installs full set of test dependencies
+    # and generates test data using external packages such as healpy, pyssht and so3
+    # which is then cached to allow use in a subsequent matrix test job
+    runs-on: ubuntu-latest
     env:
+      # Required to avoid error when trying to build so3
       CMAKE_POLICY_VERSION_MINIMUM: 3.5
-
-    steps:
+    steps: 
     - name: Checkout Source
       uses: actions/checkout@v5.0.0
       with:
         fetch-depth: 0
         fetch-tags: true
-        
-    - if: matrix.os == 'macos-latest'
-      name: Set up Miniforge on MacOS
-      uses: conda-incubator/setup-miniconda@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
       with:
-        miniforge-version: latest
-        python-version: ${{ matrix.python-version }}
-        
-    - if: matrix.os == 'macos-latest'
-      name: Install dependencies with conda on MacOS
-      # Avoid OpenMP runtime incompatibility when using PyPI wheels
-      # by installing torch and healpy using conda
-      # https://github.com/healpy/healpy/issues/1012
+        python-version: "3.13"
+        cache: pip
+
+    - name: Install dependencies
       run: |
-        conda install jax "jax>=0.3.13,<0.6.0" "numpy>=1.20,<2" ducc0 healpy pytorch pytest pytest-cov
         python -m pip install --upgrade pip
-        pip install --no-deps so3 pyssht
-        pip install --no-deps .
+        python -m pip install .[tests]
   
-    - if: matrix.os != 'macos-latest'
-      name: Set up Python ${{ matrix.python-version }}
+    - name: Run tests
+      # We run only tests which update cached data or explicitly require pyssht or healpy
+      run: |
+        pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc --update-cache -m "uses_cached_data or pyssht or healpy"
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        
+    - name: Upload cached test data
+      uses: actions/upload-artifact@v6
+      with:
+        name: cached-test-data
+        path: tests/cached-test-data
+        retention-days: 30
+  
+  tests-with-cached-data:
+
+    # Matrix test job using cached test data from previous job to allow running tests
+    # with a smaller set of dependencies (in particular not requiring pyssht, so3 or
+    # healpy to be installed to avoid issues when trying to build these packages)
+    runs-on: ${{ matrix.os }}
+    needs: tests-non-cached
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+        os: [ubuntu-latest, macos-latest]
+      fail-fast: false
+
+    steps:
+    - name: Checkout Source
+      uses: actions/checkout@v6.0.1
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+        
+    - uses: actions/download-artifact@v7
+      with:
+        name: cached-test-data
+        path: tests/cached-test-data
+  
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
 
-    - if: matrix.os != 'macos-latest'
-      name: Install dependencies
+    - name: Install dependencies
+      # We install the subset of test dependencies required for running tests when
+      # cached test data is available
       run: |
         python -m pip install --upgrade pip
-        pip install .[tests]
+        python -m pip install .[tests-cached]
 
-    - name: Run tests (skipping slow)
+    - name: Run tests using cached data (skipping slow, on PRs only)
       if: github.event_name == 'pull_request'
+      # Skip additional tests explicitly requiring pyssht or healpy as well as slow tests
       run: |
-        pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc -m "not slow"
+        pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc -m "not slow and not pyssht and not healpy" --use-cache
 
-    - name: Run tests
+    - name: Run tests using cached data (non-PRs)
       if: github.event_name != 'pull_request'
+      # Skip additional tests explicitly requiring pyssht or healpy
       run: |
-        pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc
+        pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc -m "not pyssht and not healpy" --use-cache
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5

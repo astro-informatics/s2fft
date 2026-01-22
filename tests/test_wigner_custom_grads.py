@@ -75,6 +75,7 @@ def test_forward_wigner_custom_gradients(
     check_grads(func, (f,), order=1, modes=("rev"))
 
 
+@pytest.mark.pyssht
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
@@ -117,6 +118,7 @@ def test_ssht_c_backend_inverse_wigner_custom_gradients(
     check_grads(func, (flmn,), order=1, modes=("rev"))
 
 
+@pytest.mark.pyssht
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
