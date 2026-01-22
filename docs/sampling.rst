@@ -1,5 +1,5 @@
 Sampling schemes
-===============
+================
 
 .. image:: https://raw.githubusercontent.com/astro-informatics/s2fft/main/docs/assets/figures/spherical_sampling.png
     :width: 700
