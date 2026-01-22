@@ -11,41 +11,50 @@ The structure of the algorithms implemented in ``S2FFT`` can support a number of
 An at-a-glance summary of the differences between the supported sampling schemes is also provided :ref:`in the table below <sampling-comparison-table>`, with further information available in the dedicated section for each scheme.
 A more thorough overview of the schemes can be found in section 4.2 of `Price & McEwen (2025) <https://arxiv.org/abs/2311.14670>`_.
 
-.. FIXME another column for 'additional benefits or something?'
+We adopt the usual ``S2FFT`` conventions for spherical coordinates; :math:`\theta\in[0, \pi]` (colatitude) and :math:`\varphi\in[0,2\pi)` (longitude), with :math:`\theta_t` and :math:`\varphi_p` being the discretised samples (indexed by $t$ and $p$) drawn by the sampling scheme.
+We denote by $L$ the band-limit of the signals we are considering.
 
 .. _sampling-comparison-table:
 
 .. list-table:: At-a-glance comparison of sampling schemes
     :header-rows: 1
     :align: center
+    :width: 95
+    :widths: 20 10 20 20 15 15
 
     * - Scheme
       - API string
-      - Equiangular
+      - # Sample points
+      - Equi- angular
       - Equal region area
       - Sampling theorem
     * - :ref:`mcewen-wiaux-mw`
       - ``"mw"``
+      - $2L^2 - 3L$
       - Yes
       - No
       - Yes
     * - :ref:`mcewen-wiaux-mwss`
       - ``"mwss"``
+      - $2L^2 - 2L + 2$
       - Yes
       - No
       - Yes
     * - :ref:`driscoll-healy-dh`
       - ``"dh"``
+      - $4L^2 - 2L$
       - Yes
       - No
       - Yes
     * - :ref:`gauss-legendre-gl`
       - ``"gl"``
+      - $2L^2 - L$
       - No
       - No
       - Yes
     * - :ref:`healpix`
       - ``"healpix"``
+      - $12 N_{side}^2$
       - No
       - Yes
       - No
@@ -114,9 +123,6 @@ Our signal is not band-limited, but using by using a suitably high band-limit we
 
 Sampling schemes
 ================
-
-We adopt the usual ``S2FFT`` conventions for spherical coordinates; :math:`\theta\in[0, \pi]` (colatitude) and :math:`\varphi\in[0,2\pi)` (longitude), with :math:`\theta_t` and :math:`\varphi_p` being the discretised samples (indexed by $t$ and $p$) drawn by the sampling scheme.
-We denote by $L$ the band-limit of the signals we are considering.
 
 .. _mcewen-wiaux-mw:
 
