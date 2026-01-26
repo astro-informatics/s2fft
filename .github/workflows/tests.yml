@@ -32,7 +32,7 @@ jobs:
       CMAKE_POLICY_VERSION_MINIMUM: 3.5
     steps: 
     - name: Checkout Source
-      uses: actions/checkout@v5.0.0
+      uses: actions/checkout@v6.0.2
       with:
         fetch-depth: 0
         fetch-tags: true
@@ -80,7 +80,7 @@ jobs:
 
     steps:
     - name: Checkout Source
-      uses: actions/checkout@v6.0.1
+      uses: actions/checkout@v6.0.2
       with:
         fetch-depth: 0
         fetch-tags: true
