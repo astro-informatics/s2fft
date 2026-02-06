@@ -71,9 +71,9 @@ constexpr bool is_double_v = is_double<T>::value;
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
-ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input,
-                           ffi::Result<ffi::Buffer<T>> input_alias, ffi::Result<ffi::Buffer<T>> output,
-                           ffi::Result<ffi::Buffer<T>> workspace, s2fftDescriptor descriptor) {
+ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Result<ffi::Buffer<T>> input_alias,
+                           ffi::Result<ffi::Buffer<T>> output, ffi::Result<ffi::Buffer<T>> workspace,
+                           s2fftDescriptor descriptor) {
     // Step 1: Determine the complex type based on the XLA data type.
     using fft_complex_type = fft_complex_t<T>;
     const auto& dim_in = input.dimensions();

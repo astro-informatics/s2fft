@@ -8,7 +8,6 @@ from jax import jit, vmap
 # did not find promote_dtypes_complex outside _src
 from jax._src.numpy.util import promote_dtypes_complex
 from jax.core import ShapedArray
-from jax.interpreters import batching
 from s2fft_lib import _s2fft
 
 from s2fft.sampling import s2_samples as samples
