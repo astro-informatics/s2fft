@@ -124,6 +124,17 @@
       "contributions": [
         "infra"
       ]
+    },
+    {
+      "login": "willGraham01",
+      "name": "Will Graham",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32364977?v=4",
+      "profile": "https://willgraham01.github.io/",
+      "contributions": [
+        "review",
+        "code",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

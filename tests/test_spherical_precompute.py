@@ -1,6 +1,7 @@
+from collections.abc import Callable
+
 import jax
 import numpy as np
-import pyssht as ssht
 import pytest
 import torch
 
@@ -315,48 +316,40 @@ def test_transform_forward_healpix_torch_gradcheck(
 @pytest.mark.parametrize("sampling", sampling_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_inverse_high_spin(
-    flm_generator, spin: int, sampling: str, reality: bool
+    cached_ssht_test_case: Callable, spin: int, sampling: str, reality: bool
 ):
     L = 32
 
-    flm = flm_generator(L=L, spin=spin, reality=reality)
-    f_check = ssht.inverse(
-        samples.flm_2d_to_1d(flm, L),
-        L,
-        Method=sampling.upper(),
-        Spin=spin,
-        Reality=False,
+    test_data = cached_ssht_test_case(
+        L=L, L_lower=0, spin=spin, sampling=sampling, reality=reality
     )
 
     kernel = c.spin_spherical_kernel(L, spin, reality, sampling, forward=False)
 
-    f = inverse(flm, L, spin, kernel, sampling, reality, "numpy")
+    f = inverse(test_data["flm"], L, spin, kernel, sampling, reality, "numpy")
     tol = 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-11
-    np.testing.assert_allclose(f, f_check, atol=tol, rtol=tol)
+    np.testing.assert_allclose(f, test_data["f_ssht"], atol=tol, rtol=tol)
 
 
 @pytest.mark.parametrize("spin", [0, 20, 30, -20, -30])
 @pytest.mark.parametrize("sampling", sampling_to_test)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_forward_high_spin(
-    flm_generator, spin: int, sampling: str, reality: bool
+    cached_ssht_test_case: Callable, spin: int, sampling: str, reality: bool
 ):
     L = 32
 
-    flm = flm_generator(L=L, spin=spin, reality=reality)
-    f = ssht.inverse(
-        samples.flm_2d_to_1d(flm, L),
-        L,
-        Method=sampling.upper(),
-        Spin=spin,
-        Reality=False,
+    test_data = cached_ssht_test_case(
+        L=L, L_lower=0, spin=spin, sampling=sampling, reality=reality
     )
 
     kernel = c.spin_spherical_kernel(L, spin, reality, sampling, forward=True)
 
-    flm_recov = forward(f, L, spin, kernel, sampling, reality, "numpy")
+    flm_recov = forward(
+        test_data["f_ssht"], L, spin, kernel, sampling, reality, "numpy"
+    )
     tol = get_tol(sampling)
-    np.testing.assert_allclose(flm_recov, flm, atol=tol, rtol=tol)
+    np.testing.assert_allclose(flm_recov, test_data["flm"], atol=tol, rtol=tol)
 
 
 def test_forward_transform_unrecognised_method_raises():

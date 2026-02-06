@@ -1,7 +1,8 @@
+from collections.abc import Callable
+
 import jax
 import numpy as np
 import pytest
-import so3
 import torch
 
 from s2fft.base_transforms import wigner as base
@@ -287,8 +288,7 @@ def test_forward_wigner_transform_healpix_torch_gradcheck(
 @pytest.mark.parametrize("sampling", sampling_schemes)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_inverse_wigner_transform_high_N(
-    flmn_generator,
-    s2fft_to_so3_sampling,
+    cached_so3_test_case: Callable,
     L: int,
     fft_method: bool,
     sampling: str,
@@ -299,20 +299,16 @@ def test_inverse_wigner_transform_high_N(
 
     N = int(L / np.log(L)) if fft_method else L
 
-    flmn = flmn_generator(L=L, N=N, reality=reality)
-
-    params = so3.create_parameter_dict(
-        L=L,
-        N=N,
-        sampling_scheme_str=s2fft_to_so3_sampling(sampling),
-        reality=False,
+    test_data = cached_so3_test_case(
+        L=L, N=N, L_lower=0, sampling=sampling, reality=reality
     )
-    f = so3.inverse(samples.flmn_3d_to_1d(flmn, L, N), params)
 
     kernel = c.wigner_kernel_jax(L, N, reality, sampling, forward=False)
-    f_check = inverse(flmn, L, N, kernel, sampling, reality, "numpy")
+    f_check = inverse(test_data["flmn"], L, N, kernel, sampling, reality, "numpy")
 
-    np.testing.assert_allclose(f, f_check.flatten("C"), atol=1e-10, rtol=1e-10)
+    np.testing.assert_allclose(
+        test_data["f_so3"], f_check.flatten("C"), atol=1e-10, rtol=1e-10
+    )
 
 
 @pytest.mark.parametrize("L", [8, 16, 32])
@@ -320,8 +316,7 @@ def test_inverse_wigner_transform_high_N(
 @pytest.mark.parametrize("sampling", sampling_schemes)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_forward_wigner_transform_high_N(
-    flmn_generator,
-    s2fft_to_so3_sampling,
+    cached_so3_test_case: Callable,
     L: int,
     fft_method: bool,
     sampling: str,
@@ -332,24 +327,19 @@ def test_forward_wigner_transform_high_N(
 
     N = int(L / np.log(L)) if fft_method else L
 
-    flmn = flmn_generator(L=L, N=N, reality=reality)
-
-    params = so3.create_parameter_dict(
-        L=L,
-        N=N,
-        sampling_scheme_str=s2fft_to_so3_sampling(sampling),
-        reality=False,
+    test_data = cached_so3_test_case(
+        L=L, N=N, L_lower=0, sampling=sampling, reality=reality
     )
 
-    f_1D = so3.inverse(samples.flmn_3d_to_1d(flmn, L, N), params)
-    f_3D = f_1D.reshape(
+    f = test_data["f_so3"].reshape(
         samples._ngamma(N),
         samples._nbeta(L, sampling),
         samples._nalpha(L, sampling),
     )
-    flmn_so3 = samples.flmn_1d_to_3d(so3.forward(f_1D, params), L, N)
 
     kernel = c.wigner_kernel(L, N, reality, sampling, forward=True)
-    flmn_check = forward(f_3D, L, N, kernel, sampling, reality, "numpy")
+    flmn_check = forward(f, L, N, kernel, sampling, reality, "numpy")
 
-    np.testing.assert_allclose(flmn_so3, flmn_check, atol=1e-10, rtol=1e-10)
+    np.testing.assert_allclose(
+        test_data["flmn_so3"], flmn_check, atol=1e-10, rtol=1e-10
+    )

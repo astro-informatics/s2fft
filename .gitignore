@@ -21,6 +21,7 @@ resources/
 s2fft.code-workspace
 .tox
 s2fft/_version.py
+tests/cached-test-data/**
 
 #c++/cuda/cmake
 venv

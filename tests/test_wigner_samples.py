@@ -1,6 +1,7 @@
+from collections.abc import Callable
+
 import numpy as np
 import pytest
-import so3
 
 from s2fft.sampling import so3_samples as samples
 
@@ -12,49 +13,48 @@ sampling_schemes = ["mw", "mwss"]
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
 @pytest.mark.parametrize("sampling", sampling_schemes)
-def test_f_shape(s2fft_to_so3_sampling, L: int, N: int, sampling: str):
-    params = so3.create_parameter_dict(
-        L=L, N=N, sampling_scheme_str=s2fft_to_so3_sampling(sampling)
-    )
+def test_f_shape(cached_so3_samples_test_case: Callable, L: int, N: int, sampling: str):
+    test_data = cached_so3_samples_test_case(L=L, N=N, sampling=sampling)
     fs = samples.f_shape(L, N, sampling)
     f_size = fs[0] * fs[1] * fs[2]
-    assert f_size == so3.f_size(params)
+    assert f_size == test_data["f_size"]
 
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
 @pytest.mark.parametrize("sampling", sampling_schemes)
-def test_flmn_shape(s2fft_to_so3_sampling, L: int, N: int, sampling: str):
-    params = so3.create_parameter_dict(
-        L=L, N=N, sampling_scheme_str=s2fft_to_so3_sampling(sampling)
-    )
-    assert samples.flmn_shape_1d(L, N) == so3.flmn_size(params)
+def test_flmn_shape(
+    cached_so3_samples_test_case: Callable, L: int, N: int, sampling: str
+):
+    test_data = cached_so3_samples_test_case(L=L, N=N, sampling=sampling)
+    assert samples.flmn_shape_1d(L, N) == test_data["flmn_size"]
 
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
 @pytest.mark.parametrize("sampling", sampling_schemes)
-def test_so3_samples(s2fft_to_so3_sampling, L: int, N: int, sampling: str):
-    params = so3.create_parameter_dict(
-        L=L, N=N, sampling_scheme_str=s2fft_to_so3_sampling(sampling)
-    )
-    assert samples._nalpha(L, sampling) == so3.n_alpha(params)
-    assert samples._nbeta(L, sampling) == so3.n_beta(params)
-    assert samples._nalpha(N) == so3.n_gamma(params)
+def test_so3_samples(
+    cached_so3_samples_test_case: Callable, L: int, N: int, sampling: str
+):
+    test_data = cached_so3_samples_test_case(L=L, N=N, sampling=sampling)
+    assert samples._nalpha(L, sampling) == test_data["n_alpha"]
+    assert samples._nbeta(L, sampling) == test_data["n_beta"]
+    assert samples._nalpha(N) == test_data["n_gamma"]
 
 
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("N", N_to_test)
 @pytest.mark.parametrize("sampling", sampling_schemes)
-def test_elmn2ind(s2fft_to_so3_sampling, L: int, N: int, sampling: str):
-    params = so3.create_parameter_dict(
-        L=L, N=N, sampling_scheme_str=s2fft_to_so3_sampling(sampling)
-    )
+def test_elmn2ind(
+    cached_so3_samples_test_case: Callable, L: int, N: int, sampling: str
+):
+    test_data = cached_so3_samples_test_case(L=L, N=N, sampling=sampling)
     for n in range(-N + 1, N):
         for el in range(L):
             for m in range(-el, el + 1):
-                assert samples.elmn2ind(el, m, n, L, N) == so3.elmn2ind(
-                    el, m, n, params
+                assert (
+                    samples.elmn2ind(el, m, n, L, N)
+                    == test_data["elmn2ind"][f"{el}_{m}_{n}"]
                 )
 
 
