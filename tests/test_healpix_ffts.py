@@ -91,12 +91,11 @@ def test_healpix_ifft_cuda(cached_healpy_test_case: Callable, nside):
 
 @pytest.mark.skipif(not gpu_available, reason="GPU not available")
 @pytest.mark.parametrize("nside", nside_to_test)
-def test_healpix_fft_cuda_no_input_mutation(flm_generator, nside):
+def test_healpix_fft_cuda_no_input_mutation(cached_healpy_test_case, nside):
     L = 2 * nside
-    flm = flm_generator(L=L, reality=False)
-    f = s2fft.inverse(
-        flm, L=L, nside=nside, reality=False, method="jax", sampling="healpix"
-    )
+    reality = False
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=reality)
+    f = test_data["f_hp"]
     f_copy = f.copy()
 
     # Forward: input f must not be corrupted
@@ -131,12 +130,17 @@ def test_healpix_fft_cuda_no_input_mutation(flm_generator, nside):
 
 @pytest.mark.skipif(not gpu_available, reason="GPU not available")
 @pytest.mark.parametrize("nside", nside_to_test)
-def test_healpix_fft_cuda_transforms(flm_generator, nside):
+def test_healpix_fft_cuda_transforms(cached_healpy_test_case, nside):
     L = 2 * nside
-    npix = hp.nside2npix(nside)
-    f_stacked = jnp.stack(
-        [jax.random.normal(jax.random.PRNGKey(i), shape=(npix,)) for i in range(3)],
-        axis=0,
+
+    f_stacked = [
+        cached_healpy_test_case(L=L, nside=nside, reality=False)["f_hp"]
+        for _ in range(3)
+    ]
+
+    f_stacked = (
+        jnp.stack(f_stacked, axis=0)
+        + jax.random.normal(jax.random.PRNGKey(0), (3,)).reshape(-1, 1) * 1e-6
     )
 
     def healpix_jax(f):
@@ -165,19 +169,16 @@ def test_healpix_fft_cuda_transforms(flm_generator, nside):
 
 @pytest.mark.skipif(not gpu_available, reason="GPU not available")
 @pytest.mark.parametrize("nside", nside_to_test)
-def test_healpix_ifft_cuda_transforms(flm_generator, nside):
+def test_healpix_ifft_cuda_transforms(cached_healpy_test_case, nside):
     L = 2 * nside
 
-    # Generate a random bandlimited signal
-    def generate_flm():
-        flm = flm_generator(L=L, reality=False)
-        f = s2fft.inverse(
-            flm, L=L, nside=nside, reality=False, method="jax", sampling="healpix"
-        )
-        ftm = healpix_fft_jax(f, L, nside, False)
-        return ftm
-
-    ftm_stacked = jnp.stack([generate_flm() for _ in range(3)], axis=0)
+    test_data = cached_healpy_test_case(L=L, nside=nside, reality=False)
+    ftm = healpix_fft_jax(test_data["f_hp"], L, nside, False)
+    ftm_stacked = [ftm for _ in range(3)]
+    ftm_stacked = (
+        jnp.stack(ftm_stacked, axis=0)
+        + jax.random.normal(jax.random.PRNGKey(0), (3,)).reshape(-1, 1, 1) * 1e-6
+    )
     ftm = ftm_stacked[0].real
 
     def healpix_inv_jax(ftm):
@@ -201,7 +202,6 @@ def test_healpix_ifft_cuda_transforms(flm_generator, nside):
         ** 2
     )
     assert MSE < 1e-14
-
     # test jacrev
     MSE = jnp.mean(
         (jax.jacrev(healpix_inv_jax)(ftm.real) - jax.jacrev(healpix_inv_cuda)(ftm.real))
