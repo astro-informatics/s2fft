@@ -631,8 +631,9 @@ def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm, adjoint):
 
     # Step 5: Return the ShapedArray objects.
     return (
-        f.update(shape=out_shape, dtype=f.dtype),
-        workspace_aval,
+        f.update(shape=f.shape, dtype=f.dtype),  # input_alias (same shape as input)
+        f.update(shape=out_shape, dtype=f.dtype),  # output
+        workspace_aval,  # workspace
     )
 
 
@@ -668,16 +669,20 @@ def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm, adj
         raise MissingCUDASupport()
 
     # Step 2: Get the abstract evaluation results for the outputs.
-    (aval_out, _) = ctx.avals_out
+    (_, aval_out, _) = ctx.avals_out
 
     # Step 3: Get lowering information (double precision, forward/backward, normalize).
     is_double, forward, normalize = _get_lowering_info(fft_type, norm, aval_out.dtype)
 
     # Step 4: Select the appropriate FFI lowering function based on precision.
     if is_double:
-        ffi_lowered = jax.ffi.ffi_lowering("healpix_fft_cuda_c128")
+        ffi_lowered = jax.ffi.ffi_lowering(
+            "healpix_fft_cuda_c128", operand_output_aliases={0: 0}
+        )
     else:
-        ffi_lowered = jax.ffi.ffi_lowering("healpix_fft_cuda_c64")
+        ffi_lowered = jax.ffi.ffi_lowering(
+            "healpix_fft_cuda_c64", operand_output_aliases={0: 0}
+        )
 
     # Step 5: Call the FFI lowering function with the context and parameters.
     return ffi_lowered(
@@ -726,7 +731,7 @@ def _healpix_fft_cuda_batching_rule(
         raise ValueError(f"fft_type {fft_type} not recognised.")
 
     # Step 3: Move the batching axis to the front.
-    x = batching.moveaxis(x, bd, 0)
+    x = jnp.moveaxis(x, bd, 0)
 
     # Step 4: Bind the primitive with the batched input.
     out = _healpix_fft_cuda_primitive.bind(
@@ -776,18 +781,18 @@ def _healpix_fft_cuda_transpose(
     norm = "backward" if norm == "forward" else "forward"
 
     # Step 2: Bind the primitive with the tangent and inverted parameters.
-    # Access df[0] as df is a tuple of tangents for multiple outputs.
-    # Return [0] as the primitive also returns multiple outputs, and we only need the first one for the adjoint.
+    # Access df[1] as df is a tuple of tangents for multiple outputs (input_alias, output, workspace).
+    # Return [1] as the primitive also returns multiple outputs, and we need the output (index 1) for the adjoint.
     return (
         _healpix_fft_cuda_primitive.bind(
-            df[0],
+            df[1],
             L=L,
             nside=nside,
             reality=reality,
             fft_type=fft_type,
             norm=norm,
             adjoint=not adjoint,
-        )[0],
+        )[1],
     )
 
 
@@ -833,8 +838,8 @@ def healpix_fft_cuda(
     """
     # Step 1: Promote input data to complex dtype if necessary.
     (f,) = promote_dtypes_complex(f)
-    # Step 2: Bind the input to the CUDA primitive. It returns multiple outputs (out, workspace).
-    out, _ = _healpix_fft_cuda_primitive.bind(
+    # Step 2: Bind the input to the CUDA primitive. It returns multiple outputs (input_alias, out, workspace).
+    _, out, _ = _healpix_fft_cuda_primitive.bind(
         f,
         L=L,
         nside=nside,
@@ -873,8 +878,8 @@ def healpix_ifft_cuda(
     """
     # Step 1: Promote input data to complex dtype if necessary.
     (ftm,) = promote_dtypes_complex(ftm)
-    # Step 2: Bind the input to the CUDA primitive. It returns multiple outputs (out, workspace).
-    out, _ = _healpix_fft_cuda_primitive.bind(
+    # Step 2: Bind the input to the CUDA primitive. It returns multiple outputs (input_alias, out, workspace).
+    _, out, _ = _healpix_fft_cuda_primitive.bind(
         ftm,
         L=L,
         nside=nside,

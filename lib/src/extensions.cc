@@ -71,7 +71,8 @@ constexpr bool is_double_v = is_double<T>::value;
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
-ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Result<ffi::Buffer<T>> output,
+ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input,
+                           ffi::Result<ffi::Buffer<T>> input_alias, ffi::Result<ffi::Buffer<T>> output,
                            ffi::Result<ffi::Buffer<T>> workspace, s2fftDescriptor descriptor) {
     // Step 1: Determine the complex type based on the XLA data type.
     using fft_complex_type = fft_complex_t<T>;
@@ -102,7 +103,7 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resul
 
             // Step 2f: Calculate device pointers for the current batch's data, output, and workspace.
             fft_complex_type* data_c =
-                    reinterpret_cast<fft_complex_type*>(input.typed_data() + i * input_offset);
+                    reinterpret_cast<fft_complex_type*>(input_alias->typed_data() + i * input_offset);
             fft_complex_type* out_c =
                     reinterpret_cast<fft_complex_type*>(output->typed_data() + i * output_offset);
             fft_complex_type* workspace_c =
@@ -124,7 +125,7 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resul
     } else {
         // Step 2j: Non-batched case.
         // Step 2k: Get device pointers for data, output, and workspace.
-        fft_complex_type* data_c = reinterpret_cast<fft_complex_type*>(input.typed_data());
+        fft_complex_type* data_c = reinterpret_cast<fft_complex_type*>(input_alias->typed_data());
         fft_complex_type* out_c = reinterpret_cast<fft_complex_type*>(output->typed_data());
         fft_complex_type* workspace_c = reinterpret_cast<fft_complex_type*>(workspace->typed_data());
 
@@ -162,7 +163,8 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resul
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
-ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Result<ffi::Buffer<T>> output,
+ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input,
+                            ffi::Result<ffi::Buffer<T>> input_alias, ffi::Result<ffi::Buffer<T>> output,
                             ffi::Result<ffi::Buffer<T>> workspace, s2fftDescriptor descriptor) {
     // Step 1: Determine the complex type based on the XLA data type.
     using fft_complex_type = fft_complex_t<T>;
@@ -197,7 +199,7 @@ ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resu
 
             // Step 2f: Calculate device pointers for the current batch's data, output, and workspace.
             fft_complex_type* data_c =
-                    reinterpret_cast<fft_complex_type*>(input.typed_data() + i * input_offset);
+                    reinterpret_cast<fft_complex_type*>(input_alias->typed_data() + i * input_offset);
             fft_complex_type* out_c =
                     reinterpret_cast<fft_complex_type*>(output->typed_data() + i * output_offset);
             fft_complex_type* workspace_c =
@@ -223,7 +225,7 @@ ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resu
         assert(dim_in.size() == 2);
         assert(dim_out.size() == 1);
         // Step 2k: Get device pointers for data, output, and workspace.
-        fft_complex_type* data_c = reinterpret_cast<fft_complex_type*>(input.typed_data());
+        fft_complex_type* data_c = reinterpret_cast<fft_complex_type*>(input_alias->typed_data());
         fft_complex_type* out_c = reinterpret_cast<fft_complex_type*>(output->typed_data());
         fft_complex_type* workspace_c = reinterpret_cast<fft_complex_type*>(workspace->typed_data());
         int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::BACKWARD) ? 0
@@ -324,7 +326,8 @@ s2fftDescriptor build_descriptor(int64_t nside, int64_t harmonic_band_limit, boo
 template <ffi::DataType T>
 ffi::Error healpix_fft_cuda(cudaStream_t stream, int64_t nside, int64_t harmonic_band_limit, bool reality,
                             bool forward, bool normalize, bool adjoint, ffi::Buffer<T> input,
-                            ffi::Result<ffi::Buffer<T>> output, ffi::Result<ffi::Buffer<T>> workspace) {
+                            ffi::Result<ffi::Buffer<T>> input_alias, ffi::Result<ffi::Buffer<T>> output,
+                            ffi::Result<ffi::Buffer<T>> workspace) {
     // Step 1: Build the s2fftDescriptor based on the input parameters.
     size_t work_size = 0;  // Variable to hold the workspace size
     s2fftDescriptor descriptor = build_descriptor<T>(nside, harmonic_band_limit, reality, forward, normalize,
@@ -332,9 +335,9 @@ ffi::Error healpix_fft_cuda(cudaStream_t stream, int64_t nside, int64_t harmonic
 
     // Step 2: Dispatch to either forward or backward transform based on the 'forward' flag.
     if (forward) {
-        return healpix_forward<T>(stream, input, output, workspace, descriptor);
+        return healpix_forward<T>(stream, input, input_alias, output, workspace, descriptor);
     } else {
-        return healpix_backward<T>(stream, input, output, workspace, descriptor);
+        return healpix_backward<T>(stream, input, input_alias, output, workspace, descriptor);
     }
 }
 
@@ -355,6 +358,7 @@ XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C64, healpix_fft_cuda<ffi::DataTy
                                       .Attr<bool>("adjoint")
                                       .Arg<ffi::Buffer<ffi::DataType::C64>>()
                                       .Ret<ffi::Buffer<ffi::DataType::C64>>()
+                                      .Ret<ffi::Buffer<ffi::DataType::C64>>()
                                       .Ret<ffi::Buffer<ffi::DataType::C64>>());
 
 XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C128, healpix_fft_cuda<ffi::DataType::C128>,
@@ -367,6 +371,7 @@ XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C128, healpix_fft_cuda<ffi::DataT
                                       .Attr<bool>("normalize")
                                       .Attr<bool>("adjoint")
                                       .Arg<ffi::Buffer<ffi::DataType::C128>>()
+                                      .Ret<ffi::Buffer<ffi::DataType::C128>>()
                                       .Ret<ffi::Buffer<ffi::DataType::C128>>()
                                       .Ret<ffi::Buffer<ffi::DataType::C128>>());
 

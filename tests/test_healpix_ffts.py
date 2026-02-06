@@ -98,6 +98,46 @@ def test_healpix_ifft_cuda(flm_generator, nside):
 
 @pytest.mark.skipif(not gpu_available, reason="GPU not available")
 @pytest.mark.parametrize("nside", nside_to_test)
+def test_healpix_fft_cuda_no_input_mutation(flm_generator, nside):
+    L = 2 * nside
+    flm = flm_generator(L=L, reality=False)
+    f = s2fft.inverse(
+        flm, L=L, nside=nside, reality=False, method="jax", sampling="healpix"
+    )
+    f_copy = f.copy()
+
+    # Forward: input f must not be corrupted
+    ftm_1 = healpix_fft_cuda(f, L, nside, False)
+    assert_allclose(f, f_copy, atol=0, rtol=0, err_msg="forward call 1 corrupted input")
+
+    ftm_2 = healpix_fft_cuda(f, L, nside, False)
+    assert_allclose(f, f_copy, atol=0, rtol=0, err_msg="forward call 2 corrupted input")
+
+    assert_allclose(
+        ftm_1, ftm_2, atol=0, rtol=0, err_msg="forward results differ between calls"
+    )
+
+    # Backward: input ftm must not be corrupted
+    ftm = healpix_fft_cuda(f, L, nside, False)
+    ftm_copy = ftm.copy()
+
+    f_1 = healpix_ifft_cuda(ftm, L, nside, False)
+    assert_allclose(
+        ftm, ftm_copy, atol=0, rtol=0, err_msg="backward call 1 corrupted input"
+    )
+
+    f_2 = healpix_ifft_cuda(ftm, L, nside, False)
+    assert_allclose(
+        ftm, ftm_copy, atol=0, rtol=0, err_msg="backward call 2 corrupted input"
+    )
+
+    assert_allclose(
+        f_1, f_2, atol=0, rtol=0, err_msg="backward results differ between calls"
+    )
+
+
+@pytest.mark.skipif(not gpu_available, reason="GPU not available")
+@pytest.mark.parametrize("nside", nside_to_test)
 def test_healpix_fft_cuda_transforms(flm_generator, nside):
     L = 2 * nside
     npix = hp.nside2npix(nside)
