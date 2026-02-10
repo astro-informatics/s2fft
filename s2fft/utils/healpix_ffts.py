@@ -815,7 +815,7 @@ _healpix_fft_cuda_primitive = register_primitive(
     "healpix_fft_cuda",
     multiple_results=True,  # Indicates that the primitive returns multiple outputs.
     abstract_evaluation=_healpix_fft_cuda_abstract,
-    lowering_per_platform={None: _healpix_fft_cuda_lowering},
+    lowering_per_platform={"cuda": _healpix_fft_cuda_lowering},
     transpose=_healpix_fft_cuda_transpose,
     batcher=_healpix_fft_cuda_batching_rule,
     is_linear=True,
