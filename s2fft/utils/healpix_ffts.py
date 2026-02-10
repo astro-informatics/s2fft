@@ -674,6 +674,17 @@ def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm, adj
     is_double, forward, normalize = _get_lowering_info(fft_type, norm, aval_out.dtype)
 
     # Step 4: Select the appropriate FFI lowering function based on precision.
+    # We use operand_output_aliases={0: 0} to tell XLA that the input buffer (operand 0)
+    # can be reused for the output buffer (output 0). This allows XLA to perform the
+    # operation in-place if possible. Crucially, JAX manages this aliasing: if the input
+    # buffer is needed elsewhere (e.g. for backpropagation or if the user holds a reference),
+    # JAX will automatically copy the input to a new buffer before passing it to the
+    # kernel, ensuring that the original input is not corrupted.
+    # User can force the operation to be in-place by donating the input buffer, e.g. via healpix_fft_cuda(..., donate_argnums=(0,)).
+    # Even though this is an intermediate output it will instruct XLA that this is safe to reuse for the output of the primitive,
+    # and thus allows the kernel to run in-place without unnecessary copying.
+    # However, this is generally not needed and we can (generally) rely on XLA's optimizations to drop the input buffer if unused
+    # For more info .. check the XLA HLO of the operation
     if is_double:
         ffi_lowered = jax.ffi.ffi_lowering(
             "healpix_fft_cuda_c128", operand_output_aliases={0: 0}

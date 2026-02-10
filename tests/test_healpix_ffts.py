@@ -151,20 +151,26 @@ def test_healpix_fft_cuda_transforms(cached_healpy_test_case, nside):
 
     f = f_stacked[0]
     # Test VMAP
-    MSE = jnp.mean(
-        (jax.vmap(healpix_jax)(f_stacked) - jax.vmap(healpix_cuda)(f_stacked)) ** 2
+    assert_allclose(
+        jax.vmap(healpix_jax)(f_stacked),
+        jax.vmap(healpix_cuda)(f_stacked),
+        atol=1e-7,
+        rtol=1e-7,
     )
-    assert MSE < 1e-14
     # test jacfwd
-    MSE = jnp.mean(
-        (jax.jacfwd(healpix_jax)(f.real) - jax.jacfwd(healpix_cuda)(f.real)) ** 2
+    assert_allclose(
+        jax.jacfwd(healpix_jax)(f.real),
+        jax.jacfwd(healpix_cuda)(f.real),
+        atol=1e-7,
+        rtol=1e-7,
     )
-    assert MSE < 1e-14
     # test jacrev
-    MSE = jnp.mean(
-        (jax.jacrev(healpix_jax)(f.real) - jax.jacrev(healpix_cuda)(f.real)) ** 2
+    assert_allclose(
+        jax.jacrev(healpix_jax)(f.real),
+        jax.jacrev(healpix_cuda)(f.real),
+        atol=1e-7,
+        rtol=1e-7,
     )
-    assert MSE < 1e-14
 
 
 @pytest.mark.skipif(not gpu_available, reason="GPU not available")
@@ -188,23 +194,23 @@ def test_healpix_ifft_cuda_transforms(cached_healpy_test_case, nside):
         return healpix_ifft_cuda(ftm, L, nside, False).real
 
     # Test VMAP
-    MSE = jnp.mean(
-        (
-            jax.vmap(healpix_inv_jax)(ftm_stacked)
-            - jax.vmap(healpix_inv_cuda)(ftm_stacked)
-        )
-        ** 2
+    assert_allclose(
+        jax.vmap(healpix_inv_jax)(ftm_stacked),
+        jax.vmap(healpix_inv_cuda)(ftm_stacked),
+        atol=1e-7,
+        rtol=1e-7,
     )
-    assert MSE < 1e-14
     # test jacfwd
-    MSE = jnp.mean(
-        (jax.jacfwd(healpix_inv_jax)(ftm.real) - jax.jacfwd(healpix_inv_cuda)(ftm.real))
-        ** 2
+    assert_allclose(
+        jax.jacfwd(healpix_inv_jax)(ftm.real),
+        jax.jacfwd(healpix_inv_cuda)(ftm.real),
+        atol=1e-7,
+        rtol=1e-7,
     )
-    assert MSE < 1e-14
     # test jacrev
-    MSE = jnp.mean(
-        (jax.jacrev(healpix_inv_jax)(ftm.real) - jax.jacrev(healpix_inv_cuda)(ftm.real))
-        ** 2
+    assert_allclose(
+        jax.jacrev(healpix_inv_jax)(ftm.real),
+        jax.jacrev(healpix_inv_cuda)(ftm.real),
+        atol=1e-7,
+        rtol=1e-7,
     )
-    assert MSE < 1e-14
