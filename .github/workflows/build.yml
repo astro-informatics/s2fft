@@ -59,7 +59,7 @@ jobs:
         env:
           # Skip building musllinux wheels as jaxlib wheels
           # not available for this platform
-          CIBW_SKIP: "*-muslinux_*"
+          CIBW_SKIP: "*-musllinux_*"
       - uses: actions/upload-artifact@v6
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
