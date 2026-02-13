@@ -154,12 +154,18 @@ def quad_weights_gl(L: int) -> jnp.ndarray:
 
         def body(arg):
             z, z1, pp = arg
-            p1 = 1.0
-            p2 = 0.0
-            for j in range(1, L + 1):
+            p1 = jnp.ones_like(z)
+            p2 = jnp.zeros_like(z)
+
+            def inner_loop_step(j, p1_p2):
+                p1, p2 = p1_p2
                 p3 = p2
                 p2 = p1
                 p1 = ((2.0 * j - 1.0) * z * p2 - (j - 1.0) * p3) / j
+                return p1, p2
+
+            p1, p2 = jax.lax.fori_loop(1, L + 1, inner_loop_step, (p1, p2))
+
             pp = L * (z * p1 - p2) / (z * z - 1.0)
             z1 = z
             z = z1 - p1 / pp
@@ -208,10 +214,12 @@ def quad_weight_dh_theta_only(theta: float, L: int) -> float:
         float: Weight computed for each :math:`\theta`.
 
     """
-    w = 0.0
-    for k in range(0, L):
-        w += jnp.sin((2 * k + 1) * theta) / (2 * k + 1)
 
+    def increment_weights(k, w):
+        w += jnp.sin((2 * k + 1) * theta) / (2 * k + 1)
+        return w
+
+    w = jax.lax.fori_loop(0, L, increment_weights, jnp.zeros_like(theta))
     w *= 2 / L * jnp.sin(theta)
 
     return w
@@ -272,8 +280,10 @@ def quad_weights_mwss_theta_only(L: int) -> jnp.ndarray:
     """
     w = jnp.zeros(2 * L, dtype=jnp.complex128)
 
-    for i in range(-(L - 1) + 1, L + 1):
-        w = w.at[i + L - 1].set(mw_weights(i - 1))
+    def set_weight_for_index(i, w):
+        return w.at[i + L - 1].set(mw_weights(i - 1))
+
+    w = jax.lax.fori_loop(-(L - 1) + 1, L + 1, set_weight_for_index, w)
 
     wr = jnp.real(jnp.fft.fft(jnp.fft.ifftshift(w), norm="backward")) / (2 * L)
     q = wr[: L + 1]
@@ -298,8 +308,11 @@ def quad_weights_mw_theta_only(L: int) -> jnp.ndarray:
 
     """
     w = jnp.zeros(2 * L - 1, dtype=jnp.complex128)
-    for i in range(-(L - 1), L):
-        w = w.at[i + L - 1].set(mw_weights(i))
+
+    def set_weight_for_index(i, w):
+        return w.at[i + L - 1].set(mw_weights(i))
+
+    w = jax.lax.fori_loop(-(L - 1), L, set_weight_for_index, w)
 
     w *= jnp.exp(-1j * jnp.arange(-(L - 1), L) * jnp.pi / (2 * L - 1))
     wr = jnp.real(jnp.fft.fft(jnp.fft.ifftshift(w), norm="backward")) / (2 * L - 1)
@@ -309,8 +322,7 @@ def quad_weights_mw_theta_only(L: int) -> jnp.ndarray:
     return q
 
 
-@_partial(_jit, static_argnums=(0))
-def mw_weights(m: int) -> float:
+def mw_weights(m: int, dtype=jnp.complex128) -> float:
     r"""
     Compute MW weights given as a function of index m.
 
@@ -329,14 +341,18 @@ def mw_weights(m: int) -> float:
         float: MW weight.
 
     """
-    if m == 1:
-        return 1j * jnp.pi / 2
-
-    elif m == -1:
-        return -1j * jnp.pi / 2
-
-    elif m % 2 == 0:
-        return 2 / (1 - m**2)
-
-    else:
-        return 0
+    return jax.lax.cond(
+        jnp.logical_or(m == 1, m == -1),
+        lambda m: jax.lax.cond(
+            m == 1, lambda: 1j * jnp.pi / 2, lambda: -1j * jnp.pi / 2
+        ),
+        lambda m: jax.lax.cond(
+            (m % 2) == 0,
+            # For complex types here with 0j to ensure nested cond calls
+            # are type stable and consistently output complex values
+            lambda m: 2 / (1 - m**2) + 0j,
+            lambda m: 0j,
+            m,
+        ),
+        m,
+    )
