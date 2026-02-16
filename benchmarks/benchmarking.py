@@ -392,19 +392,19 @@ def timer():
 
 
 def _compile_jax_benchmark_and_analyse(
-    benchmark_function: Callable, args: dict, results_entry: dict
+    benchmark_function: Callable, kwargs: dict, results_entry: dict
 ) -> Callable:
     """Compile a JAX benchmark function and extract cost estimates if available."""
     # Convert any NumPy array arguments to JAX arrays which should ensure placed on
     # default device here rather than triggering a host-device transfer during run time
-    args.update(
+    kwargs.update(
         jax.tree.map(
-            lambda x: jax.numpy.asarray(x) if isinstance(x, np.ndarray) else x, args
+            lambda x: jax.numpy.asarray(x) if isinstance(x, np.ndarray) else x, kwargs
         )
     )
     with timer() as compilation_timer:
         compiled_benchmark_function = (
-            jax.jit(benchmark_function).lower(**args).compile()
+            jax.jit(benchmark_function).lower(**kwargs).compile()
         )
     results_entry["compilation_time_in_seconds"] = compilation_timer()
     cost_analysis = compiled_benchmark_function.cost_analysis()
@@ -469,7 +469,9 @@ def run_benchmarks(
                     parameters[parameter_name] = parameter_values
         for parameter_set in _dict_product(parameters):
             try:
-                args, reference_output, jit_benchmark = benchmark.setup(**parameter_set)
+                kwargs, reference_output, jit_benchmark = benchmark.setup(
+                    **parameter_set
+                )
                 # We could also pass args to partial here to make benchmark_function
                 # argumentless however there is a risk when JIT compiled the compiler
                 # may recognize the output is constant and optimize away all the
@@ -481,12 +483,12 @@ def run_benchmarks(
                 results_entry = {"parameters": parameter_set}
                 if jit_benchmark:
                     benchmark_function = _compile_jax_benchmark_and_analyse(
-                        benchmark_function, args, results_entry
+                        benchmark_function, kwargs, results_entry
                     )
                 # Run benchmark once without timing to record output for potentially
                 # computing numerical error and trace memory usage
                 with trace_memory_allocations() as traced_memory:
-                    output = benchmark_function(**args)
+                    output = benchmark_function(**kwargs)
                 current_size, peak_size = traced_memory()
                 results_entry["traced_memory_final_in_bytes"] = current_size
                 results_entry["traced_memory_peak_in_bytes"] = peak_size
@@ -500,7 +502,7 @@ def run_benchmarks(
                 run_times = [
                     time / number_runs
                     for time in timeit.repeat(
-                        lambda: benchmark_function(**args),
+                        lambda: benchmark_function(**kwargs),
                         number=number_runs,
                         repeat=number_repeats,
                     )
