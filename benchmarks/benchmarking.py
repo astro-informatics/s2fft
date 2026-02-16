@@ -231,6 +231,9 @@ def _format_results_entry(results_entry: dict) -> str:
         )
         + f"min(run times): {min(results_entry['run_times_in_seconds']):>#7.2g}s, "
         + f"max(run times): {max(results_entry['run_times_in_seconds']):>#7.2g}s"
+        # Add output corresponding to some additional metrics that are only recorded
+        # for some benchmarks, appending an empty string if the relevant key is
+        # not present in the results entry
         + (
             f", compile time: {results_entry['compilation_time_in_seconds']:>#7.2g}s"
             if "compilation_time_in_seconds" in results_entry
