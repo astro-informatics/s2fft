@@ -399,11 +399,11 @@ def _compile_jax_benchmark_and_analyse(
             lambda x: jax.numpy.asarray(x) if isinstance(x, np.ndarray) else x, args
         )
     )
-    with timer() as t:
+    with timer() as compilation_timer:
         compiled_benchmark_function = (
             jax.jit(benchmark_function).lower(**args).compile()
         )
-    results_entry["compilation_time_in_seconds"] = t()
+    results_entry["compilation_time_in_seconds"] = compilation_timer()
     cost_analysis = compiled_benchmark_function.cost_analysis()
     if cost_analysis is not None:
         if isinstance(cost_analysis, list):
