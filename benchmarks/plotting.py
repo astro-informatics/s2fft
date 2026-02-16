@@ -191,7 +191,12 @@ def plot_results_against_parameter(
                         ax, parameter_values, parameter_label, metric.label, function
                     )
                 except KeyError:
-                    ax.axis("off")
+                    # This metric is not defined for this result set
+                    pass
+    for ax in axes.flat:
+        if len(ax.lines) == 0:
+            # No plots added for this axis so remove from grid
+            ax.axis("off")
     return fig, ax
 
 
