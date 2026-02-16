@@ -235,6 +235,16 @@ def _format_results_entry(results_entry: dict) -> str:
         # for some benchmarks, appending an empty string if the relevant key is
         # not present in the results entry
         + (
+            f", trace time: {results_entry['tracing_time_in_seconds']:>#7.2g}s"
+            if "tracing_time_in_seconds" in results_entry
+            else ""
+        )
+        + (
+            f", lower time: {results_entry['lowering_time_in_seconds']:>#7.2g}s"
+            if "lowering_time_in_seconds" in results_entry
+            else ""
+        )
+        + (
             f", compile time: {results_entry['compilation_time_in_seconds']:>#7.2g}s"
             if "compilation_time_in_seconds" in results_entry
             else ""
@@ -402,10 +412,14 @@ def _compile_jax_benchmark_and_analyse(
             lambda x: jax.numpy.asarray(x) if isinstance(x, np.ndarray) else x, kwargs
         )
     )
+    with timer() as tracing_timer:
+        traced_benchmark_function = jax.jit(benchmark_function).trace(**kwargs)
+    results_entry["tracing_time_in_seconds"] = tracing_timer()
+    with timer() as lowering_timer:
+        lowered_benchmark_function = traced_benchmark_function.lower()
+    results_entry["lowering_time_in_seconds"] = lowering_timer()
     with timer() as compilation_timer:
-        compiled_benchmark_function = (
-            jax.jit(benchmark_function).lower(**kwargs).compile()
-        )
+        compiled_benchmark_function = lowered_benchmark_function.compile()
     results_entry["compilation_time_in_seconds"] = compilation_timer()
     cost_analysis = compiled_benchmark_function.cost_analysis()
     if cost_analysis is not None:
