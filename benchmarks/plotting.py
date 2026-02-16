@@ -131,7 +131,7 @@ def plot_results_against_parameter(
     metric_names: tuple[str],
     parameter_name: str,
     parameter_label: str,
-    axis_size: float = 5.0,
+    axis_size: float = 3.0,
     fig_dpi: int = 100,
     functions_along_columns: bool = False,
 ) -> tuple[plt.Figure, plt.Axes]:
@@ -233,6 +233,7 @@ def _parse_cli_arguments() -> argparse.Namespace:
             "run_times",
             "compilation_times",
             "memory_allocations",
+            "max_abs_error",
         ],
     )
     parser.add_argument(
@@ -243,7 +244,7 @@ def _parse_cli_arguments() -> argparse.Namespace:
         default=["L", "Bandlimit $L$"],
     )
     parser.add_argument(
-        "-axis-size", type=float, default=5.0, help="Size of each plot axis in inches."
+        "-axis-size", type=float, default=3.0, help="Size of each plot axis in inches."
     )
     parser.add_argument(
         "-dpi", type=int, default=100, help="Figure resolution in dots per inch."
