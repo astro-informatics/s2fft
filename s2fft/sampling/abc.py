@@ -38,17 +38,28 @@ class Samples(ABC):
         r"""Number of :math:`\theta` samples for sampling scheme at specified resolution."""
 
     @abstractmethod
+    @property
     def thetas(self) -> np.ndarray:
         r"""Compute :math:`\theta` samples for given sampling scheme."""
 
     @abstractmethod
+    @property
     def phis(self) -> np.ndarray:
         r"""Compute :math:`\phi` samples for given sampling scheme."""
 
     @abstractmethod
+    @property
     def f_shape(self) -> tuple[int, int]:
         """Shape of spherical signal."""
+        # TODO: This is identical for all non-HEALPIX schemes... some refactoring?
+        # Possibly separate schemes into HP and non-HP :joy:
 
+    @abstractmethod
+    @property
+    def ftm_shape(self) -> tuple[int, int]:
+        """Shape of intermediate array, before/after latitudinal step."""
+
+    @property
     def flm_shape(self) -> tuple[int, int]:
         r"""
         Standard shape of harmonic coefficients.
@@ -122,5 +133,6 @@ class PhiEquiangularSamples(Samples):
         """
 
     @override
+    @property
     def phis(self) -> np.ndarray:
         return self._phi_index_to_value(np.arange(0, self.n_phi))
