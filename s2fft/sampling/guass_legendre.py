@@ -1,7 +1,7 @@
 import numpy as np
 from typing_extensions import override
 
-from .abc import PhiEquiangularSamples
+from ._abc.base import PhiEquiangularSamples
 
 
 class GLSamples(PhiEquiangularSamples):
@@ -25,11 +25,6 @@ class GLSamples(PhiEquiangularSamples):
     @property
     def ftm_shape(self) -> tuple[int, int]:
         return self.n_theta, 2 * self.L - 1
-
-    @override
-    @property
-    def f_shape(self) -> tuple[int, int]:
-        return self.n_theta, self.n_phi
 
     @override
     @property
