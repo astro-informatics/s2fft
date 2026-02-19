@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
+from typing_extensions import override
 
 
 class Samples(ABC):
@@ -9,7 +10,7 @@ class Samples(ABC):
     L: int
 
     @property
-    def ncoeff(self) -> int:
+    def n_coeff(self) -> int:
         """
         Number of spherical harmonic coefficients for given band-limit L.
 
@@ -28,7 +29,12 @@ class Samples(ABC):
 
     @abstractmethod
     @property
-    def ntheta(self) -> int:
+    def n_phi(self) -> int:
+        r"""Number of :math:`\phi` samples for given sampling scheme."""
+
+    @abstractmethod
+    @property
+    def n_theta(self) -> int:
         r"""Number of :math:`\theta` samples for sampling scheme at specified resolution."""
 
     @abstractmethod
@@ -97,3 +103,24 @@ class Samples(ABC):
         m = ind - el**2 - el
 
         return el, m
+
+
+class PhiEquiangularSamples(Samples):
+    r""":math:`\phi`-equiangular sampling schemes."""
+
+    @abstractmethod
+    def _phi_index_to_value(self, phi_index: np.ndarray) -> np.ndarray:
+        r"""
+        Convert index to :math:`\phi` angle for sampling scheme.
+
+        Args:
+            p (int): :math:`\phi` index.
+
+        Returns:
+            float: :math:`\phi` sample(s) for given sampling scheme.
+
+        """
+
+    @override
+    def phis(self) -> np.ndarray:
+        return self._phi_index_to_value(np.arange(0, self.n_phi))
