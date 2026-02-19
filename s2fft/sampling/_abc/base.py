@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
-from typing_extensions import override
 
 
 class Samples(ABC):
@@ -78,68 +77,3 @@ class Samples(ABC):
     @property
     def ftm_shape(self) -> tuple[int, int]:
         """Shape of intermediate array, before/after latitudinal step."""
-
-
-class BandwidthSamples(Samples):
-    """Abstract (sub)class for harmonic bandwidth-based sampling."""
-
-    L: int
-
-    @property
-    def n_coeff(self) -> int:
-        """
-        Number of spherical harmonic coefficients for given band-limit L.
-
-        Args:
-            L (int, optional): Harmonic band-limit.
-
-        Returns:
-            int: Number of spherical harmonic coefficients.
-
-        """
-        return self.elm2ind(self.L - 1, self.L - 1) + 1
-
-    def __init__(self, L: int):
-        """Init."""
-        self.L = L
-
-    @override
-    @property
-    def f_shape(self) -> tuple[int, int]:
-        return self.n_theta, self.n_phi
-
-    @property
-    def flm_shape(self) -> tuple[int, int]:
-        r"""
-        Standard shape of harmonic coefficients.
-
-        Args:
-            L (int, optional): Harmonic band-limit.
-
-        Returns:
-            Tuple[int]: Sampling array shape, with indexing :math:`[\ell, m]`.
-
-        """
-        return self.L, 2 * self.L - 1
-
-
-class PhiEquiangularSamples(BandwidthSamples):
-    r""":math:`\phi`-equiangular sampling schemes."""
-
-    @abstractmethod
-    def _phi_index_to_value(self, phi_index: np.ndarray) -> np.ndarray:
-        r"""
-        Convert index to :math:`\phi` angle for sampling scheme.
-
-        Args:
-            p (int): :math:`\phi` index.
-
-        Returns:
-            float: :math:`\phi` sample(s) for given sampling scheme.
-
-        """
-
-    @override
-    @property
-    def phis(self) -> np.ndarray:
-        return self._phi_index_to_value(np.arange(0, self.n_phi))
