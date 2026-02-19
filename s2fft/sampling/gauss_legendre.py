@@ -5,7 +5,7 @@ from ._abc.l_based import BandwidthSamples
 from ._abc.phi_equiangular import PhiEquiangularSamples
 
 
-class GLSamples(BandwidthSamples, PhiEquiangularSamples):
+class GaussLegendre(BandwidthSamples, PhiEquiangularSamples):
     """Gauss-Legendre sampling scheme."""
 
     @override
