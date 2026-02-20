@@ -9,6 +9,16 @@ class HEALPix(ThetasFromIndex):
 
     n_side: int
 
+    @override
+    @property
+    def fnab_shape(self) -> tuple[int, int, int]:
+        r"""
+        Shape of Wigner space sampling of rotation group :math:`SO(3)`.
+
+        HEALPix requires an array of shape `(self.n_gamma, self.n_theta, 2 * self.L)`.
+        """
+        return self._n_gamma, self.n_theta, 2 * self.L
+
     @property
     def n_phi_equatorial_band(self) -> int:
         r"""Number of :math:`\phi` samples within the equatorial band for HEALPix sampling scheme."""
