@@ -12,20 +12,6 @@ class BandLimitedSamples(Samples):
     L: int
 
     @property
-    def n_coeff(self) -> int:
-        """
-        Number of spherical harmonic coefficients for given band-limit L.
-
-        Args:
-            L (int, optional): Harmonic band-limit.
-
-        Returns:
-            int: Number of spherical harmonic coefficients.
-
-        """
-        return self.elm2ind(self.L - 1, self.L - 1) + 1
-
-    @property
     def flm_shape(self) -> tuple[int, int]:
         r"""
         Standard shape of harmonic coefficients.
@@ -39,12 +25,16 @@ class BandLimitedSamples(Samples):
         """
         return self.L, 2 * self.L - 1
 
-    def __init__(self, L: int) -> None:
+    def __init__(self, L: int, N: int | None = None) -> None:
         r"""
         Initialise sampling with harmonic band-limit `L`.
 
         Args:
             L (int): Harmonic band-limit.
 
+            N (int, optional): Parameter `N` for SO3 sampling. If not provided, sample scheme
+                can only be used on S2.
+
         """
         self.L = L
+        super().__init__(N=N)
