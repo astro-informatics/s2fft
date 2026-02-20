@@ -1,7 +1,7 @@
-from .s2_base import S2Samples
+from .base import Samples
 
 
-class BandLimitedSamples(S2Samples):
+class BandLimitedSamples(Samples):
     """
     Abstract (sub)class for band-limited sampling.
 

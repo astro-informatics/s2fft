@@ -3,15 +3,16 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 
-class S2Samples(ABC):
+class Samples(ABC):
     r"""
-    Abstract API structure that all S2 sampling schemes must adhere to.
+    Abstract API structure that all sampling schemes must adhere to.
 
-    S2 sampling schemes are required to provide methods for computing the
+    All sampling schemes are required to provide methods for computing the
     :math:`(\theta, \phi)` coordinates that the samples will be placed at.
     They must additionally provide properties that specify the shape of the
     arrays that will be used to store the harmonic coefficients and signal
     values on the sphere during computations.
+
     """
 
     @abstractmethod
