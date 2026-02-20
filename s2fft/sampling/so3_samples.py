@@ -65,6 +65,7 @@ def flmn_shape(L: int, N: int) -> tuple[int, int, int]:
     return 2 * N - 1, L, 2 * L - 1
 
 
+# ? Depends on L... so HealPix needs an L stored?? <- this is to be done next, just have HEALPix accept an L
 def fnab_shape(
     L: int, N: int, sampling: str = "mw", nside: int = None
 ) -> tuple[int, int, int]:

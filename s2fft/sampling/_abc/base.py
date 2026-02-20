@@ -19,6 +19,11 @@ class Samples(ABC):
 
     N: int | None
 
+    @property
+    def _n_gamma(self) -> int:
+        r"""Number of :math:`\gamma` samples when sampling :math:`SO(3)`."""
+        return 2 * self.N - 1
+
     @abstractmethod
     @property
     def n_theta(self) -> int:
@@ -33,6 +38,17 @@ class Samples(ABC):
     @property
     def f_shape(self) -> tuple[int, int]:
         """Shape of spherical signal."""
+
+    @property
+    def f_shape_so3(self) -> tuple[int, int, int]:
+        r"""Pixel-space sampling shape for signal on :math:`SO(3)`."""
+        return self._n_gamma, *reversed(self.f_shape)
+
+    @abstractmethod
+    @property
+    def fnab_shape(self) -> tuple[int, int, int]:
+        r"""Shape of Wigner space sampling of rotation group :math:`SO(3)`."""
+        # THIS DOCSTRING IS THE SAME AS THAT FOR flmn_shape!!!!!!!!!! This is true in the original module too
 
     @abstractmethod
     @property

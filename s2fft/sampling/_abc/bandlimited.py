@@ -25,6 +25,11 @@ class BandLimitedSamples(Samples):
         """
         return self.L, 2 * self.L - 1
 
+    @property
+    def flmn_shape(L: int, N: int) -> tuple[int, int, int]:
+        r"""Shape of Wigner coefficients for a signal on :math:`SO(3)`."""
+        return 2 * N - 1, L, 2 * L - 1
+
     def __init__(self, L: int, N: int | None = None) -> None:
         r"""
         Initialise sampling with harmonic band-limit `L`.
