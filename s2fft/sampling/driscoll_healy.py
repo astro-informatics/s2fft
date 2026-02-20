@@ -20,9 +20,5 @@ class DriscollHealy(BandwidthSamples, PhiEquiangularSamples, ThetasFromIndex):
         return 2 * self.L - 1
 
     @override
-    def _phi_index_to_value(self, phi_index: np.ndarray) -> np.ndarray:
-        return 2 * phi_index * np.pi / self.n_phi
-
-    @override
     def _theta_index_to_value(self, theta_index):
         return (2 * theta_index + 1) * np.pi / (4 * self.L)

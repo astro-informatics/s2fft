@@ -19,10 +19,6 @@ class GaussLegendre(BandwidthSamples, PhiEquiangularSamples):
         return 2 * self.L - 1
 
     @override
-    def _phi_index_to_value(self, phi_index: np.ndarray) -> np.ndarray:
-        return 2 * phi_index * np.pi / self.n_phi
-
-    @override
     @property
     def thetas(self):
         return np.flip(np.arccos(np.polynomial.legendre.leggauss(self.n_theta)[0]))
