@@ -4,7 +4,16 @@ import numpy as np
 
 
 class Samples(ABC):
-    """Abstract API structure that all sampling schemes must adhere to."""
+    r"""
+    Abstract API structure that all sampling schemes must adhere to.
+
+    All sampling schemes are required to provide methods for computing the
+    :math:`(\theta, \phi)` coordinates that the samples will be placed at.
+    They must additionally provide properties that specify the shape of the
+    arrays that will be used to store the harmonic coefficients and signal
+    values on the sphere during computations.
+
+    """
 
     @staticmethod
     def elm2ind(el: int, m: int) -> int:
