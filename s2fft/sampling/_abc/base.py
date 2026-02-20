@@ -50,11 +50,6 @@ class Samples(ABC):
 
     @abstractmethod
     @property
-    def n_phi(self) -> int:
-        r"""Number of :math:`\phi` samples for given sampling scheme."""
-
-    @abstractmethod
-    @property
     def n_theta(self) -> int:
         r"""Number of :math:`\theta` samples for sampling scheme at specified resolution."""
 
@@ -65,11 +60,6 @@ class Samples(ABC):
 
     @abstractmethod
     @property
-    def phis(self) -> np.ndarray:
-        r"""Compute :math:`\phi` samples for given sampling scheme."""
-
-    @abstractmethod
-    @property
     def f_shape(self) -> tuple[int, int]:
         """Shape of spherical signal."""
 
@@ -77,3 +67,11 @@ class Samples(ABC):
     @property
     def ftm_shape(self) -> tuple[int, int]:
         """Shape of intermediate array, before/after latitudinal step."""
+
+    @abstractmethod
+    def n_phi(self, theta_index: int) -> int:
+        r"""Number of :math:`\phi` samples for given sampling scheme, on the given ring."""
+
+    @abstractmethod
+    def phis(self, theta_index: int) -> np.ndarray:
+        r"""Compute :math:`\phi` samples for given sampling scheme, on the given ring."""

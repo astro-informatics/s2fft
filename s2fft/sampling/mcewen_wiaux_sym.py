@@ -11,13 +11,13 @@ class McEwenWiauxSymmetric(BandwidthSamples, PhiEquiangularSamples, ThetasFromIn
 
     @override
     @property
-    def n_theta(self) -> int:
-        return self.L + 1
+    def _n_phi(self) -> int:
+        return 2 * self.L
 
     @override
     @property
-    def n_phi(self) -> int:
-        return 2 * self.L
+    def n_theta(self) -> int:
+        return self.L + 1
 
     @override
     def _theta_index_to_value(self, theta_index):

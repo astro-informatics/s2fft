@@ -31,11 +31,6 @@ class HEALPix(ThetasFromIndex):
         """
         return m * (2 * L - 1 - m) // 2 + el
 
-    @override
-    @property
-    def n_phi(self) -> int:
-        raise NotImplementedError("Doesn't make sense for HEALPIX...")
-
     @property
     def n_phi_equatorial_band(self) -> int:
         r"""Number of :math:`\phi` samples within the equatorial band for HEALPix sampling scheme."""
@@ -45,13 +40,6 @@ class HEALPix(ThetasFromIndex):
     @property
     def n_theta(self) -> int:
         return 4 * self.n_side - 1
-
-    @override
-    @property
-    def phis(self) -> np.ndarray:
-        raise NotImplementedError(
-            "Doesn't make sense for HEALPIX... could throw back self.phis_ring though..."
-        )
 
     @override
     @property
@@ -203,7 +191,8 @@ class HEALPix(ThetasFromIndex):
         """
         return self._zphi_to_pixel(np.cos(theta), phi)
 
-    def n_phi_ring(self, theta_index: int) -> int:
+    @override
+    def n_phi(self, theta_index: int) -> int:
         r"""
         Number of :math:`\phi` samples for HEALPix sampling on given :math:`\theta`
         ring.
@@ -234,7 +223,8 @@ class HEALPix(ThetasFromIndex):
                 f"Ring t={theta_index} not contained by nside={self.n_side}"
             )
 
-    def phis_ring(self, theta_index: int) -> np.ndarray:
+    @override
+    def phis(self, theta_index: int) -> np.ndarray:
         r"""
         Compute :math:`\phi` samples for given :math:`\theta` HEALPix ring.
 

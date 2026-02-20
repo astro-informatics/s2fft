@@ -11,13 +11,13 @@ class DriscollHealy(BandwidthSamples, PhiEquiangularSamples, ThetasFromIndex):
 
     @override
     @property
-    def n_theta(self) -> int:
-        return 2 * self.L
+    def _n_phi(self) -> int:
+        return 2 * self.L - 1
 
     @override
     @property
-    def n_phi(self) -> int:
-        return 2 * self.L - 1
+    def n_theta(self) -> int:
+        return 2 * self.L
 
     @override
     def _theta_index_to_value(self, theta_index):
