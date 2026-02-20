@@ -9,28 +9,6 @@ class HEALPix(ThetasFromIndex):
 
     n_side: int
 
-    @staticmethod
-    def get_harmonic_index(L: int, el: int, m: int) -> int:
-        r"""
-        Compute HEALPix harmonic index.
-
-        Warning:
-            Note that the harmonic band-limit `L` differs to the HEALPix :math`\ell_{\text{max}}` convention,
-            where :math:`L = \ell_{\text{max}} + 1`.
-
-        Args:
-            L (int): Harmonic band-limit.
-
-            el (int): Harmonic degree :math:`\ell`.
-
-            m (int): Harmonic order :math:`m`.
-
-        Returns:
-            int: Corresponding index for RING ordered HEALPix.
-
-        """
-        return m * (2 * L - 1 - m) // 2 + el
-
     @property
     def n_phi_equatorial_band(self) -> int:
         r"""Number of :math:`\phi` samples within the equatorial band for HEALPix sampling scheme."""
@@ -52,8 +30,14 @@ class HEALPix(ThetasFromIndex):
         # TODO: This is technically self.n_theta, 2L for some input L - it's just that the default shape is set to 2L = 4nside. Note however that dependence on L means this needs to be a function, not a method...
         return self.n_theta, self.n_phi_equatorial_band
 
-    def __init__(self, n_side: int):
-        """Init."""
+    def __init__(self, n_side: int) -> None:
+        r"""
+        Initialise HEALPix sampling scheme with :math:`N_{side}` pixels.
+
+        Args:
+            n_side (int): Number of pixels, :math:`N_{side}`.
+
+        """
         self.n_side = n_side
 
     def _phi_index_to_value_on_ring(

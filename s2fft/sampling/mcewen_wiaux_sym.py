@@ -1,12 +1,12 @@
 import numpy as np
 from typing_extensions import override
 
-from ._abc.l_based import BandwidthSamples
+from ._abc.l_based import BandLimitedSamples
 from ._abc.phi_equiangular import PhiEquiangularSamples
 from ._abc.thetas_from_index import ThetasFromIndex
 
 
-class McEwenWiauxSymmetric(BandwidthSamples, PhiEquiangularSamples, ThetasFromIndex):
+class McEwenWiauxSymmetric(BandLimitedSamples, PhiEquiangularSamples, ThetasFromIndex):
     """McEwen & Wiaux Symmetric sampling scheme."""
 
     @override

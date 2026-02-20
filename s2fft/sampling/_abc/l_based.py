@@ -1,11 +1,11 @@
 from .base import Samples
 
 
-class BandwidthSamples(Samples):
+class BandLimitedSamples(Samples):
     """
-    Abstract (sub)class for harmonic bandwidth-based sampling.
+    Abstract (sub)class for band-limited sampling.
 
-    These sampling methods depend on a harmonic bandwidth :math:`L` being provided
+    These sampling methods depend on a harmonic band-limit :math:`L` being provided
     at instantiation.
     """
 
@@ -39,6 +39,12 @@ class BandwidthSamples(Samples):
         """
         return self.L, 2 * self.L - 1
 
-    def __init__(self, L: int):
-        """Initialise sampling with harmonic band-limit `L`."""
+    def __init__(self, L: int) -> None:
+        r"""
+        Initialise sampling with harmonic band-limit `L`.
+
+        Args:
+            L (int): Harmonic band-limit.
+
+        """
         self.L = L

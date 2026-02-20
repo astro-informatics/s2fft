@@ -622,6 +622,9 @@ def _hp_zphi2pix(nside: int, z: float, phi: float) -> int:
     return ipix1 - 1
 
 
+# Everything below here is only used in the test suite (or as a subfunction of a function that only appears in the test suite)
+
+
 def hp_getidx(L: int, el: int, m: int) -> int:
     r"""
     Compute HEALPix harmonic index.
