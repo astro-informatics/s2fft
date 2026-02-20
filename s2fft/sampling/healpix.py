@@ -27,22 +27,26 @@ class HEALPix(ThetasFromIndex):
     @override
     @property
     def ftm_shape(self) -> tuple[int, int]:
-        # TODO: This is technically self.n_theta, 2L for some input L - it's just that the default shape is set to 2L = 4nside. Note however that dependence on L means this needs to be a function, not a method...
-        return self.n_theta, self.n_phi_equatorial_band
+        # TODO: The original function takes L as an input and uses 2L as the shape of the 2nd dimension.
+        # However, the comment in that function states that we're assuming 4n_side-1 = 2L, so we could
+        # use n_phi_equatorial_band here...?
+        return self.n_theta, 2 * self.L
 
-    def __init__(self, n_side: int, N: int | None = None) -> None:
+    def __init__(self, n_side: int, L: int, N: int | None = None) -> None:
         r"""
         Initialise HEALPix sampling scheme with :math:`N_{side}` pixels.
 
         Args:
             n_side (int): Number of pixels, :math:`N_{side}`.
 
+            L (int): Harmonic band-limit.
+
             N (int, optional): Parameter `N` for SO3 sampling. If not provided, sample scheme
                 can only be used on S2.
 
         """
         self.n_side = n_side
-        super().__init__(N=N)
+        super().__init__(L=L, N=N)
 
     def _phi_index_to_value_on_ring(
         self, theta_index: int, phi_index: np.ndarray

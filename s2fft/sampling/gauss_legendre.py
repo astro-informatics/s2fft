@@ -1,11 +1,10 @@
 import numpy as np
 from typing_extensions import override
 
-from ._abc.bandlimited import BandLimitedSamples
 from ._abc.phi_equiangular import PhiEquiangularSamples
 
 
-class GaussLegendre(BandLimitedSamples, PhiEquiangularSamples):
+class GaussLegendre(PhiEquiangularSamples):
     """Gauss-Legendre sampling scheme."""
 
     @override

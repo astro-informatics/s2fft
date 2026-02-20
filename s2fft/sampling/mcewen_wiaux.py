@@ -1,12 +1,11 @@
 import numpy as np
 from typing_extensions import override
 
-from ._abc.bandlimited import BandLimitedSamples
 from ._abc.phi_equiangular import PhiEquiangularSamples
 from ._abc.thetas_from_index import ThetasFromIndex
 
 
-class McEwenWiaux(BandLimitedSamples, PhiEquiangularSamples, ThetasFromIndex):
+class McEwenWiaux(PhiEquiangularSamples, ThetasFromIndex):
     """McEwen & Wiaux sampling scheme."""
 
     @override

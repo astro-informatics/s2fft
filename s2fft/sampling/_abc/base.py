@@ -18,6 +18,7 @@ class Samples(ABC):
     """
 
     N: int | None
+    L: int
 
     @property
     def _n_gamma(self) -> int:
@@ -50,20 +51,42 @@ class Samples(ABC):
         r"""Shape of Wigner space sampling of rotation group :math:`SO(3)`."""
         # THIS DOCSTRING IS THE SAME AS THAT FOR flmn_shape!!!!!!!!!! This is true in the original module too
 
+    @property
+    def flm_shape(self) -> tuple[int, int]:
+        r"""
+        Standard shape of harmonic coefficients.
+
+        Args:
+            L (int, optional): Harmonic band-limit.
+
+        Returns:
+            Tuple[int]: Sampling array shape, with indexing :math:`[\ell, m]`.
+
+        """
+        return self.L, 2 * self.L - 1
+
+    @property
+    def flmn_shape(self) -> tuple[int, int, int]:
+        r"""Shape of Wigner coefficients for a signal on :math:`SO(3)`."""
+        return 2 * self.N - 1, self.L, 2 * self.L - 1
+
     @abstractmethod
     @property
     def ftm_shape(self) -> tuple[int, int]:
         """Shape of intermediate array, before/after latitudinal step."""
 
-    def __init__(self, N: int | None = None):
+    def __init__(self, L: int, N: int | None = None):
         """
         Initialise the sampling scheme.
 
         Args:
+            L (int): Harmonic band-limit the sampling will use.
+
             N (int, optional): Parameter `N` for SO3 sampling. If not provided, sample scheme
                 can only be used on S2.
 
         """
+        self.L = L
         self.N = N
 
     @abstractmethod
