@@ -3,10 +3,10 @@ from abc import abstractmethod
 import numpy as np
 from typing_extensions import override
 
-from .base import Samples
+from .s2_base import S2Samples
 
 
-class PhiEquiangularSamples(Samples):
+class PhiEquiangularSamples(S2Samples):
     r"""
     Mixin for :math:`\phi`-equiangular sampling schemes.
 
