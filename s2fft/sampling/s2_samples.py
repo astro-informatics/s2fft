@@ -537,6 +537,7 @@ def ind2elm(ind: int) -> tuple:
     return el, m
 
 
+# Only used in test suite
 def ncoeff(L: int) -> int:
     """
     Number of spherical harmonic coefficients for given band-limit L.

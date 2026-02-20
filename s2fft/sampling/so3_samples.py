@@ -102,6 +102,7 @@ def fnab_shape(
     return 1
 
 
+# Test only function
 def flmn_shape_1d(L: int, N: int) -> int:
     r"""
     Computes the number of non-zero Wigner coefficients.
@@ -211,6 +212,9 @@ def elmn2ind(el: int, m: int, n: int, L: int, N: int) -> int:
     n_offset = (N - 1 + n) * L * L
     el_offset = el * el
     return n_offset + el_offset + el + m
+
+
+# Test only functions from here onwards
 
 
 def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int) -> np.ndarray:
