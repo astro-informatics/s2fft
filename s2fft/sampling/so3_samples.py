@@ -190,6 +190,7 @@ def _ngamma(N: int) -> int:
     return 2 * N - 1
 
 
+# Test only function
 def elmn2ind(el: int, m: int, n: int, L: int, N: int) -> int:
     r"""
     Convert from Wigner space 3D indexing of :math:`(\ell,m, n)` to 1D index.
