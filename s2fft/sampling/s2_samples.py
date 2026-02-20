@@ -52,6 +52,7 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
 
+# Specific to MW/MWSS - to be moved to those classes?
 def ntheta_extension(L: int, sampling: str = "mw") -> int:
     r"""
     Number of :math:`\theta` samples for MW/MWSS sampling when extended to
@@ -492,6 +493,7 @@ def flm_shape(L: int) -> tuple[int, int]:
     return L, 2 * L - 1
 
 
+# Only used in test suite
 def elm2ind(el: int, m: int) -> int:
     r"""
     Convert from spherical harmonic 2D indexing of :math:`(\ell,m)` to 1D index.
@@ -513,6 +515,7 @@ def elm2ind(el: int, m: int) -> int:
     return el**2 + el + m
 
 
+# Only used in test suite
 def ind2elm(ind: int) -> tuple:
     r"""
     Convert from 1D spherical harmonic index to 2D index of :math:`(\ell,m)`.

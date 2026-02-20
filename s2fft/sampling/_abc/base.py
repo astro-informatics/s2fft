@@ -15,48 +15,6 @@ class Samples(ABC):
 
     """
 
-    @staticmethod
-    def elm2ind(el: int, m: int) -> int:
-        r"""
-        Convert from spherical harmonic 2D indexing of :math:`(\ell,m)` to 1D index.
-
-        1D index is defined by `el**2 + el + m`.
-
-        Warning:
-            Note that 1D storage of spherical harmonic coefficients is *not* the default.
-
-        Args:
-            el (int): Harmonic degree :math:`\ell`.
-
-            m (int): Harmonic order :math:`m`.
-
-        Returns:
-            int: Corresponding 1D index value.
-
-        """
-        return el**2 + el + m
-
-    @staticmethod
-    def ind2elm(ind: int) -> tuple:
-        r"""
-        Convert from 1D spherical harmonic index to 2D index of :math:`(\ell,m)`.
-
-        Warning:
-            Note that 1D storage of spherical harmonic coefficients is *not* the default.
-
-        Args:
-            ind (int): 1D spherical harmonic index.
-
-        Returns:
-            tuple: `(el,m)` defining spherical harmonic degree and order.
-
-        """
-        el = np.floor(np.sqrt(ind))
-
-        m = ind - el**2 - el
-
-        return el, m
-
     @abstractmethod
     @property
     def n_theta(self) -> int:
