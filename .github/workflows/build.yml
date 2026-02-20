@@ -47,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
 
     steps:
       - uses: actions/checkout@v6.0.2
@@ -57,9 +57,9 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.3.1
         env:
-          # Only build on platforms / architectures for which jaxlib
-          # wheels are available
-          CIBW_BUILD: "*-{manylinux_{x64_64,aarch64},macosx_arm64,win_amd64}"
+          # Only build on platforms / architectures for which jaxlib wheels
+          # are available
+          CIBW_BUILD: "*-{manylinux_{x86_64,aarch64},macosx_arm64,win_amd64}"
           CIBW_SKIP: "*t-win_arm64"
       - uses: actions/upload-artifact@v6
         with:
