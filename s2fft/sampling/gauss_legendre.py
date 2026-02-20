@@ -1,7 +1,7 @@
 import numpy as np
 from typing_extensions import override
 
-from ._abc.l_based import BandLimitedSamples
+from ._abc.bandlimited import BandLimitedSamples
 from ._abc.phi_equiangular import PhiEquiangularSamples
 
 
