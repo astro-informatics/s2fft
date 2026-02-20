@@ -21,10 +21,10 @@ class PhiEquiangularSamples(Samples):
         Convert index to :math:`\phi` angle for sampling scheme.
 
         Args:
-            p (int): :math:`\phi` index.
+            phi_index (np.ndarray): :math:`\phi` index.
 
         Returns:
-            float: :math:`\phi` sample(s) for given sampling scheme.
+            np.ndarray: :math:`\phi` sample(s) for given sampling scheme.
 
         """
 
