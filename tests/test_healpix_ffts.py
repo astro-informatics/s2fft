@@ -1,3 +1,4 @@
+import sys
 from collections.abc import Callable
 
 import jax
@@ -8,6 +9,9 @@ from numpy.testing import assert_allclose
 from packaging.version import Version as _Version
 
 from s2fft.utils.healpix_ffts import (
+    MissingCUDASupport,
+    MissingExtensionModule,
+    _check_extension_module,
     healpix_fft_cuda,
     healpix_fft_jax,
     healpix_fft_numpy,
@@ -214,3 +218,15 @@ def test_healpix_ifft_cuda_transforms(cached_healpy_test_case, nside):
         atol=1e-7,
         rtol=1e-7,
     )
+
+
+def test_extension_module_not_available_raise_error(monkeypatch):
+    monkeypatch.setattr(sys.modules["s2fft.utils.healpix_ffts"], "_s2fft", None)
+    with pytest.raises(MissingExtensionModule):
+        _check_extension_module()
+
+
+def test_extension_module_no_cuda_support_raise_error(monkeypatch):
+    monkeypatch.setattr(sys.modules["s2fft_lib._s2fft"], "COMPILED_WITH_CUDA", False)
+    with pytest.raises(MissingCUDASupport):
+        _check_extension_module()
