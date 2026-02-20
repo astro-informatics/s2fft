@@ -1,4 +1,5 @@
 from functools import partial
+from warnings import warn
 
 import jax.numpy as jnp
 import numpy as np
@@ -128,7 +129,7 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with eighth of plane computed.
 
     """
-    _arg_checks(dl, L, el)
+    _arg_checks(dl, L)
 
     dmm = np.zeros(L)
 
@@ -206,7 +207,7 @@ def compute_quarter_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with quarter of plane computed.
 
     """
-    _arg_checks(dl, L, el)
+    _arg_checks(dl, L)
 
     dmm = np.zeros(L)
 
@@ -280,7 +281,7 @@ def compute_quarter_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
         jnp.ndarray: Plane of Wigner-d for `el`, with quarter of plane computed.
 
     """
-    _arg_checks(dl, L, el)
+    _arg_checks(dl, L)
 
     dmm = jnp.zeros(L)
 
@@ -359,7 +360,7 @@ def fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with quarter of plane computed.
 
     """
-    _arg_checks(dl, L, el)
+    _arg_checks(dl, L)
 
     # Diagonal symmetry to fill in quarter.
     for m in range(el + 1):  # 0:el
@@ -391,7 +392,7 @@ def fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with half of plane computed.
 
     """
-    _arg_checks(dl, L, el)
+    _arg_checks(dl, L)
 
     # Symmetry in m to fill in half.
     for mm in range(0, el + 1):  # 0:el
@@ -423,7 +424,7 @@ def fill_quarter2half_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with half of plane computed.
 
     """
-    _arg_checks(dl, L, el)
+    _arg_checks(dl, L)
 
     # Symmetry in m to fill in half.
     mm = np.arange(0, el + 1)  # 0:el
@@ -458,7 +459,7 @@ def fill_quarter2half_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
         jnp.ndarray: Plane of Wigner-d for `el`, with half of plane computed.
 
     """
-    _arg_checks(dl, L, el)
+    _arg_checks(dl, L)
 
     # Symmetry in m to fill in half.
     # mm = jnp.arange(0, el + 1)  # 0:el
@@ -497,7 +498,7 @@ def fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with full plane computed.
 
     """
-    _arg_checks(dl, L, el)
+    _arg_checks(dl, L)
 
     # Symmetry in mm to fill in remaining plane.
     for mm in range(-el, 0):  # -el:-1
@@ -529,7 +530,7 @@ def fill_half2full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with full plane computed.
 
     """
-    _arg_checks(dl, L, el)
+    _arg_checks(dl, L)
 
     # Symmetry in mm to fill in remaining plane.
     mm = np.arange(-el, 0)
@@ -564,7 +565,7 @@ def fill_half2full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
         jnp.ndarray: Plane of Wigner-d for `el`, with full plane computed.
 
     """
-    _arg_checks(dl, L, el)
+    _arg_checks(dl, L)
 
     # Symmetry in mm to fill in remaining plane.
     # mm = jnp.arange(-el, 0)
@@ -656,7 +657,7 @@ def compute_full_loop(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with full plane computed.
 
     """
-    _arg_checks(dl, L, el)
+    _arg_checks(dl, L)
 
     dl = compute_eighth(dl, L, el)
     dl = fill_eighth2quarter(dl, L, el)
@@ -698,7 +699,7 @@ def compute_quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with quarter plane computed.
 
     """
-    _arg_checks(dl, L, el)
+    _arg_checks(dl, L)
 
     dl = compute_eighth(dl, L, el)
     dl = fill_eighth2quarter(dl, L, el)
@@ -730,7 +731,7 @@ def compute_full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with full plane computed.
 
     """
-    _arg_checks(dl, L, el)
+    _arg_checks(dl, L)
 
     dl = compute_quarter_vectorized(dl, L, el)
     dl = fill_quarter2half_vectorized(dl, L, el)
@@ -764,7 +765,7 @@ def compute_full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
         np.ndarray: Plane of Wigner-d for `el`, with full plane computed.
 
     """
-    _arg_checks(dl, L, el)
+    _arg_checks(dl, L)
 
     dl = compute_quarter_jax(dl, L, el)
     dl = fill_quarter2half_jax(dl, L, el)
@@ -773,8 +774,8 @@ def compute_full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
     return dl
 
 
-def _arg_checks(dl: np.ndarray, L: int, el: int):
-    r"""
+def _arg_checks(dl: np.ndarray, L: int):
+    """
     Check arguments of Trapani functions.
 
     Args:
@@ -782,11 +783,7 @@ def _arg_checks(dl: np.ndarray, L: int, el: int):
 
         L (int): Harmonic band-limit.
 
-        el (int): Spherical harmonic degree :math:`\ell`.
-
     """
-
-    # assert 0 < el < L
-    # assert dl.shape[0] == dl.shape[1] == 2 * L - 1
-    # if L > 1024:
-    #     logs.warning_log("Trapani recursion may not be stable for L > 1024")
+    assert dl.shape[0] == dl.shape[1] == 2 * L - 1
+    if L > 1024:
+        warn("Trapani recursion may not be stable for L > 1024", stacklevel=2)
