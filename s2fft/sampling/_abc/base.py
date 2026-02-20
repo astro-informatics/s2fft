@@ -13,11 +13,7 @@ class Samples(ABC):
     arrays that will be used to store the harmonic coefficients and signal
     values on the sphere during computations.
 
-    Providing a value for the attribute `N` allows the instance to be used
-    for SO3 sampling as well as S2 sampling.
     """
-
-    N: int | None
 
     @abstractmethod
     @property
@@ -38,17 +34,6 @@ class Samples(ABC):
     @property
     def ftm_shape(self) -> tuple[int, int]:
         """Shape of intermediate array, before/after latitudinal step."""
-
-    def __init__(self, N: int | None = None):
-        """
-        Initialise the sampling scheme.
-
-        Args:
-            N (int, optional): Parameter `N` for SO3 sampling. If not provided, sample scheme
-                can only be used on S2.
-
-        """
-        self.N = N
 
     @abstractmethod
     def n_phi(self, theta_index: int) -> int:

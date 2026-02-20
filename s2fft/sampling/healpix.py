@@ -30,19 +30,15 @@ class HEALPix(ThetasFromIndex):
         # TODO: This is technically self.n_theta, 2L for some input L - it's just that the default shape is set to 2L = 4nside. Note however that dependence on L means this needs to be a function, not a method...
         return self.n_theta, self.n_phi_equatorial_band
 
-    def __init__(self, n_side: int, N: int | None = None) -> None:
+    def __init__(self, n_side: int) -> None:
         r"""
         Initialise HEALPix sampling scheme with :math:`N_{side}` pixels.
 
         Args:
             n_side (int): Number of pixels, :math:`N_{side}`.
 
-            N (int, optional): Parameter `N` for SO3 sampling. If not provided, sample scheme
-                can only be used on S2.
-
         """
         self.n_side = n_side
-        super().__init__(N=N)
 
     def _phi_index_to_value_on_ring(
         self, theta_index: int, phi_index: np.ndarray
