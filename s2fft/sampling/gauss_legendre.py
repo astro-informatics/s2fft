@@ -24,10 +24,5 @@ class GaussLegendre(BandwidthSamples, PhiEquiangularSamples):
 
     @override
     @property
-    def ftm_shape(self) -> tuple[int, int]:
-        return self.n_theta, self.n_phi
-
-    @override
-    @property
     def thetas(self):
         return np.flip(np.arccos(np.polynomial.legendre.leggauss(self.n_theta)[0]))

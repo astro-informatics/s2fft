@@ -49,3 +49,8 @@ class BandwidthSamples(Samples):
 
         """
         return self.L, 2 * self.L - 1
+
+    @override
+    @property
+    def ftm_shape(self) -> tuple[int, int]:
+        return self.n_theta, self.n_phi

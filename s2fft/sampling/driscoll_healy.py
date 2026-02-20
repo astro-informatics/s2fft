@@ -26,8 +26,3 @@ class DriscollHealy(BandwidthSamples, PhiEquiangularSamples, ThetasFromIndex):
     @override
     def _theta_index_to_value(self, theta_index):
         return (2 * theta_index + 1) * np.pi / (4 * self.L)
-
-    @override
-    @property
-    def ftm_shape(self) -> tuple[int, int]:
-        return self.n_theta, self.n_phi
