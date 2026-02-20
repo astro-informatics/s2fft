@@ -40,5 +40,5 @@ class BandwidthSamples(Samples):
         return self.L, 2 * self.L - 1
 
     def __init__(self, L: int):
-        """Init."""
+        """Initialise sampling with harmonic band-limit `L`."""
         self.L = L
