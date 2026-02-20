@@ -159,10 +159,7 @@ def quad_weights_gl(L: int) -> jnp.ndarray:
 
             def inner_loop_step(j, p1_p2):
                 p1, p2 = p1_p2
-                p3 = p2
-                p2 = p1
-                p1 = ((2.0 * j - 1.0) * z * p2 - (j - 1.0) * p3) / j
-                return p1, p2
+                return ((2.0 * j - 1.0) * z * p1 - (j - 1.0) * p2) / j, p1
 
             p1, p2 = jax.lax.fori_loop(1, L + 1, inner_loop_step, (p1, p2))
 
