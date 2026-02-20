@@ -20,12 +20,12 @@ class GaussLegendre(BandwidthSamples, PhiEquiangularSamples):
 
     @override
     def _phi_index_to_value(self, phi_index: np.ndarray) -> np.ndarray:
-        return 2 * phi_index * np.pi / (2 * self.L - 1)
+        return 2 * phi_index * np.pi / self.n_phi
 
     @override
     @property
     def ftm_shape(self) -> tuple[int, int]:
-        return self.n_theta, 2 * self.L - 1
+        return self.n_theta, self.n_phi
 
     @override
     @property
