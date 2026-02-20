@@ -60,7 +60,7 @@ jobs:
           # Only build on platforms / architectures for which jaxlib wheels
           # are available
           CIBW_BUILD: "*-{manylinux_{x86_64,aarch64},macosx_arm64,win_amd64}"
-          CIBW_SKIP: "*t-win_arm64"
+          CIBW_SKIP: "*t-win_amd64"
       - uses: actions/upload-artifact@v6
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
