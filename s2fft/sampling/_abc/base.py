@@ -108,3 +108,32 @@ class Samples(ABC):
     @abstractmethod
     def phis(self, theta_index: int) -> np.ndarray:
         r"""Compute :math:`\phi` samples for given sampling scheme, on the given ring."""
+
+    def so3_ready(self, *, throw_on_false: bool = False) -> bool:
+        r"""
+        Whether this instance can be used to sample :math:`SO(3)` (`True`) or not (`False`).
+
+        Sampling schemes must be provided the `N` parameter in order to be used
+        in :math:`SO(3)` transforms. Without this parameter, the instance can
+        only be used to sample from :math:`\mathbb{S}^2`.
+
+        Args:
+            throw_on_false (bool): If `True`, an exception is raised if the sampling scheme cannot
+                be used to sample from :math:`SO(3)`, rather than simply returning `False`. Intended
+                for use in a fail-fast check at the beginning of a computation.
+
+        Raises:
+            RuntimeError: If the scheme cannot sample :math:`SO(3)`, and the method has been
+                provided `throw_on_false = True`.
+
+        Returns:
+            bool: `True` if the scheme can sample :math:`SO(3)`, otherwise `False`.
+
+        """
+        N_not_set = self.N is None
+        if throw_on_false and N_not_set:
+            raise RuntimeError(
+                "Parameter N not set for sampling scheme, cannot sample from SO(3)"
+            )
+
+        return not N_not_set
