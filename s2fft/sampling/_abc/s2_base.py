@@ -32,18 +32,18 @@ class S2Samples(ABC):
         """
         return self._L
 
-    @abstractmethod
     @property
+    @abstractmethod
     def n_theta(self) -> int:
         r"""Number of :math:`\theta` samples for sampling scheme at specified resolution."""
 
-    @abstractmethod
     @property
+    @abstractmethod
     def thetas(self) -> np.ndarray:
         r"""Compute :math:`\theta` samples for given sampling scheme."""
 
-    @abstractmethod
     @property
+    @abstractmethod
     def f_shape(self) -> tuple[int, int]:
         """Shape of spherical signal."""
 
@@ -61,8 +61,8 @@ class S2Samples(ABC):
         """
         return self.L, 2 * self.L - 1
 
-    @abstractmethod
     @property
+    @abstractmethod
     def ftm_shape(self) -> tuple[int, int]:
         """Shape of intermediate array, before/after latitudinal step."""
 

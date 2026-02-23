@@ -24,8 +24,8 @@ class PhiEquiangularSamples(S2Samples):
     of :math:`N_{\phi}` along the :math:`\phi`-dimension.
     """
 
-    @abstractmethod
     @property
+    @abstractmethod
     def _n_phi(self) -> int:
         r"""Number of :math:`\phi` samples in each ring."""
 
