@@ -2,9 +2,22 @@ from .s2_base import S2Samples
 
 
 class SO3Samples(S2Samples):
-    """Abstract API structure that all SO3-sampling schemes must adhere to."""
+    """
+    Abstract API structure that all SO3-sampling schemes must adhere to.
 
-    N: int
+    Class instances are STATIC after instantiation, as per the recommendations
+    in `JAX's documentation<https://docs.jax.dev/en/latest/notebooks/Common_Gotchas_in_JAX.html#strategy-2-marking-self-as-static>`_.
+    The harmonic band-limit, `self.L` and parameter `self.N` are thus assumed static
+    after instantiation. However, to be safe we will manually implement the methods for
+    equality and hashing this class, as recommended by JAX.
+    """
+
+    _N: int
+
+    @property
+    def N(self) -> int:
+        """SO3 sampling parameter."""
+        return self._N
 
     @property
     def _n_gamma(self) -> int:
@@ -49,5 +62,11 @@ class SO3Samples(S2Samples):
             N (int, optional): Parameter `N` for SO3 sampling.
 
         """
-        self.N = N
+        self._N = N
         super().__init__(L=L)
+
+    def __hash__(self) -> int:
+        return hash((self.L, self.N))
+
+    def __eq__(self, other: "SO3Samples") -> bool:
+        return super().__eq__(other) and self.N == other.N

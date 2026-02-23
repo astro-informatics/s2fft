@@ -12,9 +12,25 @@ class S2Samples(ABC):
     They must additionally provide properties that specify the shape of the
     arrays that will be used to store the harmonic coefficients and signal
     values on the sphere during computations.
+
+    Class instances are STATIC after instantiation, as per the recommendations
+    in `JAX's documentation<https://docs.jax.dev/en/latest/notebooks/Common_Gotchas_in_JAX.html#strategy-2-marking-self-as-static>`_.
+    The only class attribute is the harmonic band-limit, `self.L` (which is
+    actually a property to protect `self._L`, where the value is stored). However,
+    to be safe we will manually implement the methods for equality and hashing this
+    class, as recommended by JAX.
     """
 
-    L: int
+    _L: int
+
+    @property
+    def L(self) -> int:
+        """
+        Harmonic band-limit used by the sampling scheme.
+
+        `L` is static, to allow for JIT-compilation of class methods.
+        """
+        return self._L
 
     @abstractmethod
     @property
@@ -58,7 +74,13 @@ class S2Samples(ABC):
             L (int): Harmonic band-limit the sampling will use.
 
         """
-        self.L = L
+        self._L = L
+
+    def __hash__(self) -> int:
+        return hash((self.L,))
+
+    def __eq__(self, other: "S2Samples") -> bool:
+        return isinstance(other, type(self)) and (self._L == other._L)
 
     @abstractmethod
     def n_phi(self, theta_index: int) -> int:
