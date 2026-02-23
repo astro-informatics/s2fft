@@ -1,4 +1,5 @@
 from functools import partial
+from warnings import warn
 
 import jax
 import jax.numpy as jnp
@@ -16,6 +17,7 @@ except ImportError:
     # efficient HEALPix FFTs. As extension module may not compile on all
     # systems we guard import here to allow still using the package when the
     # module is not available
+    warn("s2fft_lib extension module not available", stacklevel=-2)
     _s2fft = None
 
 from s2fft.sampling import s2_samples as samples
