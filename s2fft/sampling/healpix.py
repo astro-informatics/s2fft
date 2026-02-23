@@ -1,6 +1,7 @@
 import numpy as np
 from typing_extensions import override
 
+from ._abc.so3_base import SO3Samples
 from ._abc.thetas_from_index import ThetasFromIndex
 
 
@@ -8,16 +9,6 @@ class HEALPix(ThetasFromIndex):
     """HEALPix sampling scheme."""
 
     n_side: int
-
-    @override
-    @property
-    def fnab_shape(self) -> tuple[int, int, int]:
-        r"""
-        Shape of Wigner space sampling of rotation group :math:`SO(3)`.
-
-        HEALPix requires an array of shape `(self.n_gamma, self.n_theta, 2 * self.L)`.
-        """
-        return self._n_gamma, self.n_theta, 2 * self.L
 
     @property
     def n_phi_equatorial_band(self) -> int:
@@ -270,3 +261,17 @@ class HEALPix(ThetasFromIndex):
         sign = -1 if forward else 1
         m_start_ind = 0 if reality else -L + 1
         return np.exp(sign * 1j * np.arange(m_start_ind, L) * phi_offset)
+
+
+class HEALPixSO3(SO3Samples, HEALPix):
+    """HEALPix sampling scheme on :math:`SO(3)`."""
+
+    @override
+    @property
+    def fnab_shape(self) -> tuple[int, int, int]:
+        r"""
+        Shape of Wigner space sampling of rotation group :math:`SO(3)`.
+
+        HEALPix requires an array of shape `(self.n_gamma, self.n_theta, 2 * self.L)`.
+        """
+        return self._n_gamma, self.n_theta, 2 * self.L

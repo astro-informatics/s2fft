@@ -2,6 +2,7 @@ import numpy as np
 from typing_extensions import override
 
 from ._abc.phi_equiangular import PhiEquiangularSamples
+from ._abc.so3_base import SO3Samples
 from ._abc.thetas_from_index import ThetasFromIndex
 
 
@@ -21,3 +22,7 @@ class McEwenWiauxSymmetric(PhiEquiangularSamples, ThetasFromIndex):
     @override
     def _theta_index_to_value(self, theta_index):
         return 2 * theta_index * np.pi / (2 * self.L)
+
+
+class McEwenWiauxSymmetricSO3(SO3Samples, McEwenWiauxSymmetric):
+    """McEwen & Wiaux Symmetric sampling scheme on :math:`SO(3)`."""

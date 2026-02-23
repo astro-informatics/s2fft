@@ -2,10 +2,10 @@ from abc import abstractmethod
 
 import numpy as np
 
-from .base import Samples
+from .s2_base import S2Samples
 
 
-class ThetasFromIndex(Samples):
+class ThetasFromIndex(S2Samples):
     r"""
     Mixin for sampling schemes that generate :math:`\theta` coordinates from indices.
 

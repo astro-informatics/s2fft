@@ -2,6 +2,7 @@ import numpy as np
 from typing_extensions import override
 
 from ._abc.phi_equiangular import PhiEquiangularSamples
+from ._abc.so3_base import SO3Samples
 
 
 class GaussLegendre(PhiEquiangularSamples):
@@ -21,3 +22,7 @@ class GaussLegendre(PhiEquiangularSamples):
     @property
     def thetas(self):
         return np.flip(np.arccos(np.polynomial.legendre.leggauss(self.n_theta)[0]))
+
+
+class GaussLegendreSO3(SO3Samples, GaussLegendre):
+    """Gauss-Legendre sampling scheme on :math:`SO(3)`."""

@@ -2,6 +2,7 @@ import numpy as np
 from typing_extensions import override
 
 from ._abc.phi_equiangular import PhiEquiangularSamples
+from ._abc.so3_base import SO3Samples
 from ._abc.thetas_from_index import ThetasFromIndex
 
 
@@ -21,3 +22,7 @@ class DriscollHealy(PhiEquiangularSamples, ThetasFromIndex):
     @override
     def _theta_index_to_value(self, theta_index):
         return (2 * theta_index + 1) * np.pi / (4 * self.L)
+
+
+class DriscollHealySO3(SO3Samples, DriscollHealy):
+    """Driscoll-Healy sampling scheme in :math:`SO(3)`."""
