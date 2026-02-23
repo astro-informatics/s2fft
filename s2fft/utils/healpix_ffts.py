@@ -25,13 +25,6 @@ from s2fft.utils.jax_primitive import register_primitive
 from s2fft.utils.torch_wrapper import wrap_as_torch_function
 
 
-def _register_ffi_targets() -> None:
-    """Register custom call targets for HEALPix FFTs."""
-    if _s2fft is not None:
-        for name, fn in _s2fft.registration().items():
-            jax.ffi.register_ffi_target(name, fn, platform="CUDA")
-
-
 def spectral_folding(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
     """
     Folds higher frequency Fourier coefficients back onto lower frequency
@@ -562,6 +555,13 @@ def ring_phase_shifts_hp_jax(
 
 
 # Custom healpix_fft_cuda primitive
+
+
+def _register_ffi_targets() -> None:
+    """Register custom call targets for HEALPix FFTs."""
+    if _s2fft is not None:
+        for name, fn in _s2fft.registration().items():
+            jax.ffi.register_ffi_target(name, fn, platform="CUDA")
 
 
 def _get_lowering_info(fft_type, norm, out_dtype):
