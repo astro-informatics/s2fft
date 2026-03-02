@@ -61,7 +61,7 @@ jobs:
           # are available
           CIBW_BUILD: "*-{manylinux_{x86_64,aarch64},macosx_arm64,win_amd64}"
           CIBW_SKIP: "*t-win_amd64"
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
@@ -76,7 +76,7 @@ jobs:
           fetch-tags: true
       - name: Build sdist
         run: pipx run build --sdist
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: cibw-sdist
           path: dist/*.tar.gz

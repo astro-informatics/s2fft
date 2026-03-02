@@ -59,7 +59,7 @@ jobs:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         
     - name: Upload cached test data
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: cached-test-data
         path: tests/cached-test-data
