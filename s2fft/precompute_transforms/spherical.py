@@ -14,7 +14,7 @@ from s2fft.utils import (
     resampling_jax,
     torch_wrapper,
 )
-from s2fft.utils._dtype_association import _cmplx_dtype_from
+from s2fft.utils._dtype_association import compatible_cmplx_dtype
 
 
 def inverse(
@@ -440,7 +440,7 @@ def forward_transform_jax(
             ftm = jnp.fft.fft(f, axis=-1, norm="backward")
             ftm = jnp.fft.fftshift(ftm, axes=-1)[:, m_offset:]
 
-    flm = jnp.zeros(samples.flm_shape(L), dtype=_cmplx_dtype_from[str(f.dtype)])
+    flm = jnp.zeros(samples.flm_shape(L), dtype=compatible_cmplx_dtype(f))
     flm = flm.at[:, m_start_ind:].set(
         jnp.einsum(
             "...tlm, ...tm -> ...lm", kernel.astype(flm.dtype), ftm, optimize=True
