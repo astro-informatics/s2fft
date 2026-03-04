@@ -21,6 +21,7 @@ except ImportError:
     _s2fft = None
 
 from s2fft.sampling import s2_samples as samples
+from s2fft.utils._dtype_association import compatible_cmplx_dtype
 from s2fft.utils.jax_primitive import register_primitive
 from s2fft.utils.torch_wrapper import wrap_as_torch_function
 
@@ -257,12 +258,13 @@ def healpix_fft_jax(f: jnp.ndarray, L: int, nside: int, reality: bool) -> jnp.nd
         jnp.ndarray: Array of Fourier coefficients for all latitudes.
 
     """
+    compat_dtype = compatible_cmplx_dtype(f)
 
     def f_chunks_to_ftm_rows(f_chunks, nphi):
         if reality and nphi == 2 * L:
             fm_chunks = jnp.concatenate(
                 (
-                    jnp.zeros((f_chunks.shape[0], nphi // 2)),
+                    jnp.zeros((f_chunks.shape[0], nphi // 2), dtype=compat_dtype),
                     jnp.fft.rfft(jnp.real(f_chunks), norm="backward")[:, :-1],
                 ),
                 axis=1,
