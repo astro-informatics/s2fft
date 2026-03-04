@@ -417,11 +417,6 @@ def forward_transform_jax(
         jnp.ndarray: Pixel-space coefficients.
 
     """
-    # Fixed casting occurs in the resampling module too, so this is a 1st step hack
-    # to getting around that. Reports 2e-7 error if we don't make the resampling also
-    # use the lower precision dtype.
-    original_f_dtype = str(f.dtype)
-
     if sampling.lower() == "mw":
         f = resampling_jax.mw_to_mwss(f, L, spin)
 
@@ -445,7 +440,7 @@ def forward_transform_jax(
             ftm = jnp.fft.fft(f, axis=-1, norm="backward")
             ftm = jnp.fft.fftshift(ftm, axes=-1)[:, m_offset:]
 
-    flm = jnp.zeros(samples.flm_shape(L), dtype=_cmplx_dtype_from[original_f_dtype])
+    flm = jnp.zeros(samples.flm_shape(L), dtype=_cmplx_dtype_from[str(f.dtype)])
     flm = flm.at[:, m_start_ind:].set(
         jnp.einsum(
             "...tlm, ...tm -> ...lm", kernel.astype(flm.dtype), ftm, optimize=True
