@@ -1,15 +1,25 @@
 import jax.numpy as jnp
 import numpy as np
-
-_CMPLX_DTYPE_FROM = {
-    "complex128": "complex128",
-    "float64": "complex128",
-    "complex64": "complex64",
-    "float32": "complex64",
-}
+import torch
 
 
-def compatible_cmplx_dtype(f: jnp.ndarray | np.ndarray) -> str:
+def _dtype_conversions() -> dict[str, str]:
+    conversions = {
+        "complex128": "complex128",
+        "float64": "complex128",
+        "complex64": "complex64",
+        "float32": "complex64",
+    }
+    torch_conversions = {
+        f"torch.{key}": f"torch.{value}" for key, value in conversions.items()
+    }
+    return {**conversions, **torch_conversions}
+
+
+_CMPLX_DTYPE_FROM = _dtype_conversions()
+
+
+def compatible_cmplx_dtype(f: jnp.ndarray | np.ndarray | torch.Tensor) -> str:
     """
     Return the (string specifier of the) smallest complex dtype compatible with ``f``.
 

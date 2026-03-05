@@ -1,6 +1,7 @@
 import jax
 import numpy as np
 import pytest
+import torch
 
 from s2fft import inverse as precise_inverse
 from s2fft.precompute_transforms.spherical import _kernel_functions, forward
@@ -29,7 +30,7 @@ def get_flm_and_kernel(
 
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "gl", "dh", "healpix"])
 @pytest.mark.parametrize("reality", [True, False])
-@pytest.mark.parametrize("method", ["jax", "numpy"])
+@pytest.mark.parametrize("method", ["jax", "torch"])
 def test_forward_lower_precision(
     flm_generator,
     sampling: str,
@@ -69,7 +70,7 @@ def test_forward_lower_precision(
         reality=reality,
         method=method,
     )
-    flm_recovered_long_dtype = forward(
+    flm_recovered_long = forward(
         f=f,
         L=L,
         spin=spin,
@@ -79,15 +80,18 @@ def test_forward_lower_precision(
         reality=reality,
         method=method,
     )
-    round_trip_error_long_dtype = abs(flm - flm_recovered_long_dtype).max()
-    long_dtype_error_oom = np.round(np.log10(round_trip_error_long_dtype))
 
     short_dtype = "float32" if reality else "complex64"
-    f_lower_precision = f.astype(short_dtype)
-    kernel_lower_precision = kernel.astype(short_dtype)
+    casting_method = "astype"
+    if method == "torch":
+        short_dtype = getattr(torch, short_dtype)
+        casting_method = "to"
+
+    f_lower_precision = getattr(f, casting_method)(short_dtype)
+    kernel_lower_precision = getattr(kernel, casting_method)(short_dtype)
     expected_short_flm_type = compatible_cmplx_dtype(f_lower_precision)
 
-    flm_recovered_short_dtype = forward(
+    flm_recovered_short = forward(
         f=f_lower_precision,
         L=L,
         spin=spin,
@@ -97,11 +101,19 @@ def test_forward_lower_precision(
         reality=reality,
         method=method,
     )
-    round_trip_error_short_dtype = abs(flm - flm_recovered_short_dtype).max()
+    flm_recovered_short_dtype = flm_recovered_short.dtype
+    if method == "torch":
+        flm = torch.Tensor(flm)
+        flm_recovered_short_dtype = str(flm_recovered_short_dtype)
+
+    round_trip_error_long_dtype = abs(flm - flm_recovered_long).max()
+    long_dtype_error_oom = np.round(np.log10(round_trip_error_long_dtype))
+
+    round_trip_error_short_dtype = abs(flm - flm_recovered_short).max()
     short_dtype_error_oom = np.round(np.log10(round_trip_error_short_dtype))
 
     # Confirm that the output inherits the lower precision dtype
-    assert flm_recovered_short_dtype.dtype == expected_short_flm_type
+    assert flm_recovered_short_dtype == expected_short_flm_type
     # mw and mwss currently fails for numpy runs due to this:
     # FIXME https://github.com/numpy/numpy/issues/17801!
     # Fixed in numpy 2.0.0 but we seem to be pinned to a numpy v1.XX
