@@ -38,7 +38,6 @@ def test_forward_lower_precision(
     spin: int = 0,
     method: str = "jax",
     recursion: str = "auto",
-    nside: int | None = None,
 ):
     """
     Verify that flm coefficients inherit the dtype of the input arrays.
