@@ -369,7 +369,7 @@ def forward_transform(
         else:
             ftm = np.fft.fft(f, axis=-1, norm="backward")
             ftm = np.fft.fftshift(ftm, axes=-1)[:, m_offset:]
-    flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
+    flm = np.zeros(samples.flm_shape(L), dtype=compatible_cmplx_dtype(f))
     flm[:, m_start_ind:] = np.einsum("...tlm, ...tm -> ...lm", kernel, ftm)
 
     if reality:

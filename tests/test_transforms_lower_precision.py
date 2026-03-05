@@ -29,14 +29,14 @@ def get_flm_and_kernel(
 
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "gl", "dh", "healpix"])
 @pytest.mark.parametrize("reality", [True, False])
-# @pytest.mark.parametrize("method", methods_to_test)
+@pytest.mark.parametrize("method", ["jax", "numpy"])
 def test_forward_lower_precision(
     flm_generator,
     sampling: str,
+    method: str,
     reality: bool,
     L: int = 64,
     spin: int = 0,
-    method: str = "jax",
     recursion: str = "auto",
 ):
     """
@@ -102,6 +102,9 @@ def test_forward_lower_precision(
 
     # Confirm that the output inherits the lower precision dtype
     assert flm_recovered_short_dtype.dtype == expected_short_flm_type
+    # mw and mwss currently fails for numpy runs due to this:
+    # FIXME https://github.com/numpy/numpy/issues/17801!
+    # Fixed in numpy 2.0.0 but we seem to be pinned to a numpy v1.XX
 
     # Naive expectations for the error. 1/2 precision ~= 1/2 the error OOMagnitude.
     # Allow a -/+1 margin for near-misses during rounding and taking log.
