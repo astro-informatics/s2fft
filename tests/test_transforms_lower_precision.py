@@ -128,7 +128,7 @@ def test_forward_lower_precision(
 
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "gl", "dh", "healpix"])
 @pytest.mark.parametrize("reality", [True, False])
-@pytest.mark.parametrize("method", ["jax"])
+@pytest.mark.parametrize("method", ["jax", "torch"])
 def test_inverse_lower_precision(
     flm_generator,
     sampling: str,
@@ -186,6 +186,7 @@ def test_inverse_lower_precision(
         short_dtype = getattr(torch, short_dtype)
         casting_method = "to"
         expected_short_f_type = getattr(torch, expected_short_f_type)
+        flm = torch.Tensor(flm)
 
     flm_lower_precision = getattr(flm, casting_method)(short_dtype)
     kernel_lower_precision = getattr(kernel, casting_method)(short_dtype)
@@ -201,14 +202,12 @@ def test_inverse_lower_precision(
         method=method,
     )
     f_recovered_short_dtype = f_recovered_short.dtype
-    if method == "torch":
-        f_recovered_short_dtype = str(f_recovered_short_dtype)
 
     error_long_dtype = abs(trusted_signal - f_recovered_long).max()
     long_dtype_error_oom = np.round(np.log10(error_long_dtype))
 
-    round_trip_error_short_dtype = abs(trusted_signal - f_recovered_short).max()
-    short_dtype_error_oom = np.round(np.log10(round_trip_error_short_dtype))
+    error_short_dtype = abs(trusted_signal - f_recovered_short).max()
+    short_dtype_error_oom = np.round(np.log10(error_short_dtype))
 
     # Confirm that the output inherits the lower precision dtype
     assert f_recovered_short_dtype == expected_short_f_type
