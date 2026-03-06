@@ -189,7 +189,9 @@ def inverse_transform_jax(
     m_offset = 1 if sampling in ["mwss", "healpix"] else 0
     m_start_ind = L - 1 if reality else 0
 
-    ftm = jnp.zeros(samples.ftm_shape(L, sampling, nside), dtype=jnp.complex128)
+    ftm = jnp.zeros(
+        samples.ftm_shape(L, sampling, nside), dtype=compatible_cmplx_dtype(flm)
+    )
     ftm = ftm.at[:, m_start_ind + m_offset :].add(
         jnp.einsum(
             "...tlm, ...lm -> ...tm",
