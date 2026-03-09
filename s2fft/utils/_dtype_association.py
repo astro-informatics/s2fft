@@ -16,9 +16,6 @@ def _dtype_conversions() -> dict[str, str]:
     return {**conversions, **torch_conversions}
 
 
-_CMPLX_DTYPE_FROM = _dtype_conversions()
-
-
 def compatible_cmplx_dtype(f: jnp.ndarray | np.ndarray | torch.Tensor) -> str:
     """
     Return the (string specifier of the) smallest complex dtype compatible with ``f``.
@@ -34,4 +31,4 @@ def compatible_cmplx_dtype(f: jnp.ndarray | np.ndarray | torch.Tensor) -> str:
 
     """
     dtype = str(f.dtype)
-    return _CMPLX_DTYPE_FROM[dtype]
+    return _dtype_conversions()[dtype]
