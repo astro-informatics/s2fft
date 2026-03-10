@@ -39,3 +39,4 @@ _deps
 
 # Docs build
 docs/_generated_tutorials/
+docs/sg_execution_times.rst

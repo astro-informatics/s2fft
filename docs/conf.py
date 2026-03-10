@@ -39,13 +39,11 @@ version = ".".join(release.split(".")[:2])
 # ones.
 extensions = [
     "sphinx_copybutton",
-    "nbsphinx_link",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.mathjax",
     "sphinx.ext.githubpages",
     "sphinx_rtd_theme",
-    "nbsphinx",
     "IPython.sphinxext.ipython_console_highlighting",
     "sphinx_tabs.tabs",
     "sphinx_git",
@@ -64,6 +62,7 @@ napoleon_numpy_docstring = False
 sphinx_gallery_conf = {
     "examples_dirs": "examples/",
     "gallery_dirs": "_generated_tutorials/",  # generated gallery is placed here, with an index.rst file
+    "filename_pattern": "/*.py",
 }
 
 # Add any paths that contain templates here, relative to this directory.
