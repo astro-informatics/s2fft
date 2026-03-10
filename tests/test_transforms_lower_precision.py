@@ -31,8 +31,10 @@ def get_flm_and_kernel(
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "gl", "dh", "healpix"])
 @pytest.mark.parametrize("reality", [True, False])
 @pytest.mark.parametrize("method", ["jax", "torch"])
+@pytest.mark.parametrize("downsample_kernel", [True, False])
 def test_forward_lower_precision(
     flm_generator,
+    downsample_kernel: bool,
     sampling: str,
     method: str,
     reality: bool,
@@ -46,7 +48,12 @@ def test_forward_lower_precision(
     Test is run as a matrix across:
     - sampling (to ensure there are no code-paths that are still forcing array creation with a fixed dtype)
     - reality (effectively handles the two cases for real signals and complex signals)
-    - FIXME method (ensure that dtype behaviour occurs for all of the numpy / jax / torch paths)
+    - method (ensure that dtype behaviour occurs for all of the jax / torch paths)
+    - downsample_kernel (checks that dtype down-casting still occurs even if the user passes in a higher-precision kernel)
+
+    Verification takes two forms:
+    - A confirmation that the output array has the expected dtype (based on the signal dtype input)
+    - A check that the round-trip error, relative to the full-precision calculation, is within the correct order of magnitude.
     """
     nside = L // 2 if sampling == "healpix" else None
 
@@ -88,7 +95,9 @@ def test_forward_lower_precision(
         casting_method = "to"
 
     f_lower_precision = getattr(f, casting_method)(short_dtype)
-    kernel_lower_precision = getattr(kernel, casting_method)(short_dtype)
+    kernel_to_use = (
+        getattr(kernel, casting_method)(short_dtype) if downsample_kernel else kernel
+    )
     expected_short_flm_type = compatible_cmplx_dtype(f_lower_precision)
 
     flm_recovered_short = forward(
@@ -96,7 +105,7 @@ def test_forward_lower_precision(
         L=L,
         spin=spin,
         nside=nside,
-        kernel=kernel_lower_precision,
+        kernel=kernel_to_use,
         sampling=sampling,
         reality=reality,
         method=method,
@@ -114,9 +123,6 @@ def test_forward_lower_precision(
 
     # Confirm that the output inherits the lower precision dtype
     assert flm_recovered_short_dtype == expected_short_flm_type
-    # mw and mwss currently fails for numpy runs due to this:
-    # FIXME https://github.com/numpy/numpy/issues/17801!
-    # Fixed in numpy 2.0.0 but we seem to be pinned to a numpy v1.XX
 
     # Naive expectations for the error. 1/2 precision ~= 1/2 the error OOMagnitude.
     # Allow a -/+1 margin for near-misses during rounding and taking log.
@@ -129,8 +135,10 @@ def test_forward_lower_precision(
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "gl", "dh", "healpix"])
 @pytest.mark.parametrize("reality", [True, False])
 @pytest.mark.parametrize("method", ["jax", "torch"])
+@pytest.mark.parametrize("downsample_kernel", [True, False])
 def test_inverse_lower_precision(
     flm_generator,
+    downsample_kernel: bool,
     sampling: str,
     method: str,
     reality: bool,
@@ -145,7 +153,11 @@ def test_inverse_lower_precision(
     - sampling (to ensure there are no code-paths that are still forcing array creation with a fixed dtype)
     - reality (effectively handles the two cases for real signals and complex signals). Note that for the inverse transform, the output is returned as a floatXX array if reality is set to True, however this conversion doesn't
     actually occur until after all computations have been conducted.
-    - FIXME method (ensure that dtype behaviour occurs for all of the numpy / jax / torch paths)
+    - method (ensure that dtype behaviour occurs for all of the jax / torch paths)
+
+    Verification takes two forms:
+    - A confirmation that the output array has the expected dtype (based on the signal dtype input)
+    - A check that the round-trip error, relative to the full-precision calculation, is within the correct order of magnitude.
     """
     nside = L // 2 if sampling == "healpix" else None
 
@@ -189,14 +201,16 @@ def test_inverse_lower_precision(
         flm = torch.Tensor(flm)
 
     flm_lower_precision = getattr(flm, casting_method)(short_dtype)
-    kernel_lower_precision = getattr(kernel, casting_method)(short_dtype)
+    kernel_to_use = (
+        getattr(kernel, casting_method)(short_dtype) if downsample_kernel else kernel
+    )
 
     f_recovered_short = inverse(
         flm_lower_precision,
         L=L,
         spin=spin,
         nside=nside,
-        kernel=kernel_lower_precision,
+        kernel=kernel_to_use,
         sampling=sampling,
         reality=reality,
         method=method,
@@ -209,14 +223,7 @@ def test_inverse_lower_precision(
     error_short_dtype = abs(trusted_signal - f_recovered_short).max()
     short_dtype_error_oom = np.round(np.log10(error_short_dtype))
 
-    # Confirm that the output inherits the lower precision dtype
     assert f_recovered_short_dtype == expected_short_f_type
-    # mw and mwss currently fails for numpy runs due to this:
-    # FIXME https://github.com/numpy/numpy/issues/17801!
-    # Fixed in numpy 2.0.0 but we seem to be pinned to a numpy v1.XX
-
-    # Naive expectations for the error. 1/2 precision ~= 1/2 the error OOMagnitude.
-    # Allow a -/+1 margin for near-misses during rounding and taking log.
     assert (
         long_dtype_error_oom <= 2 * short_dtype_error_oom
         or long_dtype_error_oom == pytest.approx(2 * short_dtype_error_oom, abs=1)
