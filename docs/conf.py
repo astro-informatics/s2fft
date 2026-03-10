@@ -52,6 +52,7 @@ extensions = [
     "sphinxcontrib.texfigure",
     "sphinx.ext.autosectionlabel",
     "sphinxemoji.sphinxemoji",
+    "sphinx_gallery.gen_gallery",
     "sphinx_mdinclude",
 ]
 
@@ -59,6 +60,11 @@ nbsphinx_execute = "never"
 napoleon_google_docstring = True
 napoleon_include_init_with_doc = True
 napoleon_numpy_docstring = False
+
+sphinx_gallery_conf = {
+    "examples_dirs": "examples/",
+    "gallery_dirs": "_generated_tutorials/",  # generated gallery is placed here, with an index.rst file
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
