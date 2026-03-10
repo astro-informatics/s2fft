@@ -60,14 +60,14 @@ napoleon_include_init_with_doc = True
 napoleon_numpy_docstring = False
 
 sphinx_gallery_conf = {
-    "examples_dirs": "examples/",
-    "gallery_dirs": "_generated_tutorials/",  # generated gallery is placed here, with an index.rst file
-    "filename_pattern": "/*.py",
+    "examples_dirs": "./examples",
+    "gallery_dirs": "./_generated_tutorials",  # generated gallery is placed here, with an index.rst file
+    "filename_pattern": "",
 }
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
-source_suffix = [".rst", ".ipynb"]
+source_suffix = [".rst"]
 
 # The master toctree document.
 master_doc = "index"
