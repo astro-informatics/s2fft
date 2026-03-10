@@ -10,6 +10,7 @@ from typing import Any, NamedTuple, ParamSpec, TypeAlias
 import numpy as np
 import pytest
 
+from s2fft.precompute_transforms.spherical import _kernel_functions
 from s2fft.utils import signal_generator
 
 DEFAULT_SEED = 8966433580120847635
@@ -80,6 +81,38 @@ def rng(seed: int) -> np.random.Generator:
 @pytest.fixture
 def flm_generator(rng: np.random.Generator) -> Callable[..., np.ndarray]:
     return partial(signal_generator.generate_flm, rng)
+
+
+@pytest.fixture
+def get_flm_and_precompute_kernel(
+    flm_generator: Callable[..., np.ndarray],
+) -> Callable[..., tuple[np.ndarray, np.ndarray]]:
+    """
+    Generate flm coefficients and the corresponding kernel for a precompute transform.
+
+    Fixture uses the `flm_generator` fixture to create the harmonic coefficients.
+    Other information; `L`, `spin`, `sampling`, `reality`, `method`, `recursion`, `forward`, `nside`,
+    should be provided when calling the (returned fixture) function within a test.
+
+    flm coefficients array is returned at index 0, and kernel at index 1.
+    """
+
+    def _inner(
+        L,
+        spin,
+        sampling,
+        reality,
+        method,
+        recursion,
+        forward,
+        nside=None,
+    ):
+        flm = flm_generator(L=L, spin=spin, reality=reality)
+        kfunc = _kernel_functions[method]
+        kernel = kfunc(L, spin, reality, sampling, nside, forward, recursion=recursion)
+        return flm, kernel
+
+    return _inner
 
 
 @pytest.fixture

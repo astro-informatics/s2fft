@@ -4,28 +4,10 @@ import pytest
 import torch
 
 from s2fft import inverse as precise_inverse
-from s2fft.precompute_transforms.spherical import _kernel_functions, forward, inverse
+from s2fft.precompute_transforms.spherical import forward, inverse
 from s2fft.utils._dtype_association import compatible_cmplx_dtype
 
 jax.config.update("jax_enable_x64", True)
-
-
-# TODO: recycled from test_spherical_transforms_precompute - refactor into a fixture perhaps?
-def get_flm_and_kernel(
-    flm_generator,
-    L,
-    spin,
-    sampling,
-    reality,
-    method,
-    recursion,
-    forward,
-    nside=None,
-):
-    flm = flm_generator(L=L, spin=spin, reality=reality)
-    kfunc = _kernel_functions[method]
-    kernel = kfunc(L, spin, reality, sampling, nside, forward, recursion=recursion)
-    return flm, kernel
 
 
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "gl", "dh", "healpix"])
@@ -33,7 +15,7 @@ def get_flm_and_kernel(
 @pytest.mark.parametrize("method", ["jax", "torch"])
 @pytest.mark.parametrize("downsample_kernel", [True, False])
 def test_forward_lower_precision(
-    flm_generator,
+    get_flm_and_precompute_kernel,
     downsample_kernel: bool,
     sampling: str,
     method: str,
@@ -57,8 +39,7 @@ def test_forward_lower_precision(
     """
     nside = L // 2 if sampling == "healpix" else None
 
-    flm, kernel = get_flm_and_kernel(
-        flm_generator,
+    flm, kernel = get_flm_and_precompute_kernel(
         L,
         spin,
         sampling,
@@ -137,7 +118,7 @@ def test_forward_lower_precision(
 @pytest.mark.parametrize("method", ["jax", "torch"])
 @pytest.mark.parametrize("downsample_kernel", [True, False])
 def test_inverse_lower_precision(
-    flm_generator,
+    get_flm_and_precompute_kernel,
     downsample_kernel: bool,
     sampling: str,
     method: str,
@@ -161,8 +142,7 @@ def test_inverse_lower_precision(
     """
     nside = L // 2 if sampling == "healpix" else None
 
-    flm, kernel = get_flm_and_kernel(
-        flm_generator,
+    flm, kernel = get_flm_and_precompute_kernel(
         L,
         spin,
         sampling,

@@ -7,7 +7,7 @@ import torch
 
 from s2fft.base_transforms import spherical as base
 from s2fft.precompute_transforms import construct as c
-from s2fft.precompute_transforms.spherical import _kernel_functions, forward, inverse
+from s2fft.precompute_transforms.spherical import forward, inverse
 from s2fft.sampling import s2_samples as samples
 
 jax.config.update("jax_enable_x64", True)
@@ -25,23 +25,6 @@ reality_to_test = [True, False]
 methods_to_test = ["numpy", "jax", "torch"]
 recursions_to_test = ["price-mcewen", "risbo", "auto"]
 iter_to_test = [0, 1]
-
-
-def get_flm_and_kernel(
-    flm_generator,
-    L,
-    spin,
-    sampling,
-    reality,
-    method,
-    recursion,
-    forward,
-    nside=None,
-):
-    flm = flm_generator(L=L, spin=spin, reality=reality)
-    kfunc = _kernel_functions[method]
-    kernel = kfunc(L, spin, reality, sampling, nside, forward, recursion=recursion)
-    return flm, kernel
 
 
 def get_tol(sampling):
@@ -96,7 +79,7 @@ def check_forward_transform(
 @pytest.mark.parametrize("method", methods_to_test)
 @pytest.mark.parametrize("recursion", recursions_to_test)
 def test_transform_inverse(
-    flm_generator,
+    get_flm_and_precompute_kernel,
     L: int,
     spin: int,
     sampling: str,
@@ -105,8 +88,8 @@ def test_transform_inverse(
     recursion: str,
 ):
     check_spin(recursion, spin)
-    flm, kernel = get_flm_and_kernel(
-        flm_generator, L, spin, sampling, reality, method, recursion, forward=False
+    flm, kernel = get_flm_and_precompute_kernel(
+        L, spin, sampling, reality, method, recursion, forward=False
     )
     check_inverse_transform(flm, kernel, L, spin, sampling, reality, method)
 
@@ -118,7 +101,7 @@ def test_transform_inverse(
 @pytest.mark.parametrize("reality", reality_to_test)
 @pytest.mark.parametrize("recursion", recursions_to_test)
 def test_transform_inverse_torch_gradcheck(
-    flm_generator,
+    get_flm_and_precompute_kernel,
     L: int,
     spin: int,
     sampling: str,
@@ -126,8 +109,8 @@ def test_transform_inverse_torch_gradcheck(
     recursion: str,
 ):
     method = "torch"
-    flm, kernel = get_flm_and_kernel(
-        flm_generator, L, spin, sampling, reality, method, recursion, forward=False
+    flm, kernel = get_flm_and_precompute_kernel(
+        L, spin, sampling, reality, method, recursion, forward=False
     )
     flm = torch.from_numpy(flm)
     flm.requires_grad = True
@@ -140,7 +123,7 @@ def test_transform_inverse_torch_gradcheck(
 @pytest.mark.parametrize("method", methods_to_test)
 @pytest.mark.parametrize("recursion", recursions_to_test)
 def test_transform_inverse_healpix(
-    flm_generator,
+    get_flm_and_precompute_kernel,
     nside: int,
     ratio: int,
     reality: bool,
@@ -150,8 +133,7 @@ def test_transform_inverse_healpix(
     sampling = "healpix"
     spin = 0
     L = ratio * nside
-    flm, kernel = get_flm_and_kernel(
-        flm_generator,
+    flm, kernel = get_flm_and_precompute_kernel(
         L,
         spin,
         sampling,
@@ -170,7 +152,7 @@ def test_transform_inverse_healpix(
 @pytest.mark.parametrize("reality", reality_to_test)
 @pytest.mark.parametrize("recursion", recursions_to_test)
 def test_transform_inverse_healpix_torch_gradcheck(
-    flm_generator,
+    get_flm_and_precompute_kernel,
     nside: int,
     ratio: int,
     reality: bool,
@@ -180,8 +162,7 @@ def test_transform_inverse_healpix_torch_gradcheck(
     sampling = "healpix"
     spin = 0
     L = ratio * nside
-    flm, kernel = get_flm_and_kernel(
-        flm_generator,
+    flm, kernel = get_flm_and_precompute_kernel(
         L,
         spin,
         sampling,
@@ -205,7 +186,7 @@ def test_transform_inverse_healpix_torch_gradcheck(
 @pytest.mark.parametrize("method", methods_to_test)
 @pytest.mark.parametrize("recursion", recursions_to_test)
 def test_transform_forward(
-    flm_generator,
+    get_flm_and_precompute_kernel,
     L: int,
     spin: int,
     sampling: str,
@@ -214,8 +195,8 @@ def test_transform_forward(
     recursion: str,
 ):
     check_spin(recursion, spin)
-    flm, kernel = get_flm_and_kernel(
-        flm_generator, L, spin, sampling, reality, method, recursion, forward=True
+    flm, kernel = get_flm_and_precompute_kernel(
+        L, spin, sampling, reality, method, recursion, forward=True
     )
     check_forward_transform(flm, kernel, L, spin, sampling, reality, method)
 
@@ -227,7 +208,7 @@ def test_transform_forward(
 @pytest.mark.parametrize("reality", reality_to_test)
 @pytest.mark.parametrize("recursion", recursions_to_test)
 def test_transform_forward_torch_gradcheck(
-    flm_generator,
+    get_flm_and_precompute_kernel,
     L: int,
     spin: int,
     sampling: str,
@@ -235,8 +216,8 @@ def test_transform_forward_torch_gradcheck(
     recursion: str,
 ):
     method = "torch"
-    flm, kernel = get_flm_and_kernel(
-        flm_generator, L, spin, sampling, reality, method, recursion, forward=True
+    flm, kernel = get_flm_and_precompute_kernel(
+        L, spin, sampling, reality, method, recursion, forward=True
     )
     f = torch.from_numpy(base.inverse(flm, L, spin, sampling, reality=reality))
     f.requires_grad = True
@@ -250,7 +231,7 @@ def test_transform_forward_torch_gradcheck(
 @pytest.mark.parametrize("recursion", recursions_to_test)
 @pytest.mark.parametrize("iter", iter_to_test)
 def test_transform_forward_healpix(
-    flm_generator,
+    get_flm_and_precompute_kernel,
     nside: int,
     ratio: int,
     reality: bool,
@@ -262,8 +243,7 @@ def test_transform_forward_healpix(
     spin = 0
     L = ratio * nside
     check_spin(recursion, spin)
-    flm, kernel = get_flm_and_kernel(
-        flm_generator,
+    flm, kernel = get_flm_and_precompute_kernel(
         L,
         spin,
         sampling,
@@ -283,7 +263,7 @@ def test_transform_forward_healpix(
 @pytest.mark.parametrize("recursion", recursions_to_test)
 @pytest.mark.parametrize("iter", iter_to_test)
 def test_transform_forward_healpix_torch_gradcheck(
-    flm_generator,
+    get_flm_and_precompute_kernel,
     nside: int,
     ratio: int,
     reality: bool,
@@ -294,8 +274,7 @@ def test_transform_forward_healpix_torch_gradcheck(
     sampling = "healpix"
     spin = 0
     L = ratio * nside
-    flm, kernel = get_flm_and_kernel(
-        flm_generator,
+    flm, kernel = get_flm_and_precompute_kernel(
         L,
         spin,
         sampling,
