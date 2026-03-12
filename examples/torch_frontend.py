@@ -2,12 +2,12 @@
 Torch frontend guide
 ====================
 
-This minimal tutorial demonstrates how to use the torch frontend for `S2FFT` to compute spherical harmonic transforms.
+This minimal tutorial demonstrates how to use the torch frontend for ``S2FFT`` to compute spherical harmonic transforms.
 """
 
 # %%
-# Though `S2FFT` is primarily designed for JAX, this torch functionality is fully unit tested (including gradients) and can be used straightforwardly as a learnable layer within existing models.
-# As the torch functions wrap the JAX implementations we need to configure JAX to use 64-bit precision floating point types by default to ensure sufficient precision for the transforms - `S2FFT` will emit a warning if this has not been done.
+# Though ``S2FFT`` is primarily designed for ``JAX``, this torch functionality is fully unit tested (including gradients) and can be used straightforwardly as a learnable layer within existing models.
+# As the torch functions wrap the ``JAX`` implementations we need to configure ``JAX`` to use 64-bit precision floating point types by default to ensure sufficient precision for the transforms - ``S2FFT`` will emit a warning if this has not been done.
 
 import jax
 import numpy as np

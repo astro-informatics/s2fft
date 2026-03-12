@@ -2,7 +2,7 @@
 Rotate a signal
 ===============
 
-This tutorial demonstrates how to use `S2FFT` to rotate a signal on the sphere.
+This tutorial demonstrates how to use ``S2FFT`` to rotate a signal on the sphere.
 """
 
 # %%
@@ -33,16 +33,16 @@ f = s2fft.inverse(flm, L)
 # Execute the rotation steps
 # --------------------------
 #
-# First, we will run the JAX function to compute the spherical harmonic transform of our signal
+# First, we will run the ``JAX`` function to compute the spherical harmonic transform of our signal
 
 flm = s2fft.forward_jax(f, L, reality=True)
 
 # %%
-# Now apply the rotation (here pi/2 in each of alpha, beta, gamma) on the harmonic coefficients `flm`.
+# Now apply the rotation (here :math:`\pi/2` in each of ``alpha``, ``beta``, ``gamma``) on the harmonic coefficients ``flm``.
 
 flm_rotated = s2fft.rotate_flms(flm, L, (np.pi / 2, np.pi / 2, np.pi / 2))
 
 # %%
-# Finally, we will run the JAX function to compute the inverse spherical harmonic transform to get back to pixel space.
+# Finally, we will run the ``JAX`` function to compute the inverse spherical harmonic transform to get back to pixel space.
 
 f_rotated = s2fft.inverse_jax(flm_rotated, L, reality=True)

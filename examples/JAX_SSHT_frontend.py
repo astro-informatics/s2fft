@@ -2,7 +2,7 @@
 JAX SSHT frontend
 =================
 
-This short tutorial demonstrates how to use the custom JAX frontend support `S2FFT` provides for the `SSHT <https://github.com/astro-informatics/ssht>`_ C library.
+This short tutorial demonstrates how to use the custom ``JAX`` frontend support ``S2FFT`` provides for the `SSHT <https://github.com/astro-informatics/ssht>`_ C library.
 """
 
 # %%
@@ -45,7 +45,7 @@ print(f"Mean absolute error = {np.nanmean(np.abs(f_recov - f))}")
 # Differentiating through SSHT C functions
 # ----------------------------------------
 #
-# So far all this is doing is providing an interface between `JAX` and `SSHT`, the real novelty comes when we differentiate through the C library.
+# So far all this is doing is providing an interface between ``JAX`` and ``SSHT``, the real novelty comes when we differentiate through the C library.
 
 
 # Define an arbitrary JAX function
@@ -65,7 +65,7 @@ gradient = gradient_func(flm)
 # --------------------------
 #
 # This is all well and good, but how do we know these gradients are correct?
-# Thankfully `JAX` provides a simple function to check this...
+# Thankfully ``JAX`` provides a simple function to check this...
 
 from jax.test_util import check_grads
 

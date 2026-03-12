@@ -2,11 +2,11 @@
 Wigner transform
 ================
 
-This tutorial demonstrates how to use `S2FFT` to compute Wigner transforms, i.e. Fourier transforms on the rotation group :math:`SO(3)`.
+This tutorial demonstrates how to use ``S2FFT`` to compute Wigner transforms, i.e. Fourier transforms on the rotation group :math:`SO(3)`.
 """
 
 # %%
-# Specifically, we will adopt the sampling scheme of [McEwen et al. (2015)](https://arxiv.org/abs/1508.03101).
+# Specifically, we will adopt the sampling scheme of `McEwen et al. (2015) <https://arxiv.org/abs/1508.03101>`_.
 #
 # To demonstrate how to compute ``S2FFT`` Wigner transforms we will first construct an input signal that is sampled on the rotation group using this sampling scheme.
 # We'll simply construct a random test signal in harmonic space for demonstration purposes.
@@ -28,7 +28,7 @@ flmn = s2fft.utils.signal_generator.generate_flmn(rng, L, N, reality=reality)
 # Computing the inverse Wigner transform
 # --------------------------------------
 #
-# Let's run the JAX function to compute the inverse Wigner transform of this random signal.
+# Let's run the ``JAX`` function to compute the inverse Wigner transform of this random signal.
 
 f = s2fft.wigner.inverse_jax(flmn, L, N, reality=reality)
 
@@ -43,7 +43,7 @@ f_pre = s2fft.wigner.inverse_jax(flmn, L, N, reality=reality, precomps=precomps)
 # Computing the forward Wigner transform
 # --------------------------------------
 #
-# Let's run the JAX function to compute the forward Wigner transforms to get us back to the random Wigner coefficients.
+# Let's run the ``JAX`` function to compute the forward Wigner transforms to get us back to the random Wigner coefficients.
 
 flmn_recov = s2fft.wigner.forward_jax(f, L, N, reality=reality)
 

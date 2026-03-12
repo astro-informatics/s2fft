@@ -2,11 +2,12 @@
 Spherical harmonic transform
 ============================
 
-This tutorial demonstrates how to use `S2FFT` to compute spherical harmonic transforms.
-Specifically, we will adopt the sampling scheme of `McEwen & Wiaux (2012) <https://arxiv.org/abs/1110.6298>`_.
+This tutorial demonstrates how to use ``S2FFT`` to compute spherical harmonic transforms.
 """
 
-# %% First let's load an input signal that is sampled on the sphere with this sampling scheme.
+# %%
+# In this example we will adopt the sampling scheme of `McEwen & Wiaux (2012) <https://arxiv.org/abs/1110.6298>`_.
+# First let's load an input signal that is sampled on the sphere with this sampling scheme.
 
 import jax
 
@@ -35,13 +36,13 @@ plt.show()
 # Computing the forward spherical harmonic transform
 # --------------------------------------------------
 #
-# Let's now run the JAX function to compute the spherical harmonic transform of this map.
+# Let's now run the ``JAX`` function to compute the spherical harmonic transform of this map.
 
 flm = s2fft.forward_jax(f, L)
 
 # %%
 # If you are planning on applying this transform many times (e.g. during training of a model) we recommend precomputing and storing some small arrays that are used every time.
-# This trades off additional memory usage for enhanced speed and should be fine at small and moderate bandlimits `L`.
+# This trades off additional memory usage for enhanced speed and should be fine at small and moderate bandlimits ``L``.
 #
 # To do this simply compute these and pass as a static argument.
 
@@ -52,13 +53,13 @@ flm_pre = s2fft.forward_jax(f, L, precomps=precomps)
 # Computing the inverse spherical harmonic transform
 # --------------------------------------------------
 #
-# Let's run the JAX function to compute the inverse spherical harmonic transform to get back to the input map.
+# Let's run the ``JAX`` function to compute the inverse spherical harmonic transform to get back to the input map.
 
 f_recov = s2fft.inverse_jax(flm, L)
 
 # %%
 # Again, if you are planning on applying this transform many times we recommend precomputing and storing some small arrays that are used every time.
-# Recall, this trades off additional memory usage for enhanced speed and should be fine at small and moderate bandlimits `L`.
+# Recall, this trades off additional memory usage for enhanced speed and should be fine at small and moderate bandlimits ``L``.
 #
 # To do this simply compute these and pass as a static argument.
 
