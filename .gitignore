@@ -38,5 +38,5 @@ CTestTestfile.cmake
 _deps
 
 # Docs build
-docs/_generated_tutorials/
+docs/tutorials/
 docs/sg_execution_times.rst

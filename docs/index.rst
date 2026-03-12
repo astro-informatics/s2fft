@@ -5,7 +5,7 @@
    :maxdepth: 3
    :caption: Tutorials
    
-   _generated_tutorials/index
+   tutorials/index
 
 .. toctree::
    :hidden:

@@ -59,10 +59,12 @@ napoleon_google_docstring = True
 napoleon_include_init_with_doc = True
 napoleon_numpy_docstring = False
 
+# Paths in here are relative to conf.py, unless otherwise indicated
 sphinx_gallery_conf = {
-    "examples_dirs": "./examples",
-    "gallery_dirs": "./_generated_tutorials",  # generated gallery is placed here, with an index.rst file
+    "examples_dirs": "../examples",
+    "gallery_dirs": "./tutorials",
     "filename_pattern": "",
+    "default_thumb_file": "./docs/assets/sax_logo",  # For whatever reason, this is relative to repo root
 }
 
 # Add any paths that contain templates here, relative to this directory.

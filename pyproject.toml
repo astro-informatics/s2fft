@@ -119,7 +119,7 @@ lint.per-file-ignores = { "benchmarks*" = [
     "S101",   # Use of `assert` detected
 ], "__init__.py" = [
     "F401", # unused-import
-], "docs/examples*" = [
+], "examples*" = [
     "D",    # No docstring checks in notebook-defined functions
     "E402", # Allow imports not at beginning of files
 ] }
