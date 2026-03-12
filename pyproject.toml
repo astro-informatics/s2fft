@@ -60,6 +60,8 @@ docs = [
 ]
 examples = [
     "cartopy",
+    "healpy",
+    "pyssht",
     "torch",
 ]
 plotting = [
