@@ -42,7 +42,6 @@ urls.homepage = "https://github.com/astro-informatics/s2fft"
 
 [project.optional-dependencies]
 docs = [
-    "cartopy",                        # for the notebook examples
     "docutils<0.22",                  # Required due to https://github.com/vidartf/nbsphinx-link/issues/25
     "sphinx>=5.0.0",
     "pydata-sphinx-theme>=0.12.0",
@@ -58,6 +57,10 @@ docs = [
     "sphinx_mdinclude",
     "ipython>=7.16.1",
     "jupyter>=1.0.0",
+]
+examples = [
+    "cartopy",
+    "torch",
 ]
 plotting = [
     "pyvista",
