@@ -14,8 +14,11 @@
 import os
 import sys
 from importlib.metadata import version as get_version
+from pathlib import Path
 
 sys.path.insert(0, os.path.abspath(".."))
+
+DOCS_DIR = Path(__file__).parent
 
 
 # -- Project information -----------------------------------------------------
@@ -59,12 +62,13 @@ napoleon_google_docstring = True
 napoleon_include_init_with_doc = True
 napoleon_numpy_docstring = False
 
-# Paths in here are relative to conf.py, unless otherwise indicated
 sphinx_gallery_conf = {
     "examples_dirs": "../examples",
     "gallery_dirs": "./tutorials",
     "filename_pattern": "",
-    "default_thumb_file": "./docs/assets/sax_logo",  # For whatever reason, this is relative to repo root
+    # For whatever reason, default_thumb_file is interpreted as
+    # relative to CWD in which build is run, unless an absolute path is provided.
+    "default_thumb_file": str(DOCS_DIR / "assets/sax_logo"),
 }
 
 # Add any paths that contain templates here, relative to this directory.
