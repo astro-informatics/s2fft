@@ -119,6 +119,9 @@ lint.per-file-ignores = { "benchmarks*" = [
     "S101",   # Use of `assert` detected
 ], "__init__.py" = [
     "F401", # unused-import
+], "docs/examples*" = [
+    "D",    # No docstring checks in notebook-defined functions
+    "E402", # Allow imports not at beginning of files
 ] }
 lint.select = ["B", "C90", "D", "E1", "E4", "E7", "E9", "F", "I", "S", "UP"]
 lint.isort.known-first-party = ["s2fft"]
