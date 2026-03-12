@@ -1,6 +1,7 @@
 """
 Torch frontend guide
 ====================
+
 This minimal tutorial demonstrates how to use the torch frontend for `S2FFT` to compute spherical harmonic transforms.
 """
 
