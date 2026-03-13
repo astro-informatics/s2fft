@@ -60,6 +60,7 @@ docs = [
 ]
 examples = [
     "cartopy",
+    "ducc0",
     "healpy",
     "pyssht",
     "torch",
