@@ -38,8 +38,7 @@ jobs:
       run: |
         sudo apt install pandoc
         python -m pip install --upgrade pip
-        pip install .[docs]
-        pip install .[examples]
+        pip install .[docs,examples]
   
     - name: Build documentation
       run: cd docs && make html
