@@ -154,7 +154,7 @@ pytest
 
 ## Documentation 📖
 
-Documentation for the released version is available [here](https://astro-informatics.github.io/s2fft/).
+Documentation for the released version [is available here](https://astro-informatics.github.io/s2fft/).
 To install the documentation dependencies, clone the repository and install the package (in [editable mode](https://setuptools.pypa.io/en/latest/userguide/development_mode.html))
 with the extra documentation dependencies by running from the root of the repository
 
@@ -172,14 +172,13 @@ open _build/html/index.html
 
 ## Notebooks 📓
 
-A series of tutorial notebooks are included in the `notebooks` directory
-and rendered [in the documentation](https://astro-informatics.github.io/s2fft/tutorials/index.html).
+A series of tutorial notebooks have been rendered in, and are available for download from, [the documentation](https://astro-informatics.github.io/s2fft/tutorials/index.html).
 
 To install the dependencies required to run the notebooks locally, clone the repository and install the package (in [editable mode](https://setuptools.pypa.io/en/latest/userguide/development_mode.html))
-with the extra documentation and plotting dependencies by running from the root of the repository
+with the extra documentation, plotting, and examples dependencies by running from the root of the repository
 
 ```bash
-pip install -e ".[docs,plotting]"
+pip install -e ".[docs,examples,plotting]"
 ```
 
 To run the notebooks in Jupyter Lab, run from the root of the repository
