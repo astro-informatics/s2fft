@@ -1,14 +1,12 @@
 import inspect
 import json
 from collections.abc import Callable, Mapping
-from functools import partial, wraps
+from functools import wraps
 from pathlib import Path
 from typing import Any, NamedTuple, ParamSpec, TypeAlias
 
 import numpy as np
 import pytest
-
-from s2fft.utils import signal_generator
 
 
 @pytest.fixture
@@ -24,34 +22,6 @@ def use_cache(request) -> Path:
 @pytest.fixture
 def update_cache(request) -> Path:
     return request.config.getoption("update_cache")
-
-
-@pytest.fixture
-def rng(seed: int) -> np.random.Generator:
-    return np.random.default_rng(seed)
-
-
-@pytest.fixture
-def flm_generator(rng: np.random.Generator) -> Callable[..., np.ndarray]:
-    return partial(signal_generator.generate_flm, rng)
-
-
-@pytest.fixture
-def flmn_generator(rng: np.random.Generator) -> Callable[..., np.ndarray]:
-    return partial(signal_generator.generate_flmn, rng)
-
-
-def _s2fft_to_so3_sampling(s2fft_sampling: str) -> str:
-    if s2fft_sampling.lower() == "mw":
-        so3_sampling = "SO3_SAMPLING_MW"
-    elif s2fft_sampling.lower() == "mwss":
-        so3_sampling = "SO3_SAMPLING_MWSS"
-    else:
-        raise ValueError(
-            f"Sampling scheme sampling={s2fft_sampling} not supported by so3."
-        )
-
-    return so3_sampling
 
 
 def _cache_subdirectory_path(cache_directory: Path, subdirectory: str) -> Path:
@@ -72,6 +42,19 @@ def _cache_filename(parameters: dict, extension: str) -> str:
         + "."
         + extension
     )
+
+
+def _s2fft_to_so3_sampling(s2fft_sampling: str) -> str:
+    if s2fft_sampling.lower() == "mw":
+        so3_sampling = "SO3_SAMPLING_MW"
+    elif s2fft_sampling.lower() == "mwss":
+        so3_sampling = "SO3_SAMPLING_MWSS"
+    else:
+        raise ValueError(
+            f"Sampling scheme sampling={s2fft_sampling} not supported by so3."
+        )
+
+    return so3_sampling
 
 
 P = ParamSpec("P")
