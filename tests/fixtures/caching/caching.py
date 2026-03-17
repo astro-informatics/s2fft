@@ -1,27 +1,11 @@
 import inspect
-import json
 from collections.abc import Callable, Mapping
 from functools import wraps
 from pathlib import Path
-from typing import Any, NamedTuple, ParamSpec, TypeAlias
+from typing import Any, ParamSpec, TypeAlias
 
 import numpy as np
 import pytest
-
-
-@pytest.fixture
-def cache_directory(request) -> Path:
-    return request.config.getoption("cache_directory")
-
-
-@pytest.fixture
-def use_cache(request) -> Path:
-    return request.config.getoption("use_cache")
-
-
-@pytest.fixture
-def update_cache(request) -> Path:
-    return request.config.getoption("update_cache")
 
 
 def _cache_subdirectory_path(cache_directory: Path, subdirectory: str) -> Path:
@@ -61,39 +45,13 @@ P = ParamSpec("P")
 TestData: TypeAlias = Mapping[str, Any]
 
 
-class _TestDataFormat(NamedTuple):
-    extension: str
-    load: Callable[[Path], TestData]
-    save: Callable[[Path, TestData], None]
-
-
-def _npz_load(path: Path) -> TestData:
-    return np.load(path)
-
-
-def _npz_save(path: Path, data: TestData) -> None:
-    return np.savez_compressed(path, **data)
-
-
-def _json_load(path: Path) -> TestData:
-    with path.open("r") as f:
-        return json.load(f)
-
-
-def _json_save(path: Path, data: TestData) -> None:
-    with path.open("w") as f:
-        json.dump(data, f)
-
-
-_TEST_DATA_FORMATS = {
-    "npz": _TestDataFormat("npz", _npz_load, _npz_save),
-    "json": _TestDataFormat("json", _json_load, _json_save),
-}
-
-
 @pytest.fixture
 def cached_test_case_wrapper(
-    cache_directory: Path, use_cache: bool, update_cache: bool, seed: int
+    cache_directory: Path,
+    use_cache: bool,
+    update_cache: bool,
+    seed: int,
+    _TEST_DATA_FORMATS: dict[str, TestData],
 ) -> Callable[[Callable[P, TestData], str], Callable[P, TestData]]:
     """Fixture (decorator) for loading/writing test data to/from the cache.
 
