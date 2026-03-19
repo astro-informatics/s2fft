@@ -19,7 +19,7 @@ _THIS_DIR = Path(__file__).parent.resolve()
 
 def _to_module_string(path: str) -> str:
     """Convert a file path to a module string."""
-    return path.replace("/", ".").replace("\\", ".").replace(".py", "")
+    return path.replace(".py", "").replace("/", ".").replace("\\", ".")
 
 
 pytest_plugins = [
