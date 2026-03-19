@@ -1,4 +1,16 @@
-"""Collection of shared fixtures"""
+"""
+Collection of shared fixtures.
+
+To avoid having a single, long ``conftest.py`` file, ``S2FFT`` makes use of "local" pytest plugins
+to provide fixtures that can be used across the entire test suite, but organised into (sub)directories
+and smaller files.
+
+The ``tests/fixtures`` directory (and subdirectories therein) are examined by ``pytest`` on test
+discovery, by virtue of how the ``pytest_plugins`` variable is set below. This effectively causes
+``pytest`` to read the content of all ``*.py`` files in the ``fixtures`` directory, and thus load
+any fixtures or command-line options in them as if they had been defined inside this file. In turn,
+this ensures any such fixtures are available for use within the entire test suite.
+"""
 
 from pathlib import Path
 
