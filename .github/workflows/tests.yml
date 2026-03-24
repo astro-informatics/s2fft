@@ -85,7 +85,7 @@ jobs:
         fetch-depth: 0
         fetch-tags: true
         
-    - uses: actions/download-artifact@v7
+    - uses: actions/download-artifact@v8
       with:
         name: cached-test-data
         path: tests/cached-test-data
