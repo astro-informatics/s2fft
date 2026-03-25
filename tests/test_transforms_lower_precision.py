@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import torch
 
-from s2fft import inverse as precise_inverse
+import s2fft
 from s2fft.precompute_transforms.spherical import forward, inverse
 from s2fft.utils._dtype_association import compatible_complex_dtype
 
@@ -63,7 +63,7 @@ def test_lower_precision_transforms(
         forward=fwd,
         **common_args,
     )
-    f = precise_inverse(flm, **common_args)
+    f = s2fft.inverse(flm, **common_args)
 
     # Establish;
     # - which array is being transformed
