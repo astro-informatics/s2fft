@@ -1,7 +1,7 @@
 import numpy as np
 
 from s2fft.sampling import s2_samples as samples
-from s2fft.utils._dtype_association import compatible_cmplx_dtype
+from s2fft.utils._dtype_association import compatible_complex_dtype
 
 
 def periodic_extension(
@@ -34,7 +34,7 @@ def periodic_extension(
     ntheta_ext = samples.ntheta_extension(L, sampling)
     m_offset = 1 if sampling == "mwss" else 0
 
-    f_ext = np.zeros((f.shape[0], ntheta_ext, nphi), dtype=compatible_cmplx_dtype(f))
+    f_ext = np.zeros((f.shape[0], ntheta_ext, nphi), dtype=compatible_complex_dtype(f))
     f_ext[:, 0:ntheta, 0:nphi] = f[:, 0:ntheta, 0:nphi]
     f_ext = np.fft.fftshift(np.fft.fft(f_ext, axis=-1, norm="backward"), axes=-1)
 
@@ -87,7 +87,7 @@ def periodic_extension_spatial_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.
     nphi = 2 * L
     ntheta_ext = 2 * L
 
-    f_ext = np.zeros((f.shape[0], ntheta_ext, nphi), dtype=compatible_cmplx_dtype(f))
+    f_ext = np.zeros((f.shape[0], ntheta_ext, nphi), dtype=compatible_complex_dtype(f))
     f_ext[:, 0:ntheta, 0:nphi] = f[:, 0:ntheta, 0:nphi]
     if hasattr(spin, "__len__"):
         f_ext[:, ntheta:, 0 : 2 * L] = np.einsum(
@@ -157,7 +157,7 @@ def upsample_by_two_mwss_ext(f_ext: np.ndarray, L: int) -> np.ndarray:
 
     ntheta_ext_up = 2 * ntheta_ext
     f_ext_up = np.zeros(
-        (f_ext.shape[0], ntheta_ext_up, nphi), dtype=compatible_cmplx_dtype(f_ext)
+        (f_ext.shape[0], ntheta_ext_up, nphi), dtype=compatible_complex_dtype(f_ext)
     )
     f_ext_up[:, L : ntheta_ext + L, :nphi] = f_ext[:, 0:ntheta_ext, :nphi]
     return np.fft.ifft(np.fft.ifftshift(f_ext_up, axes=-2), axis=-2, norm="forward")
@@ -276,7 +276,9 @@ def mw_to_mwss_phi(f_mw: np.ndarray, L: int) -> np.ndarray:
         sampling in :math:`\theta` of the input signal.
 
     """
-    f_mwss = np.zeros((f_mw.shape[0], L + 1, 2 * L), dtype=compatible_cmplx_dtype(f_mw))
+    f_mwss = np.zeros(
+        (f_mw.shape[0], L + 1, 2 * L), dtype=compatible_complex_dtype(f_mw)
+    )
     f_mwss[:, :, 1:] = np.fft.fftshift(
         np.fft.fft(f_mw, axis=-1, norm="forward"), axes=-1
     )
@@ -311,7 +313,7 @@ def mw_to_mwss_theta(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
     """
     f_mw_ext = periodic_extension(f_mw, L, spin=spin, sampling="mw")
     fmp_mwss_ext = np.zeros(
-        (f_mw_ext.shape[0], 2 * L, 2 * L - 1), dtype=compatible_cmplx_dtype(f_mw)
+        (f_mw_ext.shape[0], 2 * L, 2 * L - 1), dtype=compatible_complex_dtype(f_mw)
     )
 
     fmp_mwss_ext[:, 1:, :] = np.fft.fftshift(

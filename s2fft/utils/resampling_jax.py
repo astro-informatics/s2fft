@@ -4,7 +4,7 @@ import jax.numpy as jnp
 from jax import jit as _jit
 
 from s2fft.sampling import s2_samples as samples
-from s2fft.utils._dtype_association import compatible_cmplx_dtype
+from s2fft.utils._dtype_association import compatible_complex_dtype
 
 
 @_partial(_jit, static_argnums=(1))
@@ -71,7 +71,7 @@ def mw_to_mwss_theta(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     f_mw_ext = periodic_extension(f_mw, L, spin=spin, sampling="mw")
     fmp_mwss_ext = jnp.zeros(
         (f_mw_ext.shape[0], 2 * L, 2 * L - 1),
-        dtype=compatible_cmplx_dtype(f_mw),
+        dtype=compatible_complex_dtype(f_mw),
     )
 
     fmp_mwss_ext = fmp_mwss_ext.at[:, 1:, :].set(
@@ -84,7 +84,7 @@ def mw_to_mwss_theta(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
             fmp_mwss_ext[:, 1:, :],
             jnp.exp(
                 -1j
-                * jnp.arange(-(L - 1), L, dtype=compatible_cmplx_dtype(f_mw))
+                * jnp.arange(-(L - 1), L, dtype=compatible_complex_dtype(f_mw))
                 * jnp.pi
                 / (2 * L - 1)
             ),
@@ -136,7 +136,7 @@ def mw_to_mwss_phi(f_mw: jnp.ndarray, L: int) -> jnp.ndarray:
 
     """
     f_mwss = jnp.zeros(
-        (f_mw.shape[0], L + 1, 2 * L), dtype=compatible_cmplx_dtype(f_mw)
+        (f_mw.shape[0], L + 1, 2 * L), dtype=compatible_complex_dtype(f_mw)
     )
     f_mwss = f_mwss.at[:, :, 1:].set(
         jnp.fft.fftshift(jnp.fft.fft(f_mw, axis=-1, norm="forward"), axes=-1)
@@ -183,7 +183,7 @@ def periodic_extension(
     ntheta_ext = samples.ntheta_extension(L, sampling)
     m_offset = 1 if sampling == "mwss" else 0
 
-    f_ext = jnp.zeros((f.shape[0], ntheta_ext, nphi), dtype=compatible_cmplx_dtype(f))
+    f_ext = jnp.zeros((f.shape[0], ntheta_ext, nphi), dtype=compatible_complex_dtype(f))
     f_ext = f_ext.at[:, 0:ntheta, 0:nphi].set(f[:, 0:ntheta, 0:nphi])
     f_ext = jnp.fft.fftshift(jnp.fft.fft(f_ext, axis=-1, norm="backward"), axes=-1)
 
@@ -341,7 +341,7 @@ def upsample_by_two_mwss_ext(f_ext: jnp.ndarray, L: int) -> jnp.ndarray:
     ntheta_ext_up = 2 * ntheta_ext
     f_ext_up = jnp.zeros(
         (f_ext.shape[0], ntheta_ext_up, nphi),
-        dtype=compatible_cmplx_dtype(f_ext),
+        dtype=compatible_complex_dtype(f_ext),
     )
     f_ext_up = f_ext_up.at[:, L : ntheta_ext + L, :nphi].set(
         f_ext[:, 0:ntheta_ext, :nphi]
@@ -385,7 +385,7 @@ def periodic_extension_spatial_mwss(
     nphi = 2 * L
     ntheta_ext = 2 * L
 
-    f_ext = jnp.zeros((f.shape[0], ntheta_ext, nphi), dtype=compatible_cmplx_dtype(f))
+    f_ext = jnp.zeros((f.shape[0], ntheta_ext, nphi), dtype=compatible_complex_dtype(f))
     f_ext = f_ext.at[:, 0:ntheta, 0:nphi].set(f[:, 0:ntheta, 0:nphi])
     if spin.size > 1:
         f_ext = f_ext.at[:, ntheta:, 0 : 2 * L].set(

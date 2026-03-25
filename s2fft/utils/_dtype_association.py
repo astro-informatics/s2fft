@@ -3,7 +3,7 @@ import numpy as np
 import torch
 
 
-def compatible_cmplx_dtype(f: jnp.ndarray | np.ndarray | torch.Tensor) -> str:
+def compatible_complex_dtype(f: jnp.ndarray | np.ndarray | torch.Tensor) -> str:
     """
     Return the (string specifier of the) smallest complex dtype compatible with ``f``.
 

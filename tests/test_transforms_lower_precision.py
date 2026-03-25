@@ -5,7 +5,7 @@ import torch
 
 from s2fft import inverse as precise_inverse
 from s2fft.precompute_transforms.spherical import forward, inverse
-from s2fft.utils._dtype_association import compatible_cmplx_dtype
+from s2fft.utils._dtype_association import compatible_complex_dtype
 
 jax.config.update("jax_enable_x64", True)
 
@@ -86,7 +86,7 @@ def test_lower_precision_transforms(
         )
         # forward transform should result in complex array output,
         # even if the signal is real.
-        expected_short_dtype = compatible_cmplx_dtype(to_transform_lower_precision)
+        expected_short_dtype = compatible_complex_dtype(to_transform_lower_precision)
     else:
         to_transform = flm
         transform_direction = inverse
