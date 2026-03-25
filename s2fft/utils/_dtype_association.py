@@ -3,19 +3,6 @@ import numpy as np
 import torch
 
 
-def _dtype_conversions() -> dict[str, str]:
-    conversions = {
-        "complex128": "complex128",
-        "float64": "complex128",
-        "complex64": "complex64",
-        "float32": "complex64",
-    }
-    torch_conversions = {
-        f"torch.{key}": f"torch.{value}" for key, value in conversions.items()
-    }
-    return {**conversions, **torch_conversions}
-
-
 def compatible_cmplx_dtype(f: jnp.ndarray | np.ndarray | torch.Tensor) -> str:
     """
     Return the (string specifier of the) smallest complex dtype compatible with ``f``.
@@ -30,5 +17,14 @@ def compatible_cmplx_dtype(f: jnp.ndarray | np.ndarray | torch.Tensor) -> str:
         with types ``complex128``, ``complex64``, ``float64``, or ``float32`` are supported.
 
     """
+    conversions = {
+        "complex128": "complex128",
+        "float64": "complex128",
+        "complex64": "complex64",
+        "float32": "complex64",
+    }
+    torch_conversions = {
+        f"torch.{key}": f"torch.{value}" for key, value in conversions.items()
+    }
     dtype = str(f.dtype)
-    return _dtype_conversions()[dtype]
+    return {**conversions, **torch_conversions}[dtype]
