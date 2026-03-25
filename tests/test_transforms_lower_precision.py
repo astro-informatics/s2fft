@@ -77,31 +77,31 @@ def test_lower_precision_transforms(
         transform_direction = forward
         true_values = flm
 
-        short_dtype = "float32" if reality else "complex64"
+        single_dtype = "float32" if reality else "complex64"
         if method == "torch":
-            short_dtype = getattr(torch, short_dtype)
+            single_dtype = getattr(torch, single_dtype)
 
         to_transform_lower_precision = getattr(to_transform, casting_method)(
-            short_dtype
+            single_dtype
         )
         # forward transform should result in complex array output,
         # even if the signal is real.
-        expected_short_dtype = compatible_complex_dtype(to_transform_lower_precision)
+        expected_single_dtype = compatible_complex_dtype(to_transform_lower_precision)
     else:
         to_transform = flm
         transform_direction = inverse
         true_values = f
 
-        short_dtype = "complex64"
+        single_dtype = "complex64"
         # Inverse transform should cast to real arrays if reality is specified.
-        expected_short_dtype = "float32" if reality else "complex64"
+        expected_single_dtype = "float32" if reality else "complex64"
         if method == "torch":
-            short_dtype = getattr(torch, short_dtype)
-            expected_short_dtype = getattr(torch, expected_short_dtype)
+            single_dtype = getattr(torch, single_dtype)
+            expected_single_dtype = getattr(torch, expected_single_dtype)
             to_transform = torch.Tensor(to_transform)
 
         to_transform_lower_precision = getattr(to_transform, casting_method)(
-            short_dtype
+            single_dtype
         )
 
     # Torch things to avoid operation errors when comparing to numpy arrays
@@ -110,35 +110,36 @@ def test_lower_precision_transforms(
 
     # Down-cast the kernel if instructed to do so
     kernel_to_use = (
-        getattr(kernel, casting_method)(short_dtype) if downsample_kernel else kernel
+        getattr(kernel, casting_method)(single_dtype) if downsample_kernel else kernel
     )
 
-    # Perform transform in long precision
-    long_precision_result = transform_direction(
+    # Perform transform in double precision
+    double_calc_result = transform_direction(
         to_transform,
         kernel=kernel,
         **common_args,
     )
-    # Perform transform in short precision, possibly with down-cast kernel
-    short_precision_result = transform_direction(
+    # Perform transform in single precision, possibly with down-cast kernel
+    single_calc_result = transform_direction(
         to_transform_lower_precision,
         kernel=kernel_to_use,
         **common_args,
     )
 
     # Confirm that the output inherits the lower precision dtype
-    short_result_dtype = short_precision_result.dtype
-    assert str(short_result_dtype) == str(expected_short_dtype)
+    short_result_dtype = single_calc_result.dtype
+    assert str(short_result_dtype) == str(expected_single_dtype)
 
-    # Check expectations for the error. 1/2 precision ~= 1/2 the error order of magnitude.
-    # Allow a -/+1 margin for near-misses during rounding and taking log.
-    round_trip_error_long_dtype = abs(true_values - long_precision_result).max()
-    long_dtype_error_oom = np.round(np.log10(round_trip_error_long_dtype))
+    # Check expectations for the error. 1/2 precision ~= 1/2 the error order of magnitude (OOM).
+    # As such, we check that the ratio of the logarithm of the errors is approximately 2,
+    # with a tolerance of 1 / log(short error). This is essentially equivalent to the
+    # expectation that the double-precision error OOM should be half that of the single-precision
+    # OOM, allowing for a +/- 1 difference in OOMs from expectation.
+    log_round_trip_error_double = np.log10(abs(true_values - double_calc_result).max())
+    log_round_trip_error_single = np.log10(abs(true_values - single_calc_result).max())
+    log_error_ratio = log_round_trip_error_single / log_round_trip_error_double
+    tolerance = 1 / np.abs(log_round_trip_error_single)
 
-    round_trip_error_short_dtype = abs(true_values - short_precision_result).max()
-    short_dtype_error_oom = np.round(np.log10(round_trip_error_short_dtype))
-
-    assert (
-        long_dtype_error_oom <= 2 * short_dtype_error_oom
-        or long_dtype_error_oom == pytest.approx(2 * short_dtype_error_oom, abs=1)
-    )
+    ratio_is_approx_2 = -tolerance <= (log_error_ratio - 2.0) <= tolerance
+    better_than_expected = 0.0 <= log_error_ratio <= 2.0
+    assert ratio_is_approx_2 or better_than_expected
