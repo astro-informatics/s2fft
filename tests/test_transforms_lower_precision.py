@@ -130,7 +130,7 @@ def test_lower_precision_transforms(
     short_result_dtype = short_precision_result.dtype
     assert str(short_result_dtype) == str(expected_short_dtype)
 
-    # Check expectations for the error. 1/2 precision ~= 1/2 the error OOMagnitude.
+    # Check expectations for the error. 1/2 precision ~= 1/2 the error order of magnitude.
     # Allow a -/+1 margin for near-misses during rounding and taking log.
     round_trip_error_long_dtype = abs(true_values - long_precision_result).max()
     long_dtype_error_oom = np.round(np.log10(round_trip_error_long_dtype))
