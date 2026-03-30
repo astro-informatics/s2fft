@@ -54,7 +54,7 @@ jobs:
         pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc --update-cache -m "uses_cached_data or pyssht or healpy"
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         
@@ -116,6 +116,6 @@ jobs:
         pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc -m "not pyssht and not healpy" --use-cache
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
