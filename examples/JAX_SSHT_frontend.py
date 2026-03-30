@@ -3,6 +3,17 @@ JAX SSHT frontend
 =================
 
 This short tutorial demonstrates how to use the custom ``JAX`` frontend support ``S2FFT`` provides for the `SSHT <https://github.com/astro-informatics/ssht>`_ C library.
+
+![colab image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/astro-informatics/s2fft/tree/gh-pages/_colab_notebooks/JAX_SSHT_frontend.ipynb)
+
+If you are working on this notebook in Google CoLab, you will need to have GoogleCoLab install `s2fft` and `healpy`.
+You can do this by adding a cell to the top of the notebook with the following content:
+
+```bash
+!pip install s2fft pyssht &> /dev/null
+```
+
+and then running that cell.
 """
 
 # %%

@@ -3,6 +3,19 @@ Spherical harmonic transform
 ============================
 
 This tutorial demonstrates how to use ``S2FFT`` to compute spherical harmonic transforms.
+
+![colab image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/astro-informatics/s2fft/tree/gh-pages/_colab_notebooks/spherical_harmonic_transform.ipynb)
+
+If you are working on this notebook in Google CoLab; you will need to have GoogleCoLab install `cartopy` and `s2fft`, as well as fetch the data we'll be using.
+You can do this by adding a cell to the top of the notebook with the following content:
+
+```bash
+!pip install cartopy s2fft pyssht &> /dev/null
+!mkdir data/
+!wget https://github.com/astro-informatics/s2fft/raw/main/examples/data/Gaia_EDR3_flux.npy -P data/ &> /dev/null
+```
+
+and then running that cell.
 """
 
 # %%

@@ -3,12 +3,22 @@ JAX HEALPix Frontend
 ====================
 
 This short tutorial demonstrates how to use the custom ``JAX`` frontend support ``S2FFT`` provides for the `HEALPix <https://healpix.jpl.nasa.gov>`_ C++ library.
+
+![colab image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/astro-informatics/s2fft/tree/gh-pages/_colab_notebooks/JAX_HEALPix_frontend.ipynb)
+
+If you are working on this notebook in Google CoLab, you will need to have GoogleCoLab install `s2fft` and `healpy`.
+You can do this by adding a cell to the top of the notebook with the following content:
+
+```bash
+!pip install s2fft healpy &> /dev/null
+```
+
+and then running that cell.
 """
 
 # %%
 # ``S2FFT``'s support for the `HEALPix <https://healpix.jpl.nasa.gov>`_ C++ library resolves issues involving long JIT compile times for HEALPix when running on CPU.
 # As with the other introductions, let's import some packages and define an arbitrary bandlimited signal to work with.
-
 import jax
 import numpy as np
 
