@@ -29,6 +29,7 @@ def test_lower_precision_transforms(
     L: int = 64,
     spin: int = 0,
     recursion: str = "auto",
+    log_ratio_range: tuple[float, float] = (1.5, 3.0),
 ) -> None:
     """
     Verify that signal arrays inherit the dtype of the input harmonic coefficient arrays.
@@ -98,7 +99,7 @@ def test_lower_precision_transforms(
         if method == "torch":
             single_dtype = getattr(torch, single_dtype)
             expected_single_dtype = getattr(torch, expected_single_dtype)
-            to_transform = torch.Tensor(to_transform)
+            to_transform = torch.as_tensor(to_transform)
 
         to_transform_lower_precision = getattr(to_transform, casting_method)(
             single_dtype
@@ -106,7 +107,7 @@ def test_lower_precision_transforms(
 
     # Torch things to avoid operation errors when comparing to numpy arrays
     if method == "torch":
-        true_values = torch.Tensor(true_values)
+        true_values = torch.as_tensor(true_values)
 
     # Down-cast the kernel if instructed to do so
     kernel_to_use = (
@@ -131,15 +132,15 @@ def test_lower_precision_transforms(
     assert str(short_result_dtype) == str(expected_single_dtype)
 
     # Check expectations for the error. 1/2 precision ~= 1/2 the error order of magnitude (OOM).
-    # As such, we check that the ratio of the logarithm of the errors is approximately 2,
-    # with a tolerance of 1 / log(short error). This is essentially equivalent to the
-    # expectation that the double-precision error OOM should be half that of the single-precision
-    # OOM, allowing for a +/- 1 difference in OOMs from expectation.
-    log_round_trip_error_double = np.log10(abs(true_values - double_calc_result).max())
-    log_round_trip_error_single = np.log10(abs(true_values - single_calc_result).max())
-    log_error_ratio = log_round_trip_error_single / log_round_trip_error_double
-    tolerance = 1 / np.abs(log_round_trip_error_single)
+    # HEALPix lacks a sampling theorem though, so we don't check this holds in that case.
+    no_sampling_theorem = sampling == "healpix" and fwd
+    if not no_sampling_theorem:
+        log_round_trip_error_double = np.log10(
+            abs(true_values - double_calc_result).max()
+        )
+        log_round_trip_error_single = np.log10(
+            abs(true_values - single_calc_result).max()
+        )
+        log_error_ratio = log_round_trip_error_double / log_round_trip_error_single
 
-    ratio_is_approx_2 = -tolerance <= (log_error_ratio - 2.0) <= tolerance
-    better_than_expected = 0.0 <= log_error_ratio <= 2.0
-    assert ratio_is_approx_2 or better_than_expected
+        assert log_ratio_range[0] <= log_error_ratio <= log_ratio_range[1]
