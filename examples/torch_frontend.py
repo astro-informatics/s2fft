@@ -4,14 +4,17 @@ Torch frontend guide
 
 This minimal tutorial demonstrates how to use the torch frontend for ``S2FFT`` to compute spherical harmonic transforms.
 
-![colab image](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/astro-informatics/s2fft/tree/gh-pages/_colab_notebooks/spherical_rotation.ipynb)
+.. image:: https://colab.research.google.com/assets/colab-badge.svg
+    :align: center
+    :alt: Open in Google CoLab
+    :target: https://colab.research.google.com/github/astro-informatics/s2fft/tree/gh-pages/_colab_notebooks/spherical_rotation.ipynb
 
-If you are working on this notebook in Google CoLab, you will need to have GoogleCoLab install `s2fft`.
+If you are working on this notebook in Google CoLab, you will need to have GoogleCoLab install ``s2fft``.
 You can do this by adding a cell to the top of the notebook with the following content:
 
-```bash
-!pip install s2fft &> /dev/null
-```
+.. code-block:: bash
+
+    !pip install s2fft &> /dev/null
 
 and then running that cell.
 """
