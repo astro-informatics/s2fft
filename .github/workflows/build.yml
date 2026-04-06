@@ -55,7 +55,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.4.0
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           # Only build on platforms / architectures for which jaxlib wheels
           # are available
