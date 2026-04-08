@@ -6,10 +6,10 @@ This tutorial demonstrates how to use ``S2FFT`` to compute spherical harmonic tr
 
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
     :align: center
-    :alt: Open in Google CoLab
+    :alt: Open in Google Colab
     :target: https://colab.research.google.com/github/astro-informatics/s2fft/tree/gh-pages/_colab_notebooks/spherical_harmonic_transform.ipynb
 
-If you are working on this notebook in Google CoLab; you will need to have GoogleCoLab install ``cartopy``, ``s2fft`` and ``pyssht``, as well as fetch the data we'll be using.
+If you are working on this notebook in Google Colab; you will need to have Google Colab install ``cartopy``, ``s2fft`` and ``pyssht``, as well as fetch the data we'll be using.
 You can do this by adding a cell to the top of the notebook with the following content:
 
 .. code-block:: bash

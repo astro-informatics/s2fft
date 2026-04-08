@@ -6,10 +6,10 @@ This short tutorial demonstrates how to use the custom ``JAX`` frontend support 
 
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
     :align: center
-    :alt: Open in Google CoLab
+    :alt: Open in Google Colab
     :target: https://colab.research.google.com/github/astro-informatics/s2fft/tree/gh-pages/_colab_notebooks/JAX_HEALPix_frontend.ipynb
 
-If you are working on this notebook in Google CoLab, you will need to have GoogleCoLab install ``s2fft`` and ``healpy``.
+If you are working on this notebook in Google Colab, you will need to have Google Colab install ``s2fft`` and ``healpy``.
 You can do this by adding a cell to the top of the notebook with the following content:
 
 .. code-block:: bash

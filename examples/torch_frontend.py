@@ -6,10 +6,10 @@ This minimal tutorial demonstrates how to use the torch frontend for ``S2FFT`` t
 
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
     :align: center
-    :alt: Open in Google CoLab
+    :alt: Open in Google Colab
     :target: https://colab.research.google.com/github/astro-informatics/s2fft/tree/gh-pages/_colab_notebooks/spherical_rotation.ipynb
 
-If you are working on this notebook in Google CoLab, you will need to have GoogleCoLab install ``s2fft``.
+If you are working on this notebook in Google Colab, you will need to have Google Colab install ``s2fft``.
 You can do this by adding a cell to the top of the notebook with the following content:
 
 .. code-block:: bash
