@@ -42,7 +42,6 @@ urls.homepage = "https://github.com/astro-informatics/s2fft"
 
 [project.optional-dependencies]
 docs = [
-    "docutils<0.22",                  # Required due to https://github.com/vidartf/nbsphinx-link/issues/25
     "sphinx>=5.0.0",
     "pydata-sphinx-theme>=0.12.0",
     "sphinx_toolbox>=2.15.0",
