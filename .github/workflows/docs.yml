@@ -52,10 +52,8 @@ jobs:
         cd docs
         make html
         mkdir _build/html/_colab_notebooks
-        for nb in `find _build/html/_downloads`; do
-          if [[ $nb == *.ipynb ]]; then
-            cp $nb _build/html/_colab_notebooks/
-          fi
+        for nb in `find _build/html/_downloads -name '*.ipynb'`; do
+          cp $nb _build/html/_colab_notebooks/
         done
 
     - name: Upload built docs as artifact
