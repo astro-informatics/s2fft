@@ -1,3 +1,6 @@
+from types import ModuleType
+
+import array_api_extra as xpx
 import numpy as np
 import numpy.fft as fft
 
@@ -18,7 +21,7 @@ def quad_weights_transform(
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mwss", "dh", "gl", "healpix}.  Defaults to "mwss".
+            {"mwss", "dh", "gl", "healpix", "cc"}.  Defaults to "mwss".
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
@@ -45,6 +48,9 @@ def quad_weights_transform(
 
     elif sampling.lower() == "healpix":
         return quad_weights_hp(nside)
+
+    elif sampling.lower == "cc":
+        return quad_weights_cc(L)
 
     else:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
@@ -318,3 +324,53 @@ def mw_weights(m: int) -> float:
 
     else:
         return 0
+
+
+def quad_weights_cc(L: int, xp: ModuleType = np) -> np.ndarray:
+    r"""
+    Compute Clenshaw-Curtis quadrature weights for :math:`\theta` and :math:`\phi` integration.
+
+    Args:
+        L (int): Harmonic band-limit.
+        xp (module): Array namespace to use to operations. Defaults to NumPy.
+
+    Returns:
+        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        as :math:`\phi` varies for given :math:`\theta`).
+
+    """
+    return quad_weights_cc_theta_only(L, xp) * xp.pi / L
+
+
+def quad_weights_cc_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
+    r"""
+    Compute Clenshaw-curtis quadrature weights for :math:`\theta` integration (only).
+
+    Args:
+        L (int): Harmonic band-limit.
+        xp (module): Array namespace to use to operations. Defaults to NumPy.
+
+    Returns:
+        np.ndarray: Weights computed for each :math:`\theta`.
+
+    References:
+       Waldvogel, J. (2006). Fast construction of the Fejer and Clenshaw-Curtis quadrature rules.
+       BIT Numerical Mathematics, 46(1), 195–202. https://doi.org/10.1007/s10543-006-0045-4.
+
+    """
+    if L < 1:
+        raise ValueError(f"Bandlimit must be at least 1: L = {L}")
+
+    if L == 1:
+        return xp.array([1.0, 1.0])
+
+    t = xp.arange(1, L, 2)
+    w0 = -2 / (t * (t - 2))
+    w1 = xp.array([-2 / (L - 1)]) if L % 2 == 0 else xp.array([-1 / (L - 2)] * 2)
+    w = xp.concatenate([w0, w1, w0[-1:0:-1]])
+    g = -xp.ones(L)
+    g = xpx.at(g)[L // 2].add(L)
+    g = xpx.at(g)[L - L // 2].add(L)
+    g /= L**2 - 1 + (L % 2)
+    weights = xp.fft.ifft(w + g)
+    return xp.concatenate([weights.real, weights.real[:1]])

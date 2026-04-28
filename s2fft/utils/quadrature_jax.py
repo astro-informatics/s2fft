@@ -5,6 +5,10 @@ import jax.numpy as jnp
 from jax import jit as _jit
 
 from s2fft.sampling import s2_samples as samples
+from s2fft.utils.quadrature import quad_weights_cc as _quad_weights_cc
+from s2fft.utils.quadrature import (
+    quad_weights_cc_theta_only as _quad_weights_cc_theta_only,
+)
 
 
 @_partial(_jit, static_argnums=(0, 1, 2))
@@ -23,7 +27,7 @@ def quad_weights_transform(
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mwss", "dh", "gl", "healpix}.  Defaults to "mwss".
+            {"mwss", "dh", "gl", "healpix", "cc"}.  Defaults to "mwss".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -94,6 +98,9 @@ def quad_weights(L: int = None, sampling: str = "mw", nside: int = None) -> jnp.
 
     elif sampling.lower() == "healpix":
         return quad_weights_hp(nside)
+
+    elif sampling.lower() == "cc":
+        return quad_weights_cc(L)
 
     else:
         raise ValueError(f"Sampling scheme sampling={sampling} not implemented")
@@ -341,3 +348,38 @@ def mw_weights(m: int) -> float:
         ),
         m,
     )
+
+
+@_partial(_jit, static_argnums=(0))
+def quad_weights_cc(L: int) -> jnp.ndarray:
+    r"""
+    Compute Clenshaw-Curtis quadrature weights for :math:`\theta` and :math:`\phi` integration.
+
+    Args:
+        L (int): Harmonic band-limit.
+
+    Returns:
+        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        as :math:`\phi` varies for given :math:`\theta`).
+
+    """
+    return _quad_weights_cc(L, xp=jnp)
+
+
+@_partial(_jit, static_argnums=(0))
+def quad_weights_cc_theta_only(L: int) -> jnp.ndarray:
+    r"""
+    Compute Clenshaw-curtis quadrature weights for :math:`\theta` integration (only).
+
+    Args:
+        L (int): Harmonic band-limit.
+
+    Returns:
+        jnp.ndarray: Weights computed for each :math:`\theta`.
+
+    References:
+       Waldvogel, J. (2006). Fast construction of the Fejer and Clenshaw-Curtis quadrature rules.
+       BIT Numerical Mathematics, 46(1), 195–202. https://doi.org/10.1007/s10543-006-0045-4.
+
+    """
+    return _quad_weights_cc_theta_only(L, xp=jnp)
