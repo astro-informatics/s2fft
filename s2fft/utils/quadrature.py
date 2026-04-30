@@ -369,7 +369,7 @@ def quad_weights_cc_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
     w1 = xp.array([-2 / (L - 1)]) if L % 2 == 0 else xp.array([-1 / (L - 2)])
     w = xp.concatenate([w0, w1])
     g = -xp.ones(L // 2 + 1)
-    g = xpx.at(g)[L // 2].add(L)
+    g = xpx.at(g)[L // 2].add(2 * L if L % 2 == 0 else L)
     g /= L**2 - 1 + (L % 2)
     weights = xp.fft.irfft(w + g, n=L)
     return xp.concatenate([weights, weights[:1]])
