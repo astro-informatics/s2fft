@@ -332,7 +332,7 @@ def quad_weights_cc(L: int, xp: ModuleType = np) -> np.ndarray:
 
     Args:
         L (int): Harmonic band-limit.
-        xp (module): Array namespace to use to operations. Defaults to NumPy.
+        xp (module): Array namespace to use for operations. Defaults to NumPy.
 
     Returns:
         np.ndarray: Weights computed for each :math:`\theta` (weights are identical
@@ -348,7 +348,7 @@ def quad_weights_cc_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
 
     Args:
         L (int): Harmonic band-limit.
-        xp (module): Array namespace to use to operations. Defaults to NumPy.
+        xp (module): Array namespace to use for operations. Defaults to NumPy.
 
     Returns:
         np.ndarray: Weights computed for each :math:`\theta`.
@@ -366,11 +366,10 @@ def quad_weights_cc_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
 
     t = xp.arange(1, L, 2)
     w0 = -2 / (t * (t - 2))
-    w1 = xp.array([-2 / (L - 1)]) if L % 2 == 0 else xp.array([-1 / (L - 2)] * 2)
-    w = xp.concatenate([w0, w1, w0[-1:0:-1]])
-    g = -xp.ones(L)
+    w1 = xp.array([-2 / (L - 1)]) if L % 2 == 0 else xp.array([-1 / (L - 2)])
+    w = xp.concatenate([w0, w1])
+    g = -xp.ones(L // 2 + 1)
     g = xpx.at(g)[L // 2].add(L)
-    g = xpx.at(g)[L - L // 2].add(L)
     g /= L**2 - 1 + (L % 2)
-    weights = xp.fft.ifft(w + g)
-    return xp.concatenate([weights.real, weights.real[:1]])
+    weights = xp.fft.irfft(w + g, n=L)
+    return xp.concatenate([weights, weights[:1]])
