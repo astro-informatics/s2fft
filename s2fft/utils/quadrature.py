@@ -326,6 +326,29 @@ def mw_weights(m: int) -> float:
         return 0
 
 
+def _fejer_second_rule_rfft_weights(L: int, xp: ModuleType = np):
+    r"""
+    Compute real-valued FFT of weights for Fejer second quadrature rule.
+
+    Args:
+        L (int): Harmonic band-limit.
+        xp (module): Array namespace to use for operations. Defaults to NumPy.
+
+    Returns:
+        np.ndarray: Real-valued FFT of weights computed for each :math:`\theta`
+        (weights are identical as :math:`\phi` varies for given :math:`\theta`).
+
+    References:
+       Waldvogel, J. (2006). Fast construction of the Fejer and Clenshaw-Curtis quadrature rules.
+       BIT Numerical Mathematics, 46(1), 195–202. https://doi.org/10.1007/s10543-006-0045-4.
+
+    """
+    t = xp.arange(1, L, 2)
+    w0 = -2 / (t * (t - 2))
+    w1 = xp.array([-2 / (L - 1)]) if L % 2 == 0 else xp.array([-1 / (L - 2)])
+    return xp.concatenate([w0, w1])
+
+
 def quad_weights_cc(L: int, xp: ModuleType = np) -> np.ndarray:
     r"""
     Compute Clenshaw-Curtis quadrature weights for :math:`\theta` and :math:`\phi` integration.
@@ -339,12 +362,12 @@ def quad_weights_cc(L: int, xp: ModuleType = np) -> np.ndarray:
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
-    return quad_weights_cc_theta_only(L, xp) * xp.pi / L
+    return quad_weights_cc_theta_only(L, xp) * 2 * xp.pi / samples.nphi_equiang(L, "cc")
 
 
 def quad_weights_cc_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
     r"""
-    Compute Clenshaw-curtis quadrature weights for :math:`\theta` integration (only).
+    Compute Clenshaw-Curtis quadrature weights for :math:`\theta` integration (only).
 
     Args:
         L (int): Harmonic band-limit.
@@ -364,12 +387,50 @@ def quad_weights_cc_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
     if L == 1:
         return xp.array([1.0, 1.0])
 
-    t = xp.arange(1, L, 2)
-    w0 = -2 / (t * (t - 2))
-    w1 = xp.array([-2 / (L - 1)]) if L % 2 == 0 else xp.array([-1 / (L - 2)])
-    w = xp.concatenate([w0, w1])
+    w = _fejer_second_rule_rfft_weights(L, xp)
     g = -xp.ones(L // 2 + 1)
     g = xpx.at(g)[L // 2].add(2 * L if L % 2 == 0 else L)
     g /= L**2 - 1 + (L % 2)
     weights = xp.fft.irfft(w + g, n=L)
     return xp.concatenate([weights, weights[:1]])
+
+
+def quad_weights_f2(L: int, xp: ModuleType = np) -> np.ndarray:
+    r"""
+    Compute Fejér's second rule quadrature weights for :math:`\theta` and :math:`\phi` integration.
+
+    Args:
+        L (int): Harmonic band-limit.
+        xp (module): Array namespace to use for operations. Defaults to NumPy.
+
+    Returns:
+        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        as :math:`\phi` varies for given :math:`\theta`).
+
+    """
+    return quad_weights_f2_theta_only(L, xp) * 2 * xp.pi / samples.nphi_equiang(L, "f2")
+
+
+def quad_weights_f2_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
+    r"""
+    Compute Fejér's second rule quadrature weights for :math:`\theta` integration (only).
+
+    Args:
+        L (int): Harmonic band-limit.
+        xp (module): Array namespace to use for operations. Defaults to NumPy.
+
+    Returns:
+        np.ndarray: Weights computed for each :math:`\theta`.
+
+    References:
+       Waldvogel, J. (2006). Fast construction of the Fejer and Clenshaw-Curtis quadrature rules.
+       BIT Numerical Mathematics, 46(1), 195–202. https://doi.org/10.1007/s10543-006-0045-4.
+
+    """
+    if L < 1:
+        raise ValueError(f"Bandlimit must be at least 1: L = {L}")
+
+    w = _fejer_second_rule_rfft_weights(L, xp)
+    weights = xp.fft.irfft(w, n=L)
+    # Weights are zero at poles which we assume are excluded from nodes
+    return weights[1:]

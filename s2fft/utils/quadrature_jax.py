@@ -5,9 +5,17 @@ import jax.numpy as jnp
 from jax import jit as _jit
 
 from s2fft.sampling import s2_samples as samples
-from s2fft.utils.quadrature import quad_weights_cc as _quad_weights_cc
+from s2fft.utils.quadrature import (
+    quad_weights_cc as _quad_weights_cc,
+)
 from s2fft.utils.quadrature import (
     quad_weights_cc_theta_only as _quad_weights_cc_theta_only,
+)
+from s2fft.utils.quadrature import (
+    quad_weights_f2 as _quad_weights_f2,
+)
+from s2fft.utils.quadrature import (
+    quad_weights_f2_theta_only as _quad_weights_f2_theta_only,
 )
 
 
@@ -52,6 +60,12 @@ def quad_weights_transform(
 
     elif sampling.lower() == "healpix":
         return quad_weights_hp(nside)
+
+    elif sampling.lower() == "cc":
+        return quad_weights_cc(L)
+
+    elif sampling.lower() == "f2":
+        return quad_weights_f2(L)
 
     else:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
@@ -101,6 +115,9 @@ def quad_weights(L: int = None, sampling: str = "mw", nside: int = None) -> jnp.
 
     elif sampling.lower() == "cc":
         return quad_weights_cc(L)
+
+    elif sampling.lower() == "f2":
+        return quad_weights_f2(L)
 
     else:
         raise ValueError(f"Sampling scheme sampling={sampling} not implemented")
@@ -369,7 +386,7 @@ def quad_weights_cc(L: int) -> jnp.ndarray:
 @_partial(_jit, static_argnums=(0))
 def quad_weights_cc_theta_only(L: int) -> jnp.ndarray:
     r"""
-    Compute Clenshaw-curtis quadrature weights for :math:`\theta` integration (only).
+    Compute Clenshaw-Curtis quadrature weights for :math:`\theta` integration (only).
 
     Args:
         L (int): Harmonic band-limit.
@@ -383,3 +400,38 @@ def quad_weights_cc_theta_only(L: int) -> jnp.ndarray:
 
     """
     return _quad_weights_cc_theta_only(L, xp=jnp)
+
+
+@_partial(_jit, static_argnums=(0))
+def quad_weights_f2(L: int) -> jnp.ndarray:
+    r"""
+    Compute Fejér's second rule quadrature weights for :math:`\theta` and :math:`\phi` integration.
+
+    Args:
+        L (int): Harmonic band-limit.
+
+    Returns:
+        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        as :math:`\phi` varies for given :math:`\theta`).
+
+    """
+    return _quad_weights_f2(L, xp=jnp)
+
+
+@_partial(_jit, static_argnums=(0))
+def quad_weights_f2_theta_only(L: int) -> jnp.ndarray:
+    r"""
+    Compute Fejér's second rule quadrature weights for :math:`\theta` integration (only).
+
+    Args:
+        L (int): Harmonic band-limit.
+
+    Returns:
+        jnp.ndarray: Weights computed for each :math:`\theta`.
+
+    References:
+       Waldvogel, J. (2006). Fast construction of the Fejer and Clenshaw-Curtis quadrature rules.
+       BIT Numerical Mathematics, 46(1), 195–202. https://doi.org/10.1007/s10543-006-0045-4.
+
+    """
+    return _quad_weights_f2_theta_only(L, xp=jnp)
