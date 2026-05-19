@@ -263,8 +263,11 @@ def t2theta(
             f"Sampling scheme sampling={sampling} with L={L} not supported"
         )
 
-    if sampling.lower() in ("mw", "f2"):
+    if sampling.lower() == "mw":
         return (2 * t + 1) * np.pi / (2 * L - 1)
+
+    elif sampling.lower() == "f2":
+        return (t + 1) * np.pi / L
 
     elif sampling.lower() in ("mwss", "cc"):
         return 2 * t * np.pi / (2 * L)
