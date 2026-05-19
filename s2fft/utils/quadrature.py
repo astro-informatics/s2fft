@@ -49,8 +49,11 @@ def quad_weights_transform(
     elif sampling.lower() == "healpix":
         return quad_weights_hp(nside)
 
-    elif sampling.lower == "cc":
+    elif sampling.lower() == "cc":
         return quad_weights_cc(L)
+
+    elif sampling.lower() == "f2":
+        return quad_weights_f2(L)
 
     else:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
@@ -94,6 +97,12 @@ def quad_weights(
 
     elif sampling.lower() == "gl":
         return quad_weights_gl(L)
+
+    elif sampling.lower() == "cc":
+        return quad_weights_cc(L)
+
+    elif sampling.lower() == "f2":
+        return quad_weights_f2(L)
 
     elif sampling.lower() == "healpix":
         return quad_weights_hp(nside)
