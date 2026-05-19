@@ -114,7 +114,10 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
     if sampling.lower() in ("mw", "dh", "gl"):
         return 2 * L - 1
 
-    elif sampling.lower() in ("mwss", "cc", "f2"):
+    elif sampling.lower() == "mwss":
+        return 2 * L
+
+    elif sampling.lower() in ("cc", "f2"):
         return 2 * L
 
     elif sampling.lower() == "healpix":
