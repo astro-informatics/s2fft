@@ -10,7 +10,7 @@ config.update("jax_enable_x64", True)
 
 
 @pytest.mark.parametrize("L", [5, 6])
-@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "gl"])
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "gl", "cc"])
 @pytest.mark.parametrize("method", ["numpy", "jax", "torch"])
 def test_quadrature_mw_weights(flm_generator, L: int, sampling: str, method: str):
     spin = 0
@@ -48,3 +48,54 @@ def test_quadrature_exceptions():
 
     with pytest.raises(ValueError):
         quadrature.quad_weights(L, sampling="foo")
+
+
+def check_quadrature_rule(f_and_integral, rule, n_points, quadrature_module, tol=1e-12):
+    f, true_integral = f_and_integral
+    thetas = samples.thetas(n_points, sampling=rule)
+    xs = np.cos(thetas)
+    weights = {
+        "cc": quadrature_module.quad_weights_cc_theta_only,
+        "f2": quadrature_module.quad_weights_f2_theta_only,
+        "mw": quadrature_module.quad_weights_mw_theta_only,
+        "mwss": quadrature_module.quad_weights_mwss_theta_only,
+        "gl": lambda L: quadrature_module.quad_weights_gl(L)
+        * (2 * L - 1)
+        / (2 * np.pi),
+        "dh": lambda L: quadrature_module.quad_weight_dh_theta_only(
+            samples.thetas(L, sampling="dh"), L
+        ),
+    }[rule](n_points)
+    quad_integral = (f(xs) * weights).sum()
+    assert abs(quad_integral - true_integral) < tol
+
+
+@pytest.mark.parametrize(
+    "f_and_integral",
+    [
+        (lambda x: x, 0.0),
+        (lambda x: x**2, 2 / 3),
+        (lambda x: x**3 - 2 * x**2 + x - 1, -10 / 3),
+        (lambda x: x**4 - x**2, -4 / 15),
+    ],
+)
+@pytest.mark.parametrize("rule", ["cc", "f2", "mw", "mwss", "gl", "dh"])
+@pytest.mark.parametrize("n_points", [6, 8, 16])
+@pytest.mark.parametrize("quadrature_module", [quadrature, quadrature_jax])
+def test_quadrature_polynomial(f_and_integral, rule, n_points, quadrature_module):
+    check_quadrature_rule(f_and_integral, rule, n_points, quadrature_module)
+
+
+@pytest.mark.parametrize(
+    "f_and_integral",
+    [
+        (lambda x: np.cos(x), np.sin(1) * 2),
+        (lambda x: np.exp(x), np.exp(1) - np.exp(-1)),
+        (lambda x: np.log(1 + x**2), 2 * np.log(2) - 4 + np.pi),
+    ],
+)
+@pytest.mark.parametrize("rule", ["cc", "f2", "mw", "mwss", "gl", "dh"])
+@pytest.mark.parametrize("n_points", [32, 64, 128])
+@pytest.mark.parametrize("quadrature_module", [quadrature, quadrature_jax])
+def test_quadrature_non_polynomial(f_and_integral, rule, n_points, quadrature_module):
+    check_quadrature_rule(f_and_integral, rule, n_points, quadrature_module)
