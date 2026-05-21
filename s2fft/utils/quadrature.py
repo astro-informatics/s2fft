@@ -335,26 +335,31 @@ def mw_weights(m: int) -> float:
         return 0
 
 
-def _fejer_second_rule_rfft_weights(L: int, xp: ModuleType = np):
+def _fejer_second_rule_rfft_weights(n_points: int, xp: ModuleType = np):
     r"""
     Compute real-valued FFT of weights for Fejer second quadrature rule.
 
     Args:
-        L (int): Harmonic band-limit.
+        n_points (int): Number of quadrature points / nodes (including left boundary point).
         xp (module): Array namespace to use for operations. Defaults to NumPy.
 
     Returns:
-        np.ndarray: Real-valued FFT of weights computed for each :math:`\theta`
-        (weights are identical as :math:`\phi` varies for given :math:`\theta`).
+        np.ndarray: Real-valued FFT of array of weights for quadrature nodes. Corresponding weigh
+        array computed using `irfft` includes zero weight in first element for point at left (-1)
+        boundary but excludes zero weight for point at right (1) boundary.
 
     References:
        Waldvogel, J. (2006). Fast construction of the Fejer and Clenshaw-Curtis quadrature rules.
        BIT Numerical Mathematics, 46(1), 195–202. https://doi.org/10.1007/s10543-006-0045-4.
 
     """
-    t = xp.arange(1, L, 2)
+    t = xp.arange(1, n_points, 2)
     w0 = -2 / (t * (t - 2))
-    w1 = xp.array([-2 / (L - 1)]) if L % 2 == 0 else xp.array([-1 / (L - 2)])
+    w1 = (
+        xp.array([-2 / (n_points - 1)])
+        if n_points % 2 == 0
+        else xp.array([-1 / (n_points - 2)])
+    )
     return xp.concatenate([w0, w1])
 
 
@@ -393,14 +398,17 @@ def quad_weights_cc_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
     if L < 1:
         raise ValueError(f"Bandlimit must be at least 1: L = {L}")
 
-    if L == 1:
+    n_theta = samples.ntheta(L, "cc")
+
+    if n_theta == 2:
         return xp.array([1.0, 1.0])
 
-    w = _fejer_second_rule_rfft_weights(L, xp)
-    g = -xp.ones(L // 2 + 1)
-    g = xpx.at(g)[L // 2].add(2 * L if L % 2 == 0 else L)
-    g /= L**2 - 1 + (L % 2)
-    weights = xp.fft.irfft(w + g, n=L)
+    n = n_theta - 1
+    w = _fejer_second_rule_rfft_weights(n, xp)
+    g = -xp.ones(n // 2 + 1)
+    g = xpx.at(g)[n // 2].add(2 * n if n % 2 == 0 else n)
+    g /= n**2 - 1 + (n % 2)
+    weights = xp.fft.irfft(w + g, n=n)
     return xp.concatenate([weights, weights[:1]])
 
 
@@ -439,7 +447,8 @@ def quad_weights_f2_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
     if L < 1:
         raise ValueError(f"Bandlimit must be at least 1: L = {L}")
 
-    w = _fejer_second_rule_rfft_weights(L, xp)
-    weights = xp.fft.irfft(w, n=L)
-    # Weights are zero at poles which we assume are excluded from nodes
+    n_theta = samples.ntheta(L, "f2")
+    w = _fejer_second_rule_rfft_weights(n_theta + 1, xp)
+    weights = xp.fft.irfft(w, n=n_theta + 1)
+    # Weight is zero at left boundary / north pole which we assume is excluded from nodes
     return weights[1:]
