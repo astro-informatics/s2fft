@@ -5,7 +5,6 @@ requires = [
     "scikit-build-core>=0.4.3",
     "nanobind>=1.3.2",
     "jax >= 0.5.0",
-    "array-api-extra >= 0.10.1",
 ]
 build-backend = "scikit_build_core.build"
 
@@ -29,6 +28,7 @@ description = "Differentiable and accelerated spherical transforms with JAX"
 dependencies = [
     "numpy>=1.20",
     "jax>=0.5.0",
+    "array-api-extra >= 0.10.1",
 ]
 dynamic = [
     "version",
