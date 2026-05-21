@@ -1,6 +1,6 @@
 import numpy as np
 
-M_OFFSET_1_SCHEMES = frozenset(("mwss", "healpix"))
+M_OFFSET_1_SCHEMES = frozenset(("mwss", "healpix", "cc", "f2"))
 INCLUDES_SOUTH_POLE_SCHEMES = frozenset(("mw", "mwss", "cc"))
 INCLUDES_NORTH_POLE_SCHEMES = frozenset(("mwss", "cc"))
 
