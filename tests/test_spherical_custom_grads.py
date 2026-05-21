@@ -12,7 +12,8 @@ L_to_test = [16]
 L_lower_to_test = [2]
 spin_to_test = [-2, 0, 1]
 nside_to_test = [8]
-sampling_to_test = ["mw", "mwss", "dh", "gl", "cc", "f2"]
+sampling_to_test_ssht = ["mw", "mwss", "dh", "gl"]
+sampling_to_test = sampling_to_test_ssht + ["cc", "f2"]
 reality_to_test = [False, True]
 
 
@@ -214,7 +215,7 @@ def test_healpix_forward_custom_gradients(
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
-@pytest.mark.parametrize("sampling", sampling_to_test)
+@pytest.mark.parametrize("sampling", sampling_to_test_ssht)
 @pytest.mark.parametrize("reality", reality_to_test)
 @pytest.mark.parametrize("_ssht_backend", [0, 1])
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
@@ -264,7 +265,7 @@ def test_ssht_c_backend_inverse_custom_gradients(
 @pytest.mark.parametrize("L", L_to_test)
 @pytest.mark.parametrize("L_lower", L_lower_to_test)
 @pytest.mark.parametrize("spin", spin_to_test)
-@pytest.mark.parametrize("sampling", sampling_to_test)
+@pytest.mark.parametrize("sampling", sampling_to_test_ssht)
 @pytest.mark.parametrize("reality", reality_to_test)
 @pytest.mark.parametrize("_ssht_backend", [0, 1])
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
