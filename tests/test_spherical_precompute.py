@@ -20,7 +20,8 @@ L_to_test = [12]
 spin_to_test = [-2, 0, 6]
 nside_to_test = [4, 5]
 L_to_nside_ratio = [2, 3]
-sampling_to_test = ["mw", "mwss", "dh", "gl", "cc", "f2"]
+sampling_to_test_ssht = ["mw", "mwss", "dh", "gl"]
+sampling_to_test = sampling_to_test_ssht + ["cc", "f2"]
 reality_to_test = [True, False]
 methods_to_test = ["numpy", "jax", "torch"]
 recursions_to_test = ["price-mcewen", "risbo", "auto"]
@@ -292,7 +293,7 @@ def test_transform_forward_healpix_torch_gradcheck(
 
 
 @pytest.mark.parametrize("spin", [0, 20, 30, -20, -30])
-@pytest.mark.parametrize("sampling", sampling_to_test)
+@pytest.mark.parametrize("sampling", sampling_to_test_ssht)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_inverse_high_spin(
     cached_ssht_test_case: Callable, spin: int, sampling: str, reality: bool
@@ -311,7 +312,7 @@ def test_transform_inverse_high_spin(
 
 
 @pytest.mark.parametrize("spin", [0, 20, 30, -20, -30])
-@pytest.mark.parametrize("sampling", sampling_to_test)
+@pytest.mark.parametrize("sampling", sampling_to_test_ssht)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_forward_high_spin(
     cached_ssht_test_case: Callable, spin: int, sampling: str, reality: bool
