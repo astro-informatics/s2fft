@@ -659,7 +659,9 @@ def forward_latitudinal_step_jax(
     ):
         ftm = ftm_in[1:-1]
         beta = beta_in[1:-1]
-    elif sampling.lower() in samples.INCLUDES_SOUTH_POLE_SCHEMES:
+    elif sampling.lower() in (
+        samples.INCLUDES_SOUTH_POLE_SCHEMES - samples.INCLUDES_NORTH_POLE_SCHEMES
+    ):
         ftm = ftm_in[:-1]
         beta = beta_in[:-1]
     else:
