@@ -238,7 +238,9 @@ def quad_weights_mw(L: int, spin: int = 0) -> np.ndarray:
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
-    return quad_weights_mw_theta_only(L, spin) * 2 * np.pi / (2 * L - 1)
+    return (
+        quad_weights_mw_theta_only(L, spin) * 2 * np.pi / samples.nphi_equiang(L, "mw")
+    )
 
 
 def quad_weights_mwss(L: int, spin: int = 0) -> np.ndarray:
@@ -255,7 +257,12 @@ def quad_weights_mwss(L: int, spin: int = 0) -> np.ndarray:
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
-    return quad_weights_mwss_theta_only(L, spin) * 2 * np.pi / (2 * L)
+    return (
+        quad_weights_mwss_theta_only(L, spin)
+        * 2
+        * np.pi
+        / samples.nphi_equiang(L, "mwss")
+    )
 
 
 def quad_weights_mwss_theta_only(L: int, spin: int = 0) -> np.ndarray:

@@ -50,7 +50,12 @@ def quad_weights_transform(
 
     """
     if sampling.lower() == "mwss":
-        return quad_weights_mwss_theta_only(2 * L) * 2 * jnp.pi / (2 * L)
+        return (
+            quad_weights_mwss_theta_only(2 * L)
+            * 2
+            * jnp.pi
+            / samples.nphi_equiang(L, "mw")
+        )
 
     elif sampling.lower() == "dh":
         return quad_weights_dh(L)
@@ -213,12 +218,7 @@ def quad_weights_gl(L: int) -> jnp.ndarray:
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
-    return (
-        quad_weights_gl_theta_only(L)
-        * 2
-        * jnp.pi
-        / samples.nphi_equiang(L, sampling="gl")
-    )
+    return quad_weights_gl_theta_only(L) * 2 * jnp.pi / samples.nphi_equiang(L, "gl")
 
 
 @_partial(_jit, static_argnums=(0))
@@ -279,7 +279,7 @@ def quad_weights_mw(L: int) -> jnp.ndarray:
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
-    return quad_weights_mw_theta_only(L) * 2 * jnp.pi / (2 * L - 1)
+    return quad_weights_mw_theta_only(L) * 2 * jnp.pi / samples.nphi_equiang(L, "mw")
 
 
 @_partial(_jit, static_argnums=(0))
@@ -298,7 +298,9 @@ def quad_weights_mwss(L: int) -> jnp.ndarray:
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
-    return quad_weights_mwss_theta_only(L) * 2 * jnp.pi / (2 * L)
+    return (
+        quad_weights_mwss_theta_only(L) * 2 * jnp.pi / samples.nphi_equiang(L, "mwss")
+    )
 
 
 @_partial(_jit, static_argnums=(0))
