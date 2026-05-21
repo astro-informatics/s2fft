@@ -38,7 +38,12 @@ def quad_weights_transform(
 
     """
     if sampling.lower() == "mwss":
-        return quad_weights_mwss_theta_only(2 * L, spin=0) * 2 * np.pi / (2 * L)
+        return (
+            quad_weights_mwss_theta_only(2 * L, spin=0)
+            * 2
+            * np.pi
+            / samples.nphi_equiang(L, "mwss")
+        )
 
     elif sampling.lower() == "dh":
         return quad_weights_dh(L)

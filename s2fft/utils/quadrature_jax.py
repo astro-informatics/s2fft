@@ -54,7 +54,7 @@ def quad_weights_transform(
             quad_weights_mwss_theta_only(2 * L)
             * 2
             * jnp.pi
-            / samples.nphi_equiang(L, "mw")
+            / samples.nphi_equiang(L, "mwss")
         )
 
     elif sampling.lower() == "dh":
