@@ -90,7 +90,7 @@ def fnab_shape(
             :math:`SO(3)`.
 
     """
-    if sampling.lower() in ["mwss", "healpix"]:
+    if sampling.lower() in samples.M_OFFSET_1_SCHEMES:
         return _ngamma(N), samples.ntheta(L, sampling, nside), 2 * L
 
     elif sampling.lower() in ["mw", "dh", "gl"]:

@@ -1,5 +1,9 @@
 import numpy as np
 
+M_OFFSET_1_SCHEMES = frozenset(("mwss", "healpix"))
+INCLUDES_SOUTH_POLE_SCHEMES = frozenset(("mw", "mwss", "cc"))
+INCLUDES_NORTH_POLE_SCHEMES = frozenset(("mwss", "cc"))
+
 
 def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
     r"""
