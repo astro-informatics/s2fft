@@ -355,7 +355,7 @@ def wigner_kernel(
             Defaults to False.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
@@ -494,7 +494,7 @@ def wigner_kernel_jax(
             Defaults to False.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".

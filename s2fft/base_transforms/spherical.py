@@ -31,7 +31,7 @@ def inverse(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -80,7 +80,7 @@ def _inverse(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         method (str, optional): Harmonic transform algorithm. Supported algorithms include
             {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to
@@ -154,7 +154,7 @@ def forward(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -217,7 +217,7 @@ def _forward(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         method (str, optional): Harmonic transform algorithm. Supported algorithms include
             {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to
@@ -304,7 +304,7 @@ def _compute_inverse_direct(
         spin (int): Harmonic spin.
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
@@ -391,7 +391,7 @@ def _compute_inverse_sov(
         spin (int): Harmonic spin.
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
@@ -465,7 +465,7 @@ def _compute_inverse_sov_fft(
         spin (int): Harmonic spin.
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
@@ -558,7 +558,7 @@ def _compute_inverse_sov_fft_vectorized(
         spin (int): Harmonic spin.
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
@@ -634,7 +634,7 @@ def _compute_forward_direct(
         spin (int): Harmonic spin.
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
@@ -726,7 +726,7 @@ def _compute_forward_sov(
         spin (int): Harmonic spin.
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
@@ -822,7 +822,7 @@ def _compute_forward_sov_fft(
         spin (int): Harmonic spin.
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 
@@ -938,7 +938,7 @@ def _compute_forward_sov_fft_vectorized(
         spin (int): Harmonic spin.
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "healpix"}.
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
         thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
 

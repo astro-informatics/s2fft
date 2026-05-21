@@ -14,7 +14,7 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
             Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -374,7 +374,7 @@ def phis_equiang(L: int, sampling: str = "mw") -> np.ndarray:
         L (int, optional): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported equiangular sampling
-            schemes include {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
+            schemes include {"mw", "mwss", "dh", "gl", "cc", "f2"}.  Defaults to "mw".
 
     Returns:
         np.ndarray: Array of :math:`\phi` samples for given sampling scheme.
@@ -395,7 +395,7 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
         p (int): :math:`\phi` index.
 
         sampling (str, optional): Sampling scheme.  Supported equiangular sampling
-            schemes include {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
+            schemes include {"mw", "mwss", "dh", "gl", "cc", "f2"}.  Defaults to "mw".
 
     Raises:
         ValueError: HEALPix sampling not support (only equiangular schemes supported).
@@ -454,7 +454,7 @@ def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> tuple[int
         L (int, optional): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.

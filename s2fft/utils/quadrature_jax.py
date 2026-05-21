@@ -88,7 +88,7 @@ def quad_weights(L: int = None, sampling: str = "mw", nside: int = None) -> jnp.
             Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
