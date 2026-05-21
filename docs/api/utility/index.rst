@@ -58,8 +58,8 @@ Utility Functions
      - Compute MW quadrature weights for :math:`\theta` and :math:`\phi` integration.
    * - :func:`~s2fft.utils.quadrature.quad_weights_mwss`
      - Compute MWSS quadrature weights for :math:`\theta` and :math:`\phi` integration.
-   * - :func:`~s2fft.utils.quadrature.quad_weight_dh_theta_only`
-     - Compute DH quadrature weight for :math:`\theta` integration (only), for given :math:`\theta`.
+   * - :func:`~s2fft.utils.quadrature.quad_weights_dh_theta_only`
+     - Compute DH quadrature weight for :math:`\theta` integration (only).
    * - :func:`~s2fft.utils.quadrature.quad_weights_mw_theta_only`
      - Compute MW quadrature weights for :math:`\theta` integration (only).
    * - :func:`~s2fft.utils.quadrature.quad_weights_mwss_theta_only`

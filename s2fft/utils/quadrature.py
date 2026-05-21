@@ -202,31 +202,25 @@ def quad_weights_dh(L: int) -> np.ndarray:
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
-    q = quad_weight_dh_theta_only(samples.thetas(L, sampling="dh"), L)
-
-    return q * 2 * np.pi / (2 * L - 1)
+    return quad_weights_dh_theta_only(L) * 2 * np.pi / samples.nphi_equiang(L, "dh")
 
 
-def quad_weight_dh_theta_only(theta: float, L: int) -> float:
+def quad_weights_dh_theta_only(L: int) -> np.ndarray:
     r"""
-    Compute DH quadrature weight for :math:`\theta` integration (only), for given
-    :math:`\theta`.
+    Compute DH quadrature weights for :math:`\theta` integration (only).
 
     Args:
-        theta (float): :math:`\theta` angle for which to compute weight.
-
         L (int): Harmonic band-limit.
 
     Returns:
-        float: Weight computed for each :math:`\theta`.
+        float: Weights computed for each :math:`\theta`.
 
     """
+    thetas = samples.thetas(L, sampling="dh")
     w = 0.0
     for k in range(0, L):
-        w += np.sin((2 * k + 1) * theta) / (2 * k + 1)
-
-    w *= 2 / L * np.sin(theta)
-
+        w += np.sin((2 * k + 1) * thetas) / (2 * k + 1)
+    w *= 2 / L * np.sin(thetas)
     return w
 
 

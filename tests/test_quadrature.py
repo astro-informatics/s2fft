@@ -60,9 +60,7 @@ def check_quadrature_rule(f_and_integral, rule, n_points, quadrature_module, tol
         "mw": quadrature_module.quad_weights_mw_theta_only,
         "mwss": quadrature_module.quad_weights_mwss_theta_only,
         "gl": quadrature_module.quad_weights_gl_theta_only,
-        "dh": lambda L: quadrature_module.quad_weight_dh_theta_only(
-            samples.thetas(L, sampling="dh"), L
-        ),
+        "dh": quadrature_module.quad_weights_dh_theta_only,
     }[rule](n_points)
     quad_integral = (f(xs) * weights).sum()
     assert abs(quad_integral - true_integral) < tol

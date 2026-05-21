@@ -235,33 +235,30 @@ def quad_weights_dh(L: int) -> jnp.ndarray:
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
-    q = quad_weight_dh_theta_only(samples.thetas(L, sampling="dh"), L)
-
-    return q * 2 * jnp.pi / (2 * L - 1)
+    return quad_weights_dh_theta_only(L) * 2 * jnp.pi / samples.nphi_equiang(L, "dh")
 
 
-@_partial(_jit, static_argnums=(1))
-def quad_weight_dh_theta_only(theta: float, L: int) -> float:
+@_partial(_jit, static_argnums=(0))
+def quad_weights_dh_theta_only(L: int) -> jnp.ndarray:
     r"""
-    Compute DH quadrature weight for :math:`\theta` integration (only), for given
-    :math:`\theta`. JAX implementation of :func:`s2fft.quadrature.quad_weights_dh_theta_only`.
+    Compute DH quadrature weights for :math:`\theta` integration (only).
+    JAX implementation of :func:`s2fft.quadrature.quad_weights_dh_theta_only`.
 
     Args:
-        theta (float): :math:`\theta` angle for which to compute weight.
-
         L (int): Harmonic band-limit.
 
     Returns:
-        float: Weight computed for each :math:`\theta`.
+        jnp.ndarray: Weight computed for each :math:`\theta`.
 
     """
+    thetas = samples.thetas(L, sampling="dh")
 
     def increment_weights(k, w):
-        w += jnp.sin((2 * k + 1) * theta) / (2 * k + 1)
+        w += jnp.sin((2 * k + 1) * thetas) / (2 * k + 1)
         return w
 
-    w = jax.lax.fori_loop(0, L, increment_weights, jnp.zeros_like(theta))
-    w *= 2 / L * jnp.sin(theta)
+    w = jax.lax.fori_loop(0, L, increment_weights, jnp.zeros_like(thetas))
+    w *= 2 / L * jnp.sin(thetas)
 
     return w
 
