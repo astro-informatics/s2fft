@@ -35,7 +35,7 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
         return L
 
     elif sampling.lower() == "f2":
-        return L - 1
+        return L
 
     elif sampling.lower() == "mwss":
         return L + 1
@@ -270,7 +270,7 @@ def t2theta(
         return (2 * t + 1) * np.pi / (2 * L - 1)
 
     elif sampling.lower() == "f2":
-        return (t + 1) * np.pi / L
+        return (t + 1) * np.pi / (L + 1)
 
     elif sampling.lower() in ("mwss", "cc"):
         return 2 * t * np.pi / (2 * L)
