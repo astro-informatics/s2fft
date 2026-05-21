@@ -55,9 +55,14 @@ def generate_precomputes(
     # Correct for mw to mwss conversion
     if forward and sampling.lower() in ["mw", "mwss"]:
         sampling = "mwss"
-        beta = samples.thetas(2 * L, "mwss")[1:-1]
+        beta = samples.thetas(2 * L, "mwss")
     else:
         beta = samples.thetas(L, sampling, nside)
+
+    if forward and sampling.lower() in (
+        samples.INCLUDES_NORTH_POLE_SCHEMES & samples.INCLUDES_SOUTH_POLE_SCHEMES
+    ):
+        beta = beta[1:-1]
 
     ntheta = len(beta)  # Number of theta samples
     el = np.arange(L0, L)

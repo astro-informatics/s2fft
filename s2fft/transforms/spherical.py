@@ -545,8 +545,12 @@ def forward_numpy(
         phase_shifts = hp.ring_phase_shifts_hp(L, nside, True, reality)
         ftm[:, m_start_ind + m_offset :] *= phase_shifts
 
+    INCLUDES_BOTH_POLES_SCHEMES = (
+        samples.INCLUDES_NORTH_POLE_SCHEMES & samples.INCLUDES_SOUTH_POLE_SCHEMES
+    )
+
     # Perform latitudinal wigner-d recursions
-    if sampling.lower() == "mwss":
+    if sampling.lower() in INCLUDES_BOTH_POLES_SCHEMES:
         flm = otf.forward_latitudinal_step(
             ftm[1:-1],
             thetas[1:-1],
@@ -564,7 +568,7 @@ def forward_numpy(
         )
 
     # Include both pole singularities explicitly
-    if sampling.lower() == "mwss":
+    if sampling.lower() in INCLUDES_BOTH_POLES_SCHEMES:
         flm[L0:, L - 1 + spin] += (-1) ** abs(np.arange(L0, L) - spin) * ftm[
             -1, L - 1 + spin + m_offset
         ]
