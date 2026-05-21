@@ -402,18 +402,8 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
         np.ndarray: :math:`\phi` sample(s) for given sampling scheme.
 
     """
-    if sampling.lower() in ["mw", "gl"]:
-        return 2 * p * np.pi / (2 * L - 1)
-
-    elif sampling.lower() == "mwss":
-        return 2 * p * np.pi / (2 * L)
-
-    elif sampling.lower() == "dh":
-        return 2 * p * np.pi / (2 * L - 1)
-
-    elif sampling.lower() == "healpix":
-        raise ValueError(f"Sampling scheme sampling={sampling} not supported")
-
+    if sampling.lower() in ["mw", "gl", "dh", "mw", "mwss", "cc", "f2"]:
+        return 2 * p * np.pi / nphi_equiang(L, sampling)
     else:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
