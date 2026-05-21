@@ -271,16 +271,16 @@ def t2theta(
         )
 
     if sampling.lower() == "mw":
-        return (2 * t + 1) * np.pi / (2 * L - 1)
+        return (2 * t + 1) * np.pi / (2 * ntheta(L, sampling) - 1)
 
     elif sampling.lower() == "f2":
-        return (t + 1) * np.pi / (L + 1)
+        return (t + 1) * np.pi / (ntheta(L, sampling) + 1)
 
     elif sampling.lower() in ("mwss", "cc"):
-        return 2 * t * np.pi / (2 * L)
+        return t * np.pi / (ntheta(L, sampling) - 1)
 
     elif sampling.lower() == "dh":
-        return (2 * t + 1) * np.pi / (4 * L)
+        return (2 * t + 1) * np.pi / (2 * ntheta(L, sampling))
 
     elif sampling.lower() == "healpix":
         if nside is None:
