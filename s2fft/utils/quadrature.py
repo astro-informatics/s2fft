@@ -137,16 +137,15 @@ def quad_weights_hp(nside: int) -> np.ndarray:
     return hp_weights
 
 
-def quad_weights_gl(L: int) -> np.ndarray:
+def quad_weights_gl_theta_only(L: int) -> np.ndarray:
     r"""
-    Compute GL quadrature weights for :math:`\theta` and :math:`\phi` integration.
+    Compute GL quadrature weights for :math:`\theta` integration.
 
     Args:
         L (int): Harmonic band-limit.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
-        as :math:`\phi` varies for given :math:`\theta`).
+        np.ndarray: Weights computed for each :math:`\theta`.
 
     """
     x1, x2 = -1.0, 1.0
@@ -173,7 +172,22 @@ def quad_weights_gl(L: int) -> np.ndarray:
     weights[i - 1] = 2.0 * x1 / ((1.0 - z**2) * pp * pp)
     weights[L + 1 - i - 1] = weights[i - 1]
 
-    return weights * 2 * np.pi / (2 * L - 1)
+    return weights
+
+
+def quad_weights_gl(L: int) -> np.ndarray:
+    r"""
+    Compute GL quadrature weights for :math:`\theta` and :math:`\phi` integration.
+
+    Args:
+        L (int): Harmonic band-limit.
+
+    Returns:
+        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        as :math:`\phi` varies for given :math:`\theta`).
+
+    """
+    return quad_weights_gl_theta_only(L) * 2 * np.pi / samples.nphi_equiang(L, "gl")
 
 
 def quad_weights_dh(L: int) -> np.ndarray:

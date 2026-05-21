@@ -59,9 +59,7 @@ def check_quadrature_rule(f_and_integral, rule, n_points, quadrature_module, tol
         "f2": quadrature_module.quad_weights_f2_theta_only,
         "mw": quadrature_module.quad_weights_mw_theta_only,
         "mwss": quadrature_module.quad_weights_mwss_theta_only,
-        "gl": lambda L: quadrature_module.quad_weights_gl(L)
-        * (2 * L - 1)
-        / (2 * np.pi),
+        "gl": quadrature_module.quad_weights_gl_theta_only,
         "dh": lambda L: quadrature_module.quad_weight_dh_theta_only(
             samples.thetas(L, sampling="dh"), L
         ),
