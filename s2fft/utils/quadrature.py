@@ -420,10 +420,10 @@ def quad_weights_cc_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
 
     n_theta = samples.ntheta(L, "cc")
 
+    # Computing RFFT below with n=0 will fail so explicitly return
+    # weights for single point case
     if n_theta == 1:
         return xp.array([2.0])
-    elif n_theta == 2:
-        return xp.array([1.0, 1.0])
 
     n = n_theta - 1
     w = _fejer_second_rule_rfft_weights(n, xp)
