@@ -103,12 +103,13 @@ def test_quadrature_non_polynomial(f_and_integral, rule, n_points, quadrature_mo
     check_quadrature_rule(f_and_integral, rule, n_points, quadrature_module)
 
 
-@pytest.mark.parametrize("sampling", ["cc", "f2", "mw", "mwss", "gl", "dh"])
-@pytest.mark.parametrize("L", [1, 2, 3, 8, 10])
+@pytest.mark.parametrize("sampling", ["cc", "f2", "mw", "mwss", "gl", "dh", "healpix"])
+@pytest.mark.parametrize("L_or_nside", [1, 2, 3, 8, 10])
 @pytest.mark.parametrize("quadrature_module", [quadrature, quadrature_jax])
-def test_quadrature_weights(sampling, L, quadrature_module):
-    weights = quadrature_module.quad_weights(L, sampling)
-    assert weights.shape[0] == samples.ntheta(L, sampling)
+def test_quadrature_weights(sampling, L_or_nside, quadrature_module):
+    L, nside = (None, L_or_nside) if sampling == "healpix" else (L_or_nside, None)
+    weights = quadrature_module.quad_weights(L=L, sampling=sampling, nside=nside)
+    assert weights.shape[0] == samples.ntheta(L=L, sampling=sampling, nside=nside)
     # In general quadrature rules may use negative weights but
     # for all currently implemented schemes weights should be non-negative
     assert np.all(weights > 0)
@@ -116,4 +117,13 @@ def test_quadrature_weights(sampling, L, quadrature_module):
     # and rescaled to account for integration in phi - we expect the total sum of
     # weights (accounting for repeating by number of phi points) to be equal to
     # surface area of unit sphere - that is 4 * pi
-    assert np.isclose((weights * samples.nphi_equiang(L, sampling)).sum(), 4 * np.pi)
+    if sampling == "healpix":
+        # HEALPix sampling scheme uses equiarea pixels with uniform weights
+        assert np.all(weights == weights[0])
+        assert np.isclose(
+            weights[0] * samples.f_shape(L, sampling, nside)[0], 4 * np.pi
+        )
+    else:
+        assert np.isclose(
+            (weights * samples.nphi_equiang(L, sampling)).sum(), 4 * np.pi
+        )
