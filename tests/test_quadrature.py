@@ -51,6 +51,10 @@ def test_quadrature_exceptions():
     with pytest.raises(ValueError):
         quadrature.quad_weights(L, sampling="foo")
 
+    for sampling in ("cc", "f2"):
+        with pytest.raises(ValueError, match="must be at least 1"):
+            quadrature.quad_weights(0, sampling)
+
 
 def check_quadrature_rule(f_and_integral, rule, n_points, quadrature_module, tol=1e-12):
     f, true_integral = f_and_integral
