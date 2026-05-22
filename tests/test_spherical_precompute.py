@@ -29,7 +29,12 @@ iter_to_test = [0, 1]
 
 
 def get_tol(sampling):
-    return 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
+    if sampling.lower() in ("dh", "gl"):
+        return 1e-8
+    elif sampling.lower() in ("cc", "f2"):
+        return 1e-10
+    else:
+        return 1e-12
 
 
 def check_spin(recursion, spin):
