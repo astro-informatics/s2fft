@@ -12,7 +12,9 @@ config.update("jax_enable_x64", True)
 @pytest.mark.parametrize("L", [5, 6])
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "gl", "cc", "f2"])
 @pytest.mark.parametrize("method", ["numpy", "jax", "torch"])
-def test_quadrature_mw_weights(flm_generator, L: int, sampling: str, method: str):
+def test_quadrature_weights_in_transform(
+    flm_generator, L: int, sampling: str, method: str
+):
     spin = 0
 
     if method.lower() == "numpy":
