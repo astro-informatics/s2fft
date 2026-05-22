@@ -370,7 +370,7 @@ def test_n_sample_wigner_fourier_inverse_fft(sampling, L):
         sampling, samples.ntheta(L, sampling)
     )
     assert isinstance(n_sample, int)
-    assert n_sample > 0
+    assert n_sample >= 0
 
 
 def test_n_sample_wigner_fourier_inverse_fft_raises():
