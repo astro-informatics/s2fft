@@ -58,6 +58,18 @@ We denote by $L$ the band-limit of the signals we are considering.
       - No
       - Yes
       - No
+    * - :ref:`clenshaw-curtis-cc`
+      - ``"cc"``
+      - :math:`(2L - 1) \times 2L`
+      - Yes
+      - No
+      - Yes
+    * - :ref:`fejer-rule-2-f2`
+      - ``"f2"``
+      - :math:`(2L - 1) \times 2L`
+      - Yes
+      - No
+      - Yes
 
 Specifying sampling schemes in ``S2FFT``
 ----------------------------------------
@@ -213,6 +225,56 @@ The regions will be laid out on $4N_{side}-1$ iso-latitude rings, and the distri
 For the equations defining the exact positioning of the regions, their centres, their boundaries, and how they are organised into an array, see section 5 of `Gorski et al. (2005) <https://arxiv.org/abs/astro-ph/0409513>`_.
 
 Further information; `Gorski et al. (2005) <https://arxiv.org/abs/astro-ph/0409513>`_.
+
+.. _clenshaw-curtis-cc:
+
+Clenshaw-Curtis (CC)
+--------------------
+
+Clenshaw-Curtis quadrature `(Cleshaw and Curtis, 1960) <https://doi.org/10.1007/BF01386223>`_,
+is based on expansion of the integrand in terms of Chebyshev polynomials.
+It can be used in a spherical harmonic transform setting to numerically compute integrals over the co-latitude,
+:math:`\theta`, dimension. 
+Clenshaw-Curtis quadrature requires roughly double the number of nodes to exactly integrate a polynomial of a given degree
+compared to Gauss-Legendre quadrature,
+however the co-latitude nodes are equispaced and grids of different resolutions can be nested.
+
+Sample positions are defined by
+
+.. math::
+
+  \theta_t  &= \frac{\pi t}{2L-2},  &\quad t\in\lbrace 0,1,...,2L-2   \rbrace, \\
+  \varphi_p &= \frac{2\pi p}{2L},    &\quad p\in\lbrace 0,1,...,2L-1\rbrace.
+
+Note that here we follow the original definition of the Clenshaw-Curtis quadrature rule
+and include samples at both poles.
+An analogous scheme which excludes the pole is available as :ref:`F2 <fejer-rule-2-f2>`.
+Due to the redundancy in samples at the poles,
+the total number of distinct sites on the sphere used by this sampling scheme is :math:`(2L-3)(2L)+2 = 4L^2 -6L + 2`.
+
+For further information see `Hotte and Ujiie (2018) <https://doi.org/10.1002%2Fqj.3282>`_.
+
+.. _fejer-rule-2-f2:
+
+Fejér's second rule (F2)
+------------------------
+
+Fejér quadrature `(Fejer, 1933) <http://projecteuclid.org/euclid.bams/1183496842>`_,
+is closely related to Clenshaw-Curtis quadrature.
+Fejér's second rule can be used to define a sampling scheme analagous to :ref:`CC <clenshaw-curtis-cc>` but with the poles excluded.
+
+Sample positions are defined by
+
+.. math::
+
+  \theta_t  &= \frac{\pi(t + 1)}{2L},  &\quad t\in\lbrace 0,1,...,2L-2   \rbrace, \\
+  \varphi_p &= \frac{2\pi p}{2L},    &\quad p\in\lbrace 0,1,...,2L-1\rbrace.
+
+This requires :math:`(2L-1) \times 2L = 4L^2 - 2L` elements to be held in memory,
+and since the poles are not sample points,
+the same number of independent degrees of freedom to represent the signal.
+
+For further information see `Hotte and Ujiie (2018) <https://doi.org/10.1002%2Fqj.3282>`_.
 
 .. rubric:: Footnotes
 
