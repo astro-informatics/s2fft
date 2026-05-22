@@ -351,3 +351,30 @@ def test_inverse_transform_unrecognised_method_raises():
     flm = np.zeros(samples.flm_shape(L))
     with pytest.raises(ValueError, match=f"{method} not recognised"):
         inverse(flm, L, method=method)
+
+
+@pytest.mark.parametrize("sampling", ("gl", "healpix"))
+def test_wigner_kernel_fft_mode_non_equiangular_scheme_raises(sampling):
+    mode = "fft"
+    L = 1
+    N = 1
+    for wigner_kernel_function in (c.wigner_kernel_jax, c.wigner_kernel):
+        with pytest.raises(ValueError, match=f"not valid for {sampling} sampling"):
+            wigner_kernel_function(L, N, sampling=sampling, mode=mode)
+
+
+@pytest.mark.parametrize("sampling", samples.EQUIANGULAR_SCHEMES)
+@pytest.mark.parametrize("L", [1, 2, 5])
+def test_n_sample_wigner_fourier_inverse_fft(sampling, L):
+    n_sample = c._n_sample_wigner_fourier_inverse_fft(
+        sampling, samples.ntheta(L, sampling)
+    )
+    assert isinstance(n_sample, int)
+    assert n_sample > 0
+
+
+def test_n_sample_wigner_fourier_inverse_fft_raises():
+    sampling = "invalid_sampling"
+    n_theta = 1
+    with pytest.raises(ValueError, match=f"{sampling} not recognised"):
+        c._n_sample_wigner_fourier_inverse_fft(sampling, n_theta)
