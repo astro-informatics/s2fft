@@ -165,9 +165,14 @@ def generate_precomputes_jax(
     if betas is None:
         if forward and sampling.lower() in ["mw", "mwss"]:
             sampling = "mwss"
-            beta = samples.thetas(2 * L, "mwss")[1:-1]
+            beta = samples.thetas(2 * L, "mwss")
         else:
             beta = samples.thetas(L, sampling, nside)
+
+        if forward and sampling.lower() in (
+            samples.INCLUDES_NORTH_POLE_SCHEMES & samples.INCLUDES_SOUTH_POLE_SCHEMES
+        ):
+            beta = beta[1:-1]
     else:
         beta = betas
 
