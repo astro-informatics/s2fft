@@ -135,6 +135,16 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "ArtemBasyrov",
+      "name": "Artem Basyrov",
+      "avatar_url": "https://avatars.githubusercontent.com/u/78595114?v=4",
+      "profile": "https://github.com/ArtemBasyrov",
+      "contributions": [
+        "code",
+        "test"
+      ]
     }
   ],
   "contributorsPerLine": 7,
