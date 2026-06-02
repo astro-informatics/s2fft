@@ -2,9 +2,10 @@ from functools import partial
 
 import jax.numpy as jnp
 import numpy as np
-from jax import custom_vjp, jit
+from jax import jit
 
 from s2fft.sampling import s2_samples as samples
+from s2fft.transforms import _ftm_flm_primitive as ftm_flm_prim
 from s2fft.transforms import c_backend_spherical as c_sph
 from s2fft.transforms import otf_recursions as otf
 from s2fft.utils import healpix_ffts as hp
@@ -287,42 +288,22 @@ def inverse_jax(
         )
     )
 
-    # Perform latitudinal wigner-d recursions
-    @custom_vjp
-    def flm_to_ftm(flm, spin, precomps):
-        return otf.inverse_latitudinal_step_jax(
-            flm,
-            thetas,
-            L,
-            spin,
-            nside,
-            sampling,
-            reality,
-            precomps=precomps,
-            spmd=spmd,
-            L_lower=L_lower,
-        )
-
-    def f_fwd(flm, spin, precomps):
-        return flm_to_ftm(flm, spin, precomps), ([], spin, [])
-
-    def f_bwd(res, gtm):
-        spin = res[1]
-        glm = otf.forward_latitudinal_step_jax(
-            gtm,
-            thetas,
-            L,
-            spin,
-            nside,
-            sampling,
-            reality,
-            spmd=spmd,
-            L_lower=L_lower,
-        )
-        return glm, None, None
-
-    flm_to_ftm.defvjp(f_fwd, f_bwd)
-    ftm = flm_to_ftm(flm, spin, precomps)
+    # Perform latitudinal wigner-d recursions via custom JAX primitive.
+    # The primitive registers transpose, JVP and vmap rules so that grad,
+    # vmap, and their compositions all work without falling back to the
+    # generic ``custom_vjp`` machinery.
+    ftm = ftm_flm_prim.flm_to_ftm(
+        flm,
+        thetas,
+        L=L,
+        spin=spin,
+        nside=nside,
+        sampling=sampling,
+        reality=reality,
+        spmd=spmd,
+        L_lower=L_lower,
+        precomps=precomps,
+    )
 
     # Correct healpix theta row offsets
     if sampling.lower() == "healpix":
@@ -695,43 +676,22 @@ def forward_jax(
         phase_shifts = hp.ring_phase_shifts_hp_jax(L, nside, True, reality)
         ftm = ftm.at[:, m_start_ind + m_offset :].multiply(phase_shifts)
 
-    # Perform latitudinal wigner-d recursions
-    @custom_vjp
-    def ftm_to_flm(ftm, spin, precomps):
-        flm = otf.forward_latitudinal_step_jax(
-            ftm,
-            thetas,
-            L,
-            spin,
-            nside,
-            sampling,
-            reality,
-            precomps=precomps,
-            spmd=spmd,
-            L_lower=L_lower,
-        )
-        return flm
-
-    def f_fwd(ftm, spin, precomps):
-        return ftm_to_flm(ftm, spin, precomps), ([], spin, [])
-
-    def f_bwd(res, glm):
-        spin = res[1]
-        gtm = otf.inverse_latitudinal_step_jax(
-            glm,
-            thetas,
-            L,
-            spin,
-            nside,
-            sampling,
-            reality,
-            spmd=spmd,
-            L_lower=L_lower,
-        )
-        return gtm, None, None
-
-    ftm_to_flm.defvjp(f_fwd, f_bwd)
-    flm = ftm_to_flm(ftm, spin, precomps)
+    # Perform latitudinal wigner-d recursions via custom JAX primitive.
+    # The primitive registers transpose, JVP and vmap rules so that grad,
+    # vmap, and their compositions all work without falling back to the
+    # generic ``custom_vjp`` machinery.
+    flm = ftm_flm_prim.ftm_to_flm(
+        ftm,
+        thetas,
+        L=L,
+        spin=spin,
+        nside=nside,
+        sampling=sampling,
+        reality=reality,
+        spmd=spmd,
+        L_lower=L_lower,
+        precomps=precomps,
+    )
 
     # Apply harmonic normalisation
     flm = flm.at[L_lower:].set(
