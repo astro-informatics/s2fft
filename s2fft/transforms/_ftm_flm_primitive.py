@@ -224,7 +224,6 @@ def _ftm_to_flm_jvp(primals, tangents, **params):
 
 
 def _ftm_to_flm_transpose(cotangent, ftm, thetas, spin, *precomps, **params):
-    # cot_ftm = _apply_with_batching(fn, cotangent, spin, precomps)
     # The transpose of the ftm_to_flm primitive (applied to the initial ftm argument) is
     # the flm_to_ftm primitive. We do not pass through the supplied (ftm_to_flm) precomps
     # so these are regenerated internally for the flm_to_ftm primitive.
