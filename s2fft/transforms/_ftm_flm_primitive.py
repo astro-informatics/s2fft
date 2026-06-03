@@ -131,7 +131,15 @@ def _batch_primitive(primitive, batched_args, batch_axes, **params):
 def _flm_to_ftm_abstract(
     flm, thetas, spin, *precomps, L, nside, sampling, reality, spmd, L_lower
 ):
-    out_shape = flm.shape[:-_DATA_NDIM] + samples.ftm_shape(L, sampling, nside)
+    # As inverse_latitudinal_step_jax determines shape of first dimension of ftm value
+    # returned by size (of last dimension if batched) of thetas argument instead of
+    # the value returned by samples.ntheta / samples.ftm_shape(...)[0], to allow
+    # for the upsampling performed for MW + MWSS schemes, we cannot use
+    # samples.ftm_shape directly here as might be expected
+    out_shape = flm.shape[:-_DATA_NDIM] + (
+        thetas.shape[-1],
+        samples.ftm_shape(L, sampling, nside)[1],
+    )
     return ShapedArray(out_shape, flm.dtype)
 
 
