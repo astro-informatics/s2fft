@@ -179,6 +179,12 @@ _flm_to_ftm_primitive = register_primitive(
     batcher=_flm_to_ftm_batcher,
     jacobian_vector_product=_flm_to_ftm_jvp,
     transpose=_flm_to_ftm_transpose,
+    # While primitive is linear in first argument, we require thetas & spin arguments to
+    # compute linear map (transposed) as function of first argument. JAX assumes either:
+    # (i) all primal arguments not required to compute transpose (when using deflinear),
+    # (ii) primitive is differentiable wrt all primal arguments (when using deflinear2).
+    # As we cannot differentiate wrt integer spin argument we manually define tranpose
+    # rule return None for arguments other than first.
     is_linear=False,
 )
 
@@ -240,6 +246,8 @@ _ftm_to_flm_primitive = register_primitive(
     batcher=_ftm_to_flm_batcher,
     jacobian_vector_product=_ftm_to_flm_jvp,
     transpose=_ftm_to_flm_transpose,
+    # Primitive is linear in first argument but we cannot use JAX deflinear machinery.
+    # See note in comment in _flm_to_ftm_primitive definition for explanation.
     is_linear=False,
 )
 
