@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/astro-informatics/s2fft,22,16
+/astro-informatics/s2fft/blob/4ef1ee5fc07284574cf9452cb706c26ffa556f92/s2fft/transforms/wigner.py,7,1
+/astro-informatics/s2fft/pulls,4,4
+/astro-informatics/s2fft/issues,3,2
+/astro-informatics/s2fft/tree/main/examples,3,2
+/astro-informatics/s2fft/blob/main/examples/spherical_harmonic_transform.py,2,2
+/astro-informatics/s2fft/blob/main/s2fft/precompute_transforms/wigner.py,2,2
+/astro-informatics/s2fft/blob/main/s2fft/recursions/risbo_jax.py,2,2
+/astro-informatics/s2fft/blob/main/s2fft/recursions/trapani.py,2,2
+/astro-informatics/s2fft/blob/main/tests/test_wigner_precompute.py,2,2
