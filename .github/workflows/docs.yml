@@ -25,7 +25,7 @@ jobs:
 
     steps:
     - name: Checkout source
-      uses: actions/checkout@v6.0.2
+      uses: actions/checkout@v6.0.3
 
     - name: Set up Python 
       uses: actions/setup-python@v6
@@ -58,7 +58,7 @@ jobs:
 
     - name: Upload built docs as artifact
       id: deployment
-      uses: actions/upload-pages-artifact@v4
+      uses: actions/upload-pages-artifact@v5
       with:
         path: docs/_build/html
         retention-days: 30

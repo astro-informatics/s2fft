@@ -131,7 +131,15 @@ def _batch_primitive(primitive, batched_args, batch_axes, **params):
 def _flm_to_ftm_abstract(
     flm, thetas, spin, *precomps, L, nside, sampling, reality, spmd, L_lower
 ):
-    out_shape = flm.shape[:-_DATA_NDIM] + samples.ftm_shape(L, sampling, nside)
+    # As inverse_latitudinal_step_jax determines shape of first dimension of ftm value
+    # returned by size (of last dimension if batched) of thetas argument instead of
+    # the value returned by samples.ntheta / samples.ftm_shape(...)[0], to allow
+    # for the upsampling performed for MW + MWSS schemes, we cannot use
+    # samples.ftm_shape directly here as might be expected
+    out_shape = flm.shape[:-_DATA_NDIM] + (
+        thetas.shape[-1],
+        samples.ftm_shape(L, sampling, nside)[1],
+    )
     return ShapedArray(out_shape, flm.dtype)
 
 
@@ -158,17 +166,10 @@ def _flm_to_ftm_jvp(primals, tangents, **params):
 
 
 def _flm_to_ftm_transpose(cotangent, flm, thetas, spin, *precomps, **params):
-    # ``flm`` arrives as an UndefinedPrimal; ``thetas``, ``spin`` and
-    # ``precomps`` are concrete residuals. The transpose of the inverse step
-    # is the forward step. We pass ``precomps=None`` so it regenerates the
-    # forward-direction precomps internally (the supplied ones are for the
-    # inverse direction).
-    def fn(c, s, _ignored_p):
-        return otf.forward_latitudinal_step_jax(
-            ftm_in=c, beta_in=thetas, spin=s, precomps=None, **params
-        )
-
-    cot_flm = _apply_with_batching(fn, cotangent, spin, precomps)
+    # The transpose of the flm_to_ftm primitive (applied to the initial flm argument) is
+    # the ftm_to_flm primitive. We do not pass through the supplied (flm_to_ftm) precomps
+    # so these are regenerated internally for the ftm_to_flm primitive.
+    cot_flm = ftm_to_flm(cotangent, thetas, spin=spin, **params)
     return (cot_flm, None, None) + (None,) * len(precomps)
 
 
@@ -186,6 +187,12 @@ _flm_to_ftm_primitive = register_primitive(
     batcher=_flm_to_ftm_batcher,
     jacobian_vector_product=_flm_to_ftm_jvp,
     transpose=_flm_to_ftm_transpose,
+    # While primitive is linear in first argument, we require thetas & spin arguments to
+    # compute linear map (transposed) as function of first argument. JAX assumes either:
+    # (i) all primal arguments not required to compute transpose (when using deflinear),
+    # (ii) primitive is differentiable wrt all primal arguments (when using deflinear2).
+    # As we cannot differentiate wrt integer spin argument we manually define tranpose
+    # rule return None for arguments other than first.
     is_linear=False,
 )
 
@@ -225,14 +232,10 @@ def _ftm_to_flm_jvp(primals, tangents, **params):
 
 
 def _ftm_to_flm_transpose(cotangent, ftm, thetas, spin, *precomps, **params):
-    # The transpose of the forward step is the inverse step. We pass
-    # ``precomps=None`` so it regenerates the inverse-direction precomps.
-    def fn(c, s, _ignored_p):
-        return otf.inverse_latitudinal_step_jax(
-            flm=c, beta=thetas, spin=s, precomps=None, **params
-        )
-
-    cot_ftm = _apply_with_batching(fn, cotangent, spin, precomps)
+    # The transpose of the ftm_to_flm primitive (applied to the initial ftm argument) is
+    # the flm_to_ftm primitive. We do not pass through the supplied (ftm_to_flm) precomps
+    # so these are regenerated internally for the flm_to_ftm primitive.
+    cot_ftm = flm_to_ftm(cotangent, thetas, spin=spin, **params)
     return (cot_ftm, None, None) + (None,) * len(precomps)
 
 
@@ -250,6 +253,8 @@ _ftm_to_flm_primitive = register_primitive(
     batcher=_ftm_to_flm_batcher,
     jacobian_vector_product=_ftm_to_flm_jvp,
     transpose=_ftm_to_flm_transpose,
+    # Primitive is linear in first argument but we cannot use JAX deflinear machinery.
+    # See note in comment in _flm_to_ftm_primitive definition for explanation.
     is_linear=False,
 )
 

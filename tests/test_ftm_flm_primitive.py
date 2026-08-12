@@ -203,8 +203,7 @@ def test_ftm_to_flm_grad(spin, sampling, rng):
             precomps=None,
         )
 
-    # TODO: figure out why this fails for MWSS scheme for order=2
-    check_grads(ftm_to_flm, (ftm,), order=1, modes=("fwd", "rev"))
+    check_grads(ftm_to_flm, (ftm,), order=2, modes=("fwd", "rev"))
 
 
 def test_grad_matches_direct_otf_call(rng):
