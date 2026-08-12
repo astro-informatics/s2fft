@@ -94,7 +94,7 @@ def inverse_latitudinal_step(
 
     for i in range(2):
         if not (reality and i == 0):
-            m_offset = 1 if sampling in samples.M_OFFSET_1_SCHEMES and i == 0 else 0
+            m_offset = samples.m_offset(L, sampling) if i == 0 else 0
 
             lind = L - 1 - L_lower
             sind = lims[i]
@@ -259,7 +259,7 @@ def inverse_latitudinal_step_jax(
 
     for i in range(2):
         if not (reality and i == 0):
-            m_offset = 1 if sampling in samples.M_OFFSET_1_SCHEMES and i == 0 else 0
+            m_offset = samples.m_offset(L, sampling) if i == 0 else 0
 
             lind = L - 1 - L_lower
             sind = lims[i]
@@ -411,7 +411,7 @@ def inverse_latitudinal_step_jax(
                 )
 
     # Remove south pole singularity
-    m_offset = 1 if sampling.lower() in samples.M_OFFSET_1_SCHEMES else 0
+    m_offset = samples.m_offset(L, sampling)
     if sampling.lower() in samples.INCLUDES_SOUTH_POLE_SCHEMES:
         ftm = ftm.at[-1].set(0)
         ftm = ftm.at[-1, L - 1 + spin + m_offset].set(
@@ -505,7 +505,7 @@ def forward_latitudinal_step(
 
     for i in range(2):
         if not (reality and i == 0):
-            m_offset = 1 if sampling in samples.M_OFFSET_1_SCHEMES and i == 0 else 0
+            m_offset = samples.m_offset(L, sampling) if i == 0 else 0
 
             lind = L - 1 - L_lower
             sind = lims[i]
@@ -690,7 +690,7 @@ def forward_latitudinal_step_jax(
 
     for i in range(2):
         if not (reality and i == 0):
-            m_offset = 1 if sampling in samples.M_OFFSET_1_SCHEMES and i == 0 else 0
+            m_offset = samples.m_offset(L, sampling) if i == 0 else 0
 
             lind = L - 1 - L_lower
             sind = lims[i]
@@ -879,7 +879,7 @@ def forward_latitudinal_step_jax(
                 )
 
     # Include both pole singularities explicitly
-    m_offset = 1 if sampling.lower() in samples.M_OFFSET_1_SCHEMES else 0
+    m_offset = samples.m_offset(L, sampling)
     if sampling.lower() in samples.INCLUDES_SOUTH_POLE_SCHEMES:
         flm = flm.at[L_lower:, L - 1 + spin].add(
             (-1) ** abs(jnp.arange(L_lower, L) - spin)

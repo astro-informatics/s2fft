@@ -120,7 +120,7 @@ def inverse_transform(
         np.ndarray: Pixel-space coefficients.
 
     """
-    m_offset = 1 if sampling in samples.M_OFFSET_1_SCHEMES else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
 
     ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
@@ -186,7 +186,7 @@ def inverse_transform_jax(
         jnp.ndarray: Pixel-space coefficients with shape.
 
     """
-    m_offset = 1 if sampling in samples.M_OFFSET_1_SCHEMES else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
 
     ftm = jnp.zeros(
@@ -356,7 +356,7 @@ def forward_transform(
         sampling = "mwss"
         f = resampling.upsample_by_two_mwss(f, L, spin)
 
-    m_offset = 1 if sampling in samples.M_OFFSET_1_SCHEMES else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
 
     if sampling.lower() == "healpix":
@@ -426,7 +426,7 @@ def forward_transform_jax(
         sampling = "mwss"
         f = resampling_jax.upsample_by_two_mwss(f, L, spin)
 
-    m_offset = 1 if sampling in samples.M_OFFSET_1_SCHEMES else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
 
     if sampling.lower() == "healpix":

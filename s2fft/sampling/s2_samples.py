@@ -1,6 +1,5 @@
 import numpy as np
 
-M_OFFSET_1_SCHEMES = frozenset(("mwss", "healpix", "cc", "f2"))
 INCLUDES_SOUTH_POLE_SCHEMES = frozenset(("mw", "mwss", "cc"))
 INCLUDES_NORTH_POLE_SCHEMES = frozenset(("mwss", "cc"))
 EQUIANGULAR_SCHEMES = frozenset(("mw", "mwss", "dh", "cc", "f2"))
@@ -119,10 +118,7 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
     if sampling.lower() in ("mw", "dh", "gl"):
         return 2 * L - 1
 
-    elif sampling.lower() == "mwss":
-        return 2 * L
-
-    elif sampling.lower() in ("cc", "f2"):
+    elif sampling.lower() in ("mwss", "cc", "f2"):
         return 2 * L
 
     elif sampling.lower() == "healpix":
@@ -132,6 +128,28 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
 
     return 1
+
+
+def m_offset(L: int, sampling: str) -> int:
+    """
+    Offset for `m` index into intermediate `ftm` array.
+
+    Accounts for parity of number of longitudinal samples `n_phi` and whether this
+    corresponds to an oversampling in `phi` axis.
+
+    Args:
+        L (int): Harmonic band-limit.
+
+        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+
+    Returns:
+        Integer binary (0/1) offset.
+
+    """
+    return (
+        1 if sampling.lower() == "healpix" or nphi_equiang(L, sampling) % 2 == 0 else 0
+    )
 
 
 def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> tuple[int, int]:

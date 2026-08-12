@@ -90,16 +90,7 @@ def fnab_shape(
             :math:`SO(3)`.
 
     """
-    if sampling.lower() in samples.M_OFFSET_1_SCHEMES:
-        return _ngamma(N), samples.ntheta(L, sampling, nside), 2 * L
-
-    elif sampling.lower() in ["mw", "dh", "gl"]:
-        return _ngamma(N), samples.ntheta(L, sampling, nside), 2 * L - 1
-
-    else:
-        raise ValueError(f"Sampling scheme sampling={sampling} not supported")
-
-    return 1
+    return _ngamma(N), *samples.ftm_shape(L, sampling, nside)
 
 
 def flmn_shape_1d(L: int, N: int) -> int:

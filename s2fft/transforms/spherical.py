@@ -156,7 +156,7 @@ def inverse_numpy(
     """
     # Define latitudinal sample positions and Fourier offsets
     thetas = samples.thetas(L, sampling, nside)
-    m_offset = 1 if sampling.lower() in samples.M_OFFSET_1_SCHEMES else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
     L0 = L_lower
 
@@ -275,7 +275,7 @@ def inverse_jax(
     """
     # Define latitudinal sample positions and Fourier offsets
     thetas = samples.thetas(L, sampling, nside)
-    m_offset = 1 if sampling.lower() in samples.M_OFFSET_1_SCHEMES else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
 
     # Apply harmonic normalisation
@@ -501,7 +501,7 @@ def forward_numpy(
 
     # Define latitudinal sample positions and Fourier offsets
     weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
-    m_offset = 1 if sampling in samples.M_OFFSET_1_SCHEMES else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
     L0 = L_lower
 
@@ -649,7 +649,7 @@ def forward_jax(
 
     # Define latitudinal sample positions and Fourier offsets
     weights = quadrature_jax.quad_weights_transform(L, sampling, nside)
-    m_offset = 1 if sampling in samples.M_OFFSET_1_SCHEMES else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
 
     # Perform longitundal Fast Fourier Transforms

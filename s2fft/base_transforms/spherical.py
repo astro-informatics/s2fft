@@ -486,7 +486,7 @@ def _compute_inverse_sov_fft(
         assert L >= 2 * nside
 
     ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
-    m_offset = 1 if sampling in samples.M_OFFSET_1_SCHEMES else 0
+    m_offset = samples.m_offset(L, sampling)
 
     for t, theta in enumerate(thetas):
         phi_ring_offset = (
@@ -576,7 +576,7 @@ def _compute_inverse_sov_fft_vectorized(
 
     """
     ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
-    m_offset = 1 if sampling in samples.M_OFFSET_1_SCHEMES else 0
+    m_offset = samples.m_offset(L, sampling)
 
     for t, theta in enumerate(thetas):
         phase_shift = (
@@ -844,7 +844,7 @@ def _compute_forward_sov_fft(
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
     ftm = np.zeros_like(f).astype(np.complex128)
 
-    m_offset = 1 if sampling in samples.M_OFFSET_1_SCHEMES else 0
+    m_offset = samples.m_offset(L, sampling)
 
     if sampling.lower() == "healpix":
         ftm = hp.healpix_fft(f, L, nside, "numpy", reality)
@@ -960,7 +960,7 @@ def _compute_forward_sov_fft_vectorized(
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
     ftm = np.zeros_like(f).astype(np.complex128)
 
-    m_offset = 1 if sampling in samples.M_OFFSET_1_SCHEMES else 0
+    m_offset = samples.m_offset(L, sampling)
     if reality:
         m_conj = (-1) ** (np.arange(1, L) % 2)
 
