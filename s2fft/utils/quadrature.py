@@ -21,7 +21,7 @@ def quad_weights_transform(
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mwss", "dh", "gl", "healpix", "cc"}.  Defaults to "mwss".
+            {"mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mwss".
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
