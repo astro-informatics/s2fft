@@ -10,7 +10,7 @@ from s2fft.utils._dtype_association import compatible_complex_dtype
 jax.config.update("jax_enable_x64", True)
 
 
-@pytest.mark.parametrize("sampling", ["mw", "mwss", "gl", "dh", "healpix"])
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "gl", "dh", "healpix", "cc", "f2"])
 @pytest.mark.parametrize("fwd", [True, False], ids=("forward", "inverse"))
 @pytest.mark.parametrize(
     "downsample_kernel", [True, False], ids=("downsample kernel", "full kernel")

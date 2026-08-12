@@ -5,6 +5,7 @@ import numpy as np
 from jax import jit
 
 from s2fft.precompute_transforms import construct
+from s2fft.sampling import s2_samples
 from s2fft.sampling import so3_samples as samples
 from s2fft.utils import healpix_ffts as hp
 from s2fft.utils import resampling, resampling_jax, torch_wrapper
@@ -112,7 +113,7 @@ def inverse_transform(
         np.ndarray: Pixel-space coefficients.
 
     """
-    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    m_offset = s2_samples.m_offset(L, sampling)
     n_start_ind = N - 1 if reality else 0
 
     fnab = np.zeros(samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128)
@@ -174,7 +175,7 @@ def inverse_transform_jax(
         jnp.ndarray: Pixel-space coefficients.
 
     """
-    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    m_offset = s2_samples.m_offset(L, sampling)
     n_start_ind = N - 1 if reality else 0
 
     fnab = jnp.zeros(samples.fnab_shape(L, N, sampling, nside), dtype=jnp.complex128)
@@ -339,7 +340,7 @@ def forward_transform(
         sampling = "mwss"
         fban = resampling.upsample_by_two_mwss(fban, L, spins)
 
-    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    m_offset = s2_samples.m_offset(L, sampling)
 
     if sampling.lower() in "healpix":
         temp = np.zeros(samples.fnab_shape(L, N, sampling, nside), dtype=np.complex128)
@@ -422,7 +423,7 @@ def forward_transform_jax(
         sampling = "mwss"
         fban = resampling_jax.upsample_by_two_mwss(fban, L, spins)
 
-    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    m_offset = s2_samples.m_offset(L, sampling)
 
     if sampling.lower() in "healpix":
         temp = jnp.zeros(

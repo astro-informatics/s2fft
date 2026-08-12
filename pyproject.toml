@@ -28,6 +28,7 @@ description = "Differentiable and accelerated spherical transforms with JAX"
 dependencies = [
     "numpy>=1.20",
     "jax>=0.5.0",
+    "array-api-extra >= 0.10.1",
 ]
 dynamic = [
     "version",
