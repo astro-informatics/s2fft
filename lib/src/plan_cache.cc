@@ -29,16 +29,19 @@ PlanCache::PlanCache() {
  * @tparam T The complex type (cufftComplex or cufftDoubleComplex) of the s2fftExec instance.
  * @param descriptor The s2fftDescriptor containing the parameters for the FFT.
  * @param executor A shared_ptr that will point to the retrieved or newly initialized s2fftExec instance.
+ * @param device_ordinal The CUDA device the executor must belong to (see plan_cache.h).
  * @return HRESULT indicating success (S_OK if new, S_FALSE if from cache) or failure.
  */
 template <typename T>
-HRESULT PlanCache::GetS2FFTExec(s2fftDescriptor &descriptor, std::shared_ptr<s2fftExec<T>> &executor) {
+HRESULT PlanCache::GetS2FFTExec(s2fftDescriptor &descriptor, std::shared_ptr<s2fftExec<T>> &executor,
+                                int32_t device_ordinal) {
     // Step 1: Check if the type is cufftComplex (single precision).
     if constexpr (std::is_same_v<T, cufftComplex>) {
         HRESULT hr(E_FAIL);
-        // Step 1a: Try to find the descriptor in the single-precision cache.
-        auto it = m_Descriptors32.find(descriptor);
-        if (it != m_Descriptors32.end()) {
+        // Step 1a: Try to find the descriptor in the device's single-precision cache.
+        auto &cache = m_Descriptors32[device_ordinal];
+        auto it = cache.find(descriptor);
+        if (it != cache.end()) {
             // Step 1b: If found, retrieve the existing executor and set HR to S_FALSE (found in cache).
             executor = it->second;
             hr = S_FALSE;
@@ -46,20 +49,22 @@ HRESULT PlanCache::GetS2FFTExec(s2fftDescriptor &descriptor, std::shared_ptr<s2f
 
         // Step 1c: If not found (hr is still E_FAIL),
         if (hr == E_FAIL) {
-            // Step 1d: Initialize a new executor with the descriptor.
+            // Step 1d: Initialize a new executor with the descriptor. The caller holds a device
+            // guard, so the cuFFT plans created here bind to the requested device.
             hr = executor->Initialize(descriptor);
             // Step 1e: If initialization is successful, store the new executor in the cache.
             if (SUCCEEDED(hr)) {
-                m_Descriptors32[descriptor] = executor;
+                cache[descriptor] = executor;
             }
         }
         // Step 1f: Return the HRESULT.
         return hr;
     } else {  // Step 2: If the type is not cufftComplex, it must be cufftDoubleComplex (double precision).
         HRESULT hr(E_FAIL);
-        // Step 2a: Try to find the descriptor in the double-precision cache.
-        auto it = m_Descriptors64.find(descriptor);
-        if (it != m_Descriptors64.end()) {
+        // Step 2a: Try to find the descriptor in the device's double-precision cache.
+        auto &cache = m_Descriptors64[device_ordinal];
+        auto it = cache.find(descriptor);
+        if (it != cache.end()) {
             // Step 2b: If found, retrieve the existing executor and set HR to S_FALSE (found in cache).
             executor = it->second;
             hr = S_FALSE;
@@ -67,11 +72,12 @@ HRESULT PlanCache::GetS2FFTExec(s2fftDescriptor &descriptor, std::shared_ptr<s2f
 
         // Step 2c: If not found (hr is still E_FAIL),
         if (hr == E_FAIL) {
-            // Step 2d: Initialize a new executor with the descriptor.
+            // Step 2d: Initialize a new executor with the descriptor. The caller holds a device
+            // guard, so the cuFFT plans created here bind to the requested device.
             hr = executor->Initialize(descriptor);
             // Step 2e: If initialization is successful, store the new executor in the cache.
             if (SUCCEEDED(hr)) {
-                m_Descriptors64[descriptor] = executor;
+                cache[descriptor] = executor;
             }
         }
         // Step 2f: Return the HRESULT.
@@ -110,9 +116,11 @@ PlanCache::~PlanCache() {
 // Explicitly instantiate the templates for the supported complex types.
 // This is necessary for the linker to find the concrete implementations of the templated function.
 template HRESULT PlanCache::GetS2FFTExec<cufftComplex>(s2fftDescriptor &descriptor,
-                                                       std::shared_ptr<s2fftExec<cufftComplex>> &executor);
+                                                       std::shared_ptr<s2fftExec<cufftComplex>> &executor,
+                                                       int32_t device_ordinal);
 
 template HRESULT PlanCache::GetS2FFTExec<cufftDoubleComplex>(
-        s2fftDescriptor &descriptor, std::shared_ptr<s2fftExec<cufftDoubleComplex>> &executor);
+        s2fftDescriptor &descriptor, std::shared_ptr<s2fftExec<cufftDoubleComplex>> &executor,
+        int32_t device_ordinal);
 
 }  // namespace s2fft
