@@ -8,6 +8,7 @@ import torch
 from s2fft.recursions.price_mcewen import generate_precomputes
 from s2fft.sampling import s2_samples as samples
 from s2fft.transforms import spherical
+from s2fft.base_transforms import spherical as base
 
 jax.config.update("jax_enable_x64", True)
 
@@ -94,6 +95,29 @@ def test_transform_inverse_healpix(
     )
 
     np.testing.assert_allclose(np.real(f), np.real(test_data["f_hp"]), atol=1e-14)
+
+
+@pytest.mark.parametrize("nside", nside_to_test)
+@pytest.mark.parametrize("spin", [1, 2])
+@pytest.mark.parametrize("method", ["numpy", "jax"])
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
+def test_transform_inverse_healpix_spin(
+    flm_generator: Callable,
+    nside: int,
+    spin: int,
+    method: str,
+):
+    # Regression test for the HEALPix spin != 0 inverse transform. The recursive
+    # (on-the-fly) Wigner-d recursion previously hit exact zero nodes at the
+    # rational cos(theta) values of HEALPix rings, injecting NaNs that nansum
+    # dropped, producing percent-level errors. Validate against the independent
+    # Turok-recursion base transform which samples the same HEALPix grid.
+    sampling = "healpix"
+    L = 2 * nside
+    flm = flm_generator(L=L, spin=spin, reality=False)
+    f = spherical.inverse(flm, L, spin=spin, nside=nside, sampling=sampling, method=method)
+    f_base = base.inverse(flm, L, spin=spin, nside=nside, sampling=sampling)
+    np.testing.assert_allclose(np.asarray(f), f_base, atol=1e-12)
 
 
 @pytest.mark.parametrize("L", L_to_test)
