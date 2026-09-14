@@ -1,3 +1,4 @@
+# %%
 """
 Understanding spherical harmonics
 =================================
@@ -26,119 +27,155 @@ You can do this by adding a cell to the top of the notebook with the following c
 and then running that cell.
 """
 
-# %% [markdown]
-# ## Spherical coordinates
+
+# %%
+# Spherical coordinates
+# ---------------------
 #
 # A point on the unit sphere is described by two angles:
 #
-# * $\theta \in [0,\pi]$ is the colatitude, measured down from the north pole.
-# * $\phi \in [0,2\pi)$ is the longitude around the sphere, measured eastward from a reference
-# [meridian](https://en.wikipedia.org/wiki/Meridian_(geography)).
+# - :math:`\theta \in [0,\pi]` is the colatitude, measured down from the
+#   north pole.
+# - :math:`\phi \in [0,2\pi)` is the longitude around the sphere, measured
+#   eastward from a reference
+#   `meridian <https://en.wikipedia.org/wiki/Meridian_(geography)>`__.
 #
-# We write a signal on the sphere as $f(\theta,\phi)$. Depending on the application,
-# it could represent quantities such as temperature, elevation, or radiation intensity.
+# We write a signal on the sphere as :math:`f(\theta,\phi)`. Depending on
+# the application, it could represent quantities such as temperature,
+# elevation, or radiation intensity.
 
-# %% [markdown]
-# ## Spherical harmonics
+# %%
+# Spherical harmonics
+# -------------------
 #
-# The spherical harmonic $Y_{\ell m}(\theta,\phi)$ is indexed by two integers:
+# The spherical harmonic :math:`Y_{\ell m}(\theta,\phi)` is indexed by two
+# integers:
 #
-# * The degree $\ell=0,1,2,\dots$ controls its overall angular scale.
-# * The order $m=-\ell,\dots,\ell$ controls its variation with longitude.
+# - The degree :math:`\ell=0,1,2,\dots` controls its overall angular
+#   scale.
+# - The order :math:`m=-\ell,\dots,\ell` controls its variation with
+#   longitude.
 #
 # A spherical harmonic can be written as
 #
-# $$
-# Y_{\ell m}(\theta,\phi) = N_{\ell m} P_{\ell}^m(\cos\theta) \exp(i m\phi),
-# $$
+# .. math::
 #
-# where $N_{\ell m}$ is a normalisation constant, $P_{\ell}^{m}$ is an
-# [associated Legendre polynomial](https://en.wikipedia.org/wiki/Associated_Legendre_polynomials)
-# controlling variation with colatitude, and $\exp(i m\phi)$ controls variation with
-# longitude. Consequently, spherical harmonics are generally complex-valued.
+#
+#    Y_{\ell m}(\theta,\phi) = N_{\ell m} P_{\ell}^m(\cos\theta) \exp(i m\phi),
+#
+# where :math:`N_{\ell m}` is a normalisation constant,
+# :math:`P_{\ell}^{m}` is an `associated Legendre
+# polynomial <https://en.wikipedia.org/wiki/Associated_Legendre_polynomials>`__
+# controlling variation with colatitude, and :math:`\exp(i m\phi)`
+# controls variation with longitude. Consequently, spherical harmonics are
+# generally complex-valued.
 
-# %% [markdown]
-# ## Orthonormality
+# %%
+# Orthonormality
+# --------------
 #
-# The surface-area element on the unit sphere, also called the [solid-angle element](https://en.wikipedia.org/wiki/Spherical_coordinate_system#Integration_and_differentiation_in_spherical_coordinates),
+# The surface-area element on the unit sphere, also called the
+# `solid-angle
+# element <https://en.wikipedia.org/wiki/Spherical_coordinate_system#Integration_and_differentiation_in_spherical_coordinates>`__,
 # is
 #
-# $$
-# \mathrm{d}\Omega = \sin\theta \ \mathrm{d}\theta \mathrm{d}\phi.
-# $$
+# .. math::
 #
-# The factor $\sin\theta$ comes from expressing surface area in spherical coordinates.
 #
-# For two square-integrable functions $f$ and $g$, the inner product on the sphere is
+#    \mathrm{d}\Omega = \sin\theta \ \mathrm{d}\theta \mathrm{d}\phi.
 #
-# $$
-# \langle f,g\rangle = \int_{\mathbb{S}^{2}} f(\theta,\phi) g^{*}(\theta,\phi) \ \mathrm{d}\Omega.
-# $$
+# The factor :math:`\sin\theta` comes from expressing surface area in
+# spherical coordinates.
 #
-# Here, $*$ denotes complex conjugation.
+# For two square-integrable functions :math:`f` and :math:`g`, the inner
+# product on the sphere is
 #
-# The spherical harmonics are orthonormal with respect to the inner product:
+# .. math::
 #
-# $$
-# \langle Y_{\ell m},Y_{\ell' m'}\rangle
-# = \int_{\mathbb{S}^{2}} Y_{\ell m}(\theta,\phi) Y^{*}_{\ell' m'}(\theta,\phi) \ \mathrm{d}\Omega
-# = \delta_{\ell \ell'} \delta_{m m'}.
-# $$
 #
-# The Kronecker delta $\delta_{ab}$ equals one when $a=b$ and zero otherwise. Consequently,
-# distinct spherical harmonics have zero inner product, while the inner product of a spherical
-# harmonic with itself is one.
+#    \langle f,g\rangle = \int_{\mathbb{S}^{2}} f(\theta,\phi) g^{*}(\theta,\phi) \ \mathrm{d}\Omega.
+#
+# Here, :math:`*` denotes complex conjugation.
+#
+# The spherical harmonics are orthonormal with respect to the inner
+# product:
+#
+# .. math::
+#
+#
+#    \langle Y_{\ell m},Y_{\ell' m'}\rangle
+#    = \int_{\mathbb{S}^{2}} Y_{\ell m}(\theta,\phi) Y^{*}_{\ell' m'}(\theta,\phi) \ \mathrm{d}\Omega
+#    = \delta_{\ell \ell'} \delta_{m m'}.
+#
+# The Kronecker delta :math:`\delta_{ab}` equals one when :math:`a=b` and
+# zero otherwise. Consequently, distinct spherical harmonics have zero
+# inner product, while the inner product of a spherical harmonic with
+# itself is one.
 
-# %% [markdown]
-# ## Expanding a signal in spherical harmonics
+# %%
+# Expanding a signal in spherical harmonics
+# -----------------------------------------
 #
-# The spherical harmonics form a complete orthonormal basis for $L^{2}(\mathbb{S}^{2})$,
-# the space of [square-integrable functions](https://en.wikipedia.org/wiki/Square-integrable_function)
+# The spherical harmonics form a complete orthonormal basis for
+# :math:`L^{2}(\mathbb{S}^{2})`, the space of `square-integrable
+# functions <https://en.wikipedia.org/wiki/Square-integrable_function>`__
 # on the sphere. Any signal in this space can therefore be expanded as
 #
-# $$
-# f(\theta,\phi)
-# = \sum_{\ell=0}^{\infty} \sum_{m=-\ell}^{\ell}
-# f_{\ell m} Y_{\ell m}(\theta,\phi),
-# $$
+# .. math::
 #
-# where orthonormality allows each coefficient to be isolated by an inner product:
 #
-# $$
-# f_{\ell m} = \langle f,Y_{\ell m}\rangle
-# = \int_{\mathbb{S}^{2}} f(\theta,\phi) Y^{*}_{\ell m}(\theta,\phi) \ \mathrm{d}\Omega.
-# $$
+#    f(\theta,\phi)
+#    = \sum_{\ell=0}^{\infty} \sum_{m=-\ell}^{\ell}
+#    f_{\ell m} Y_{\ell m}(\theta,\phi),
 #
-# Computing the coefficients $f_{\ell m}$ is called the forward spherical harmonic transform,
-# or spherical harmonic analysis. Reconstructing $f$ from these coefficients is called the
-# inverse spherical harmonic transform, or spherical harmonic synthesis.
+# where orthonormality allows each coefficient to be isolated by an inner
+# product:
 #
-# For a real-valued signal, the coefficients satisfy the conjugate-symmetry relation
+# .. math::
 #
-# $$
-# f_{\ell,-m} = (-1)^{m} f_{\ell m}^{*}.
-# $$
 #
-# An individual spherical harmonic is generally complex-valued, so we set `reality=False`.
+#    f_{\ell m} = \langle f,Y_{\ell m}\rangle
+#    = \int_{\mathbb{S}^{2}} f(\theta,\phi) Y^{*}_{\ell m}(\theta,\phi) \ \mathrm{d}\Omega.
+#
+# Computing the coefficients :math:`f_{\ell m}` is called the forward
+# spherical harmonic transform, or spherical harmonic analysis.
+# Reconstructing :math:`f` from these coefficients is called the inverse
+# spherical harmonic transform, or spherical harmonic synthesis.
+#
+# For a real-valued signal, the coefficients satisfy the
+# conjugate-symmetry relation
+#
+# .. math::
+#
+#
+#    f_{\ell,-m} = (-1)^{m} f_{\ell m}^{*}.
+#
+# An individual spherical harmonic is generally complex-valued, so we set
+# ``reality=False``.
 
-# %% [markdown]
-# ## Band-limited signals
+# %%
+# Band-limited signals
+# --------------------
 #
-# `S2FFT` computes transforms for signals with a finite harmonic band-limit $L$. A signal is
-# band-limited at $L$ if $f_{\ell m}=0$ for every $\ell \geq L$. Its expansion then becomes
-# the finite sum
+# ``S2FFT`` computes transforms for signals with a finite harmonic
+# band-limit :math:`L`. A signal is band-limited at :math:`L` if
+# :math:`f_{\ell m}=0` for every :math:`\ell \geq L`. Its expansion then
+# becomes the finite sum
 #
-# $$
-# f(\theta,\phi) = \sum_{\ell=0}^{L-1} \sum_{m=-\ell}^{\ell} f_{\ell m} Y_{\ell m}(\theta,\phi).
-# $$
+# .. math::
 #
-# The largest degree represented is therefore $L-1$. Increasing $L$ allows finer angular
-# structure to be represented, but also increases the number of coefficients and the
-# computational cost of the transforms.
 #
-# A sampling theorem specifies a finite set of sample locations at which a band-limited signal
-# can be represented and transformed exactly, up to numerical precision. Here we use the [McEwen-Wiaux (2012)](https://arxiv.org/abs/1110.6298)
-# sampling scheme.
+#    f(\theta,\phi) = \sum_{\ell=0}^{L-1} \sum_{m=-\ell}^{\ell} f_{\ell m} Y_{\ell m}(\theta,\phi).
+#
+# The largest degree represented is therefore :math:`L-1`. Increasing
+# :math:`L` allows finer angular structure to be represented, but also
+# increases the number of coefficients and the computational cost of the
+# transforms.
+#
+# A sampling theorem specifies a finite set of sample locations at which a
+# band-limited signal can be represented and transformed exactly, up to
+# numerical precision. Here we use the `McEwen-Wiaux
+# (2012) <https://arxiv.org/abs/1110.6298>`__ sampling scheme.
 
 # %%
 import jax
@@ -154,20 +191,26 @@ import s2fft
 L = 32
 sampling = "mw"
 
-# %% [markdown]
-# ## How S2FFT stores harmonic coefficients
+
+# %%
+# How S2FFT stores harmonic coefficients
+# --------------------------------------
 #
-# S2FFT stores coefficients in an array `flm` of shape `(L, 2 * L - 1)`. The first array
-# index corresponds directly to the degree $\ell$. The order $m$ is shifted by $L-1$ so that
-# its negative and positive values can be represented by standard non-negative array indices:
+# S2FFT stores coefficients in an array ``flm`` of shape
+# ``(L, 2 * L - 1)``. The first array index corresponds directly to the
+# degree :math:`\ell`. The order :math:`m` is shifted by :math:`L-1` so
+# that its negative and positive values can be represented by standard
+# non-negative array indices:
 #
-# $$
-# f_{\ell m} \quad \longleftrightarrow \quad \mathtt{flm[\ell,\ m+L-1]}.
-# $$
+# .. math::
 #
-# Thus, $m=0$ is stored in the central column with index $L-1$. The rectangular array also contains
-# entries for which $|m|>\ell$. These do not correspond to valid spherical harmonic coefficients
-# and are kept at zero.
+#
+#    f_{\ell m} \quad \longleftrightarrow \quad \mathtt{flm[\ell,\ m+L-1]}.
+#
+# Thus, :math:`m=0` is stored in the central column with index
+# :math:`L-1`. The rectangular array also contains entries for which
+# :math:`|m|>\ell`. These do not correspond to valid spherical harmonic
+# coefficients and are kept at zero.
 
 # %%
 # Choose a valid degree and order: 0 <= ell < L, and -ell <= m <= ell.
@@ -181,17 +224,21 @@ flm_shape = s2fft.sampling.s2_samples.flm_shape(L)
 flm = np.zeros(flm_shape, dtype=np.complex128)
 flm[ell, m + L - 1] = 1.0
 
-# %% [markdown]
-# Since $f_{\ell m}=1$ is the only non-zero coefficient, the spherical harmonic expansion
-# reduces to
+
+# %%
+# Since :math:`f_{\ell m}=1` is the only non-zero coefficient, the
+# spherical harmonic expansion reduces to
 #
-# $$
-# f(\theta,\phi) = 1 \cdot Y_{\ell m}(\theta,\phi) = Y_{\ell m}(\theta,\phi).
-# $$
+# .. math::
 #
-# The inverse transform therefore evaluates the chosen basis function at the MW sample locations.
 #
-# An individual spherical harmonic is generally complex-valued, so we set `reality=False`.
+#    f(\theta,\phi) = 1 \cdot Y_{\ell m}(\theta,\phi) = Y_{\ell m}(\theta,\phi).
+#
+# The inverse transform therefore evaluates the chosen basis function at
+# the MW sample locations.
+#
+# An individual spherical harmonic is generally complex-valued, so we set
+# ``reality=False``.
 
 # %%
 y_ell_m = s2fft.inverse(
@@ -202,8 +249,10 @@ y_ell_m = s2fft.inverse(
     reality=False,
 )
 
-# %% [markdown]
-# Spherical harmonics are generally complex-valued, so we visualise the real part.
+
+# %%
+# Spherical harmonics are generally complex-valued, so we visualise the
+# real part.
 
 # %%
 fig, ax = plt.subplots(
@@ -221,11 +270,14 @@ ax.set_title(rf"$\ell={ell},\ m={m}$")
 fig.tight_layout()
 plt.show()
 
-# %% [markdown]
-# ## Visualising the basis
+
+# %%
+# Visualising the basis
+# ---------------------
 #
-# We can repeat the same construction, setting one coefficient to one and all remaining
-# coefficients to zero, for every valid degree and order $(\ell,m)$ up to a chosen maximum degree.
+# We can repeat the same construction, setting one coefficient to one and
+# all remaining coefficients to zero, for every valid degree and order
+# :math:`(\ell,m)` up to a chosen maximum degree.
 
 # %%
 max_degree = 3
@@ -269,22 +321,28 @@ for ell in ell_values:
 fig.tight_layout()
 plt.show()
 
-# %% [markdown]
-# Moving down the rows increases $\ell$, producing finer angular structure.
-# Moving across a row changes $m$. Increasing $|m|$ produces more variation with longitude.
-# When $m=0$, the harmonic does not vary with longitude.
 
-# %% [markdown]
-# ## Decomposing a signal into spherical harmonics
+# %%
+# Moving down the rows increases :math:`\ell`, producing finer angular
+# structure. Moving across a row changes :math:`m`. Increasing :math:`|m|`
+# produces more variation with longitude. When :math:`m=0`, the harmonic
+# does not vary with longitude.
+
+# %%
+# Decomposing a signal into spherical harmonics
+# ---------------------------------------------
 #
-# A band-limited signal is a weighted sum of spherical harmonic basis functions.
-# To demonstrate this, we construct a signal with three non-zero coefficients:
+# A band-limited signal is a weighted sum of spherical harmonic basis
+# functions. To demonstrate this, we construct a signal with three
+# non-zero coefficients:
 #
-# $$
-# f(\theta, \phi) = Y_{0,0}(\theta,\phi) + 0.8Y_{2,1}(\theta,\phi) - 0.4Y_{3,-2}(\theta,\phi).
-# $$
+# .. math::
 #
-# The inverse transform evaluates this weighted sum at the MW sampling nodes.
+#
+#    f(\theta, \phi) = Y_{0,0}(\theta,\phi) + 0.8Y_{2,1}(\theta,\phi) - 0.4Y_{3,-2}(\theta,\phi).
+#
+# The inverse transform evaluates this weighted sum at the MW sampling
+# nodes.
 
 # %%
 signal_flm = np.zeros(flm_shape, dtype=np.complex128)
@@ -300,9 +358,10 @@ signal = s2fft.inverse(
     reality=False,
 )
 
-# %% [markdown]
-# These coefficients do not satisfy conjugate symmetry, so the resulting signal is complex-valued.
-# We visualise its real part below.
+
+# %%
+# These coefficients do not satisfy conjugate symmetry, so the resulting
+# signal is complex-valued. We visualise its real part below.
 
 # %%
 fig, ax = plt.subplots(
@@ -320,11 +379,14 @@ ax.set_title(r"$f(\theta,\phi)$")
 fig.tight_layout()
 plt.show()
 
-# %% [markdown]
-# ## Recovering the spherical harmonic coefficients
+
+# %%
+# Recovering the spherical harmonic coefficients
+# ----------------------------------------------
 #
-# Starting from the sampled signal, the forward transform recovers its spherical harmonic
-# coefficients, which are the weights of the basis functions.
+# Starting from the sampled signal, the forward transform recovers its
+# spherical harmonic coefficients, which are the weights of the basis
+# functions.
 
 # %%
 recovered_flm = s2fft.forward(
@@ -335,10 +397,11 @@ recovered_flm = s2fft.forward(
     reality=False,
 )
 
-# %% [markdown]
-# We display the magnitudes of the recovered coefficients up to degree three.
-# The non-zero entries should occur at the same degree and order pairs used
-# to construct the signal.
+
+# %%
+# We display the magnitudes of the recovered coefficients up to degree
+# three. The non-zero entries should occur at the same degree and order
+# pairs used to construct the signal.
 
 # %%
 coefficient_magnitudes = np.abs(
@@ -376,9 +439,11 @@ fig.colorbar(im, ax=ax, label=r"$|f_{\ell m}|$", shrink=0.8)
 fig.tight_layout()
 plt.show()
 
-# %% [markdown]
-# Finally, we compare the recovered coefficients with the original coefficients.
-# For the MW sampling scheme, the error should be close to machine precision.
+
+# %%
+# Finally, we compare the recovered coefficients with the original
+# coefficients. For the MW sampling scheme, the error should be close to
+# machine precision.
 
 # %%
 max_error = np.max(np.abs(recovered_flm - signal_flm))
