@@ -61,8 +61,8 @@ and then running that cell.
 # ## Orthonormality
 #
 # The surface-area element on the unit sphere, also called the [solid-angle element](https://en.wikipedia.org/wiki/Spherical_coordinate_system#Integration_and_differentiation_in_spherical_coordinates),
-# is 
-# 
+# is
+#
 # $$
 # \mathrm{d}\Omega = \sin\theta \ \mathrm{d}\theta \mathrm{d}\phi.
 # $$
@@ -142,6 +142,7 @@ and then running that cell.
 
 # %%
 import jax
+
 jax.config.update("jax_enable_x64", True)
 
 import cartopy.crs as ccrs
@@ -206,7 +207,8 @@ y_ell_m = s2fft.inverse(
 
 # %%
 fig, ax = plt.subplots(
-    figsize=(3, 1.5), subplot_kw={"projection": ccrs.Mollweide()},
+    figsize=(3, 1.5),
+    subplot_kw={"projection": ccrs.Mollweide()},
 )
 
 ax.imshow(
@@ -231,7 +233,10 @@ ell_values = np.arange(max_degree + 1)
 m_values = np.arange(-max_degree, max_degree + 1)
 
 fig, axes = plt.subplots(
-    len(ell_values), len(m_values), figsize=(16, 8), subplot_kw={"projection": ccrs.Mollweide()},
+    len(ell_values),
+    len(m_values),
+    figsize=(16, 8),
+    subplot_kw={"projection": ccrs.Mollweide()},
 )
 
 for ell in ell_values:
@@ -278,7 +283,7 @@ plt.show()
 # $$
 # f(\theta, \phi) = Y_{0,0}(\theta,\phi) + 0.8Y_{2,1}(\theta,\phi) - 0.4Y_{3,-2}(\theta,\phi).
 # $$
-# 
+#
 # The inverse transform evaluates this weighted sum at the MW sampling nodes.
 
 # %%
@@ -301,13 +306,14 @@ signal = s2fft.inverse(
 
 # %%
 fig, ax = plt.subplots(
-    figsize=(3,1.5), subplot_kw={"projection": ccrs.Mollweide()},
+    figsize=(3, 1.5),
+    subplot_kw={"projection": ccrs.Mollweide()},
 )
 
 ax.imshow(
     signal.real,
     transform=ccrs.PlateCarree(),
-    cmap="viridis", 
+    cmap="viridis",
 )
 ax.set_title(r"$f(\theta,\phi)$")
 
@@ -344,15 +350,24 @@ coefficient_magnitudes[abs(m_values[None]) > ell_values[:, None]] = np.nan
 
 fig, ax = plt.subplots(figsize=(7, 4))
 im = ax.pcolormesh(
-    m_values, ell_values, coefficient_magnitudes,
+    m_values,
+    ell_values,
+    coefficient_magnitudes,
     cmap="viridis",
-    edgecolors="white", linewidth=2,
+    edgecolors="white",
+    linewidth=2,
 )
 
 # Label the non-zero coefficients
 non_zero = ~np.isclose(np.nan_to_num(coefficient_magnitudes), 0)
 for ell, m_index in np.argwhere(non_zero):
-    ax.text(m_values[m_index], ell, f"{coefficient_magnitudes[ell, m_index]:.2g}", ha="center", va="center")
+    ax.text(
+        m_values[m_index],
+        ell,
+        f"{coefficient_magnitudes[ell, m_index]:.2g}",
+        ha="center",
+        va="center",
+    )
 
 ax.invert_yaxis()
 ax.set(aspect=1, xlabel=r"$m$", ylabel=r"$\ell$", xticks=m_values, yticks=ell_values)
