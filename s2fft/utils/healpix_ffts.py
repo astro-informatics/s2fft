@@ -704,34 +704,30 @@ def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm, adj
         The result of the FFI call.
 
     """
-    # Step 1: Get the abstract evaluation results for the outputs.
+    # Step 1: Check if CUDA support is compiled in.
+    if not _s2fft.COMPILED_WITH_CUDA:
+        raise MissingCUDASupport()
+
+    # Step 2: Get the abstract evaluation results for the outputs.
     (_, aval_out, _) = ctx.avals_out
 
-    # Step 2: Get lowering information (double precision, forward/backward, normalize).
+    # Step 3: Get lowering information (double precision, forward/backward, normalize).
     is_double, forward, normalize = _get_lowering_info(fft_type, norm, aval_out.dtype)
 
-    # Step 3: Select the appropriate FFI lowering function based on precision.
-    # We use operand_output_aliases={0: 0} to tell XLA that the input buffer (operand 0)
-    # can be reused for the output buffer (output 0). This allows XLA to perform the
-    # operation in-place if possible. Crucially, JAX manages this aliasing: if the input
-    # buffer is needed elsewhere (e.g. for backpropagation or if the user holds a reference),
-    # JAX will automatically copy the input to a new buffer before passing it to the
-    # kernel, ensuring that the original input is not corrupted.
-    # User can force the operation to be in-place by donating the input buffer, e.g. via healpix_fft_cuda(..., donate_argnums=(0,)).
-    # Even though this is an intermediate output it will instruct XLA that this is safe to reuse for the output of the primitive,
-    # and thus allows the kernel to run in-place without unnecessary copying.
-    # However, this is generally not needed and we can (generally) rely on XLA's optimizations to drop the input buffer if unused
-    # For more info .. check the XLA HLO of the operation
+    # Step 4: Select the appropriate FFI lowering function based on precision.
+    # NO operand-output alias here, deliberately. Declaring result 0 as an alias of operand 0
+    # (in-place reuse) made the transform consume uninitialized memory whenever XLA's custom
+    # fusion pass materialized the aliased result as a fresh buffer without copying the
+    # operand into it, and even with a handler-side copy the alias changes XLA's buffer
+    # liveness unsoundly around fused custom calls. Result 0 is therefore always a plain
+    # output buffer, and the CUDA handler copies the operand into it before transforming
+    # in place (see lib/src/extensions.cc) -- sound under every XLA lowering path.
     if is_double:
-        ffi_lowered = jax.ffi.ffi_lowering(
-            "healpix_fft_cuda_c128", operand_output_aliases={0: 0}
-        )
+        ffi_lowered = jax.ffi.ffi_lowering("healpix_fft_cuda_c128")
     else:
-        ffi_lowered = jax.ffi.ffi_lowering(
-            "healpix_fft_cuda_c64", operand_output_aliases={0: 0}
-        )
+        ffi_lowered = jax.ffi.ffi_lowering("healpix_fft_cuda_c64")
 
-    # Step 4: Call the FFI lowering function with the context and parameters.
+    # Step 5: Call the FFI lowering function with the context and parameters.
     return ffi_lowered(
         ctx,
         f,
