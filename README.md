@@ -278,6 +278,9 @@ key](https://allcontributors.org/docs/en/emoji-key)):
       <td align="center" valign="top" width="14.28%"><a href="https://willgraham01.github.io/"><img src="https://avatars.githubusercontent.com/u/32364977?v=4?s=100" width="100px;" alt="Will Graham"/><br /><sub><b>Will Graham</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3AwillGraham01" title="Reviewed Pull Requests">👀</a> <a href="https://github.com/astro-informatics/s2fft/commits?author=willGraham01" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/commits?author=willGraham01" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ArtemBasyrov"><img src="https://avatars.githubusercontent.com/u/78595114?v=4?s=100" width="100px;" alt="Artem Basyrov"/><br /><sub><b>Artem Basyrov</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/commits?author=ArtemBasyrov" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/commits?author=ArtemBasyrov" title="Tests">⚠️</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/i-tanvir"><img src="https://avatars.githubusercontent.com/u/25553076?v=4?s=100" width="100px;" alt="Tanvir"/><br /><sub><b>Tanvir</b></sub></a><br /><a href="#tutorial-i-tanvir" title="Tutorials">✅</a></td>
+    </tr>
   </tbody>
 </table>
 
