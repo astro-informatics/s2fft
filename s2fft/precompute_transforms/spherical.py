@@ -40,7 +40,7 @@ def inverse(
         kernel (np.ndarray, optional): Wigner-d kernel. Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
@@ -106,7 +106,7 @@ def inverse_transform(
         L (int): Harmonic band-limit.
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
@@ -120,7 +120,7 @@ def inverse_transform(
         np.ndarray: Pixel-space coefficients.
 
     """
-    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
 
     ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
@@ -172,7 +172,7 @@ def inverse_transform_jax(
         L (int): Harmonic band-limit.
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
@@ -186,7 +186,7 @@ def inverse_transform_jax(
         jnp.ndarray: Pixel-space coefficients with shape.
 
     """
-    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
 
     ftm = jnp.zeros(
@@ -250,7 +250,7 @@ def forward(
         kernel (np.ndarray, optional): Wigner-d kernel. Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
@@ -335,7 +335,7 @@ def forward_transform(
         L (int): Harmonic band-limit.
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
@@ -356,7 +356,7 @@ def forward_transform(
         sampling = "mwss"
         f = resampling.upsample_by_two_mwss(f, L, spin)
 
-    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
 
     if sampling.lower() == "healpix":
@@ -405,7 +405,7 @@ def forward_transform_jax(
         L (int): Harmonic band-limit.
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
@@ -426,7 +426,7 @@ def forward_transform_jax(
         sampling = "mwss"
         f = resampling_jax.upsample_by_two_mwss(f, L, spin)
 
-    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
 
     if sampling.lower() == "healpix":

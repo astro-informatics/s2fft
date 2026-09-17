@@ -9,10 +9,10 @@ Sampling schemes
 
 The structure of the algorithms implemented in ``S2FFT`` can support a number of sampling schemes, which we give a brief overview of here.
 An at-a-glance summary of the differences between the supported sampling schemes is also provided :ref:`in the table below <sampling-comparison-table>`, with further information available in the dedicated section for each scheme.
-A more thorough overview of the schemes can be found in section 4.2 of `Price & McEwen (2025) <https://arxiv.org/abs/2311.14670>`_.
+A more thorough overview of most of the schemes can be found in section 4.2 of `Price & McEwen (2025) <https://arxiv.org/abs/2311.14670>`_.
 
-We adopt the usual ``S2FFT`` conventions for spherical coordinates; :math:`\theta\in[0, \pi]` (colatitude) and :math:`\varphi\in[0,2\pi)` (longitude), with :math:`\theta_t` and :math:`\varphi_p` being the discretised samples (indexed by $t$ and $p$) drawn by the sampling scheme.
-We denote by $L$ the band-limit of the signals we are considering.
+We adopt the usual ``S2FFT`` conventions for spherical coordinates; :math:`\theta\in[0, \pi]` (colatitude) and :math:`\varphi\in[0,2\pi)` (longitude), with :math:`\theta_t` and :math:`\varphi_p` being the discretised samples (indexed by :math:`t` and :math:`p`) drawn by the sampling scheme.
+We denote by :math:`L` the band-limit of the signals we are considering.
 
 .. _sampling-comparison-table:
 
@@ -20,12 +20,12 @@ We denote by $L$ the band-limit of the signals we are considering.
     :header-rows: 1
     :align: center
     :width: 95
-    :widths: 20 10 20 20 15 15
+    :widths: 20 10 30 15 15 15
 
     * - Scheme
       - API string
       - Number of sample points [#n-samples-vs-memory-storage]_
-      - Equi- angular
+      - Equi-angular
       - Equal region area
       - Sampling theorem
     * - :ref:`mcewen-wiaux-mw`
@@ -54,10 +54,22 @@ We denote by $L$ the band-limit of the signals we are considering.
       - Yes
     * - :ref:`healpix`
       - ``"healpix"``
-      - $12 N_{side}^2$
+      - :math:`12 N_{side}^2`
       - No
       - Yes
       - No
+    * - :ref:`clenshaw-curtis-cc`
+      - ``"cc"``
+      - :math:`(2L - 1) \times 2L`
+      - Yes
+      - No
+      - Yes
+    * - :ref:`fejer-rule-2-f2`
+      - ``"f2"``
+      - :math:`(2L - 1) \times 2L`
+      - Yes
+      - No
+      - Yes
 
 Specifying sampling schemes in ``S2FFT``
 ----------------------------------------
@@ -147,11 +159,11 @@ Further information; `McEwen & Wiaux (2012) <https://arxiv.org/abs/1110.6298>`_.
 
 .. _mcewen-wiaux-mwss:
 
-McEwen & Wiaux with Symmetric Sampling (MWSS)
----------------------------------------------
+McEwen & Wiaux Symmetric Sampling (MWSS)
+----------------------------------------
 
-This sampling scheme uses slightly more samples than MW, requiring an array holding :math:`(L+1)\times 2L` elements (with $2(L^2 - L + 1)$ independent degrees of freedom).
-Asymptotically, we still only require :math:`\sim 2L^2` elements in memory as $L$ increases.
+This sampling scheme uses slightly more samples than MW, requiring an array holding :math:`(L+1)\times 2L` elements (with :math:`2(L^2 - L + 1)` independent degrees of freedom).
+Asymptotically, we still only require :math:`\sim 2L^2` elements in memory as :math:`L` increases.
 In exchange for slightly higher memory usage, the sample locations possess antipodal symmetry.
 
 Sample positions are defined by
@@ -187,7 +199,7 @@ Gauss-Legendre (GL)
 The GL sampling theorem also requires an array of :math:`L\times (2L-1) \sim 2L^2` elements to represent the signal.
 Like :ref:`DH <driscoll-healy-dh>`, there is no redundancy in samples at the poles, so the same number of independent degrees of freedom are needed.
 
-The :math:`\theta_t` are determined by the roots of the Legendre polynomials of order $L$, whilst the :math:`\varphi_p` are defined by
+The :math:`\theta_t` are determined by the roots of the Legendre polynomials of order :math:`L`, whilst the :math:`\varphi_p` are defined by
 
 .. math::
 
@@ -207,12 +219,62 @@ However, HEALPix sampling **does not** exhibit a sampling theorem and so round-t
 An `iterative refinement <https://en.wikipedia.org/wiki/Iterative_refinement>`_ scheme can be applied to the forward transform to reduce this round-trip error at the cost of additional computation.
 This can be applied in ``S2FFT``'s forward transforms by setting the `iter` argument to the number of iterations to perform, with more iterations giving a smaller round-trip error.
 
-A HEALPix grid is defined by a resolution parameter $N_{side}$, requiring $12 N_{side}^2$ elements (and independent degrees of freedom) stored in memory.
-Given a resolution parameter, the grid will contain $N_{hp} = 12 N_{side}^2$ regions of the same area :math:`\frac{\pi}{3N_{side}^2}`.
-The regions will be laid out on $4N_{side}-1$ iso-latitude rings, and the distribution of regions will be symmetric about the equator.
+A HEALPix grid is defined by a resolution parameter :math:`N_{side}`, requiring :math:`12 N_{side}^2` elements (and independent degrees of freedom) stored in memory.
+Given a resolution parameter, the grid will contain :math:`N_{hp} = 12 N_{side}^2` regions of the same area :math:`\frac{\pi}{3N_{side}^2}`.
+The regions will be laid out on :math:`4N_{side}-1` iso-latitude rings, and the distribution of regions will be symmetric about the equator.
 For the equations defining the exact positioning of the regions, their centres, their boundaries, and how they are organised into an array, see section 5 of `Gorski et al. (2005) <https://arxiv.org/abs/astro-ph/0409513>`_.
 
 Further information; `Gorski et al. (2005) <https://arxiv.org/abs/astro-ph/0409513>`_.
+
+.. _clenshaw-curtis-cc:
+
+Clenshaw-Curtis (CC)
+--------------------
+
+Clenshaw-Curtis quadrature `(Cleshaw and Curtis, 1960) <https://doi.org/10.1007/BF01386223>`_,
+is based on expansion of the integrand in terms of Chebyshev polynomials.
+It can be used in a spherical harmonic transform setting to numerically compute integrals over the co-latitude,
+:math:`\theta`, dimension. 
+Clenshaw-Curtis quadrature requires roughly double the number of nodes to exactly integrate a polynomial of a given degree
+compared to Gauss-Legendre quadrature,
+however the co-latitude nodes are equispaced and grids of different resolutions can be nested.
+
+Sample positions are defined by
+
+.. math::
+
+  \theta_t  &= \frac{\pi t}{2L-2},  &\quad t\in\lbrace 0,1,...,2L-2   \rbrace, \\
+  \varphi_p &= \frac{2\pi p}{2L},    &\quad p\in\lbrace 0,1,...,2L-1\rbrace.
+
+Note that here we follow the original definition of the Clenshaw-Curtis quadrature rule
+and include samples at both poles.
+An analogous scheme which excludes the pole is available as :ref:`F2 <fejer-rule-2-f2>`.
+Due to the redundancy in samples at the poles,
+the total number of distinct sites on the sphere used by this sampling scheme is :math:`(2L-3)(2L)+2 = 4L^2 -6L + 2`.
+
+For further information see `Hotte and Ujiie (2018) <https://doi.org/10.1002%2Fqj.3282>`_.
+
+.. _fejer-rule-2-f2:
+
+Fejér's second rule (F2)
+------------------------
+
+Fejér quadrature `(Fejer, 1933) <http://projecteuclid.org/euclid.bams/1183496842>`_,
+is closely related to Clenshaw-Curtis quadrature.
+Fejér's second rule can be used to define a sampling scheme analagous to :ref:`CC <clenshaw-curtis-cc>` but with the poles excluded.
+
+Sample positions are defined by
+
+.. math::
+
+  \theta_t  &= \frac{\pi(t + 1)}{2L},  &\quad t\in\lbrace 0,1,...,2L-2   \rbrace, \\
+  \varphi_p &= \frac{2\pi p}{2L},    &\quad p\in\lbrace 0,1,...,2L-1\rbrace.
+
+This requires :math:`(2L-1) \times 2L = 4L^2 - 2L` elements to be held in memory,
+and since the poles are not sample points,
+the same number of independent degrees of freedom to represent the signal.
+
+For further information see `Hotte and Ujiie (2018) <https://doi.org/10.1002%2Fqj.3282>`_.
 
 .. rubric:: Footnotes
 

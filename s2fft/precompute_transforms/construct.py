@@ -13,6 +13,32 @@ from s2fft.utils import quadrature, quadrature_jax, torch_wrapper
 PM_MAX_STABLE_SPIN = 6
 
 
+def _n_sample_wigner_fourier_inverse_fft(sampling: str, n_theta: int) -> int:
+    """
+    Number of samples for inverse FFT over Wigner Fourier coefficients.
+
+    Args:
+        sampling: String specifier of sampling scheme.
+        n_theta: Number of (co)latitude samples in sampling scheme.
+
+    Returns:
+        Number of samples.
+
+    """
+    if sampling == "mw":
+        return 2 * n_theta - 1
+    elif sampling == "mwss":
+        return 2 * n_theta - 2
+    elif sampling == "dh":
+        return 2 * n_theta
+    elif sampling == "cc":
+        return 2 * n_theta - 2
+    elif sampling == "f2":
+        return 2 * n_theta + 2
+    else:
+        raise ValueError(f"Equiangular sampling scheme {sampling} not recognised")
+
+
 def spin_spherical_kernel(
     L: int,
     spin: int = 0,
@@ -39,7 +65,7 @@ def spin_spherical_kernel(
             Defaults to False.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
@@ -110,18 +136,12 @@ def spin_spherical_kernel(
                 delta = recursions.risbo.compute_full_vectorised(delta, thetas, L, el)
                 dl[:, el] = delta[:, m_start_ind:, L - 1 - spin]
 
-        # MW, MWSS, and DH sampling ARE uniform in theta therefore CAN be calculated
+        # MW, MWSS, DH, CC & F2 sampling ARE uniform in theta therefore CAN be calculated
         # using the Fourier decomposition of Wigner d-functions.
         # - The complexity of this approach is O(L^3LogL).
         # - This approach is stable for arbitrary abs(spins) <= L.
-        if sampling.lower() in ["mw", "mwss", "dh"]:
-            # Number of samples for inverse FFT over Wigner Fourier coefficients.
-            if sampling.lower() == "mw":
-                nsamps = 2 * len(thetas) - 1
-            elif sampling.lower() == "mwss":
-                nsamps = 2 * len(thetas) - 2
-            elif sampling.lower() == "dh":
-                nsamps = 2 * len(thetas)
+        if sampling.lower() in samples.EQUIANGULAR_SCHEMES:
+            nsamps = _n_sample_wigner_fourier_inverse_fft(sampling.lower(), len(thetas))
             delta = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
             # Calculate the Fourier coefficients of the Wigner d-functions, delta(pi/2).
@@ -187,7 +207,7 @@ def spin_spherical_kernel_jax(
             Defaults to False.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
@@ -243,12 +263,12 @@ def spin_spherical_kernel_jax(
         dl = jnp.swapaxes(dl, 0, 1)
 
         # North pole singularity
-        if sampling.lower() == "mwss":
+        if sampling.lower() in samples.INCLUDES_NORTH_POLE_SCHEMES:
             dl = dl.at[0].set(0)
             dl = dl.at[0, :, L - 1 - spin].set(1)
 
         # South pole singularity
-        if sampling.lower() in ["mw", "mwss"]:
+        if sampling.lower() in samples.INCLUDES_SOUTH_POLE_SCHEMES:
             dl = dl.at[-1].set(0)
             dl = dl.at[-1, :, L - 1 + spin].set((-1) ** (jnp.arange(L) - spin))
         dl = dl.at[:, : jnp.abs(spin)].multiply(0)
@@ -277,14 +297,8 @@ def spin_spherical_kernel_jax(
         # using the Fourier decomposition of Wigner d-functions.
         # - The complexity of this approach is O(L^3LogL).
         # - This approach is stable for arbitrary abs(spins) <= L.
-        elif sampling.lower() in ["mw", "mwss", "dh"]:
-            # Number of samples for inverse FFT over Wigner Fourier coefficients.
-            if sampling.lower() == "mw":
-                nsamps = 2 * len(thetas) - 1
-            elif sampling.lower() == "mwss":
-                nsamps = 2 * len(thetas) - 2
-            elif sampling.lower() == "dh":
-                nsamps = 2 * len(thetas)
+        elif sampling.lower() in samples.EQUIANGULAR_SCHEMES:
+            nsamps = _n_sample_wigner_fourier_inverse_fft(sampling.lower(), len(thetas))
             delta = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
 
             # Calculate the Fourier coefficients of the Wigner d-functions, delta(pi/2).
@@ -355,7 +369,7 @@ def wigner_kernel(
             Defaults to False.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
@@ -371,7 +385,7 @@ def wigner_kernel(
         np.ndarray: Transform kernel for Wigner transform.
 
     """
-    if mode.lower() == "fft" and sampling.lower() not in ["mw", "mwss", "dh"]:
+    if mode.lower() == "fft" and sampling.lower() not in samples.EQUIANGULAR_SCHEMES:
         raise ValueError(
             f"Fourier based recursion is not valid for {sampling} sampling."
         )
@@ -379,7 +393,7 @@ def wigner_kernel(
     # - Can only use the FFT approach when uniformly sampling in theta.
     # - FFT approach is only more efficient when N <= L/Log(L) roughly.
     if mode.lower() == "auto":
-        if sampling.lower() in ["mw", "mwss", "dh"]:
+        if sampling.lower() in samples.EQUIANGULAR_SCHEMES:
             mode = "fft" if N <= int(L / np.log(L)) else "direct"
         else:
             mode = "direct"
@@ -410,20 +424,14 @@ def wigner_kernel(
             delta = recursions.risbo.compute_full_vectorised(delta, thetas, L, el)
             dl[:, :, el] = np.moveaxis(delta, -1, 0)[L - 1 + n]
 
-    # MW, MWSS, and DH sampling ARE uniform in theta therefore CAN be calculated
+    # MW, MWSS, DH, CC & F2 sampling ARE uniform in theta therefore CAN be calculated
     # using the Fourier decomposition of Wigner d-functions.
     # - The complexity of this approach is O(NL^3LogL).
     # - This approach is stable for arbitrary abs(spins) <= L.
     # Therefore when NL^3LogL <= L^4 i.e. when N <= L/LogL, the Fourier based approach
     # is more efficient. This can be a large difference for large L >> N.
     elif mode.lower() == "fft":
-        # Number of samples for inverse FFT over Wigner Fourier coefficients.
-        if sampling.lower() == "mw":
-            nsamps = 2 * len(thetas) - 1
-        elif sampling.lower() == "mwss":
-            nsamps = 2 * len(thetas) - 2
-        elif sampling.lower() == "dh":
-            nsamps = 2 * len(thetas)
+        nsamps = _n_sample_wigner_fourier_inverse_fft(sampling.lower(), len(thetas))
         delta = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
         # Calculate the Fourier coefficients of the Wigner d-functions, delta(pi/2).
@@ -494,7 +502,7 @@ def wigner_kernel_jax(
             Defaults to False.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
 
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
@@ -510,7 +518,7 @@ def wigner_kernel_jax(
         jnp.ndarray: Transform kernel for Wigner transform.
 
     """
-    if mode.lower() == "fft" and sampling.lower() not in ["mw", "mwss", "dh"]:
+    if mode.lower() == "fft" and sampling.lower() not in samples.EQUIANGULAR_SCHEMES:
         raise ValueError(
             f"Fourier based recursion is not valid for {sampling} sampling."
         )
@@ -518,7 +526,7 @@ def wigner_kernel_jax(
     # - Can only use the FFT approach when uniformly sampling in theta.
     # - FFT approach is only more efficient when N <= L/Log(L) roughly.
     if mode.lower() == "auto":
-        if sampling.lower() in ["mw", "mwss", "dh"]:
+        if sampling.lower() in samples.EQUIANGULAR_SCHEMES:
             mode = "fft" if N <= int(L / np.log(L)) else "direct"
         else:
             mode = "direct"
@@ -550,20 +558,14 @@ def wigner_kernel_jax(
             delta = vfunc(delta, thetas, L, el)
             dl = dl.at[:, :, el].set(jnp.moveaxis(delta, -1, 0)[L - 1 + n])
 
-    # MW, MWSS, and DH sampling ARE uniform in theta therefore CAN be calculated
+    # MW, MWSS, DH, CC & F2 sampling ARE uniform in theta therefore CAN be calculated
     # using the Fourier decomposition of Wigner d-functions.
     # - The complexity of this approach is O(NL^3LogL).
     # - This approach is stable for arbitrary abs(spins) <= L.
     # Therefore when NL^3LogL <= L^4 i.e. when N <= L/LogL, the Fourier based approach
     # is more efficient. This can be a large difference for large L >> N.
     elif mode.lower() == "fft":
-        # Number of samples for inverse FFT over Wigner Fourier coefficients.
-        if sampling.lower() == "mw":
-            nsamps = 2 * len(thetas) - 1
-        elif sampling.lower() == "mwss":
-            nsamps = 2 * len(thetas) - 2
-        elif sampling.lower() == "dh":
-            nsamps = 2 * len(thetas)
+        nsamps = _n_sample_wigner_fourier_inverse_fft(sampling.lower(), len(thetas))
         delta = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
 
         # Calculate the Fourier coefficients of the Wigner d-functions, delta(pi/2).
