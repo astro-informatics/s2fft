@@ -77,9 +77,9 @@ else()
     message(WARNING "CUDA compiler not found, building without CUDA support")
 
     find_package(
-      Python 3.11
+      Python 3.11 REQUIRED
       COMPONENTS Interpreter Development.Module
-      REQUIRED)
+      OPTIONAL_COMPONENTS Development.SABIModule)
 
     # Add the executable
     execute_process(
