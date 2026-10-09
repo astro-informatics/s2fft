@@ -20,7 +20,8 @@ L_to_test = [12]
 spin_to_test = [-2, 0, 6]
 nside_to_test = [4, 5]
 L_to_nside_ratio = [2, 3]
-sampling_to_test = ["mw", "mwss", "dh", "gl"]
+sampling_to_test_ssht = ["mw", "mwss", "dh", "gl"]
+sampling_to_test = sampling_to_test_ssht + ["cc", "f2"]
 reality_to_test = [True, False]
 methods_to_test = ["numpy", "jax", "torch"]
 recursions_to_test = ["price-mcewen", "risbo", "auto"]
@@ -28,7 +29,12 @@ iter_to_test = [0, 1]
 
 
 def get_tol(sampling):
-    return 1e-8 if sampling.lower() in ["dh", "gl"] else 1e-12
+    if sampling.lower() in ("dh", "gl"):
+        return 1e-8
+    elif sampling.lower() in ("cc", "f2"):
+        return 1e-10
+    else:
+        return 1e-12
 
 
 def check_spin(recursion, spin):
@@ -292,7 +298,7 @@ def test_transform_forward_healpix_torch_gradcheck(
 
 
 @pytest.mark.parametrize("spin", [0, 20, 30, -20, -30])
-@pytest.mark.parametrize("sampling", sampling_to_test)
+@pytest.mark.parametrize("sampling", sampling_to_test_ssht)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_inverse_high_spin(
     cached_ssht_test_case: Callable, spin: int, sampling: str, reality: bool
@@ -311,7 +317,7 @@ def test_transform_inverse_high_spin(
 
 
 @pytest.mark.parametrize("spin", [0, 20, 30, -20, -30])
-@pytest.mark.parametrize("sampling", sampling_to_test)
+@pytest.mark.parametrize("sampling", sampling_to_test_ssht)
 @pytest.mark.parametrize("reality", reality_to_test)
 def test_transform_forward_high_spin(
     cached_ssht_test_case: Callable, spin: int, sampling: str, reality: bool
@@ -345,3 +351,30 @@ def test_inverse_transform_unrecognised_method_raises():
     flm = np.zeros(samples.flm_shape(L))
     with pytest.raises(ValueError, match=f"{method} not recognised"):
         inverse(flm, L, method=method)
+
+
+@pytest.mark.parametrize("sampling", ("gl", "healpix"))
+def test_wigner_kernel_fft_mode_non_equiangular_scheme_raises(sampling):
+    mode = "fft"
+    L = 1
+    N = 1
+    for wigner_kernel_function in (c.wigner_kernel_jax, c.wigner_kernel):
+        with pytest.raises(ValueError, match=f"not valid for {sampling} sampling"):
+            wigner_kernel_function(L, N, sampling=sampling, mode=mode)
+
+
+@pytest.mark.parametrize("sampling", samples.EQUIANGULAR_SCHEMES)
+@pytest.mark.parametrize("L", [1, 2, 5])
+def test_n_sample_wigner_fourier_inverse_fft(sampling, L):
+    n_sample = c._n_sample_wigner_fourier_inverse_fft(
+        sampling, samples.ntheta(L, sampling)
+    )
+    assert isinstance(n_sample, int)
+    assert n_sample >= 0
+
+
+def test_n_sample_wigner_fourier_inverse_fft_raises():
+    sampling = "invalid_sampling"
+    n_theta = 1
+    with pytest.raises(ValueError, match=f"{sampling} not recognised"):
+        c._n_sample_wigner_fourier_inverse_fft(sampling, n_theta)

@@ -46,7 +46,7 @@ def inverse(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         method (str, optional): Execution mode in {"numpy", "jax", "jax_cuda",
             "jax_ssht", "jax_healpy"}. Defaults to "numpy".
@@ -138,7 +138,7 @@ def inverse_numpy(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -156,7 +156,7 @@ def inverse_numpy(
     """
     # Define latitudinal sample positions and Fourier offsets
     thetas = samples.thetas(L, sampling, nside)
-    m_offset = 1 if sampling.lower() in ["mwss", "healpix"] else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
     L0 = L_lower
 
@@ -174,13 +174,13 @@ def inverse_numpy(
     )
 
     # Remove south pole singularity
-    if sampling.lower() in ["mw", "mwss"]:
+    if sampling.lower() in samples.INCLUDES_SOUTH_POLE_SCHEMES:
         ftm[-1] = 0
         ftm[-1, L - 1 + spin + m_offset] = np.nansum(
             (-1) ** abs(np.arange(L0, L) - spin) * flm[L0:, L - 1 + spin]
         )
     # Remove north pole singularity
-    if sampling.lower() == "mwss":
+    if sampling.lower() in samples.INCLUDES_NORTH_POLE_SCHEMES:
         ftm[0] = 0
         ftm[0, L - 1 - spin + m_offset] = jnp.nansum(flm[L0:, L - 1 - spin])
 
@@ -241,7 +241,7 @@ def inverse_jax(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -275,7 +275,7 @@ def inverse_jax(
     """
     # Define latitudinal sample positions and Fourier offsets
     thetas = samples.thetas(L, sampling, nside)
-    m_offset = 1 if sampling.lower() in ["mwss", "healpix"] else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
 
     # Apply harmonic normalisation
@@ -358,7 +358,7 @@ def forward(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         method (str, optional): Execution mode in {"numpy", "jax", "jax_cuda",
             jax_ssht", "jax_healpy"}. Defaults to "numpy".
@@ -473,7 +473,7 @@ def forward_numpy(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -501,7 +501,7 @@ def forward_numpy(
 
     # Define latitudinal sample positions and Fourier offsets
     weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
-    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
     L0 = L_lower
 
@@ -526,8 +526,12 @@ def forward_numpy(
         phase_shifts = hp.ring_phase_shifts_hp(L, nside, True, reality)
         ftm[:, m_start_ind + m_offset :] *= phase_shifts
 
+    INCLUDES_BOTH_POLES_SCHEMES = (
+        samples.INCLUDES_NORTH_POLE_SCHEMES & samples.INCLUDES_SOUTH_POLE_SCHEMES
+    )
+
     # Perform latitudinal wigner-d recursions
-    if sampling.lower() == "mwss":
+    if sampling.lower() in INCLUDES_BOTH_POLES_SCHEMES:
         flm = otf.forward_latitudinal_step(
             ftm[1:-1],
             thetas[1:-1],
@@ -545,7 +549,7 @@ def forward_numpy(
         )
 
     # Include both pole singularities explicitly
-    if sampling.lower() == "mwss":
+    if sampling.lower() in INCLUDES_BOTH_POLES_SCHEMES:
         flm[L0:, L - 1 + spin] += (-1) ** abs(np.arange(L0, L) - spin) * ftm[
             -1, L - 1 + spin + m_offset
         ]
@@ -601,7 +605,7 @@ def forward_jax(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -645,7 +649,7 @@ def forward_jax(
 
     # Define latitudinal sample positions and Fourier offsets
     weights = quadrature_jax.quad_weights_transform(L, sampling, nside)
-    m_offset = 1 if sampling in ["mwss", "healpix"] else 0
+    m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
 
     # Perform longitundal Fast Fourier Transforms
