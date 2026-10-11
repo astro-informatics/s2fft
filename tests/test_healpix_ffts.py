@@ -220,6 +220,105 @@ def test_healpix_ifft_cuda_transforms(cached_healpy_test_case, nside):
     )
 
 
+@pytest.mark.skipif(not gpu_available, reason="GPU not available")
+def test_healpix_map2alm_cuda_jit_roundtrip_survives_xla_fusion():
+    """Regression for the CUDA FFI aliasing contract under jit.
+
+    Two independent map2alm/alm2map roundtrips on traced operands of one parent array in a
+    single jit trigger XLA's custom-fusion pass. With the operand-output alias declared, the
+    fused custom call consumed an uninitialized result buffer (zeros on the compile run, stale
+    data on replay). The handler now always materializes its own aliased result, so the jitted
+    roundtrip must match eager to float64 precision.
+    """
+    import jax_healpy as jhp
+
+    nside, lmax = 16, 2 * 16 - 1
+    npix = 12 * nside**2
+    rng = np.random.default_rng(0)
+    maps = jnp.asarray(rng.normal(size=(2, npix)))
+
+    def roundtrip(m):
+        flm = jhp.map2alm(
+            m, lmax=lmax, iter=0, pol=False, healpy_ordering=False, method="jax_cuda"
+        )
+        return jnp.real(
+            jhp.alm2map(
+                flm,
+                nside=nside,
+                lmax=lmax,
+                pol=False,
+                healpy_ordering=False,
+                method="jax_cuda",
+            )
+        )
+
+    eager = (roundtrip(maps[0]), roundtrip(maps[1]))
+    jitted = jax.jit(lambda m: (roundtrip(m[0]), roundtrip(m[1])))(maps)
+    again = jax.jit(lambda m: (roundtrip(m[0]), roundtrip(m[1])))(maps)
+    for i in range(2):
+        assert_allclose(jitted[i], eager[i], atol=1e-12, rtol=1e-12)
+        assert_allclose(again[i], jitted[i], atol=1e-12, rtol=1e-12)
+
+
+@pytest.mark.skipif(not gpu_available, reason="GPU not available")
+def test_healpix_map2alm_cuda_jit_gradient_matches_finite_differences():
+    """The value_and_grad of a jitted CUDA-SHT likelihood must match finite differences.
+
+    Guards the adjoint (transpose) path of the CUDA primitive: with the broken alias contract
+    the jitted value_and_grad returned a garbage potential and a 100%-wrong gradient.
+    """
+    import jax_healpy as jhp
+
+    nside, lmax = 16, 2 * 16 - 1
+    npix = 12 * nside**2
+    rng = np.random.default_rng(0)
+    m = jnp.asarray(rng.normal(size=npix))
+    obs = jnp.real(
+        jhp.alm2map(
+            jhp.map2alm(
+                m * 0.5,
+                lmax=lmax,
+                iter=0,
+                pol=False,
+                healpy_ordering=False,
+                method="jax",
+            ),
+            nside=nside,
+            lmax=lmax,
+            pol=False,
+            healpy_ordering=False,
+            method="jax",
+        )
+    )
+
+    def chi2(m):
+        flm = jhp.map2alm(
+            m, lmax=lmax, iter=0, pol=False, healpy_ordering=False, method="jax_cuda"
+        )
+        back = jnp.real(
+            jhp.alm2map(
+                flm,
+                nside=nside,
+                lmax=lmax,
+                pol=False,
+                healpy_ordering=False,
+                method="jax_cuda",
+            )
+        )
+        return jnp.sum(0.5 * (back - obs) ** 2)
+
+    vg = jax.jit(jax.value_and_grad(chi2))
+    f0, grad = vg(m)
+
+    key = jax.random.PRNGKey(7)
+    v = jax.random.normal(key, m.shape)
+    v = v / jnp.sqrt(jnp.vdot(v, v).real)
+    h = 1e-5
+    fd = float((chi2(m + h * v) - chi2(m - h * v)) / (2 * h))
+    gd = float(jnp.vdot(grad, v).real)
+    assert abs(gd - fd) / max(abs(fd), 1e-30) < 1e-4
+
+
 def test_extension_module_not_available_raise_error(monkeypatch):
     monkeypatch.setattr(sys.modules["s2fft.utils.healpix_ffts"], "_s2fft", None)
     with pytest.raises(MissingExtensionModule):

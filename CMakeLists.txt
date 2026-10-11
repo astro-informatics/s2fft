@@ -63,7 +63,7 @@ if(CMAKE_CUDA_COMPILER)
                                             CUDA_SEPARABLE_COMPILATION ON)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true")
     set(CMAKE_CUDA_ARCHITECTURES
-        "70;80;89"
+        "70;75;80;86;89;90"
         CACHE STRING "List of CUDA compute capabilities to build cuDecomp for.")
     message(STATUS "CUDA_ARCHITECTURES: ${CMAKE_CUDA_ARCHITECTURES}")
     set_target_properties(_s2fft PROPERTIES CUDA_ARCHITECTURES
