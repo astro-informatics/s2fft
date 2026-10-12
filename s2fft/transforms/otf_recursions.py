@@ -161,8 +161,16 @@ def inverse_latitudinal_step(
                     axis=-1,
                 )
 
-                bigi = 1.0 / abs(dl_entry[:, L_lower:])
-                lbig = np.log(abs(dl_entry[:, L_lower:]))
+                # Guard against renormalising on an exact node of the Wigner-d
+                # recursion (dl_entry == 0). This occurs at the rational cos(theta)
+                # values of HEALPix rings for spin != 0, where 1/|dl_entry| -> inf
+                # and log|dl_entry| -> -inf would otherwise inject NaNs that are
+                # silently dropped by nansum, losing that mode's contribution.
+                abs_entry = abs(dl_entry[:, L_lower:])
+                nonzero = abs_entry != 0
+                safe_abs = np.where(nonzero, abs_entry, 1.0)
+                bigi = np.where(nonzero, 1.0 / safe_abs, 1.0)
+                lbig = np.where(nonzero, np.log(safe_abs), 0.0)
 
                 dl_iter[0] = np.where(index, bigi * dl_iter[1], dl_iter[0])
                 dl_iter[1] = np.where(index, bigi * dl_entry[:, L_lower:], dl_iter[1])
@@ -341,8 +349,16 @@ def inverse_latitudinal_step_jax(
                     )
                 )
 
-                bigi = 1.0 / abs(dl_entry[:, L_lower:])
-                lbig = jnp.log(abs(dl_entry[:, L_lower:]))
+                # Guard against renormalising on an exact node of the Wigner-d
+                # recursion (dl_entry == 0). This occurs at the rational cos(theta)
+                # values of HEALPix rings for spin != 0, where 1/|dl_entry| -> inf
+                # and log|dl_entry| -> -inf would otherwise inject NaNs that are
+                # silently dropped by nansum, losing that mode's contribution.
+                abs_entry = abs(dl_entry[:, L_lower:])
+                nonzero = abs_entry != 0
+                safe_abs = jnp.where(nonzero, abs_entry, 1.0)
+                bigi = jnp.where(nonzero, 1.0 / safe_abs, 1.0)
+                lbig = jnp.where(nonzero, jnp.log(safe_abs), 0.0)
 
                 dl_iter = dl_iter.at[0].set(
                     jnp.where(index, bigi * dl_iter[1], dl_iter[0])
@@ -578,8 +594,16 @@ def forward_latitudinal_step(
                     axis=-2,
                 )
 
-                bigi = 1.0 / abs(dl_entry[:, L_lower:])
-                lbig = np.log(abs(dl_entry[:, L_lower:]))
+                # Guard against renormalising on an exact node of the Wigner-d
+                # recursion (dl_entry == 0). This occurs at the rational cos(theta)
+                # values of HEALPix rings for spin != 0, where 1/|dl_entry| -> inf
+                # and log|dl_entry| -> -inf would otherwise inject NaNs that are
+                # silently dropped by nansum, losing that mode's contribution.
+                abs_entry = abs(dl_entry[:, L_lower:])
+                nonzero = abs_entry != 0
+                safe_abs = np.where(nonzero, abs_entry, 1.0)
+                bigi = np.where(nonzero, 1.0 / safe_abs, 1.0)
+                lbig = np.where(nonzero, np.log(safe_abs), 0.0)
 
                 dl_iter[0] = np.where(index, bigi * dl_iter[1], dl_iter[0])
                 dl_iter[1] = np.where(index, bigi * dl_entry[:, L_lower:], dl_iter[1])
@@ -780,8 +804,16 @@ def forward_latitudinal_step_jax(
                     )
                 )
 
-                bigi = 1.0 / abs(dl_entry)
-                lbig = jnp.log(abs(dl_entry))
+                # Guard against renormalising on an exact node of the Wigner-d
+                # recursion (dl_entry == 0). This occurs at the rational cos(theta)
+                # values of HEALPix rings for spin != 0, where 1/|dl_entry| -> inf
+                # and log|dl_entry| -> -inf would otherwise inject NaNs that are
+                # silently dropped by nansum, losing that mode's contribution.
+                abs_entry = abs(dl_entry)
+                nonzero = abs_entry != 0
+                safe_abs = jnp.where(nonzero, abs_entry, 1.0)
+                bigi = jnp.where(nonzero, 1.0 / safe_abs, 1.0)
+                lbig = jnp.where(nonzero, jnp.log(safe_abs), 0.0)
 
                 dl_iter = dl_iter.at[0].set(
                     jnp.where(index, bigi * dl_iter[1], dl_iter[0])
