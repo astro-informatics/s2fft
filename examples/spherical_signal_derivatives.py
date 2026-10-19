@@ -48,7 +48,6 @@ and then running that cell.
 # [spectral methods](https://en.wikipedia.org/wiki/Spectral_method) used to solve partial
 # differential equations on the sphere, with applications in atmospheric and ocean modelling.
 
-
 # %%
 import jax
 
@@ -91,9 +90,11 @@ theta_grid, phi_grid = np.meshgrid(theta_values, phi_values, indexing="ij")
 longitude_grid = np.rad2deg(phi_grid)
 latitude_grid = 90 - np.rad2deg(theta_grid)
 
-signal = np.sin(theta_grid) * np.cos(phi_grid) + 0.5 * (3 * np.cos(theta_grid)**2 - 1)
+signal = np.sin(theta_grid) * np.cos(phi_grid) + 0.5 * (3 * np.cos(theta_grid) ** 2 - 1)
 
-exact_colatitude_derivative = np.cos(theta_grid) * np.cos(phi_grid) - 3 * np.sin(theta_grid) * np.cos(theta_grid)
+exact_colatitude_derivative = np.cos(theta_grid) * np.cos(phi_grid) - 3 * np.sin(
+    theta_grid
+) * np.cos(theta_grid)
 exact_longitude_derivative = -np.sin(theta_grid) * np.sin(phi_grid)
 
 # %% [markdown]
@@ -103,11 +104,14 @@ exact_longitude_derivative = -np.sin(theta_grid) * np.sin(phi_grid)
 
 # %%
 fig, ax = plt.subplots(
-    figsize=(6, 3), subplot_kw={"projection": ccrs.Mollweide()},
+    figsize=(6, 3),
+    subplot_kw={"projection": ccrs.Mollweide()},
 )
 
 ax.pcolormesh(
-    longitude_grid, latitude_grid, signal,
+    longitude_grid,
+    latitude_grid,
+    signal,
     transform=ccrs.PlateCarree(),
     cmap="viridis",
 )
@@ -234,7 +238,7 @@ colatitude_derivative[-1] = np.nan
 # The heatmaps below compare the coefficients of the signal, the longitude derivative,
 # and the scaled colatitude derivative.
 #
-# Longitude differentiation leaves every coefficient at the same $(\ell,m)$ and multiplies 
+# Longitude differentiation leaves every coefficient at the same $(\ell,m)$ and multiplies
 # it by $i m$. In contrast, colatitude differentiation leaves $m$ unchanged but moves information
 # between neighbouring degrees $\ell-1$ and $\ell+1$.
 
@@ -245,8 +249,14 @@ display_m_values = np.arange(-max_degree, max_degree + 1)
 
 coefficient_magnitudes = (
     np.abs(flm[: max_degree + 1, L - 1 - max_degree : L + max_degree]),
-    np.abs(longitude_derivative_flm[: max_degree + 1, L - 1 - max_degree : L + max_degree]),
-    np.abs(scaled_colatitude_derivative_flm[: max_degree + 1, L - 1 - max_degree : L + max_degree]),
+    np.abs(
+        longitude_derivative_flm[: max_degree + 1, L - 1 - max_degree : L + max_degree]
+    ),
+    np.abs(
+        scaled_colatitude_derivative_flm[
+            : max_degree + 1, L - 1 - max_degree : L + max_degree
+        ]
+    ),
 )
 
 # Leave entries that do not correspond to valid coefficients blank
@@ -264,21 +274,34 @@ fig, axes = plt.subplots(1, 3, figsize=(16, 8), sharex=True, sharey=True)
 
 max_magnitude = max(np.nanmax(magnitudes) for magnitudes in coefficient_magnitudes)
 
-for ax, magnitudes, title in zip(axes, coefficient_magnitudes, titles):
+for ax, magnitudes, title in zip(axes, coefficient_magnitudes, titles, strict=False):
     image = ax.pcolormesh(
-        display_m_values, display_ell_values, magnitudes,
-        cmap="viridis", vmin=0, vmax=max_magnitude,
-        edgecolors="white", linewidth=2,
+        display_m_values,
+        display_ell_values,
+        magnitudes,
+        cmap="viridis",
+        vmin=0,
+        vmax=max_magnitude,
+        edgecolors="white",
+        linewidth=2,
     )
-    ax.set(title=title, xlabel=r"$m$", xticks=display_m_values, yticks=display_ell_values, aspect=1)
+    ax.set(
+        title=title,
+        xlabel=r"$m$",
+        xticks=display_m_values,
+        yticks=display_ell_values,
+        aspect=1,
+    )
 
     # Label non-zero coefficients
     non_zero = ~np.isclose(np.nan_to_num(magnitudes), 0)
     for ell_index, m_index in np.argwhere(non_zero):
         ax.text(
-            display_m_values[m_index], display_ell_values[ell_index],
+            display_m_values[m_index],
+            display_ell_values[ell_index],
             f"{magnitudes[ell_index, m_index]:.2g}",
-            ha="center", va="center",
+            ha="center",
+            va="center",
         )
 
 axes[0].invert_yaxis()
@@ -299,12 +322,17 @@ fields = colatitude_derivative, longitude_derivative
 titles = r"$\partial f / \partial\theta$", r"$\partial f / \partial\phi$"
 
 fig, axes = plt.subplots(
-    1, 2, figsize=(8, 4), subplot_kw={"projection": ccrs.Mollweide()},
+    1,
+    2,
+    figsize=(8, 4),
+    subplot_kw={"projection": ccrs.Mollweide()},
 )
 
-for ax, field, title in zip(axes, fields, titles):
+for ax, field, title in zip(axes, fields, titles, strict=False):
     ax.pcolormesh(
-        longitude_grid, latitude_grid, field,
+        longitude_grid,
+        latitude_grid,
+        field,
         transform=ccrs.PlateCarree(),
         cmap="viridis",
     )
@@ -322,7 +350,9 @@ plt.show()
 # division by $\sin\theta$ amplifies numerical error near the poles.
 
 # %%
-colatitude_error = np.max(np.abs(colatitude_derivative[:-1] - exact_colatitude_derivative[:-1]))
+colatitude_error = np.max(
+    np.abs(colatitude_derivative[:-1] - exact_colatitude_derivative[:-1])
+)
 longitude_error = np.max(np.abs(longitude_derivative - exact_longitude_derivative))
 
 print(f"Maximum colatitude derivative error: {colatitude_error:.2e}")
