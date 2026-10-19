@@ -1,3 +1,4 @@
+# %%
 """
 Spatial derivatives of spherical signals
 ========================================
@@ -25,28 +26,34 @@ You can do this by adding a cell to the top of the notebook with the following c
 and then running that cell.
 """
 
-# %% [markdown]
-# ## Coordinate derivatives on the sphere
+
+# %%
+# Coordinate derivatives on the sphere
+# ------------------------------------
 #
-# A scalar signal on the unit sphere is written as $f(\theta,\phi)$, where
-# $\theta \in [0,\pi]$ is colatitude and $\phi \in [0,2\pi)$ is longitude.
-# Its surface gradient is
+# A scalar signal on the unit sphere is written as :math:`f(\theta,\phi)`,
+# where :math:`\theta \in [0,\pi]` is colatitude and
+# :math:`\phi \in [0,2\pi)` is longitude. Its surface gradient is
 #
-# $$
-# \nabla_{\mathbb{S}^2} f
-# = \boldsymbol{e}_{\theta} \frac{\partial f}{\partial \theta}
-# + \boldsymbol{e}_{\phi} \frac{1}{\sin \theta} \frac{\partial f}{\partial \phi},
-# $$
+# .. math::
 #
-# where $\boldsymbol{e}_{\theta}$ and $\boldsymbol{e}_{\phi}$ are unit vectors in the
-# colatitude and longitude directions, respectively. The factor $1/\sin\theta$
-# accounts for the variation in physical distance associated with a change in
-# longitude across the sphere.
 #
-# We first compute the two coordinate derivatives $\partial f/\partial\theta$ and
-# $\partial f / \partial\phi$. These derivatives are also fundamental building blocks for
-# [spectral methods](https://en.wikipedia.org/wiki/Spectral_method) used to solve partial
-# differential equations on the sphere, with applications in atmospheric and ocean modelling.
+#    \nabla_{\mathbb{S}^2} f
+#    = \boldsymbol{e}_{\theta} \frac{\partial f}{\partial \theta}
+#    + \boldsymbol{e}_{\phi} \frac{1}{\sin \theta} \frac{\partial f}{\partial \phi},
+#
+# where :math:`\boldsymbol{e}_{\theta}` and :math:`\boldsymbol{e}_{\phi}`
+# are unit vectors in the colatitude and longitude directions,
+# respectively. The factor :math:`1/\sin\theta` accounts for the variation
+# in physical distance associated with a change in longitude across the
+# sphere.
+#
+# We first compute the two coordinate derivatives
+# :math:`\partial f/\partial\theta` and :math:`\partial f / \partial\phi`.
+# These derivatives are also fundamental building blocks for `spectral
+# methods <https://en.wikipedia.org/wiki/Spectral_method>`__ used to solve
+# partial differential equations on the sphere, with applications in
+# atmospheric and ocean modelling.
 
 # %%
 import jax
@@ -62,26 +69,31 @@ import s2fft
 L = 32
 sampling = "mw"
 
-# %% [markdown]
-# ## A band-limited signal
+
+# %%
+# A band-limited signal
+# ---------------------
 #
 # We use the real-valued signal
 #
-# $$
-# f(\theta,\phi) = \sin\theta\cos\phi + \frac{1}{2} \left(3\cos^{2}\theta-1 \right).
-# $$
+# .. math::
 #
-# The first and second terms contain spherical harmonic modes of degrees one and two,
-# respectively, so the signal has no harmonic content above degree two and is band-limited.
-# Its exact coordinate derivatives are:
 #
-# $$
-# \frac{\partial f}{\partial \theta} = \cos\theta \cos\phi - 3 \sin\theta \cos\theta,
-# $$
+#    f(\theta,\phi) = \sin\theta\cos\phi + \frac{1}{2} \left(3\cos^{2}\theta-1 \right).
 #
-# $$
-# \frac{\partial f}{\partial \phi} = -\sin\theta \sin\phi.
-# $$
+# The first and second terms contain spherical harmonic modes of degrees
+# one and two, respectively, so the signal has no harmonic content above
+# degree two and is band-limited. Its exact coordinate derivatives are:
+#
+# .. math::
+#
+#
+#    \frac{\partial f}{\partial \theta} = \cos\theta \cos\phi - 3 \sin\theta \cos\theta,
+#
+# .. math::
+#
+#
+#    \frac{\partial f}{\partial \phi} = -\sin\theta \sin\phi.
 
 # %%
 theta_values = s2fft.sampling.s2_samples.thetas(L, sampling)
@@ -97,8 +109,10 @@ exact_colatitude_derivative = np.cos(theta_grid) * np.cos(phi_grid) - 3 * np.sin
 ) * np.cos(theta_grid)
 exact_longitude_derivative = -np.sin(theta_grid) * np.sin(phi_grid)
 
-# %% [markdown]
-# ## Visualising the signal
+
+# %%
+# Visualising the signal
+# ----------------------
 #
 # We first visualise the sampled signal that will be differentiated.
 
@@ -121,11 +135,14 @@ ax.set_title(r"$f(\theta,\phi)$")
 fig.tight_layout()
 plt.show()
 
-# %% [markdown]
-# ## Transforming to harmonic space
+
+# %%
+# Transforming to harmonic space
+# ------------------------------
 #
-# The forward transform decomposes the sampled signal into spherical harmonic coefficients
-# $f_{\ell m}$, which are used to compute the coordinate derivatives in harmonic space.
+# The forward transform decomposes the sampled signal into spherical
+# harmonic coefficients :math:`f_{\ell m}`, which are used to compute the
+# coordinate derivatives in harmonic space.
 
 # %%
 flm = np.asarray(
@@ -138,18 +155,22 @@ flm = np.asarray(
     )
 )
 
-# %% [markdown]
-# ## Differentiating with respect to longitude
+
+# %%
+# Differentiating with respect to longitude
+# -----------------------------------------
 #
-# The longitude dependence of a spherical harmonic is $\exp(i m\phi)$.
-# Therefore,
+# The longitude dependence of a spherical harmonic is
+# :math:`\exp(i m\phi)`. Therefore,
 #
-# $$
-# \frac{\partial}{\partial\phi}Y_{\ell m}(\theta,\phi) = im Y_{\ell m}(\theta,\phi).
-# $$
+# .. math::
 #
-# Hence, the longitude derivative of the signal can be computed directly in harmonic space by
-# multiplying each coefficient of order $m$ by $i m$.
+#
+#    \frac{\partial}{\partial\phi}Y_{\ell m}(\theta,\phi) = im Y_{\ell m}(\theta,\phi).
+#
+# Hence, the longitude derivative of the signal can be computed directly
+# in harmonic space by multiplying each coefficient of order :math:`m` by
+# :math:`i m`.
 
 # %%
 m_values = np.arange(-L + 1, L)
@@ -165,43 +186,55 @@ longitude_derivative = np.asarray(
     )
 )
 
-# %% [markdown]
-# ## Differentiating with respect to colatitude
+
+# %%
+# Differentiating with respect to colatitude
+# ------------------------------------------
 #
-# Differentiation with respect to colatitude couples spherical harmonics with neighbouring degrees.
+# Differentiation with respect to colatitude couples spherical harmonics
+# with neighbouring degrees.
 #
-# It is convenient to first consider the scaled derivative $\sin\theta\ \frac{\partial Y_{\ell m}}{\partial\theta}$,
-# which satisfies
+# It is convenient to first consider the scaled derivative
+# :math:`\sin\theta\ \frac{\partial Y_{\ell m}}{\partial\theta}`, which
+# satisfies
 #
-# $$
-# \sin\theta \frac{\partial Y_{\ell m}}{\partial\theta}
-# = \ell\epsilon_{\ell+1,m} Y_{\ell+1,m} - (\ell+1)\epsilon_{\ell m} Y_{\ell-1,m},
-# $$
+# .. math::
+#
+#
+#    \sin\theta \frac{\partial Y_{\ell m}}{\partial\theta}
+#    = \ell\epsilon_{\ell+1,m} Y_{\ell+1,m} - (\ell+1)\epsilon_{\ell m} Y_{\ell-1,m},
 #
 # where the coupling factor is
 #
-# $$
-# \epsilon_{\ell m} = \sqrt{\frac{\ell^{2}-m^{2}}{4\ell^{2}-1}}.
-# $$
+# .. math::
 #
-# Applying this relation to the harmonic expansion and collecting the coefficient of each
-# $Y_{\ell m}$ gives
 #
-# $$
-# \left(\sin\theta\frac{\partial f}{\partial\theta}\right)_{\ell m}
-# = (\ell-1)\epsilon_{\ell m}f_{\ell-1,m} - (\ell+2)\epsilon_{\ell+1,m}f_{\ell+1,m}.
-# $$
+#    \epsilon_{\ell m} = \sqrt{\frac{\ell^{2}-m^{2}}{4\ell^{2}-1}}.
 #
-# Thus, the coefficient at degree $\ell$ receives contributions from the original coefficients
-# at degrees $\ell-1$ and $\ell+1$. A more detailed derivation is given in the [SpeedyWeather documentation on meridional derivatives](https://speedyweather.github.io/SpeedyWeatherDocumentation/dev/spectral_transform#Meridional-derivative).
+# Applying this relation to the harmonic expansion and collecting the
+# coefficient of each :math:`Y_{\ell m}` gives
 #
-# For a general signal with non-zero coefficients at the highest represented degree $\ell=L-1$, the recurrence
-# can generate a contribution at degree $\ell=L$. In that case, the working band-limit must be increased
-# before applying the recurrence.
+# .. math::
 #
-# We reconstruct the scaled derivative and divide by $\sin\theta$ to recover
-# $\frac{\partial f}{\partial\theta}$. The final MW ring lies at the south pole, where this coordinate
-# derivative is undefined in general, so it is left blank.
+#
+#    \left(\sin\theta\frac{\partial f}{\partial\theta}\right)_{\ell m}
+#    = (\ell-1)\epsilon_{\ell m}f_{\ell-1,m} - (\ell+2)\epsilon_{\ell+1,m}f_{\ell+1,m}.
+#
+# Thus, the coefficient at degree :math:`\ell` receives contributions from
+# the original coefficients at degrees :math:`\ell-1` and :math:`\ell+1`.
+# A more detailed derivation is given in the `SpeedyWeather documentation
+# on meridional
+# derivatives <https://speedyweather.github.io/SpeedyWeatherDocumentation/dev/spectral_transform#Meridional-derivative>`__.
+#
+# For a general signal with non-zero coefficients at the highest
+# represented degree :math:`\ell=L-1`, the recurrence can generate a
+# contribution at degree :math:`\ell=L`. In that case, the working
+# band-limit must be increased before applying the recurrence.
+#
+# We reconstruct the scaled derivative and divide by :math:`\sin\theta` to
+# recover :math:`\frac{\partial f}{\partial\theta}`. The final MW ring
+# lies at the south pole, where this coordinate derivative is undefined in
+# general, so it is left blank.
 
 # %%
 ell_values = np.arange(L)[:, None]
@@ -232,15 +265,19 @@ colatitude_derivative = scaled_colatitude_derivative.copy()
 colatitude_derivative[:-1] /= np.sin(theta_values[:-1, None])
 colatitude_derivative[-1] = np.nan
 
-# %% [markdown]
-# ## Visualising the coefficient operations
+
+# %%
+# Visualising the coefficient operations
+# --------------------------------------
 #
-# The heatmaps below compare the coefficients of the signal, the longitude derivative,
-# and the scaled colatitude derivative.
+# The heatmaps below compare the coefficients of the signal, the longitude
+# derivative, and the scaled colatitude derivative.
 #
-# Longitude differentiation leaves every coefficient at the same $(\ell,m)$ and multiplies
-# it by $i m$. In contrast, colatitude differentiation leaves $m$ unchanged but moves information
-# between neighbouring degrees $\ell-1$ and $\ell+1$.
+# Longitude differentiation leaves every coefficient at the same
+# :math:`(\ell,m)` and multiplies it by :math:`i m`. In contrast,
+# colatitude differentiation leaves :math:`m` unchanged but moves
+# information between neighbouring degrees :math:`\ell-1` and
+# :math:`\ell+1`.
 
 # %%
 max_degree = 3
@@ -311,11 +348,13 @@ fig.colorbar(image, ax=axes, label="Magnitude", orientation="horizontal", shrink
 fig.tight_layout(rect=[0, 0.3, 1, 1])
 plt.show()
 
-# %% [markdown]
-# ## Visualising the derivatives
+
+# %%
+# Visualising the derivatives
+# ---------------------------
 #
-# The two spectral derivatives are shown below. The undefined south-pole row of the colatitude
-# derivative is left blank.
+# The two spectral derivatives are shown below. The undefined south-pole
+# row of the colatitude derivative is left blank.
 
 # %%
 fields = colatitude_derivative, longitude_derivative
@@ -341,13 +380,17 @@ for ax, field, title in zip(axes, fields, titles, strict=False):
 fig.tight_layout()
 plt.show()
 
-# %% [markdown]
-# ## Checking the accuracy
+
+# %%
+# Checking the accuracy
+# ---------------------
 #
-# Finally, we compare the spectral derivatives with the exact derivatives of the test signal.
-# Since the test signal is band-limited and the MW sampling theorem applies, both errors should be
-# very small. The colatitude error excludes the south-pole ring and is slightly larger because
-# division by $\sin\theta$ amplifies numerical error near the poles.
+# Finally, we compare the spectral derivatives with the exact derivatives
+# of the test signal. Since the test signal is band-limited and the MW
+# sampling theorem applies, both errors should be very small. The
+# colatitude error excludes the south-pole ring and is slightly larger
+# because division by :math:`\sin\theta` amplifies numerical error near
+# the poles.
 
 # %%
 colatitude_error = np.max(
