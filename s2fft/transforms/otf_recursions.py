@@ -12,6 +12,21 @@ from s2fft.recursions.price_mcewen import (
 from s2fft.sampling import s2_samples as samples
 
 
+def _safe_bigi_lbig(dl_entry_slice):
+    # Guard against renormalising on an exact node of the Wigner-d
+    # recursion (dl_entry == 0). This occurs at the rational cos(theta)
+    # values of HEALPix rings for spin != 0, where 1/|dl_entry| -> inf
+    # and log|dl_entry| -> -inf would otherwise inject NaNs that are
+    # silently dropped by nansum, losing that mode's contribution.
+    xp = dl_entry_slice.__array_namespace__()
+    abs_entry = abs(dl_entry_slice)
+    nonzero = abs_entry != 0
+    safe_abs = xp.where(nonzero, abs_entry, 1.0)
+    bigi = xp.where(nonzero, 1.0 / safe_abs, 1.0)
+    lbig = xp.where(nonzero, xp.log(safe_abs), 0.0)
+    return bigi, lbig
+
+
 def inverse_latitudinal_step(
     flm: np.ndarray,
     beta: np.ndarray,
@@ -161,16 +176,7 @@ def inverse_latitudinal_step(
                     axis=-1,
                 )
 
-                # Guard against renormalising on an exact node of the Wigner-d
-                # recursion (dl_entry == 0). This occurs at the rational cos(theta)
-                # values of HEALPix rings for spin != 0, where 1/|dl_entry| -> inf
-                # and log|dl_entry| -> -inf would otherwise inject NaNs that are
-                # silently dropped by nansum, losing that mode's contribution.
-                abs_entry = abs(dl_entry[:, L_lower:])
-                nonzero = abs_entry != 0
-                safe_abs = np.where(nonzero, abs_entry, 1.0)
-                bigi = np.where(nonzero, 1.0 / safe_abs, 1.0)
-                lbig = np.where(nonzero, np.log(safe_abs), 0.0)
+                bigi, lbig = _safe_bigi_lbig(dl_entry[:, L_lower:])
 
                 dl_iter[0] = np.where(index, bigi * dl_iter[1], dl_iter[0])
                 dl_iter[1] = np.where(index, bigi * dl_entry[:, L_lower:], dl_iter[1])
@@ -349,16 +355,7 @@ def inverse_latitudinal_step_jax(
                     )
                 )
 
-                # Guard against renormalising on an exact node of the Wigner-d
-                # recursion (dl_entry == 0). This occurs at the rational cos(theta)
-                # values of HEALPix rings for spin != 0, where 1/|dl_entry| -> inf
-                # and log|dl_entry| -> -inf would otherwise inject NaNs that are
-                # silently dropped by nansum, losing that mode's contribution.
-                abs_entry = abs(dl_entry[:, L_lower:])
-                nonzero = abs_entry != 0
-                safe_abs = jnp.where(nonzero, abs_entry, 1.0)
-                bigi = jnp.where(nonzero, 1.0 / safe_abs, 1.0)
-                lbig = jnp.where(nonzero, jnp.log(safe_abs), 0.0)
+                bigi, lbig = _safe_bigi_lbig(dl_entry[:, L_lower:])
 
                 dl_iter = dl_iter.at[0].set(
                     jnp.where(index, bigi * dl_iter[1], dl_iter[0])
@@ -594,16 +591,7 @@ def forward_latitudinal_step(
                     axis=-2,
                 )
 
-                # Guard against renormalising on an exact node of the Wigner-d
-                # recursion (dl_entry == 0). This occurs at the rational cos(theta)
-                # values of HEALPix rings for spin != 0, where 1/|dl_entry| -> inf
-                # and log|dl_entry| -> -inf would otherwise inject NaNs that are
-                # silently dropped by nansum, losing that mode's contribution.
-                abs_entry = abs(dl_entry[:, L_lower:])
-                nonzero = abs_entry != 0
-                safe_abs = np.where(nonzero, abs_entry, 1.0)
-                bigi = np.where(nonzero, 1.0 / safe_abs, 1.0)
-                lbig = np.where(nonzero, np.log(safe_abs), 0.0)
+                bigi, lbig = _safe_bigi_lbig(dl_entry[:, L_lower:])
 
                 dl_iter[0] = np.where(index, bigi * dl_iter[1], dl_iter[0])
                 dl_iter[1] = np.where(index, bigi * dl_entry[:, L_lower:], dl_iter[1])
@@ -804,16 +792,7 @@ def forward_latitudinal_step_jax(
                     )
                 )
 
-                # Guard against renormalising on an exact node of the Wigner-d
-                # recursion (dl_entry == 0). This occurs at the rational cos(theta)
-                # values of HEALPix rings for spin != 0, where 1/|dl_entry| -> inf
-                # and log|dl_entry| -> -inf would otherwise inject NaNs that are
-                # silently dropped by nansum, losing that mode's contribution.
-                abs_entry = abs(dl_entry)
-                nonzero = abs_entry != 0
-                safe_abs = jnp.where(nonzero, abs_entry, 1.0)
-                bigi = jnp.where(nonzero, 1.0 / safe_abs, 1.0)
-                lbig = jnp.where(nonzero, jnp.log(safe_abs), 0.0)
+                bigi, lbig = _safe_bigi_lbig(dl_entry)
 
                 dl_iter = dl_iter.at[0].set(
                     jnp.where(index, bigi * dl_iter[1], dl_iter[0])
