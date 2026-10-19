@@ -1,3 +1,4 @@
+# %%
 """
 Solving Poisson's equation on the sphere
 ========================================
@@ -25,55 +26,70 @@ following content:
 and then running that cell.
 """
 
-# %% [markdown]
-# ## Poisson's equation on the sphere
+
+# %%
+# Poisson’s equation on the sphere
+# --------------------------------
 #
-# Consider an unknown scalar field $u(\theta,\phi)$ on the unit sphere, where $\theta \in [0,\pi]$
-# is colatitude and $\phi \in [0,2\pi)$ is longitude.
-# [Poisson's equation](https://en.wikipedia.org/wiki/Poisson%27s_equation) is
+# Consider an unknown scalar field :math:`u(\theta,\phi)` on the unit
+# sphere, where :math:`\theta \in [0,\pi]` is colatitude and
+# :math:`\phi \in [0,2\pi)` is longitude. `Poisson’s
+# equation <https://en.wikipedia.org/wiki/Poisson%27s_equation>`__ is
 #
-# $$
-# \Delta_{\mathbb{S}^2} u = f,
-# $$
+# .. math::
 #
-# where $f(\theta,\phi)$ is a known source and $\Delta_{\mathbb{S}^2}$ is the [Laplace–Beltrami operator](https://en.wikipedia.org/wiki/Laplace%E2%80%93Beltrami_operator),
+#
+#    \Delta_{\mathbb{S}^2} u = f,
+#
+# where :math:`f(\theta,\phi)` is a known source and
+# :math:`\Delta_{\mathbb{S}^2}` is the `Laplace–Beltrami
+# operator <https://en.wikipedia.org/wiki/Laplace%E2%80%93Beltrami_operator>`__,
 # the spherical counterpart of the usual Laplacian.
 #
 # In spherical coordinates,
 #
-# $$
-# \Delta_{\mathbb{S}^{2}} u
-# = \frac{1}{\sin\theta} \frac{\partial}{\partial\theta} \left(\sin\theta \frac{\partial u}{\partial\theta}\right)
-# + \frac{1}{\sin^{2}\theta} \frac{\partial^{2}u}{\partial\phi^{2}}.
-# $$
+# .. math::
 #
-# Poisson's equation on the sphere arise in many settings, including geophysics, astrophysics, and fluid dynamics.
+#
+#    \Delta_{\mathbb{S}^{2}} u
+#    = \frac{1}{\sin\theta} \frac{\partial}{\partial\theta} \left(\sin\theta \frac{\partial u}{\partial\theta}\right)
+#    + \frac{1}{\sin^{2}\theta} \frac{\partial^{2}u}{\partial\phi^{2}}.
+#
+# Poisson’s equation on the sphere arise in many settings, including
+# geophysics, astrophysics, and fluid dynamics.
 
-# %% [markdown]
-# ## Harmonic space
+# %%
+# Harmonic space
+# --------------
 #
 # Spherical harmonics are eigenfunctions of the Laplace–Beltrami operator:
 #
-# $$
-# \Delta_{\mathbb{S}^2} Y_{\ell m} = -\ell (\ell+1) Y_{\ell m}.
-# $$
+# .. math::
 #
-# Expanding $u$ and $f$ in spherical harmonics therefore turns Poisson's equation into a separate
-# algebraic equation for each harmonic coefficient:
 #
-# $$
-# -\ell (\ell+1) u_{\ell m} = f_{\ell m}.
-# $$
+#    \Delta_{\mathbb{S}^2} Y_{\ell m} = -\ell (\ell+1) Y_{\ell m}.
 #
-# For every coefficient with $\ell \geq 1$, the solution is
+# Expanding :math:`u` and :math:`f` in spherical harmonics therefore turns
+# Poisson’s equation into a separate algebraic equation for each harmonic
+# coefficient:
 #
-# $$
-# u_{\ell m} = -\frac{f_{\ell m}}{\ell(\ell+1)}.
-# $$
+# .. math::
 #
-# The constant mode $\ell = 0$ has eigenvalue zero because the Laplacian of a constant is zero.
-# A solution therefore exists only if $f_{00}=0$, meaning that the source has zero mean. Since adding
-# any constant to $u$ gives another solution, we select the zero-mean solution by setting $u_{00} = 0$.
+#
+#    -\ell (\ell+1) u_{\ell m} = f_{\ell m}.
+#
+# For every coefficient with :math:`\ell \geq 1`, the solution is
+#
+# .. math::
+#
+#
+#    u_{\ell m} = -\frac{f_{\ell m}}{\ell(\ell+1)}.
+#
+# The constant mode :math:`\ell = 0` has eigenvalue zero because the
+# Laplacian of a constant is zero. A solution therefore exists only if
+# :math:`f_{00}=0`, meaning that the source has zero mean. Since adding
+# any constant to :math:`u` gives another solution, we select the
+# zero-mean solution by setting :math:`u_{00} = 0`.
 
 # %%
 import jax
@@ -89,32 +105,40 @@ import s2fft
 L = 32
 sampling = "mw"
 
-# %% [markdown]
-# ## Constructing a test problem
+
+# %%
+# Constructing a test problem
+# ---------------------------
 #
 # To test the numerical solution, we begin with a known exact solution,
 #
-# $$
-# u(\theta,\phi) = \sin\theta \cos\phi + \frac{1}{2} \left(3\cos^{2}\theta-1\right).
-# $$
+# .. math::
 #
-# The first term contains only spherical harmonics of degree $\ell = 1$, while the second contains
-# only degree $\ell = 2$. Since the spherical Laplacian acts on a mode of degree $\ell$ as
 #
-# $$
-# \Delta_{\mathbb{S}^2} Y_{\ell m} = -\ell (\ell+1) Y_{\ell m},
-# $$
+#    u(\theta,\phi) = \sin\theta \cos\phi + \frac{1}{2} \left(3\cos^{2}\theta-1\right).
 #
-# it multiplies the first term by $-2$ and the second by $-6$.
+# The first term contains only spherical harmonics of degree
+# :math:`\ell = 1`, while the second contains only degree
+# :math:`\ell = 2`. Since the spherical Laplacian acts on a mode of degree
+# :math:`\ell` as
+#
+# .. math::
+#
+#
+#    \Delta_{\mathbb{S}^2} Y_{\ell m} = -\ell (\ell+1) Y_{\ell m},
+#
+# it multiplies the first term by :math:`-2` and the second by :math:`-6`.
 #
 # The corresponding source is therefore
 #
-# $$
-# f(\theta,\phi) = -2 \sin\theta \cos\phi - 3 \left(3\cos^{2}\theta-1\right).
-# $$
+# .. math::
 #
-# Both $u$ and $f$ have zero mean and contain only degrees up to $\ell = 2$. They can therefore be
-# represented exactly at any band-limit $L \geq 3$, up to machine precision.
+#
+#    f(\theta,\phi) = -2 \sin\theta \cos\phi - 3 \left(3\cos^{2}\theta-1\right).
+#
+# Both :math:`u` and :math:`f` have zero mean and contain only degrees up
+# to :math:`\ell = 2`. They can therefore be represented exactly at any
+# band-limit :math:`L \geq 3`, up to machine precision.
 
 # %%
 theta_values = s2fft.sampling.s2_samples.thetas(L, sampling)
@@ -130,10 +154,12 @@ source = -2 * np.sin(theta_grid) * np.cos(phi_grid) - 3 * (
     3 * np.cos(theta_grid) ** 2 - 1
 )
 
-# %% [markdown]
-# ## Visualising the source
+
+# %%
+# Visualising the source
+# ----------------------
 #
-# The source $f$ is the input to the Poisson problem.
+# The source :math:`f` is the input to the Poisson problem.
 
 # %%
 fig, ax = plt.subplots(
@@ -153,11 +179,13 @@ ax.set_title(r"Source $f(\theta,\phi)$")
 fig.tight_layout()
 plt.show()
 
-# %% [markdown]
-# ## Transforming the source to harmonic space
+
+# %%
+# Transforming the source to harmonic space
+# -----------------------------------------
 #
-# The forward transform decomposes the sampled source into spherical harmonic coefficients
-# $f_{\ell m}$.
+# The forward transform decomposes the sampled source into spherical
+# harmonic coefficients :math:`f_{\ell m}`.
 
 # %%
 source_flm = np.asarray(
@@ -170,12 +198,14 @@ source_flm = np.asarray(
     )
 )
 
-# %% [markdown]
-# ## Solving in harmonic space
+
+# %%
+# Solving in harmonic space
+# -------------------------
 #
-# We divide each coefficient with $\ell\geq 1$ by the corresponding Laplacian eigenvalue.
-# The coefficient array is initially zero, so its $\ell=0$ row remains zero and selects the
-# zero-mean solution.
+# We divide each coefficient with :math:`\ell\geq 1` by the corresponding
+# Laplacian eigenvalue. The coefficient array is initially zero, so its
+# :math:`\ell=0` row remains zero and selects the zero-mean solution.
 
 # %%
 ell_values = np.arange(L)[:, None]
@@ -184,14 +214,17 @@ laplacian_eigenvalues = -ell_values * (ell_values + 1)
 solution_flm = np.zeros_like(source_flm)
 solution_flm[1:] = source_flm[1:] / laplacian_eigenvalues[1:]
 
-# %% [markdown]
-# ## Visualising the coefficient operation
+
+# %%
+# Visualising the coefficient operation
+# -------------------------------------
 #
 # The heatmaps below compare the coefficients of the source and solution.
 #
-# Solving Poisson's equation leaves each coefficient at the same $(\ell,m)$ and divides it
-# by the corresponding Laplacian eigenvalue $-\ell(\ell+1)$. The solution therefore contains
-# the same harmonic modes as the source, but with different magnitudes.
+# Solving Poisson’s equation leaves each coefficient at the same
+# :math:`(\ell,m)` and divides it by the corresponding Laplacian
+# eigenvalue :math:`-\ell(\ell+1)`. The solution therefore contains the
+# same harmonic modes as the source, but with different magnitudes.
 
 # %%
 max_degree = 2
@@ -254,10 +287,13 @@ fig.colorbar(image, ax=axes, label="Magnitude", orientation="horizontal", shrink
 fig.tight_layout(rect=[0, 0.3, 1, 1])
 plt.show()
 
-# %% [markdown]
-# ## Transforming back to the sphere
+
+# %%
+# Transforming back to the sphere
+# -------------------------------
 #
-# The inverse transform evaluates the solution at the original MW sample locations.
+# The inverse transform evaluates the solution at the original MW sample
+# locations.
 
 # %%
 solution = np.asarray(
@@ -270,8 +306,10 @@ solution = np.asarray(
     )
 )
 
-# %% [markdown]
-# ## Visualising the solution
+
+# %%
+# Visualising the solution
+# ------------------------
 #
 # The spectral solution should agree with the exact solution.
 
@@ -293,18 +331,23 @@ ax.set_title(r"Solution $u(\theta,\phi)$")
 fig.tight_layout()
 plt.show()
 
-# %% [markdown]
-# ## Checking the numerical accuracy
+
+# %%
+# Checking the numerical accuracy
+# -------------------------------
 #
-# Finally, we compare the recovered solution with the exact solution. We also check how closely
-# the recovered coefficients satisfy Poisson's equation. In harmonic space, the residual is
+# Finally, we compare the recovered solution with the exact solution. We
+# also check how closely the recovered coefficients satisfy Poisson’s
+# equation. In harmonic space, the residual is
 #
-# $$
-# r_{\ell m} = -\ell (\ell+1) u_{\ell m} - f_{\ell m}.
-# $$
+# .. math::
 #
-# Since the test problem is band-limited and the MW sampling theorem applies, both the solution
-# error and the residual should be close to machine precision.
+#
+#    r_{\ell m} = -\ell (\ell+1) u_{\ell m} - f_{\ell m}.
+#
+# Since the test problem is band-limited and the MW sampling theorem
+# applies, both the solution error and the residual should be close to
+# machine precision.
 
 # %%
 absolute_error = np.abs(solution - exact_solution)
