@@ -38,7 +38,7 @@ and then running that cell.
 #
 # where $f(\theta,\phi)$ is a known source and $\Delta_{\mathbb{S}^2}$ is the [Laplace–Beltrami operator](https://en.wikipedia.org/wiki/Laplace%E2%80%93Beltrami_operator),
 # the spherical counterpart of the usual Laplacian.
-# 
+#
 # In spherical coordinates,
 #
 # $$
@@ -106,7 +106,7 @@ sampling = "mw"
 # $$
 #
 # it multiplies the first term by $-2$ and the second by $-6$.
-# 
+#
 # The corresponding source is therefore
 #
 # $$
@@ -123,8 +123,12 @@ theta_grid, phi_grid = np.meshgrid(theta_values, phi_values, indexing="ij")
 longitude_grid = np.rad2deg(phi_grid)
 latitude_grid = 90 - np.rad2deg(theta_grid)
 
-exact_solution = np.sin(theta_grid) * np.cos(phi_grid) + 0.5 * (3 * np.cos(theta_grid)**2 - 1)
-source = -2 * np.sin(theta_grid) * np.cos(phi_grid) - 3 * (3 * np.cos(theta_grid)**2 - 1)
+exact_solution = np.sin(theta_grid) * np.cos(phi_grid) + 0.5 * (
+    3 * np.cos(theta_grid) ** 2 - 1
+)
+source = -2 * np.sin(theta_grid) * np.cos(phi_grid) - 3 * (
+    3 * np.cos(theta_grid) ** 2 - 1
+)
 
 # %% [markdown]
 # ## Visualising the source
@@ -133,11 +137,14 @@ source = -2 * np.sin(theta_grid) * np.cos(phi_grid) - 3 * (3 * np.cos(theta_grid
 
 # %%
 fig, ax = plt.subplots(
-    figsize=(6, 3), subplot_kw={"projection": ccrs.Mollweide()},
+    figsize=(6, 3),
+    subplot_kw={"projection": ccrs.Mollweide()},
 )
 
 ax.pcolormesh(
-    longitude_grid, latitude_grid, source,
+    longitude_grid,
+    latitude_grid,
+    source,
     transform=ccrs.PlateCarree(),
     cmap="viridis",
 )
@@ -208,22 +215,35 @@ fig, axes = plt.subplots(1, 2, figsize=(10, 6), sharex=True, sharey=True)
 
 max_magnitude = max(np.nanmax(magnitudes) for magnitudes in coefficient_magnitudes)
 
-for ax, magnitudes, title in zip(axes, coefficient_magnitudes, titles):
+for ax, magnitudes, title in zip(axes, coefficient_magnitudes, titles, strict=False):
     image = ax.pcolormesh(
-        display_m_values, display_ell_values, magnitudes,
-        cmap="viridis", vmin=0, vmax=max_magnitude,
-        edgecolors="white", linewidth=2,
+        display_m_values,
+        display_ell_values,
+        magnitudes,
+        cmap="viridis",
+        vmin=0,
+        vmax=max_magnitude,
+        edgecolors="white",
+        linewidth=2,
     )
 
-    ax.set(title=title, xlabel=r"$m$", xticks=display_m_values, yticks=display_ell_values, aspect=1)
+    ax.set(
+        title=title,
+        xlabel=r"$m$",
+        xticks=display_m_values,
+        yticks=display_ell_values,
+        aspect=1,
+    )
 
     # Label non-zero coefficients
     non_zero = ~np.isclose(np.nan_to_num(magnitudes), 0)
     for ell_index, m_index in np.argwhere(non_zero):
         ax.text(
-            display_m_values[m_index], display_ell_values[ell_index],
+            display_m_values[m_index],
+            display_ell_values[ell_index],
             f"{magnitudes[ell_index, m_index]:.2g}",
-            ha="center", va="center",
+            ha="center",
+            va="center",
         )
 
 axes[0].invert_yaxis()
@@ -257,11 +277,14 @@ solution = np.asarray(
 
 # %%
 fig, ax = plt.subplots(
-    figsize=(6, 3), subplot_kw={"projection": ccrs.Mollweide()},
+    figsize=(6, 3),
+    subplot_kw={"projection": ccrs.Mollweide()},
 )
 
 ax.pcolormesh(
-    longitude_grid, latitude_grid, solution,
+    longitude_grid,
+    latitude_grid,
+    solution,
     transform=ccrs.PlateCarree(),
     cmap="viridis",
 )
