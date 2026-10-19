@@ -5,10 +5,10 @@ import numpy as np
 import pytest
 import torch
 
+from s2fft.base_transforms import spherical as base
 from s2fft.recursions.price_mcewen import generate_precomputes
 from s2fft.sampling import s2_samples as samples
 from s2fft.transforms import spherical
-from s2fft.base_transforms import spherical as base
 
 jax.config.update("jax_enable_x64", True)
 
@@ -115,7 +115,9 @@ def test_transform_inverse_healpix_spin(
     sampling = "healpix"
     L = 2 * nside
     flm = flm_generator(L=L, spin=spin, reality=False)
-    f = spherical.inverse(flm, L, spin=spin, nside=nside, sampling=sampling, method=method)
+    f = spherical.inverse(
+        flm, L, spin=spin, nside=nside, sampling=sampling, method=method
+    )
     f_base = base.inverse(flm, L, spin=spin, nside=nside, sampling=sampling)
     np.testing.assert_allclose(np.asarray(f), f_base, atol=1e-12)
 
