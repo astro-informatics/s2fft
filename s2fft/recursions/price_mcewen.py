@@ -59,9 +59,7 @@ def generate_precomputes(
     else:
         beta = samples.thetas(L, sampling, nside)
 
-    if forward and sampling.lower() in (
-        samples.INCLUDES_NORTH_POLE_SCHEMES & samples.INCLUDES_SOUTH_POLE_SCHEMES
-    ):
+    if forward and sampling.lower() in samples.INCLUDES_BOTH_POLES_SCHEMES:
         beta = beta[1:-1]
 
     ntheta = len(beta)  # Number of theta samples
@@ -169,9 +167,7 @@ def generate_precomputes_jax(
         else:
             beta = samples.thetas(L, sampling, nside)
 
-        if forward and sampling.lower() in (
-            samples.INCLUDES_NORTH_POLE_SCHEMES & samples.INCLUDES_SOUTH_POLE_SCHEMES
-        ):
+        if forward and sampling.lower() in samples.INCLUDES_BOTH_POLES_SCHEMES:
             beta = beta[1:-1]
     else:
         beta = betas

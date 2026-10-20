@@ -2,6 +2,7 @@ import numpy as np
 
 INCLUDES_SOUTH_POLE_SCHEMES = frozenset(("mw", "mwss", "cc"))
 INCLUDES_NORTH_POLE_SCHEMES = frozenset(("mwss", "cc"))
+INCLUDES_BOTH_POLES_SCHEMES = INCLUDES_SOUTH_POLE_SCHEMES & INCLUDES_NORTH_POLE_SCHEMES
 EQUIANGULAR_SCHEMES = frozenset(("mw", "mwss", "dh", "cc", "f2"))
 
 

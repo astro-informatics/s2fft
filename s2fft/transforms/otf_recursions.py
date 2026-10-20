@@ -654,9 +654,7 @@ def forward_latitudinal_step_jax(
 
     """
     # Avoid pole-singularities for MWSS sampling
-    if sampling.lower() in (
-        samples.INCLUDES_NORTH_POLE_SCHEMES & samples.INCLUDES_SOUTH_POLE_SCHEMES
-    ):
+    if sampling.lower() in samples.INCLUDES_BOTH_POLES_SCHEMES:
         ftm = ftm_in[1:-1]
         beta = beta_in[1:-1]
     elif sampling.lower() in (

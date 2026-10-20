@@ -85,9 +85,7 @@ def _min_n_points_exact(rule, polynomial_degree):
 
 def _min_n_points(rule):
     # Rules including both poles need a minimum of 2 points
-    if rule in (
-        samples.INCLUDES_NORTH_POLE_SCHEMES & samples.INCLUDES_SOUTH_POLE_SCHEMES
-    ):
+    if rule in samples.INCLUDES_BOTH_POLES_SCHEMES:
         return 2
     else:
         return 1
