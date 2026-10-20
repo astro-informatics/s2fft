@@ -226,7 +226,7 @@ def is_equiangular_in_theta(sampling: str) -> bool:
         Boolean value.
 
     """
-    return sampling.lower in ("mw", "mwss", "dh", "cc", "f2")
+    return sampling.lower() in ("mw", "mwss", "dh", "cc", "f2")
 
 
 def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> tuple[int, int]:
