@@ -51,9 +51,8 @@ def test_quadrature_exceptions():
     with pytest.raises(ValueError):
         quadrature.quad_weights(L, sampling="foo")
 
-    for sampling in ("cc", "f2"):
-        with pytest.raises(ValueError, match="must be at least 1"):
-            quadrature.quad_weights(0, sampling)
+    with pytest.raises(ValueError, match="at least L=2"):
+        quadrature.quad_weights(1, "cc")
 
 
 def _bandlimit_from_n_theta(n_theta, rule):

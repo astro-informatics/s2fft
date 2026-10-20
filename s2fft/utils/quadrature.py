@@ -415,15 +415,12 @@ def quad_weights_cc_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
        BIT Numerical Mathematics, 46(1), 195–202. https://doi.org/10.1007/s10543-006-0045-4.
 
     """
-    if L < 1:
-        raise ValueError(f"Bandlimit must be at least 1: L = {L}")
-
     n_theta = samples.ntheta(L, "cc")
 
-    # Computing RFFT below with n=0 will fail so explicitly return
-    # weights for single point case
-    if n_theta == 1:
-        return xp.array([2.0])
+    # Computing RFFT below with n = n_theta - 1 < 1 will fail so raise
+    # early in this case
+    if n_theta < 2:
+        raise ValueError("Clenshaw-Curtis sampling scheme requires n_theta >= 2")
 
     n = n_theta - 1
     w = _fejer_second_rule_rfft_weights(n, xp)
@@ -466,9 +463,6 @@ def quad_weights_f2_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
        BIT Numerical Mathematics, 46(1), 195–202. https://doi.org/10.1007/s10543-006-0045-4.
 
     """
-    if L < 1:
-        raise ValueError(f"Bandlimit must be at least 1: L = {L}")
-
     n_theta = samples.ntheta(L, "f2")
     w = _fejer_second_rule_rfft_weights(n_theta + 1, xp)
     weights = xp.fft.irfft(w, n=n_theta + 1)
