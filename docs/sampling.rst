@@ -247,7 +247,8 @@ Sample positions are defined by
   \varphi_p &= \frac{2\pi p}{2L},    &\quad p\in\lbrace 0,1,...,2L-1\rbrace.
 
 Note that here we follow the original definition of the Clenshaw-Curtis quadrature rule
-and include samples at both poles.
+and include samples at both poles, and as there are :math:`2L-1` :math:`\theta` samples,
+we require that :math:`L \geq 2`.
 An analogous scheme which excludes the pole is available as :ref:`F2 <fejer-rule-2-f2>`.
 Due to the redundancy in samples at the poles,
 the total number of distinct sites on the sphere used by this sampling scheme is :math:`(2L-3)(2L)+2 = 4L^2 -6L + 2`.
