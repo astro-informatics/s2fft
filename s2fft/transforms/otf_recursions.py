@@ -653,7 +653,7 @@ def forward_latitudinal_step_jax(
         recover acceleration by the number of devices.
 
     """
-    # Avoid pole-singularities for MWSS sampling
+    # Avoid pole-singularities where relevant
     if samples.includes_both_poles(sampling):
         ftm = ftm_in[1:-1]
         beta = beta_in[1:-1]
