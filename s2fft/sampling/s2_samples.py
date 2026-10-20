@@ -194,7 +194,7 @@ def includes_north_pole(sampling: str) -> bool:
 
 def includes_both_poles(sampling: str) -> bool:
     """
-    Whether the sampling scheme includes both the south-pole (`θ = π`) and  north-pole
+    Whether the sampling scheme includes both the south-pole (`θ = π`) and north-pole
     (`θ = 0`), which are assumed to be respectively the last and first θ samples.
 
     The Wigner-d function recursions used in the latitudinal step are singular at the
@@ -216,7 +216,7 @@ def includes_both_poles(sampling: str) -> bool:
 def is_equiangular_in_theta(sampling: str) -> bool:
     """
     Whether the sampling scheme has θ samples which are uniformly spaced.
-    This allows FFT-based constructon of the Wigner-d kernels via the Fourier
+    This allows FFT-based construction of the Wigner-d kernels via the Fourier
     decomposition of Wigner-d functions and a periodic extension in θ.
 
     Args:
