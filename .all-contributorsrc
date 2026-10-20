@@ -145,6 +145,15 @@
         "code",
         "test"
       ]
+    },
+    {
+      "login": "i-tanvir",
+      "name": "Tanvir",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25553076?v=4",
+      "profile": "https://github.com/i-tanvir",
+      "contributions": [
+        "tutorial"
+      ]
     }
   ],
   "contributorsPerLine": 7,
