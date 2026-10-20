@@ -49,6 +49,8 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
         return L + 1
 
     elif sampling.lower() == "cc":
+        if L == 1:
+            raise ValueError("Sampling scheme sampling='cc' requires at least L=2")
         return 2 * L - 1
 
     elif sampling.lower() == "dh":
