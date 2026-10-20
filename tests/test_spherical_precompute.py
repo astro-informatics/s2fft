@@ -366,6 +366,8 @@ def test_wigner_kernel_fft_mode_non_equiangular_scheme_raises(sampling):
 @pytest.mark.parametrize("sampling", samples.EQUIANGULAR_SCHEMES)
 @pytest.mark.parametrize("L", [1, 2, 5])
 def test_n_sample_wigner_fourier_inverse_fft(sampling, L):
+    if sampling == "cc" and L == 1:
+        pytest.skip("sampling='cc' requires L > 1")
     n_sample = c._n_sample_wigner_fourier_inverse_fft(
         sampling, samples.ntheta(L, sampling)
     )

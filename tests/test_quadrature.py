@@ -159,6 +159,8 @@ def test_quadrature_non_polynomial(f_and_integral, rule, n_points, quadrature_mo
 @pytest.mark.parametrize("quadrature_module", [quadrature, quadrature_jax])
 def test_quadrature_weights(sampling, L_or_nside, quadrature_module):
     L, nside = (None, L_or_nside) if sampling == "healpix" else (L_or_nside, None)
+    if sampling == "cc" and L == 1:
+        pytest.skip("sampling='cc' requires L > 1")
     weights = quadrature_module.quad_weights(L=L, sampling=sampling, nside=nside)
     assert weights.shape[0] == samples.ntheta(L=L, sampling=sampling, nside=nside)
     # In general quadrature rules may use negative weights but
