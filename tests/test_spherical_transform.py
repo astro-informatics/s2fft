@@ -233,3 +233,12 @@ def test_sampling_exceptions(flm_generator):
 
     with pytest.raises(ValueError):
         spherical.forward(None, 0, 0, None, method="incorrect")
+
+
+@pytest.mark.parametrize("reality", [True, False])
+@pytest.mark.parametrize("method", ["jax", "numpy"])
+def test_cc_with_L_1_raises_error(flm_generator, reality, method):
+    L = 1
+    flm = flm_generator(L=L, reality=reality)
+    with pytest.raises(ValueError, match="at least L=2"):
+        spherical.inverse(flm, L=L, sampling="cc", reality=reality, method=method)
