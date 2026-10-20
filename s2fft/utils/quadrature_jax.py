@@ -35,7 +35,7 @@ def quad_weights_transform(
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mwss", "dh", "gl", "healpix", "cc"}.  Defaults to "mwss".
+            {"mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mwss".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
