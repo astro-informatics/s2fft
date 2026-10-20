@@ -1,8 +1,11 @@
 import numpy as np
 
+# Sampling schemes which include south pole (θ = π) - handling of pole singularity needs to be special cased
 INCLUDES_SOUTH_POLE_SCHEMES = frozenset(("mw", "mwss", "cc"))
+# Sampling schemes which include north pole (θ = 0) - handling of pole singularity needs to be special cased
 INCLUDES_NORTH_POLE_SCHEMES = frozenset(("mwss", "cc"))
 INCLUDES_BOTH_POLES_SCHEMES = INCLUDES_SOUTH_POLE_SCHEMES & INCLUDES_NORTH_POLE_SCHEMES
+# Sampling schemes for which the spacing between pairs of co-latitudes (θ) is constant
 EQUIANGULAR_SCHEMES = frozenset(("mw", "mwss", "dh", "cc", "f2"))
 
 
