@@ -177,6 +177,9 @@ def test_samples_exceptions():
     with pytest.raises(ValueError):
         samples.t2theta(t=0, sampling="mw")
 
+    with pytest.raises(ValueError, match="L >= 1"):
+        samples.ntheta(0, sampling="mw")
+
 
 @pytest.mark.parametrize("L", [0, 1])
 def test_cc_with_invalid_L_raises_error(L):
