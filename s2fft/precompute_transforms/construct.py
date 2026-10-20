@@ -140,7 +140,7 @@ def spin_spherical_kernel(
         # using the Fourier decomposition of Wigner d-functions.
         # - The complexity of this approach is O(L^3LogL).
         # - This approach is stable for arbitrary abs(spins) <= L.
-        if sampling.lower() in samples.EQUIANGULAR_SCHEMES:
+        if samples.is_equiangular_in_theta(sampling):
             nsamps = _n_sample_wigner_fourier_inverse_fft(sampling.lower(), len(thetas))
             delta = np.zeros((2 * L - 1, 2 * L - 1), dtype=np.float64)
 
@@ -263,12 +263,12 @@ def spin_spherical_kernel_jax(
         dl = jnp.swapaxes(dl, 0, 1)
 
         # North pole singularity
-        if sampling.lower() in samples.INCLUDES_NORTH_POLE_SCHEMES:
+        if samples.includes_north_pole(sampling):
             dl = dl.at[0].set(0)
             dl = dl.at[0, :, L - 1 - spin].set(1)
 
         # South pole singularity
-        if sampling.lower() in samples.INCLUDES_SOUTH_POLE_SCHEMES:
+        if samples.includes_south_pole(sampling):
             dl = dl.at[-1].set(0)
             dl = dl.at[-1, :, L - 1 + spin].set((-1) ** (jnp.arange(L) - spin))
         dl = dl.at[:, : jnp.abs(spin)].multiply(0)
@@ -297,7 +297,7 @@ def spin_spherical_kernel_jax(
         # using the Fourier decomposition of Wigner d-functions.
         # - The complexity of this approach is O(L^3LogL).
         # - This approach is stable for arbitrary abs(spins) <= L.
-        elif sampling.lower() in samples.EQUIANGULAR_SCHEMES:
+        elif samples.is_equiangular_in_theta(sampling):
             nsamps = _n_sample_wigner_fourier_inverse_fft(sampling.lower(), len(thetas))
             delta = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
 
@@ -385,7 +385,7 @@ def wigner_kernel(
         np.ndarray: Transform kernel for Wigner transform.
 
     """
-    if mode.lower() == "fft" and sampling.lower() not in samples.EQUIANGULAR_SCHEMES:
+    if mode.lower() == "fft" and not samples.is_equiangular_in_theta(sampling):
         raise ValueError(
             f"Fourier based recursion is not valid for {sampling} sampling."
         )
@@ -393,7 +393,7 @@ def wigner_kernel(
     # - Can only use the FFT approach when uniformly sampling in theta.
     # - FFT approach is only more efficient when N <= L/Log(L) roughly.
     if mode.lower() == "auto":
-        if sampling.lower() in samples.EQUIANGULAR_SCHEMES:
+        if samples.is_equiangular_in_theta(sampling):
             mode = "fft" if N <= int(L / np.log(L)) else "direct"
         else:
             mode = "direct"
@@ -518,7 +518,7 @@ def wigner_kernel_jax(
         jnp.ndarray: Transform kernel for Wigner transform.
 
     """
-    if mode.lower() == "fft" and sampling.lower() not in samples.EQUIANGULAR_SCHEMES:
+    if mode.lower() == "fft" and not samples.is_equiangular_in_theta(sampling):
         raise ValueError(
             f"Fourier based recursion is not valid for {sampling} sampling."
         )
@@ -526,7 +526,7 @@ def wigner_kernel_jax(
     # - Can only use the FFT approach when uniformly sampling in theta.
     # - FFT approach is only more efficient when N <= L/Log(L) roughly.
     if mode.lower() == "auto":
-        if sampling.lower() in samples.EQUIANGULAR_SCHEMES:
+        if samples.is_equiangular_in_theta(sampling):
             mode = "fft" if N <= int(L / np.log(L)) else "direct"
         else:
             mode = "direct"

@@ -363,7 +363,7 @@ def test_wigner_kernel_fft_mode_non_equiangular_scheme_raises(sampling):
             wigner_kernel_function(L, N, sampling=sampling, mode=mode)
 
 
-@pytest.mark.parametrize("sampling", samples.EQUIANGULAR_SCHEMES)
+@pytest.mark.parametrize("sampling", ("mw", "mwss", "dh", "cc", "f2"))
 @pytest.mark.parametrize("L", [1, 2, 5])
 def test_n_sample_wigner_fourier_inverse_fft(sampling, L):
     if sampling == "cc" and L == 1:

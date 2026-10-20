@@ -412,7 +412,7 @@ def inverse_latitudinal_step_jax(
 
     # Remove south pole singularity
     m_offset = samples.m_offset(L, sampling)
-    if sampling.lower() in samples.INCLUDES_SOUTH_POLE_SCHEMES:
+    if samples.includes_south_pole(sampling):
         ftm = ftm.at[-1].set(0)
         ftm = ftm.at[-1, L - 1 + spin + m_offset].set(
             jnp.nansum(
@@ -421,7 +421,7 @@ def inverse_latitudinal_step_jax(
         )
 
     # Remove north pole singularity
-    if sampling.lower() in samples.INCLUDES_NORTH_POLE_SCHEMES:
+    if samples.includes_north_pole(sampling):
         ftm = ftm.at[0].set(0)
         ftm = ftm.at[0, L - 1 - spin + m_offset].set(
             jnp.nansum(flm[L_lower:, L - 1 - spin])
@@ -654,11 +654,11 @@ def forward_latitudinal_step_jax(
 
     """
     # Avoid pole-singularities for MWSS sampling
-    if sampling.lower() in samples.INCLUDES_BOTH_POLES_SCHEMES:
+    if samples.includes_both_poles(sampling):
         ftm = ftm_in[1:-1]
         beta = beta_in[1:-1]
-    elif sampling.lower() in (
-        samples.INCLUDES_SOUTH_POLE_SCHEMES - samples.INCLUDES_NORTH_POLE_SCHEMES
+    elif samples.includes_south_pole(sampling) and not samples.includes_north_pole(
+        sampling
     ):
         ftm = ftm_in[:-1]
         beta = beta_in[:-1]
@@ -878,12 +878,12 @@ def forward_latitudinal_step_jax(
 
     # Include both pole singularities explicitly
     m_offset = samples.m_offset(L, sampling)
-    if sampling.lower() in samples.INCLUDES_SOUTH_POLE_SCHEMES:
+    if samples.includes_south_pole(sampling):
         flm = flm.at[L_lower:, L - 1 + spin].add(
             (-1) ** abs(jnp.arange(L_lower, L) - spin)
             * ftm_in[-1, L - 1 + spin + m_offset]
         )
 
-    if sampling.lower() in samples.INCLUDES_NORTH_POLE_SCHEMES:
+    if samples.includes_north_pole(sampling):
         flm = flm.at[L_lower:, L - 1 - spin].add(ftm_in[0, L - 1 - spin + m_offset])
     return flm

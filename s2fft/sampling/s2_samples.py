@@ -1,13 +1,5 @@
 import numpy as np
 
-# Sampling schemes which include south pole (θ = π) - handling of pole singularity needs to be special cased
-INCLUDES_SOUTH_POLE_SCHEMES = frozenset(("mw", "mwss", "cc"))
-# Sampling schemes which include north pole (θ = 0) - handling of pole singularity needs to be special cased
-INCLUDES_NORTH_POLE_SCHEMES = frozenset(("mwss", "cc"))
-INCLUDES_BOTH_POLES_SCHEMES = INCLUDES_SOUTH_POLE_SCHEMES & INCLUDES_NORTH_POLE_SCHEMES
-# Sampling schemes for which the spacing between pairs of co-latitudes (θ) is constant
-EQUIANGULAR_SCHEMES = frozenset(("mw", "mwss", "dh", "cc", "f2"))
-
 
 def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
     r"""
@@ -146,7 +138,7 @@ def m_offset(L: int, sampling: str) -> int:
     Args:
         L (int): Harmonic band-limit.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
     Returns:
@@ -156,6 +148,85 @@ def m_offset(L: int, sampling: str) -> int:
     return (
         1 if sampling.lower() == "healpix" or nphi_equiang(L, sampling) % 2 == 0 else 0
     )
+
+
+def includes_south_pole(sampling: str) -> bool:
+    """
+    Whether the sampling scheme includes the south-pole (`θ = π`), which is assumed
+    to be the last θ sample.
+
+    The Wigner-d function recursions used in the latitudinal step are singular at the
+    poles, with coefficients diverging as `sin θ → 0`, so pole samples cannot be
+    evaluated within the recursion. The transforms handle the poles separately, with
+    at `θ = π` only the `m = spin` harmonic coefficients contributing, and these
+    have a closed form.
+
+    Args:
+        sampling (str): Sampling scheme.
+
+    Returns:
+        Boolean value.
+
+    """
+    return sampling.lower() in ("mw", "mwss", "cc")
+
+
+def includes_north_pole(sampling: str) -> bool:
+    """
+    Whether the sampling scheme includes the north-pole (`θ = 0`), which is assumed
+    to be the first θ sample.
+
+    The Wigner-d function recursions used in the latitudinal step are singular at the
+    poles, with coefficients diverging as `sin θ → 0`, so pole samples cannot be
+    evaluated within the recursion. The transforms handle the poles separately, with
+    at `θ = 0` only the `m = -spin` harmonic coefficients contributing, and these
+    have a closed form.
+
+    Args:
+        sampling (str): Sampling scheme.
+
+    Returns:
+        Boolean value.
+
+    """
+    return sampling.lower() in ("mwss", "cc")
+
+
+def includes_both_poles(sampling: str) -> bool:
+    """
+    Whether the sampling scheme includes both the south-pole (`θ = π`) and  north-pole
+    (`θ = 0`), which are assumed to be respectively the last and first θ samples.
+
+    The Wigner-d function recursions used in the latitudinal step are singular at the
+    poles, with coefficients diverging as `sin θ → 0`, so pole samples cannot be
+    evaluated within the recursion. The transforms handle the poles separately, with
+    at `θ = 0` / `θ = π` only the `m = -spin` / `m = spin` harmonic coefficients
+    contributing, and these have a closed form.
+
+    Args:
+        sampling (str): Sampling scheme.
+
+    Returns:
+        Boolean value.
+
+    """
+    return includes_south_pole(sampling) and includes_north_pole(sampling)
+
+
+def is_equiangular_in_theta(sampling: str) -> bool:
+    """
+    Whether the sampling scheme has θ samples which are uniformly spaced.
+    This allows FFT-based constructon of the Wigner-d kernels via the Fourier
+    decomposition of Wigner-d functions and a periodic extension in θ.
+
+    Args:
+        sampling (str): Sampling scheme.
+
+    Returns:
+        Boolean value.
+
+    """
+    return sampling.lower in ("mw", "mwss", "dh", "cc", "f2")
 
 
 def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> tuple[int, int]:
@@ -675,9 +746,9 @@ def hp_getidx(L: int, el: int, m: int) -> int:
 def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
     r"""
     Convert from 2D indexed harmonic coefficients to 1D indexed coefficients.
-    
+
     Note:
-        Storage conventions for harmonic coefficients :math:`flm_{(\ell,m)}`, for 
+        Storage conventions for harmonic coefficients :math:`flm_{(\ell,m)}`, for
         e.g. :math:`L = 3`, are as follows.
 
         .. math::
@@ -688,7 +759,7 @@ def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
                     0 & flm_{(1,-1)} & flm_{(1,0)} & flm_{(1,1)} & 0 \\
                     flm_{(2,-2)} & flm_{(2,-1)} & flm_{(2,0)} & flm_{(2,1)} & flm_{(2,2)}
                 \end{bmatrix}
-        
+
         .. math::
 
             \text{1D data format}:  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]
@@ -722,9 +793,9 @@ def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
 def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
     r"""
     Convert from 1D indexed harmnonic coefficients to 2D indexed coefficients.
-    
+
     Note:
-        Storage conventions for harmonic coefficients :math:`flm_{(\ell,m)}`, for 
+        Storage conventions for harmonic coefficients :math:`flm_{(\ell,m)}`, for
         e.g. :math:`L = 3`, are as follows.
 
         .. math::
@@ -735,7 +806,7 @@ def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
                     0 & flm_{(1,-1)} & flm_{(1,0)} & flm_{(1,1)} & 0 \\
                     flm_{(2,-2)} & flm_{(2,-1)} & flm_{(2,0)} & flm_{(2,1)} & flm_{(2,2)}
                 \end{bmatrix}
-        
+
         .. math::
 
             \text{1D data format}:  [flm_{0,0}, flm_{1,-1}, flm_{1,0}, flm_{1,1}, \dots]
@@ -770,10 +841,10 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
     r"""
     Converts from HEALPix (healpy) indexed harmonic coefficients to 2D indexed
     coefficients.
-    
+
     Notes:
-        HEALPix implicitly assumes conjugate symmetry and thus only stores positive `m` 
-        coefficients. Here we unpack that into harmonic coefficients of an 
+        HEALPix implicitly assumes conjugate symmetry and thus only stores positive `m`
+        coefficients. Here we unpack that into harmonic coefficients of an
         explicitly real signal.
 
     Warning:
@@ -781,7 +852,7 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
         where `L = lmax + 1`.
 
     Note:
-        Storage conventions for harmonic coefficients :math:`f_{(\ell,m)}`, for 
+        Storage conventions for harmonic coefficients :math:`f_{(\ell,m)}`, for
         e.g. :math:`L = 3`, are as follows.
 
         .. math::
@@ -791,7 +862,7 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
                     0 & flm_{(1,-1)} & flm_{(1,0)} & flm_{(1,1)} & 0 \\
                     flm_{(2,-2)} & flm_{(2,-1)} & flm_{(2,0)} & flm_{(2,1)} & flm_{(2,2)}
                 \end{bmatrix}
-        
+
         .. math::
 
             \text{HEALPix}: [flm_{(0,0)}, \dots, flm_{(2,0)}, flm_{(1,1)}, \dots, flm_{(L-1,1)}, \dots]
@@ -826,15 +897,15 @@ def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
     r"""
     Converts from 2D indexed harmonic coefficients to HEALPix (healpy) indexed
     coefficients.
-    
+
     Note:
-        HEALPix implicitly assumes conjugate symmetry and thus only stores positive `m` 
-        coefficients. So this function discards the negative `m` values. This process 
-        is NOT invertible! See the `healpy api docs <https://healpy.readthedocs.io/en/latest/generated/healpy.sphtfunc.alm2map.html>`_ 
+        HEALPix implicitly assumes conjugate symmetry and thus only stores positive `m`
+        coefficients. So this function discards the negative `m` values. This process
+        is NOT invertible! See the `healpy api docs <https://healpy.readthedocs.io/en/latest/generated/healpy.sphtfunc.alm2map.html>`_
         for details on healpy indexing and lengths.
 
     Note:
-        Storage conventions for harmonic coefficients :math:`f_{(\ell,m)}`, for 
+        Storage conventions for harmonic coefficients :math:`f_{(\ell,m)}`, for
         e.g. :math:`L = 3`, are as follows.
 
         .. math::
@@ -844,7 +915,7 @@ def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
                     0 & flm_{(1,-1)} & flm_{(1,0)} & flm_{(1,1)} & 0 \\
                     flm_{(2,-2)} & flm_{(2,-1)} & flm_{(2,0)} & flm_{(2,1)} & flm_{(2,2)}
                 \end{bmatrix}
-        
+
         .. math::
 
             \text{HEALPix}: [flm_{(0,0)}, \dots, flm_{(2,0)}, flm_{(1,1)}, \dots, flm_{(L-1,1)}, \dots]
@@ -860,10 +931,10 @@ def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
         flm_2d (np.ndarray): 2D indexed harmonic coefficients.
 
         L (int): Harmonic band-limit.
-        
+
     Returns:
         np.ndarray: HEALPix indexed harmonic coefficients.
-        
+
     """
     flm_hp = np.zeros(int(L * (L + 1) / 2), dtype=np.complex128)
 

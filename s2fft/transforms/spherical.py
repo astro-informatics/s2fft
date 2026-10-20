@@ -174,13 +174,13 @@ def inverse_numpy(
     )
 
     # Remove south pole singularity
-    if sampling.lower() in samples.INCLUDES_SOUTH_POLE_SCHEMES:
+    if samples.includes_south_pole(sampling):
         ftm[-1] = 0
         ftm[-1, L - 1 + spin + m_offset] = np.nansum(
             (-1) ** abs(np.arange(L0, L) - spin) * flm[L0:, L - 1 + spin]
         )
     # Remove north pole singularity
-    if sampling.lower() in samples.INCLUDES_NORTH_POLE_SCHEMES:
+    if samples.includes_north_pole(sampling):
         ftm[0] = 0
         ftm[0, L - 1 - spin + m_offset] = jnp.nansum(flm[L0:, L - 1 - spin])
 
@@ -527,7 +527,7 @@ def forward_numpy(
         ftm[:, m_start_ind + m_offset :] *= phase_shifts
 
     # Perform latitudinal wigner-d recursions
-    if sampling.lower() in samples.INCLUDES_BOTH_POLES_SCHEMES:
+    if samples.includes_both_poles(sampling):
         flm = otf.forward_latitudinal_step(
             ftm[1:-1],
             thetas[1:-1],
@@ -545,7 +545,7 @@ def forward_numpy(
         )
 
     # Include both pole singularities explicitly
-    if sampling.lower() in samples.INCLUDES_BOTH_POLES_SCHEMES:
+    if samples.includes_both_poles(sampling):
         flm[L0:, L - 1 + spin] += (-1) ** abs(np.arange(L0, L) - spin) * ftm[
             -1, L - 1 + spin + m_offset
         ]
