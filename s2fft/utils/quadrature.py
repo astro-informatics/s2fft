@@ -417,10 +417,9 @@ def quad_weights_cc_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
     """
     n_theta = samples.ntheta(L, "cc")
 
-    # Computing RFFT below with n = n_theta - 1 < 1 will fail so raise
-    # early in this case
-    if n_theta < 2:
-        raise ValueError("Clenshaw-Curtis sampling scheme requires n_theta >= 2")
+    # Computing RFFT below with n = n_theta - 1 < 1 will fail - n_theta should be >= 3 by
+    # construction of definition in samples.ntheta so the below should always pass
+    assert n_theta > 1
 
     n = n_theta - 1
     w = _fejer_second_rule_rfft_weights(n, xp)
