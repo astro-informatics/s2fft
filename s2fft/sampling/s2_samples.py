@@ -22,6 +22,10 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
 
         ValueError: Sampling scheme not supported.
 
+        ValueError: Using any non-HEALPix sampling scheme with L < 1.
+
+        ValueError: Using Clenshaw-Curtis sampling scheme with L < 2.
+
     Returns:
         int: Number of :math:`\theta` samples of sampling scheme at given resolution.
 
@@ -29,6 +33,10 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
     if sampling.lower() != "healpix" and L is None:
         raise ValueError(
             f"Sampling scheme sampling={sampling} with L={L} not supported"
+        )
+    elif sampling.lower() != "healpix" and L < 1:
+        raise ValueError(
+            f"Sampling scheme sampling={sampling} requires bandlimit L >= 1"
         )
 
     if sampling.lower() in ("mw", "gl"):
