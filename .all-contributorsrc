@@ -154,6 +154,15 @@
       "contributions": [
         "tutorial"
       ]
+    },
+    {
+      "login": "mscroggs",
+      "name": "Matthew Scroggs",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9850599?v=4",
+      "profile": "https://mscroggs.co.uk",
+      "contributions": [
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
