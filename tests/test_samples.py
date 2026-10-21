@@ -183,7 +183,7 @@ def test_samples_exceptions():
 
 @pytest.mark.parametrize("L", [0, 1])
 def test_cc_with_invalid_L_raises_error(L):
-    with pytest.raises(ValueError, match="at least L=2"):
+    with pytest.raises(ValueError, match="bandlimit L >= 1"):
         samples.ntheta(L, sampling="cc")
-    with pytest.raises(ValueError, match="at least L=2"):
+    with pytest.raises(ValueError, match="bandlimit L >= 1"):
         samples.thetas(L, sampling="cc")
