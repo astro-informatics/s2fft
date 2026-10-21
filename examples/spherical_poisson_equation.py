@@ -237,7 +237,9 @@ coefficient_magnitudes = (
 )
 
 # Leave entries that do not correspond to valid coefficients blank
-invalid_coefficients = np.abs(display_m_values.reshape(1, 2 * max_degree + 1) > display_ell_values.reshape(max_degree + 1, 1)
+invalid_coefficients = np.abs(
+    display_m_values.reshape(1, 2 * max_degree + 1)
+) > display_ell_values.reshape(max_degree + 1, 1)
 
 for magnitudes in coefficient_magnitudes:
     magnitudes[invalid_coefficients] = np.nan
@@ -248,7 +250,7 @@ fig, axes = plt.subplots(1, 2, figsize=(10, 6), sharex=True, sharey=True)
 
 max_magnitude = max(np.nanmax(magnitudes) for magnitudes in coefficient_magnitudes)
 
-for ax, magnitudes, title in zip(axes, coefficient_magnitudes, titles):
+for ax, magnitudes, title in zip(axes, coefficient_magnitudes, titles, strict=True):
     image = ax.pcolormesh(
         display_m_values,
         display_ell_values,
