@@ -163,6 +163,17 @@
       "contributions": [
         "review"
       ]
+    },
+    {
+      "login": "slosar",
+      "name": "Anže Slosar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1197186?v=4",
+      "profile": "http://www.slosar.com/aslosar",
+      "contributions": [
+        "bug",
+        "code",
+        "test"
+      ]
     }
   ],
   "contributorsPerLine": 7,

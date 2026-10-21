@@ -281,6 +281,7 @@ key](https://allcontributors.org/docs/en/emoji-key)):
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/i-tanvir"><img src="https://avatars.githubusercontent.com/u/25553076?v=4?s=100" width="100px;" alt="Tanvir"/><br /><sub><b>Tanvir</b></sub></a><br /><a href="#tutorial-i-tanvir" title="Tutorials">✅</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://mscroggs.co.uk"><img src="https://avatars.githubusercontent.com/u/9850599?v=4?s=100" width="100px;" alt="Matthew Scroggs"/><br /><sub><b>Matthew Scroggs</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/pulls?q=is%3Apr+reviewed-by%3Amscroggs" title="Reviewed Pull Requests">👀</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://www.slosar.com/aslosar"><img src="https://avatars.githubusercontent.com/u/1197186?v=4?s=100" width="100px;" alt="Anže Slosar"/><br /><sub><b>Anže Slosar</b></sub></a><br /><a href="https://github.com/astro-informatics/s2fft/issues?q=author%3Aslosar" title="Bug reports">🐛</a> <a href="https://github.com/astro-informatics/s2fft/commits?author=slosar" title="Code">💻</a> <a href="https://github.com/astro-informatics/s2fft/commits?author=slosar" title="Tests">⚠️</a></td>
     </tr>
   </tbody>
 </table>
