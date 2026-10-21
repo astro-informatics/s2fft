@@ -20,7 +20,7 @@ resources/
 .matrices/
 s2fft.code-workspace
 .tox
-s2fft/_version.py
+src/**/_version.py
 tests/cached-test-data/**
 
 #c++/cuda/cmake
