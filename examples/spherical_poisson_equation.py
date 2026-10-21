@@ -33,7 +33,7 @@ and then running that cell.
 #
 # Consider an unknown scalar field :math:`u(\theta,\phi)` on the unit
 # sphere, where :math:`\theta \in [0,\pi]` is colatitude and
-# :math:`\phi \in [0,2\pi)` is longitude. `Poisson’s
+# :math:`\phi \in [0,2\pi)` is longitude. `Poisson's
 # equation <https://en.wikipedia.org/wiki/Poisson%27s_equation>`__ is
 #
 # .. math::
@@ -55,7 +55,7 @@ and then running that cell.
 #    = \frac{1}{\sin\theta} \frac{\partial}{\partial\theta} \left(\sin\theta \frac{\partial u}{\partial\theta}\right)
 #    + \frac{1}{\sin^{2}\theta} \frac{\partial^{2}u}{\partial\phi^{2}}.
 #
-# Poisson’s equation on the sphere arise in many settings, including
+# Poisson's equation on the sphere arise in many settings, including
 # geophysics, astrophysics, and fluid dynamics.
 
 # %%
@@ -70,7 +70,7 @@ and then running that cell.
 #    \Delta_{\mathbb{S}^2} Y_{\ell m} = -\ell (\ell+1) Y_{\ell m}.
 #
 # Expanding :math:`u` and :math:`f` in spherical harmonics therefore turns
-# Poisson’s equation into a separate algebraic equation for each harmonic
+# Poisson's equation into a separate algebraic equation for each harmonic
 # coefficient:
 #
 # .. math::
@@ -208,7 +208,7 @@ source_flm = np.asarray(
 # :math:`\ell=0` row remains zero and selects the zero-mean solution.
 
 # %%
-ell_values = np.arange(L)[:, None]
+ell_values = np.arange(L).reshape((L, 1))
 laplacian_eigenvalues = -ell_values * (ell_values + 1)
 
 solution_flm = np.zeros_like(source_flm)
@@ -221,7 +221,7 @@ solution_flm[1:] = source_flm[1:] / laplacian_eigenvalues[1:]
 #
 # The heatmaps below compare the coefficients of the source and solution.
 #
-# Solving Poisson’s equation leaves each coefficient at the same
+# Solving Poisson's equation leaves each coefficient at the same
 # :math:`(\ell,m)` and divides it by the corresponding Laplacian
 # eigenvalue :math:`-\ell(\ell+1)`. The solution therefore contains the
 # same harmonic modes as the source, but with different magnitudes.
@@ -237,7 +237,7 @@ coefficient_magnitudes = (
 )
 
 # Leave entries that do not correspond to valid coefficients blank
-invalid_coefficients = np.abs(display_m_values[None, :]) > display_ell_values[:, None]
+invalid_coefficients = np.abs(display_m_values.reshape(1, 2 * max_degree + 1) > display_ell_values.reshape(max_degree + 1, 1)
 
 for magnitudes in coefficient_magnitudes:
     magnitudes[invalid_coefficients] = np.nan
@@ -248,7 +248,7 @@ fig, axes = plt.subplots(1, 2, figsize=(10, 6), sharex=True, sharey=True)
 
 max_magnitude = max(np.nanmax(magnitudes) for magnitudes in coefficient_magnitudes)
 
-for ax, magnitudes, title in zip(axes, coefficient_magnitudes, titles, strict=False):
+for ax, magnitudes, title in zip(axes, coefficient_magnitudes, titles):
     image = ax.pcolormesh(
         display_m_values,
         display_ell_values,
@@ -269,7 +269,7 @@ for ax, magnitudes, title in zip(axes, coefficient_magnitudes, titles, strict=Fa
     )
 
     # Label non-zero coefficients
-    non_zero = ~np.isclose(np.nan_to_num(magnitudes), 0)
+    non_zero = np.logical_not(np.isclose(np.nan_to_num(magnitudes), 0))
     for ell_index, m_index in np.argwhere(non_zero):
         ax.text(
             display_m_values[m_index],
