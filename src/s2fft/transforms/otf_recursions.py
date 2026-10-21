@@ -1,5 +1,6 @@
 from functools import partial
 
+import array_api_compat
 import jax.lax as lax
 import jax.numpy as jnp
 import numpy as np
@@ -18,7 +19,7 @@ def _safe_bigi_lbig(dl_entry_slice):
     # values of HEALPix rings for spin != 0, where 1/|dl_entry| -> inf
     # and log|dl_entry| -> -inf would otherwise inject NaNs that are
     # silently dropped by nansum, losing that mode's contribution.
-    xp = dl_entry_slice.__array_namespace__()
+    xp = array_api_compat.array_namespace(dl_entry_slice)
     abs_entry = abs(dl_entry_slice)
     nonzero = abs_entry != 0
     safe_abs = xp.where(nonzero, abs_entry, 1.0)
