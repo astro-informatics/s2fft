@@ -1,5 +1,6 @@
 from functools import partial
 
+import array_api_compat
 import jax.lax as lax
 import jax.numpy as jnp
 import numpy as np
@@ -10,6 +11,21 @@ from s2fft.recursions.price_mcewen import (
     generate_precomputes_jax,
 )
 from s2fft.sampling import s2_samples as samples
+
+
+def _safe_bigi_lbig(dl_entry_slice):
+    # Guard against renormalising on an exact node of the Wigner-d
+    # recursion (dl_entry == 0). This occurs at the rational cos(theta)
+    # values of HEALPix rings for spin != 0, where 1/|dl_entry| -> inf
+    # and log|dl_entry| -> -inf would otherwise inject NaNs that are
+    # silently dropped by nansum, losing that mode's contribution.
+    xp = array_api_compat.array_namespace(dl_entry_slice)
+    abs_entry = abs(dl_entry_slice)
+    nonzero = abs_entry != 0
+    safe_abs = xp.where(nonzero, abs_entry, 1.0)
+    bigi = xp.where(nonzero, 1.0 / safe_abs, 1.0)
+    lbig = xp.where(nonzero, xp.log(safe_abs), 0.0)
+    return bigi, lbig
 
 
 def inverse_latitudinal_step(
@@ -161,8 +177,7 @@ def inverse_latitudinal_step(
                     axis=-1,
                 )
 
-                bigi = 1.0 / abs(dl_entry[:, L_lower:])
-                lbig = np.log(abs(dl_entry[:, L_lower:]))
+                bigi, lbig = _safe_bigi_lbig(dl_entry[:, L_lower:])
 
                 dl_iter[0] = np.where(index, bigi * dl_iter[1], dl_iter[0])
                 dl_iter[1] = np.where(index, bigi * dl_entry[:, L_lower:], dl_iter[1])
@@ -341,8 +356,7 @@ def inverse_latitudinal_step_jax(
                     )
                 )
 
-                bigi = 1.0 / abs(dl_entry[:, L_lower:])
-                lbig = jnp.log(abs(dl_entry[:, L_lower:]))
+                bigi, lbig = _safe_bigi_lbig(dl_entry[:, L_lower:])
 
                 dl_iter = dl_iter.at[0].set(
                     jnp.where(index, bigi * dl_iter[1], dl_iter[0])
@@ -578,8 +592,7 @@ def forward_latitudinal_step(
                     axis=-2,
                 )
 
-                bigi = 1.0 / abs(dl_entry[:, L_lower:])
-                lbig = np.log(abs(dl_entry[:, L_lower:]))
+                bigi, lbig = _safe_bigi_lbig(dl_entry[:, L_lower:])
 
                 dl_iter[0] = np.where(index, bigi * dl_iter[1], dl_iter[0])
                 dl_iter[1] = np.where(index, bigi * dl_entry[:, L_lower:], dl_iter[1])
@@ -780,8 +793,7 @@ def forward_latitudinal_step_jax(
                     )
                 )
 
-                bigi = 1.0 / abs(dl_entry)
-                lbig = jnp.log(abs(dl_entry))
+                bigi, lbig = _safe_bigi_lbig(dl_entry)
 
                 dl_iter = dl_iter.at[0].set(
                     jnp.where(index, bigi * dl_iter[1], dl_iter[0])

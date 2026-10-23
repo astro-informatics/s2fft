@@ -145,6 +145,35 @@
         "code",
         "test"
       ]
+    },
+    {
+      "login": "i-tanvir",
+      "name": "Tanvir",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25553076?v=4",
+      "profile": "https://github.com/i-tanvir",
+      "contributions": [
+        "tutorial"
+      ]
+    },
+    {
+      "login": "mscroggs",
+      "name": "Matthew Scroggs",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9850599?v=4",
+      "profile": "https://mscroggs.co.uk",
+      "contributions": [
+        "review"
+      ]
+    },
+    {
+      "login": "slosar",
+      "name": "Anže Slosar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1197186?v=4",
+      "profile": "http://www.slosar.com/aslosar",
+      "contributions": [
+        "bug",
+        "code",
+        "test"
+      ]
     }
   ],
   "contributorsPerLine": 7,
