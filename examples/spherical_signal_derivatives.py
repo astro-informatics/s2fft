@@ -225,6 +225,9 @@ longitude_derivative = np.asarray(
 # A more detailed derivation is given in the `SpeedyWeather documentation
 # on meridional
 # derivatives <https://speedyweather.github.io/SpeedyWeatherDocumentation/dev/spectral_transform#Meridional-derivative>`__.
+# Note that the SpeedyWeather documentation is expressed using in terms
+# of the latitude rather than the colatitude so the equations derived there
+# do not exactly match the equations used here.
 #
 # For a general signal with non-zero coefficients at the highest
 # represented degree :math:`\ell=L-1`, the recurrence can generate a
@@ -237,7 +240,7 @@ longitude_derivative = np.asarray(
 # general, so it is left blank.
 
 # %%
-ell_values = np.arange(L)[:, None]
+ell_values = np.arange(L).reshape((L, 1))
 
 # Invalid pairs with |m| > ell, and ell = 0, have epsilon = 0
 epsilon = np.sqrt(
@@ -284,7 +287,7 @@ max_degree = 3
 display_ell_values = np.arange(max_degree + 1)
 display_m_values = np.arange(-max_degree, max_degree + 1)
 
-coefficient_magnitudes = (
+coefficient_magnitudes = [
     np.abs(flm[: max_degree + 1, L - 1 - max_degree : L + max_degree]),
     np.abs(
         longitude_derivative_flm[: max_degree + 1, L - 1 - max_degree : L + max_degree]
@@ -294,10 +297,10 @@ coefficient_magnitudes = (
             : max_degree + 1, L - 1 - max_degree : L + max_degree
         ]
     ),
-)
+]
 
 # Leave entries that do not correspond to valid coefficients blank
-invalid_coefficients = np.abs(display_m_values[None, :]) > display_ell_values[:, None]
+invalid_coefficients = np.abs(display_m_values.reshape((1, -1)) > display_ell_values.reshape((-1, 1))
 for magnitudes in coefficient_magnitudes:
     magnitudes[invalid_coefficients] = np.nan
 
@@ -331,7 +334,7 @@ for ax, magnitudes, title in zip(axes, coefficient_magnitudes, titles, strict=Fa
     )
 
     # Label non-zero coefficients
-    non_zero = ~np.isclose(np.nan_to_num(magnitudes), 0)
+    non_zero = np.logical_not(np.isclose(np.nan_to_num(magnitudes), 0))
     for ell_index, m_index in np.argwhere(non_zero):
         ax.text(
             display_m_values[m_index],
