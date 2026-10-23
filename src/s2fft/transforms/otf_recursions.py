@@ -64,7 +64,7 @@ def inverse_latitudinal_step(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -110,7 +110,7 @@ def inverse_latitudinal_step(
 
     for i in range(2):
         if not (reality and i == 0):
-            m_offset = 1 if sampling in ["mwss", "healpix"] and i == 0 else 0
+            m_offset = samples.m_offset(L, sampling) if i == 0 else 0
 
             lind = L - 1 - L_lower
             sind = lims[i]
@@ -224,7 +224,7 @@ def inverse_latitudinal_step_jax(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -252,8 +252,9 @@ def inverse_latitudinal_step_jax(
     """
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
-    m_count = 2 * L if sampling.lower() in ["mwss", "healpix"] else 2 * L - 1
-    ftm = jnp.zeros((ntheta, m_count), dtype=jnp.complex128)
+    ftm = jnp.zeros(
+        (ntheta, samples.ftm_shape(L, sampling, nside)[1]), dtype=jnp.complex128
+    )
     el = jnp.arange(L_lower, L)
 
     # Trigonometric constant adopted throughout
@@ -273,7 +274,7 @@ def inverse_latitudinal_step_jax(
 
     for i in range(2):
         if not (reality and i == 0):
-            m_offset = 1 if sampling in ["mwss", "healpix"] and i == 0 else 0
+            m_offset = samples.m_offset(L, sampling) if i == 0 else 0
 
             lind = L - 1 - L_lower
             sind = lims[i]
@@ -424,8 +425,8 @@ def inverse_latitudinal_step_jax(
                 )
 
     # Remove south pole singularity
-    m_offset = 1 if sampling.lower() in ["mwss", "healpix"] else 0
-    if sampling.lower() in ["mw", "mwss"]:
+    m_offset = samples.m_offset(L, sampling)
+    if samples.includes_south_pole(sampling):
         ftm = ftm.at[-1].set(0)
         ftm = ftm.at[-1, L - 1 + spin + m_offset].set(
             jnp.nansum(
@@ -434,7 +435,7 @@ def inverse_latitudinal_step_jax(
         )
 
     # Remove north pole singularity
-    if sampling.lower() == "mwss":
+    if samples.includes_north_pole(sampling):
         ftm = ftm.at[0].set(0)
         ftm = ftm.at[0, L - 1 - spin + m_offset].set(
             jnp.nansum(flm[L_lower:, L - 1 - spin])
@@ -479,7 +480,7 @@ def forward_latitudinal_step(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -518,7 +519,7 @@ def forward_latitudinal_step(
 
     for i in range(2):
         if not (reality and i == 0):
-            m_offset = 1 if sampling in ["mwss", "healpix"] and i == 0 else 0
+            m_offset = samples.m_offset(L, sampling) if i == 0 else 0
 
             lind = L - 1 - L_lower
             sind = lims[i]
@@ -639,7 +640,7 @@ def forward_latitudinal_step_jax(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -665,11 +666,13 @@ def forward_latitudinal_step_jax(
         recover acceleration by the number of devices.
 
     """
-    # Avoid pole-singularities for MWSS sampling
-    if sampling.lower() == "mwss":
+    # Avoid pole-singularities where relevant
+    if samples.includes_both_poles(sampling):
         ftm = ftm_in[1:-1]
         beta = beta_in[1:-1]
-    elif sampling.lower() == "mw":
+    elif samples.includes_south_pole(sampling) and not samples.includes_north_pole(
+        sampling
+    ):
         ftm = ftm_in[:-1]
         beta = beta_in[:-1]
     else:
@@ -698,7 +701,7 @@ def forward_latitudinal_step_jax(
 
     for i in range(2):
         if not (reality and i == 0):
-            m_offset = 1 if sampling in ["mwss", "healpix"] and i == 0 else 0
+            m_offset = samples.m_offset(L, sampling) if i == 0 else 0
 
             lind = L - 1 - L_lower
             sind = lims[i]
@@ -886,13 +889,13 @@ def forward_latitudinal_step_jax(
                 )
 
     # Include both pole singularities explicitly
-    m_offset = 1 if sampling.lower() in ["mwss", "healpix"] else 0
-    if sampling.lower() in ["mw", "mwss"]:
+    m_offset = samples.m_offset(L, sampling)
+    if samples.includes_south_pole(sampling):
         flm = flm.at[L_lower:, L - 1 + spin].add(
             (-1) ** abs(jnp.arange(L_lower, L) - spin)
             * ftm_in[-1, L - 1 + spin + m_offset]
         )
 
-    if sampling.lower() == "mwss":
+    if samples.includes_north_pole(sampling):
         flm = flm.at[L_lower:, L - 1 - spin].add(ftm_in[0, L - 1 - spin + m_offset])
     return flm
