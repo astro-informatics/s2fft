@@ -300,7 +300,9 @@ coefficient_magnitudes = [
 ]
 
 # Leave entries that do not correspond to valid coefficients blank
-invalid_coefficients = np.abs(display_m_values.reshape((1, -1)) > display_ell_values.reshape((-1, 1))
+invalid_coefficients = np.abs(
+    display_m_values.reshape((1, -1))
+) > display_ell_values.reshape((-1, 1))
 for magnitudes in coefficient_magnitudes:
     magnitudes[invalid_coefficients] = np.nan
 
