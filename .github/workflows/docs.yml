@@ -7,7 +7,7 @@ on:
     paths:
       - .github/workflows/docs.yml
       - pyproject.toml
-      - s2fft/**
+      - src/**
       - docs/**
       - notebooks/**
   push:
@@ -27,25 +27,25 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v7.0.1
 
-    - name: Set up Python 
+    - name: Set up Python
       uses: actions/setup-python@v6
       with:
         python-version: "3.13"
         cache: pip
         cache-dependency-path: pyproject.toml
-    
+
     - name: Install dependencies
       run: |
         sudo apt install pandoc
         python -m pip install --upgrade pip
         pip install .[docs,examples]
-  
+
     # By default, sphinx-gallery dumps each notebook to
     # docs/_build/html/_downloads/<hash>/<example-name>.ipynb.
     # These links seemingly cannot be accessed when writing the scripts themselves, so the workaround is to
     # - Move the generated notebooks to a more convenient location.
     # - Within the notebooks themselves, hard-code the link to the GH-pages deployment for that notebook.
-    # The loop below performs the necessary copying. 
+    # The loop below performs the necessary copying.
     # The the source files are assumed to have the hard-coded links already set correctly.
     - name: Build documentation
       run: |
