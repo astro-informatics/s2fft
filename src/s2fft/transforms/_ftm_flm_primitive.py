@@ -166,8 +166,8 @@ def _flm_to_ftm_jvp(primals, tangents, **params):
 
 def _flm_to_ftm_transpose(cotangent, flm, thetas, spin, *precomps, **params):
     # The transpose of the flm_to_ftm primitive (applied to the initial flm argument) is
-    # the ftm_to_flm primitive. We do not pass through the supplied (flm_to_ftm) precomps
-    # so these are regenerated internally for the ftm_to_flm primitive.
+    # the ftm_to_flm primitive. The supplied (flm_to_ftm) precomps are not passed
+    # through, and the recursions do not use precomps anyway.
     cot_flm = ftm_to_flm(cotangent, thetas, spin=spin, **params)
     return (cot_flm, None, None) + (None,) * len(precomps)
 
@@ -233,8 +233,8 @@ def _ftm_to_flm_jvp(primals, tangents, **params):
 
 def _ftm_to_flm_transpose(cotangent, ftm, thetas, spin, *precomps, **params):
     # The transpose of the ftm_to_flm primitive (applied to the initial ftm argument) is
-    # the flm_to_ftm primitive. We do not pass through the supplied (ftm_to_flm) precomps
-    # so these are regenerated internally for the flm_to_ftm primitive.
+    # the flm_to_ftm primitive. The supplied (ftm_to_flm) precomps are not passed
+    # through, and the recursions do not use precomps anyway.
     cot_ftm = flm_to_ftm(cotangent, thetas, spin=spin, **params)
     return (cot_ftm, None, None) + (None,) * len(precomps)
 

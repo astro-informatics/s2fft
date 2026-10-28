@@ -428,11 +428,9 @@ def generate_precomputes(
     L_lower: int = 0,
 ) -> list[np.ndarray]:
     r"""
-    Compute recursion coefficients with :math:`\mathcal{O}(L^3)` memory overhead.
-
-    The corresponding JAX implementation in :py:func:`generate_precomputes_jax` has a
-    :math:`\mathcal{O}(L^2)` overhead and so should generally be preferred, particularly
-    for large :math:`L`.
+    Compute recursion coefficients with :math:`\mathcal{O}(n_\theta L + L^2)` memory
+    overhead, which is :math:`\mathcal{O}(L^2)` for the usual sampling schemes, as for
+    the JAX implementation :py:func:`generate_precomputes_jax`.
 
     The recursions in s2fft no longer use these arrays: they evaluate their starting
     values and coefficients on the fly (see :func:`compute_all_slices_jax`), so any
@@ -661,7 +659,8 @@ def generate_precomputes_wigner(
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
-        List[List[np.ndarray]]: 2N-1 length List of Lists of precomputed coefficient arrays.
+        List[List[np.ndarray]]: The five arrays of :func:`~generate_precomputes` for
+        each of the 2N-1 values of n, or N if ``reality`` is True.
 
     Note:
         TODO: this function should be optimised.
@@ -683,7 +682,7 @@ def generate_precomputes_wigner_jax(
     forward: bool = False,
     reality: bool = False,
     L_lower: int = 0,
-) -> list[list[jnp.ndarray]]:
+) -> list[jnp.ndarray]:
     r"""
     Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
     This is a wrapped extension of :func:`~generate_precomputes` for the case of
@@ -716,7 +715,10 @@ def generate_precomputes_wigner_jax(
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
-        List[List[jnp.ndarray]]: 2N-1 length List of Lists of precomputed coefficient arrays.
+        List[jnp.ndarray]: The five arrays of :func:`~generate_precomputes_jax`, stacked
+        over n along a new leading axis: ``lrenorm`` and ``vsign`` for each of the 2N-1
+        values of n (N if ``reality`` is True), and ``cpi``, ``cp2`` and ``indices``,
+        which do not depend on n, once.
 
     """
     lrenorm = []
