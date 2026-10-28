@@ -73,7 +73,7 @@ McEwen & Wiaux sampling theorem reduces the Nyquist rate on the sphere
 by a factor of two compared to the Driscoll & Healy approach, halving
 the number of spherical samples required.
 
-The popular [HEALPix](https://healpix.jpl.nasa.gov) sampling scheme
+The popular [HEALPix](https://healpix.sourceforge.io) sampling scheme
 ([Gorski et al. 2005](https://arxiv.org/abs/astro-ph/0409513)) is also
 supported. The HEALPix sampling does not exhibit a sampling theorem and
 so the corresponding harmonic transforms do not achieve machine
@@ -90,7 +90,7 @@ pixels of equal areas, which has many practical advantages.
 >
 > __If running on a CPU__, we provide (differentiable) JAX wrappers of the [`healpy`](https://healpy.readthedocs.io/en/latest/) transforms which can be used to sidestep the issue.
 > This implementation can be selected by passing a `method="jax_healpy"` keyword argument to the `s2fft.forward` or `s2fft.inverse` functions -
-> see example [notebook](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_HEALPix_backend.html).
+> see example [notebook](https://astro-informatics.github.io/s2fft/tutorials/JAX_HEALPix_frontend.html).
 >
 > __If running on a GPU__, a CUDA extension module is available which avoids the long compilation time.
 > This implementation can be selected by passing a `method="jax_cuda"` keyword argument to the `sfft.forward` and `s2fft.inverse` functions.
@@ -220,14 +220,14 @@ flmn = s2fft.wigner.forward(f, L, N, method="jax")
 f = fft.wigner.inverse_jax(flmn, L, N, method="jax")
 ```
 
-For further details on usage see the [documentation](https://astro-informatics.github.io/s2fft/) and associated [notebooks](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/spherical_harmonic_transform.html).
+For further details on usage see the [documentation](https://astro-informatics.github.io/s2fft/) and associated [notebooks](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic_transform.html).
 
-We also provide PyTorch support for our transforms, as demonstrated in the [_Torch frontend_ tutorial notebook](https://astro-informatics.github.io/s2fft/tutorials/torch_frontend/torch_frontend.html).
+We also provide PyTorch support for our transforms, as demonstrated in the [_Torch frontend_ tutorial notebook](https://astro-informatics.github.io/s2fft/tutorials/torch_frontend.html).
 This wraps the JAX implementations so JAX will need to be installed in addition to PyTorch.
 
 ## SSHT & HEALPix wrappers 💡
 
-`S2FFT` also provides JAX support for existing C/C++ packages, specifically [`HEALPix`](https://healpix.jpl.nasa.gov) and [`SSHT`](https://github.com/astro-informatics/ssht). This works
+`S2FFT` also provides JAX support for existing C/C++ packages, specifically [`HEALPix`](https://healpix.sourceforge.io) and [`SSHT`](https://github.com/astro-informatics/ssht). This works
 by wrapping Python bindings with custom JAX frontends. Note that this C/C++ to JAX interoperability is currently limited to CPU.
 
 For example, one may call these alternate backends for the spherical harmonic transform by:
@@ -245,7 +245,7 @@ and under the hood is simply linking to the C/C++ packages you are familiar with
 way `S2fft` enhances existing packages with gradient functionality for modern scientific computing or machine learning
 applications!
 
-For further details on usage see the associated [notebooks](https://astro-informatics.github.io/s2fft/tutorials/spherical_harmonic/JAX_SSHT_backend.html).
+For further details on usage see the associated [notebooks](https://astro-informatics.github.io/s2fft/tutorials/JAX_SSHT_frontend.html).
 
 ## Benchmarks ⏱️
 
@@ -254,7 +254,7 @@ A suite of benchmark functions for both the on-the-fly and precompute versions o
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji
-key](https://allcontributors.org/docs/en/emoji-key)):
+key](https://allcontributors.org/en/reference/emoji-key/)):
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
