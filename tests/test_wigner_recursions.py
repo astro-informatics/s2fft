@@ -290,6 +290,25 @@ def _thetas_nearest_poles(L: int, sampling: str, nside: int = None) -> np.ndarra
     return np.concatenate((thetas[:2], thetas[-2:]))
 
 
+def _valid_entries(L: int, spin: int) -> np.ndarray:
+    """Mask of the entries [L - 1 + m, el] of a slice with el >= |spin| and |m| <= el."""
+    el = np.arange(L)
+    m = np.arange(-L + 1, L)
+    return (el[None, :] >= abs(spin)) & (np.abs(m)[:, None] <= el[None, :])
+
+
+def _check_slices_near_poles(dl: np.ndarray, betas: np.ndarray, L: int, spin: int):
+    """Compare slices [L - 1 + m, t, el] with Risbo on their valid entries."""
+    valid = _valid_entries(L, spin)
+    for t, beta in enumerate(betas):
+        np.testing.assert_allclose(
+            np.asarray(dl)[:, t][valid],
+            _risbo_slice(beta, L, -spin)[valid],
+            rtol=0,
+            atol=1e-13,
+        )
+
+
 @pytest.mark.parametrize("L", [16, 32])
 @pytest.mark.parametrize("spin", [0, 2, 5, 8, 12, -12])
 @pytest.mark.parametrize("sampling", sampling_schemes)
@@ -302,12 +321,19 @@ def test_price_mcewen_slices_near_poles(L: int, spin: int, sampling: str):
     """
     nside = L // 2 if sampling == "healpix" else None
     betas = _thetas_nearest_poles(L, sampling, nside)
-    dl_jax = recursions.price_mcewen.compute_all_slices_jax(jnp.asarray(betas), L, spin)
-    dl_numpy = recursions.price_mcewen.compute_all_slices(betas, L, spin)
-    for t, beta in enumerate(betas):
-        dl_risbo = _risbo_slice(beta, L, -spin)
-        np.testing.assert_allclose(dl_jax[:, t], dl_risbo, rtol=0, atol=1e-13)
-        np.testing.assert_allclose(dl_numpy[:, t], dl_risbo, rtol=0, atol=1e-13)
+    dl = recursions.price_mcewen.compute_all_slices(betas, L, spin)
+    _check_slices_near_poles(dl, betas, L, spin)
+
+
+@pytest.mark.parametrize("L", [16, 32])
+@pytest.mark.parametrize("spin", [0, 2, 5, 8, 12, -12])
+@pytest.mark.parametrize("sampling", sampling_schemes)
+def test_price_mcewen_slices_jax_near_poles(L: int, spin: int, sampling: str):
+    """Test JAX Price & McEwen slices on the rings nearest the poles against Risbo."""
+    nside = L // 2 if sampling == "healpix" else None
+    betas = _thetas_nearest_poles(L, sampling, nside)
+    dl = recursions.price_mcewen.compute_all_slices_jax(jnp.asarray(betas), L, spin)
+    _check_slices_near_poles(dl, betas, L, spin)
 
 
 @pytest.mark.slow
@@ -322,9 +348,10 @@ def test_price_mcewen_slices_near_poles_high_L(sampling: str):
     L = 128
     betas = _thetas_nearest_poles(L, sampling)
     dl = recursions.price_mcewen.compute_all_slices_jax(jnp.asarray(betas), L, 0)
+    valid = _valid_entries(L, 0)
     for t, beta in enumerate(betas):
         np.testing.assert_allclose(
-            dl[:, t], _risbo_slice(beta, L, 0), rtol=0, atol=2e-13
+            dl[:, t][valid], _risbo_slice(beta, L, 0)[valid], rtol=0, atol=2e-13
         )
 
 
@@ -342,6 +369,18 @@ def test_turok_slice_near_poles(L: int, spin: int, sampling: str):
             np.testing.assert_allclose(
                 dl_turok[m_range], dl_risbo[m_range, el], rtol=0, atol=1e-13
             )
+
+
+@pytest.mark.parametrize("L", [16, 32])
+@pytest.mark.parametrize("spin", [0, 2, 5, 8, 12, -12])
+@pytest.mark.parametrize("sampling", ["mw", "gl", "healpix"])
+def test_turok_slice_jax_near_poles(L: int, spin: int, sampling: str):
+    """Test JAX Turok & Bucher spin slices on the rings nearest the poles."""
+    nside = L // 2 if sampling == "healpix" else None
+    for beta in _thetas_nearest_poles(L, sampling, nside):
+        dl_risbo = _risbo_slice(beta, L, -spin)
+        for el in range(abs(spin), L):
+            m_range = slice(L - 1 - el, L + el)
             dl_turok = recursions.turok_jax.compute_slice(beta, el, L, -spin)
             np.testing.assert_allclose(
                 dl_turok[m_range], dl_risbo[m_range, el], rtol=0, atol=1e-13
