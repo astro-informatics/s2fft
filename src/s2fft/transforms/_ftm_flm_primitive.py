@@ -16,8 +16,9 @@ Each primitive accepts the following operands:
   while ``spin`` is a JIT tracer.
 * ``*precomps`` — five JAX arrays produced by
   :func:`generate_precomputes_jax`: ``(lrenorm, vsign, cpi, cp2, indices)``.
-  May be omitted entirely (zero operands), in which case the underlying
-  function regenerates them at trace time.
+  May be omitted entirely (zero operands). The underlying functions no
+  longer use them: they evaluate the recursion's starting values and
+  coefficients on the fly.
 
 Static keyword params: ``L``, ``nside``, ``sampling``, ``reality``,
 ``spmd``, ``L_lower``.

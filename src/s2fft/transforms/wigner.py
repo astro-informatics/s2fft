@@ -42,8 +42,7 @@ def inverse(
 
         L (int): Harmonic band-limit.
 
-        N (int): Azimuthal band-limit. For high precision beyond :math:`N \approx 8`,
-            one should use `method="jax_ssht"`.
+        N (int): Azimuthal band-limit.
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -83,9 +82,6 @@ def inverse(
     """
     if method not in _inverse_functions:
         raise ValueError(f"Method {method} not recognised.")
-
-    if N >= 8 and method in ("numpy", "jax", "torch"):
-        raise Warning("Recursive transform may provide lower precision beyond N ~ 8")
 
     inverse_kwargs = {
         "flmn": flmn,
@@ -136,8 +132,7 @@ def inverse_numpy(
 
         L (int): Harmonic band-limit.
 
-        N (int): Azimuthal band-limit. Recursive transform will have lower precision
-            beyond :math:`N \approx 8`.
+        N (int): Azimuthal band-limit.
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -226,8 +221,7 @@ def inverse_jax(
 
         L (int): Harmonic band-limit.
 
-        N (int): Azimuthal band-limit. Recursive transform will have lower precision
-            beyond :math:`N \approx 8`.
+        N (int): Azimuthal band-limit.
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -415,9 +409,6 @@ def forward(
     """
     if method not in _inverse_functions:
         raise ValueError(f"Method {method} not recognised.")
-
-    if N >= 8 and method in ("numpy", "jax", "torch"):
-        raise Warning("Recursive transform may provide lower precision beyond N ~ 8")
 
     forward_kwargs = {
         "f": f,

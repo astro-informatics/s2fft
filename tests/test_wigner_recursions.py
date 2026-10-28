@@ -271,3 +271,78 @@ def test_turok_exceptions():
 
     with pytest.raises(ValueError) as _:
         recursions.turok.compute_slice(beta=np.pi / 2, el=L, L=L, mm=0)
+
+
+def _risbo_slice(beta: float, L: int, mm: int) -> np.ndarray:
+    """Slice d^el_{m, mm}(beta) for all el < L, indexed [L - 1 + m, el], by Risbo."""
+    dl = jnp.zeros((2 * L - 1, 2 * L - 1), dtype=jnp.float64)
+    dl_slice = np.zeros((2 * L - 1, L))
+    for el in range(L):
+        dl = recursions.risbo_jax.compute_full(dl, beta, L, el)
+        dl_slice[:, el] = dl[:, L - 1 + mm]
+    return dl_slice
+
+
+def _thetas_nearest_poles(L: int, sampling: str, nside: int = None) -> np.ndarray:
+    """Two sample rings nearest each pole, excluding rings on the poles themselves."""
+    thetas = samples.thetas(L, sampling, nside)
+    thetas = thetas[(thetas > 0) & (thetas < np.pi)]
+    return np.concatenate((thetas[:2], thetas[-2:]))
+
+
+@pytest.mark.parametrize("L", [16, 32])
+@pytest.mark.parametrize("spin", [0, 2, 5, 8, 12, -12])
+@pytest.mark.parametrize("sampling", sampling_schemes)
+def test_price_mcewen_slices_near_poles(L: int, spin: int, sampling: str):
+    """
+    Test Price & McEwen slices on the rings nearest the poles against Risbo.
+
+    Near a pole the slice peaks at m = +/-mm and a half recursion continuing past the
+    peak amplifies round-off, so that accuracy was lost for |spin| >~ 4 (issue #176).
+    """
+    nside = L // 2 if sampling == "healpix" else None
+    betas = _thetas_nearest_poles(L, sampling, nside)
+    dl_jax = recursions.price_mcewen.compute_all_slices_jax(jnp.asarray(betas), L, spin)
+    dl_numpy = recursions.price_mcewen.compute_all_slices(betas, L, spin)
+    for t, beta in enumerate(betas):
+        dl_risbo = _risbo_slice(beta, L, -spin)
+        np.testing.assert_allclose(dl_jax[:, t], dl_risbo, rtol=0, atol=1e-13)
+        np.testing.assert_allclose(dl_numpy[:, t], dl_risbo, rtol=0, atol=1e-13)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("sampling", ["mw", "gl"])
+def test_price_mcewen_slices_near_poles_high_L(sampling: str):
+    """
+    Test spin-0 Price & McEwen slices on the rings nearest the poles at L = 128.
+
+    The logarithms of the starting values were accumulated over ~L terms in float64,
+    giving errors growing like L^2 log(1/beta) near the poles.
+    """
+    L = 128
+    betas = _thetas_nearest_poles(L, sampling)
+    dl = recursions.price_mcewen.compute_all_slices_jax(jnp.asarray(betas), L, 0)
+    for t, beta in enumerate(betas):
+        np.testing.assert_allclose(
+            dl[:, t], _risbo_slice(beta, L, 0), rtol=0, atol=2e-13
+        )
+
+
+@pytest.mark.parametrize("L", [16, 32])
+@pytest.mark.parametrize("spin", [0, 2, 5, 8, 12, -12])
+@pytest.mark.parametrize("sampling", ["mw", "gl", "healpix"])
+def test_turok_slice_near_poles(L: int, spin: int, sampling: str):
+    """Test Turok & Bucher spin slices on the rings nearest the poles against Risbo."""
+    nside = L // 2 if sampling == "healpix" else None
+    for beta in _thetas_nearest_poles(L, sampling, nside):
+        dl_risbo = _risbo_slice(beta, L, -spin)
+        for el in range(abs(spin), L):
+            m_range = slice(L - 1 - el, L + el)
+            dl_turok = recursions.turok.compute_slice(beta, el, L, -spin)
+            np.testing.assert_allclose(
+                dl_turok[m_range], dl_risbo[m_range, el], rtol=0, atol=1e-13
+            )
+            dl_turok = recursions.turok_jax.compute_slice(beta, el, L, -spin)
+            np.testing.assert_allclose(
+                dl_turok[m_range], dl_risbo[m_range, el], rtol=0, atol=1e-13
+            )

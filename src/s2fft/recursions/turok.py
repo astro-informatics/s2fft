@@ -1,6 +1,9 @@
+import math
 from warnings import warn
 
 import numpy as np
+
+from s2fft.recursions.price_mcewen import _start_values
 
 
 def compute_full(beta: float, el: int, L: int) -> np.ndarray:
@@ -50,16 +53,17 @@ def compute_slice(
     recursion.
 
     The Wigner-d slice for a given :math:`\ell` (`el`) and :math:`\beta` is computed
-    recursively over :math:`m` labelled 'm' at a specific :math:`m^{\prime}`. The Turok
-    & Bucher recursion is analytically correct from :math:`-\ell < m < \ell` however
-    numerically it can become unstable for :math:`m > 0`. To avoid this we compute
-    :math:`d_{m, m^{\prime}}^{\ell}(\beta)` for negative :math:`m` and then evaluate
-    :math:`d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m,
-    m^{\prime}}^{\ell}(\beta)` which we can again evaluate using a Turok & Bucher
-    recursion.
+    recursively over :math:`m` labelled 'm' at a specific :math:`m^{\prime}`, by two
+    half recursions running inwards from the edges :math:`m = \mp\ell`. Each half
+    recursion is only stable while the slice grows in its direction, so the halves meet
+    at :math:`m^\star = \mathrm{round}(m^\prime\cos\beta)`, the centre of the
+    oscillatory region of the slice, rather than at :math:`m = 0`; near the poles the
+    slice peaks at :math:`m = \pm m^\prime` and decays away from it. The starting
+    values are evaluated directly and the iterates rescaled by exact powers of two, as in
+    :func:`~s2fft.recursions.price_mcewen.compute_all_slices`.
 
     The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for :math:`-L <
-    m < L` by `dl[L - 1 - m]`. This implementation has computational scaling
+    m < L` by `dl[L - 1 + m]`. This implementation has computational scaling
     :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L` operations.
 
     Args:
@@ -151,86 +155,49 @@ def compute_quarter_slice(
         dl[L - 1] = 1
         return dl
 
-    # These constants handle overflow by retrospectively renormalising
-    big_const = 1e10
-    bigi = 1.0 / big_const
-    lbig = np.log(big_const)
+    # Starting values at the edges m = -el and m = el, as mantissas and exponents
+    mantissa, exponent = _start_values(np.array([beta]), np.array([el]), mm, np)
 
     # Trigonometric constant adopted throughout
     c = np.cos(beta)
     s = np.sin(beta)
-    t = np.tan(-beta / 2.0)
-    lt = np.log(np.abs(t))
-    c2 = np.cos(beta / 2.0)
-    omc = 1.0 - c
+    sin_half_beta_sq = np.sin(beta / 2) ** 2
+    cos_half_beta_sq = np.cos(beta / 2) ** 2
 
-    # Indexing boundaries
-    half_slices = [el + mm + 1, el - mm + 1]
-    lims = [L - 1 - el, L - 1 + el]
+    # The two half recursions meet at the centre of the oscillatory region of the slice
+    m_star = int(np.rint(mm * c))
 
-    # Vectors with indexing -L < m < L adopted throughout
-    lrenorm = np.zeros(2, dtype=np.float64)
-    sign = np.zeros(2, dtype=np.float64)
-    cpi = np.zeros(el + 1, dtype=np.float64)
-    cp2 = np.zeros(el + 1, dtype=np.float64)
-    log_first_row = np.zeros(2 * el + 1, dtype=np.float64)
-
-    # Populate vectors for first row
-    log_first_row[0] = 2.0 * el * np.log(np.abs(c2))
-
-    for i in range(2, np.max(half_slices) + 1):
-        ratio = (2 * el + 2 - i) / (i - 1)
-        log_first_row[i - 1] = log_first_row[i - 2] + np.log(ratio) / 2 + lt
-
-    for i, slice in enumerate(half_slices):
-        sign[i] = (t / np.abs(t)) ** ((slice - 1) % 2)
-
-    # Initialising coefficients cp(m)= cplus(l-m).
-    cpi[0] = 2.0 / np.sqrt(2 * el)
-    for m in range(2, el + 1):
-        cpi[m - 1] = 2.0 / np.sqrt(m * (2 * el + 1 - m))
-        cp2[m - 1] = cpi[m - 1] / cpi[m - 2]
-
-    # Use Turok & Bucher recursion to evaluate a single half row
-    # Then evaluate the negative half row and reflect using
-    # Wigner-d symmetry relation.
-
-    for i, slice in enumerate(half_slices):
+    for i in range(2):
         if not (positive_m_only and i == 0):
-            sgn = (-1) ** (i)
+            mm_i = mm if i == 0 else -mm
+            n_rows = m_star + el if i == 0 else el - m_star + 1
+            d_prev, d_curr = 0.0, 0.0
+            scale = int(exponent[i, 0, 0])
+            for q in range(n_rows):
+                if q == 0:
+                    d_next = float(mantissa[i, 0, 0])
+                else:
+                    # lamb = -(m_c cos(beta) + mm_i) / sin(beta), through half angles
+                    m_c = el + 1 - q
+                    if c >= 0:
+                        lamb = (m_c + mm_i) - 2 * m_c * sin_half_beta_sq
+                    else:
+                        lamb = (mm_i - m_c) + 2 * m_c * cos_half_beta_sq
+                    lamb = -lamb / s
+                    cpi = 2.0 / np.sqrt(q * (2 * el + 1 - q))
+                    cp2 = np.sqrt((q - 1) * (2 * el + 2 - q) / (q * (2 * el + 1 - q)))
+                    d_next = cpi * lamb * d_curr - cp2 * d_prev
 
-            # Initialise the vector
-            dl[lims[i]] = 1.0
-            lamb = ((el + 1) * omc - slice + c) / s
-            dl[lims[i] + sgn * 1] = lamb * dl[lims[i]] * cpi[0]
+                m = -el + q if i == 0 else el - q
+                sign = (-1) ** ((m if i == 0 else mm) + el)
+                dl[L - 1 + m] = sign * math.ldexp(d_next, scale)
 
-            for m in range(2, el + 1):
-                lamb = ((el + 1) * omc - slice + m * c) / s
-                dl[lims[i] + sgn * m] = (
-                    lamb * cpi[m - 1] * dl[lims[i] + sgn * (m - 1)]
-                    - cp2[m - 1] * dl[lims[i] + sgn * (m - 2)]
-                )
-                if dl[lims[i] + sgn * m] > big_const:
-                    lrenorm[i] = lrenorm[i] - lbig
-                    for im in range(m + 1):
-                        dl[lims[i] + sgn * im] = dl[lims[i] + sgn * im] * bigi
-
-            # Apply renormalisation
-            renorm = sign[i] * np.exp(log_first_row[slice - 1] - lrenorm[i])
-
-            if i == 0:
-                for m in range(el):
-                    dl[lims[i] + sgn * m] = dl[lims[i] + sgn * m] * renorm
-
-            if i == 1:
-                for m in range(el + 1):
-                    dl[lims[i] + sgn * m] = (
-                        (-1) ** ((mm - m + el) % 2) * dl[lims[i] + sgn * m] * renorm
-                    )
-
-    s_ind = 0 if positive_m_only else -el
-    for m in range(s_ind, el + 1):
-        dl[m + L - 1] *= (-1) ** (abs(mm - m))
+                # Rescale the iterates by an exact power of two
+                largest = max(abs(d_curr), abs(d_next))
+                shift = math.frexp(largest)[1] if largest > 0 else 0
+                d_prev = math.ldexp(d_curr, -shift)
+                d_curr = math.ldexp(d_next, -shift)
+                scale += shift
 
     return dl
 

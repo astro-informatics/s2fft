@@ -86,9 +86,6 @@ def inverse(
     if method not in _inverse_functions:
         raise ValueError(f"Method {method} not recognised.")
 
-    if spin >= 8 and method in ("numpy", "jax", "jax_cuda", "torch"):
-        raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
-
     inverse_kwargs = {"flm": flm, "L": L}
     if method in ("numpy", "jax", "jax_cuda", "torch"):
         inverse_kwargs.update(sampling=sampling, precomps=precomps, L_lower=L_lower)
@@ -405,9 +402,6 @@ def forward(
     """
     if method not in _forward_functions:
         raise ValueError(f"Method {method} not recognised.")
-
-    if spin >= 8 and method in ("numpy", "jax", "jax_cuda", "torch"):
-        raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
     if iter is None:
         iter = 3 if sampling.lower() == "healpix" and method == "jax_healpy" else 0

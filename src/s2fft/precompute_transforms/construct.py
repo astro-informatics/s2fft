@@ -8,10 +8,6 @@ from s2fft import recursions
 from s2fft.sampling import s2_samples as samples
 from s2fft.utils import quadrature, quadrature_jax, torch_wrapper
 
-# Maximum spin number at which Price-McEwen recursion is sufficiently accurate.
-# For spins > PM_MAX_STABLE_SPIN one should default to the Risbo recursion.
-PM_MAX_STABLE_SPIN = 6
-
 
 def _n_sample_wigner_fourier_inverse_fft(sampling: str, n_theta: int) -> int:
     """
@@ -88,15 +84,10 @@ def spin_spherical_kernel(
             + "Defering to complex transform.",
             stacklevel=2,
         )
-    if recursion.lower() == "price-mcewen" and abs(spin) > PM_MAX_STABLE_SPIN:
-        raise ValueError(
-            f"The Price-McEwen recursion can become unstable for spins >= {PM_MAX_STABLE_SPIN}."
-        )
-
     if recursion.lower() == "auto":
-        # This mode automatically determines which recursion is best suited for the
-        # current parameter configuration.
-        recursion = "risbo" if abs(spin) > PM_MAX_STABLE_SPIN else "price-mcewen"
+        # The Price-McEwen recursion is stable for all spins and, unlike the Risbo
+        # recursion, does not need O(L^4) operations for GL and HEALPix sampling.
+        recursion = "price-mcewen"
 
     dl = []
     m_start_ind = L - 1 if reality else 0
@@ -111,7 +102,6 @@ def spin_spherical_kernel(
 
     # Calculate Wigner d-function elements through the Price-McEwen recursion.
     # - The complexity of this approach is O(L^3).
-    # - This approach becomes inaccurate for abs(spins) >= 5.
     if recursion.lower() == "price-mcewen":
         dl = np.zeros((len(thetas), L, m_dim), dtype=np.float64)
         for t, theta in enumerate(thetas):
@@ -230,15 +220,10 @@ def spin_spherical_kernel_jax(
             + "Defaulting to complex transform.",
             stacklevel=2,
         )
-    if recursion.lower() == "price-mcewen" and abs(spin) > PM_MAX_STABLE_SPIN:
-        raise ValueError(
-            f"The Price-McEwen recursion can become unstable for spins >= {PM_MAX_STABLE_SPIN}."
-        )
-
     if recursion.lower() == "auto":
-        # This mode automatically determines which recursion is best suited for the
-        # current parameter configuration.
-        recursion = "risbo" if abs(spin) > PM_MAX_STABLE_SPIN else "price-mcewen"
+        # The Price-McEwen recursion is stable for all spins and, unlike the Risbo
+        # recursion, does not need O(L^4) operations for GL and HEALPix sampling.
+        recursion = "price-mcewen"
 
     dl = []
     m_start_ind = L - 1 if reality else 0
@@ -253,7 +238,6 @@ def spin_spherical_kernel_jax(
 
     # Calculate Wigner d-function elements through the Price-McEwen recursion.
     # - The complexity of this approach is O(L^3).
-    # - This approach becomes inaccurate for abs(spins) >= 5.
     if recursion.lower() == "price-mcewen":
         dl = recursions.price_mcewen.compute_all_slices_jax(
             thetas, L, spin, sampling, forward, nside

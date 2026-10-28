@@ -10,6 +10,307 @@ from s2fft.sampling import s2_samples as samples
 
 warnings.filterwarnings("ignore")
 
+# Stirling series error log(n!) - (n log(n) - n + log(2 pi n) / 2) for n = 0, ..., 15
+# (zero for n = 0, where it is not used).
+_STIRLING_ERROR_TABLE = np.array(
+    [
+        0.0,
+        0.081061466795327258,
+        0.041340695955409294,
+        0.027677925684998339,
+        0.020790672103765093,
+        0.016644691189821192,
+        0.013876128823070748,
+        0.01189670994589177,
+        0.010411265261972096,
+        0.0092554621827127329,
+        0.0083305634333628713,
+        0.0075736754879518408,
+        0.0069428401072095299,
+        0.0064089941880042071,
+        0.0059513701127588477,
+        0.0055547335519628014,
+    ]
+)
+
+
+# The iterates of the recursion are kept within [2^-400, 2^400] and their scale as an
+# integer index k, the value being d 2^(800 k); rescaling multiplies by exact powers of
+# two (libsharp's approach). Since |d| <= 1, only k = 0 and k = -1 give values above
+# 2^-1200, and k < -1 contributes zero.
+_SCALE_LIMIT = 2.0**400
+_SCALE_FACTOR = 2.0**800
+_SCALE_BITS = 800
+
+
+def _stirling_error(n, xp):
+    r"""
+    Error of Stirling's approximation, :math:`\log n! - (n \log n - n + \log(2 \pi n)/2)`,
+    for arrays of non-negative integers held as floats.
+    """
+    big = n >= 16
+    nb = xp.where(big, n, 16.0)
+    n2 = nb * nb
+    series = (
+        1 / 12
+        - (
+            1 / 360
+            - (1 / 1260 - (1 / 1680 - (1 / 1188 - 691 / 360360 / n2) / n2) / n2) / n2
+        )
+        / n2
+    ) / nb
+    table = xp.asarray(_STIRLING_ERROR_TABLE)[xp.clip(n, 0, 15).astype(int)]
+    return xp.where(big, series, table)
+
+
+def _log_binomial(a, b, xp):
+    r"""
+    :math:`\log \binom{a + b}{a}` for arrays of non-negative integers held as floats,
+    accurate to a few units of round-off relative to its value.
+
+    The leading terms of the log-factorials cancel analytically (as in Loader's
+    algorithm for binomial probabilities), so no large quantities are subtracted.
+    """
+    zero = (a == 0) | (b == 0)
+    a = xp.where(zero, 1.0, a)
+    b = xp.where(zero, 1.0, b)
+    n = a + b
+    log_binomial = (
+        a * xp.log1p(b / a)
+        + b * xp.log1p(a / b)
+        + 0.5 * xp.log(n / (2 * np.pi * a * b))
+        + _stirling_error(n, xp)
+        - _stirling_error(a, xp)
+        - _stirling_error(b, xp)
+    )
+    return xp.where(zero, 0.0, log_binomial)
+
+
+def _exp2(e, xp):
+    r"""
+    Exact :math:`2^e` for an array of integers held as floats, flushed to zero for
+    :math:`e < -1022`, built from its bit pattern (``jnp.ldexp`` and ``jnp.exp2`` round
+    on GPU).
+    """
+    biased_exponent = xp.clip(e + 1023, 0, 2046).astype(xp.int64)
+    if xp is np:
+        return (biased_exponent << 52).view(np.float64)
+    return lax.bitcast_convert_type(biased_exponent << 52, jnp.float64)
+
+
+def _start_values(beta, el, mm, xp):
+    r"""
+    Starting values of the two half recursions over :math:`m` for all :math:`\beta` and
+    :math:`\ell`, as exact base-2 exponents and mantissas.
+
+    The half recursions start at the edges of the slice, from
+
+    .. math::
+
+        |d^\ell_{\mp\ell, m^\prime}(\beta)| = \sqrt{\binom{2\ell}{\ell + |m^\prime|}}
+        \left(\frac{\sin\beta}{2}\right)^{\ell - |m^\prime|} S^{|m^\prime|},
+
+    with :math:`S = \sin^2(\beta/2)` or :math:`\cos^2(\beta/2)`. These values
+    underflow near the poles, so they are evaluated as :math:`M 2^E` with :math:`E` an
+    integer: the exponents of :math:`\sin\beta/2` and :math:`S` are split off exactly
+    (``frexp``) and only logarithms of :math:`\mathcal{O}(1)` mantissas are taken,
+    giving a relative error of a few :math:`\ell` units of round-off rather than one
+    proportional to :math:`\ell \log(1/\beta)`.
+
+    Args:
+        beta (np.ndarray | jnp.ndarray): Polar angles in radians, shape (ntheta,).
+
+        el (np.ndarray | jnp.ndarray): Harmonic degrees, shape (nel,).
+
+        mm (int): Harmonic order :math:`m^\prime` at which to slice the matrix.
+
+        xp (module): Array namespace, numpy or jax.numpy.
+
+    Returns:
+        Tuple[np.ndarray | jnp.ndarray]: Mantissas and (integer-valued) exponents, each
+        of shape (2, ntheta, nel), for the half recursions starting at
+        :math:`m = -\ell` (index 0) and :math:`m = \ell` (index 1); zero for
+        :math:`\ell < |m^\prime|`.
+
+    """
+    el = xp.asarray(el, dtype=xp.float64)
+    abs_mm = xp.abs(mm)
+    valid = el >= abs_mm
+    k = xp.where(valid, el - abs_mm, 0.0)
+
+    sin_half_beta_sq = xp.sin(beta / 2) ** 2
+    cos_half_beta_sq = xp.cos(beta / 2) ** 2
+    frac_t, exp_t = xp.frexp(xp.sin(beta) / 2)
+    log_frac_t = xp.log2(xp.where(frac_t > 0, frac_t, 1.0))
+    # log2(sqrt(binom(2 el, el + |mm|))) - el, which is O(log el)
+    log_binom = _log_binomial(el + abs_mm, k, xp) / (2 * np.log(2)) - el
+
+    mantissas = []
+    exponents = []
+    for i in range(2):
+        s_is_sin = mm > 0 if i == 0 else mm < 0
+        frac_s, exp_s = xp.frexp(xp.where(s_is_sin, sin_half_beta_sq, cos_half_beta_sq))
+        log_frac_s = xp.log2(xp.where(frac_s > 0, frac_s, 1.0))
+        log_mantissa = (
+            k[None, :] * log_frac_t[:, None]
+            + abs_mm * log_frac_s[:, None]
+            + log_binom[None, :]
+        )
+        exponent = xp.floor(log_mantissa)
+        mantissa = xp.exp2(log_mantissa - exponent)
+        exponent = (
+            exponent
+            + k[None, :] * exp_t[:, None]
+            + abs_mm * exp_s[:, None]
+            + el[None, :]
+        )
+        zero = (
+            ~valid[None, :]
+            | ((frac_t == 0)[:, None] & (k > 0)[None, :])
+            | ((frac_s == 0) & (abs_mm > 0))[:, None]
+        )
+        mantissas.append(xp.where(zero, 0.0, mantissa))
+        exponents.append(xp.where(zero, 0.0, exponent))
+    return xp.stack(mantissas), xp.stack(exponents)
+
+
+def _scaled_start_values(beta, el, mm, xp):
+    r"""
+    Starting values from :func:`_start_values` as iterates within
+    :math:`[2^{-400}, 2^{401})` and scale indices :math:`k`, the value being
+    :math:`d\,2^{800 k}`; each of shape (2, ntheta, nel).
+    """
+    mantissa, exponent = _start_values(beta, el, mm, xp)
+    scale = xp.rint(exponent / _SCALE_BITS)
+    return mantissa * _exp2(exponent - _SCALE_BITS * scale, xp), scale
+
+
+def _recursion_step(i, j, state, start, el, L, mm, polar, xp):
+    r"""
+    Step :math:`j` of half recursion :math:`i` of the Price & McEwen slice recursion.
+
+    Half recursion 0 runs upwards in :math:`m` from the edge :math:`m = -\ell` and half
+    recursion 1 downwards from :math:`m = \ell`. Degree :math:`\ell` starts at step
+    :math:`L - 1 - \ell`, so step :math:`j` evaluates the row
+    :math:`m = j - (L - 1)` (:math:`i = 0`) or :math:`m = L - 1 - j` (:math:`i = 1`)
+    for all :math:`\beta` and :math:`\ell` at once. The iterates are rescaled by exact
+    powers of two, with the scale kept as an integer index. Each half recursion
+    stops at the meeting point :math:`m^\star` from :func:`_polar_terms`: half
+    recursion 0 gives the rows :math:`m < m^\star` and half recursion 1 the rows
+    :math:`m \geq m^\star`, so that both only run in the direction in which the
+    slice grows.
+
+    Args:
+        i (int): Half recursion, 0 or 1.
+
+        j (int): Step.
+
+        state (Tuple): Previous and current iterates and their scale index, each of
+            shape (ntheta, nel).
+
+        start (Tuple): Starting values and their scale indices from
+            :func:`_scaled_start_values`.
+
+        el (np.ndarray | jnp.ndarray): Harmonic degrees, shape (nel,).
+
+        L (int): Harmonic band-limit.
+
+        mm (int): Harmonic order :math:`m^\prime` at which to slice the matrix.
+
+        polar (Tuple): Functions of :math:`\beta` and the meeting point from
+            :func:`_polar_terms`.
+
+        xp (module): Array namespace, numpy or jax.numpy.
+
+    Returns:
+        Tuple: :math:`d^\ell_{m, m^\prime}(\beta)` on row :math:`m` with shape
+        (ntheta, nel), zero for :math:`|m| > \ell` and where the row belongs to the
+        other half recursion, and the updated state.
+
+    """
+    d_prev, d_curr, scale = state
+    hemisphere, half_angle, sin_beta, m_star = polar
+    q = j - (L - 1) + el  # Steps from the edge of the slice for each el
+    at_edge = q == 0
+    stepping = (q >= 1) & (q <= 2 * el)
+    q = xp.asarray(q, dtype=xp.float64)
+    el = xp.asarray(el, dtype=xp.float64)
+
+    # Coefficients of the three-term recursion, on the fly
+    a_curr = xp.where(stepping, q * (2 * el + 1 - q), 1.0)
+    a_prev = xp.where(stepping & (q >= 2), (q - 1) * (2 * el + 2 - q), 0.0)
+    cpi = 2.0 / xp.sqrt(a_curr)
+    cp2 = xp.sqrt(a_prev / a_curr)
+
+    # lamb = -(m_c cos(beta) + mm_i) / sin(beta), where m_c is the distance from the
+    # centre of the previous row. Writing m_c cos(beta) + mm_i as
+    # (m_c + mm_i) - 2 m_c sin^2(beta/2) in the northern hemisphere and as
+    # -((m_c - mm_i) - 2 m_c cos^2(beta/2)) in the southern avoids the cancellation in
+    # cos(beta) near the poles.
+    m_c = (el + 1 - q)[None, :]
+    mm_i = mm if i == 0 else -mm
+    integer_part = m_c + hemisphere[:, None] * mm_i  # Exact
+    lamb = integer_part - m_c * half_angle[:, None]
+    lamb = -hemisphere[:, None] * lamb / sin_beta[:, None]
+
+    # Degree L - 1 - j starts at this step (degrees el are consecutive): read only its
+    # column of the starting values.
+    edge = xp.clip((L - 1 - j) - el[0], 0, el.shape[0] - 1).astype(int)
+    d_next = cpi * lamb * d_curr - cp2 * d_prev
+    d_next = xp.where(at_edge, xp.take(start[0][i], edge, axis=1)[:, None], d_next)
+    scale = xp.where(at_edge, xp.take(start[1][i], edge, axis=1)[:, None], scale)
+
+    # Past the meeting point the slice decays in the direction of this half recursion,
+    # which would amplify round-off, so it stops there (and does not start if its edge
+    # lies beyond it).
+    m = j - (L - 1) if i == 0 else L - 1 - j
+    owned = m < m_star if i == 0 else m >= m_star
+    active = (at_edge | stepping) & owned[:, None]
+
+    sign = 1 - 2 * (((m if i == 0 else mm) + el) % 2)
+    unscale = xp.where(scale == 0, 1.0, xp.where(scale == -1, 1 / _SCALE_FACTOR, 0.0))
+    value = xp.where(active, sign * d_next * unscale, 0.0)
+
+    # Rescale both iterates by an exact power of two when they leave [2^-400, 2^400]
+    largest = xp.maximum(xp.abs(d_curr), xp.abs(d_next))
+    up = largest > _SCALE_LIMIT
+    down = (largest < 1 / _SCALE_LIMIT) & (largest > 0)
+    factor = xp.where(up, 1 / _SCALE_FACTOR, xp.where(down, _SCALE_FACTOR, 1.0))
+    d_prev = xp.where(active, d_curr * factor, d_prev)
+    d_curr = xp.where(active, d_next * factor, d_curr)
+    scale = xp.where(active, scale + up - down, scale)
+    return value, (d_prev, d_curr, scale)
+
+
+def _polar_terms(beta, mm, xp):
+    r"""
+    Functions of :math:`\beta` adopted by the recursion: the hemisphere (:math:`\pm 1`),
+    :math:`2\sin^2(\beta/2)` in the north or :math:`2\cos^2(\beta/2)` in the south,
+    :math:`\sin\beta` (one at the poles), and the meeting point of the two half
+    recursions, :math:`m^\star = \mathrm{round}(m^\prime\cos\beta)`, the centre of the
+    oscillatory region of the slice.
+    """
+    cos_beta = xp.cos(beta)
+    sin_beta = xp.sin(beta)
+    north = cos_beta >= 0
+    return (
+        xp.where(north, 1.0, -1.0),
+        2 * xp.where(north, xp.sin(beta / 2), xp.cos(beta / 2)) ** 2,
+        xp.where(sin_beta == 0, 1.0, sin_beta),
+        xp.rint(mm * cos_beta),
+    )
+
+
+def _log_start_values(beta, el, mm, xp):
+    r"""
+    Natural logarithms of the starting values from :func:`_start_values`, zero where
+    the starting value vanishes, in the layout of the precomputed ``lrenorm`` arrays.
+    """
+    mantissa, exponent = _start_values(beta, el, mm, xp)
+    positive = mantissa > 0
+    log_mantissa = xp.log(xp.where(positive, mantissa, 1.0))
+    return xp.where(positive, log_mantissa + exponent * np.log(2), 0.0)
+
 
 def generate_precomputes(
     L: int,
@@ -25,6 +326,12 @@ def generate_precomputes(
     The corresponding JAX implementation in :py:func:`generate_precomputes_jax` has a
     :math:`\mathcal{O}(L^2)` overhead and so should generally be preferred, particularly
     for large :math:`L`.
+
+    The recursions in s2fft no longer use these arrays: they evaluate their starting
+    values and coefficients on the fly (see :func:`compute_all_slices_jax`), so any
+    precomputes passed to the transforms are ignored. This function is kept for
+    backward compatibility; ``lrenorm`` holds the logarithms of the starting values,
+    now evaluated directly rather than by a running sum.
 
     Args:
         L (int): Harmonic band-limit.
@@ -65,28 +372,9 @@ def generate_precomputes(
     ntheta = len(beta)  # Number of theta samples
     el = np.arange(L0, L)
 
-    # Trigonometric constant adopted throughout
-    t = np.tan(-beta / 2.0)
-    lt = np.log(np.abs(t))
-    c2 = np.cos(beta / 2.0)
-
-    # Indexing boundaries
-    half_slices = [el + mm + 1, el - mm + 1]
-
     # Vectors with indexing -L < m < L adopted throughout
     cpi = np.zeros((L + 1, L - L0), dtype=np.float64)
     cp2 = np.zeros((L + 1, L - L0), dtype=np.float64)
-    log_first_row = np.zeros((2 * L + 1, ntheta, L - L0), dtype=np.float64)
-
-    # Populate vectors for first row
-    log_first_row[0] = np.einsum("l,t->tl", 2.0 * el, np.log(np.abs(c2)))
-
-    for i in range(2, L + abs(mm) + 2):
-        ratio = (2 * el + 2 - i) / (i - 1)
-        for j in range(ntheta):
-            log_first_row[i - 1, j] = (
-                log_first_row[i - 2, j] + np.log(ratio) / 2 + lt[j]
-            )
 
     # Initialising coefficients cp(m)= cplus(l-m).
     cpi[0] = 2.0 / np.sqrt(2 * el)
@@ -106,13 +394,10 @@ def generate_precomputes(
     vsign = np.einsum("m,l->ml", msign, lsign)
     vsign[: L - 1] *= (-1) ** abs(mm + 1 + L)
 
-    lrenorm = np.zeros((2, ntheta, L - L0), dtype=np.float64)
-    for i in range(2):
-        for j in range(ntheta):
-            for k in range(L0, L):
-                lrenorm[i, j, k - L0] = log_first_row[
-                    half_slices[i][k - L0] - 1, j, k - L0
-                ]
+    # Logarithms of the starting values of the two half recursions, evaluated
+    # directly rather than by a running sum whose rounding errors grow like
+    # el^2 log(1/beta) near the poles.
+    lrenorm = _log_start_values(beta, el, mm, np)
 
     indices = np.repeat(np.expand_dims(np.arange(L0, L), 0), ntheta, axis=0)
     return [lrenorm, vsign, cpi, cp2, indices]
@@ -133,6 +418,12 @@ def generate_precomputes_jax(
     In practice one could compute these on-the-fly but the memory overhead is
     negligible and well worth the acceleration. JAX implementation of
     :func:`~generate_precomputes`.
+
+    The recursions in s2fft no longer use these arrays: they evaluate their starting
+    values and coefficients on the fly (see :func:`compute_all_slices_jax`), so any
+    precomputes passed to the transforms are ignored. This function is kept for
+    backward compatibility; ``lrenorm`` holds the logarithms of the starting values,
+    now evaluated directly rather than by a running sum.
 
     Args:
         L (int): Harmonic band-limit.
@@ -175,14 +466,6 @@ def generate_precomputes_jax(
     ntheta = len(beta)  # Number of theta samples
     el = jnp.arange(L0, L)
 
-    # Trigonometric constant adopted throughout
-    t = jnp.tan(-beta / 2.0)
-    lt = jnp.log(jnp.abs(t))
-    c2 = jnp.cos(beta / 2.0)
-
-    # Indexing boundaries
-    half_slices = [el + mm + 1, el - mm + 1]
-
     # Vectors with indexing -L < m < L adopted throughout
     cpi = jnp.zeros((L + 1, L - L0), dtype=jnp.float64)
     cp2 = jnp.zeros((L + 1, L - L0), dtype=jnp.float64)
@@ -215,38 +498,10 @@ def generate_precomputes_jax(
     vsign = jnp.einsum("m,l->ml", msign, lsign, optimize=True)
     vsign = vsign.at[: L - 1].multiply((-1) ** abs(mm + 1 + L))
 
-    # Populate vectors for first ro
-    lrenorm = jnp.zeros((2, ntheta, L - L0), dtype=jnp.float64)
-    log_first_row_iter = jnp.einsum(
-        "l,t->tl", 2.0 * el, jnp.log(jnp.abs(c2)), optimize=True
-    )
-
-    ratio_update = jnp.arange(2 * L + 1)
-    ratio = jnp.repeat(jnp.expand_dims(2 * el + 2, -1), 2 * L + 1, axis=-1)
-    ratio -= ratio_update
-    ratio /= ratio_update - 1
-    ratio = jnp.log(jnp.swapaxes(ratio, 0, 1)) / 2
-
-    for ind in range(2):
-        lrenorm = lrenorm.at[ind].set(
-            jnp.where(1 == half_slices[ind], log_first_row_iter, lrenorm[ind])
-        )
-
-    def renorm_m_loop(i, args):
-        log_first_row_iter, lrenorm = args
-        log_first_row_iter += ratio[i]
-        log_first_row_iter = jnp.swapaxes(log_first_row_iter, 0, 1)
-        log_first_row_iter += lt
-        log_first_row_iter = jnp.swapaxes(log_first_row_iter, 0, 1)
-        for ind in range(2):
-            lrenorm = lrenorm.at[ind].set(
-                jnp.where(i == half_slices[ind], log_first_row_iter, lrenorm[ind])
-            )
-        return log_first_row_iter, lrenorm
-
-    _, lrenorm = lax.fori_loop(
-        2, L + abs(mm) + 2, renorm_m_loop, (log_first_row_iter, lrenorm)
-    )
+    # Logarithms of the starting values of the two half recursions, evaluated
+    # directly rather than by a running sum whose rounding errors grow like
+    # el^2 log(1/beta) near the poles.
+    lrenorm = _log_start_values(beta, el, mm, jnp)
 
     indices = jnp.repeat(jnp.expand_dims(jnp.arange(L0, L), 0), ntheta, axis=0)
 
@@ -390,20 +645,19 @@ def compute_all_slices(
 
     The Wigner-d slice for all :math:`\ell` (`el`) and :math:`\beta` is
     computed recursively over :math:`m` labelled 'm' at a specific
-    :math:`m^{\prime}`. The Price & McEwen recursion is analytically correct
-    from :math:`-\ell < m < \ell` however numerically it can become unstable for
-    :math:`m > 0`. To avoid this we compute :math:`d_{m,
-    m^{\prime}}^{\ell}(\beta)` for negative :math:`m` and then evaluate
-    :math:`d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m,
-    m^{\prime}}^{\ell}(\beta)` which we can again evaluate using the same recursion.
+    :math:`m^{\prime}`, by two half recursions running inwards from the edges
+    :math:`m = \mp\ell`. Each half recursion is only stable while the slice grows in its
+    direction, so the halves meet at :math:`m^\star = \mathrm{round}(m^\prime\cos\beta)`,
+    the centre of the oscillatory region of the slice, rather than at :math:`m = 0`;
+    near the poles the slice peaks at :math:`m = \pm m^\prime` and decays away from it.
 
-    On-the-fly renormalisation is implemented to avoid potential over/under-flows,
-    within any given iteration of the recursion the iterants are :math:`\sim \mathcal{O}(1)`.
+    On-the-fly renormalisation by exact powers of two is implemented to avoid
+    over/under-flows, with the scale of the iterates kept as an integer index.
 
     The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
-    :math:`-L < m < L` by `dl[L - 1 - m, \beta, \ell]`. This implementation has
-    computational scaling :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L`
-    operations.
+    :math:`-L < m < L` by `dl[L - 1 + m, \beta, \ell]`. This implementation has
+    computational scaling :math:`\mathcal{O}(L)` and typically requires
+    :math:`\sim 2(L + |m^\prime|)` operations.
 
     Args:
         beta (np.ndarray): Array of polar angles in radians.
@@ -412,96 +666,29 @@ def compute_all_slices(
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
-        precomps (List[np.ndarray]): Precomputed recursion coefficients with memory overhead
-            :math:`\mathcal{O}(L^2)`, which is minimal.
+        precomps (List[np.ndarray], optional): Not used, kept for backward
+            compatibility: the recursion evaluates its starting values and coefficients
+            on the fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`.
 
     Returns:
         np.ndarray: Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
 
     """
-    # Indexing boundaries and constants
     mm = -spin
+    beta = np.asarray(beta)
     ntheta = len(beta)
-    lims = [0, -1]
     el = np.arange(L)
+    start = _scaled_start_values(beta, el, mm, np)
+    polar = _polar_terms(beta, mm, np)
 
-    # Trigonometric constant adopted throughout
-    c = np.cos(beta)
-    s = np.sin(beta)
-    omc = 1.0 - c
-
-    # Indexing boundaries
-    half_slices = [el + mm + 1, el - mm + 1]
-
-    dl_test = np.zeros((2 * L - 1, ntheta, L), dtype=np.float64)
-    if precomps is None:
-        lrenorm, offset, vsign, cpi, cp2, cs, indices = generate_precomputes(
-            beta, L, mm
-        )
-    else:
-        lrenorm, offset, vsign, cpi, cp2, cs, indices = precomps
-
-    lamb = np.zeros((ntheta, L), np.float64)
+    dl = np.zeros((2 * L - 1, ntheta, L), dtype=np.float64)
     for i in range(2):
-        lind = L - 1
-        sind = lims[i]
-        sgn = (-1) ** (i)
-        dl_iter = np.ones((2, ntheta, L), dtype=np.float64)
-
-        lamb = (
-            np.einsum("l,t->tl", el + 1, omc)
-            + np.einsum("l,t->tl", 2 - L + el, c)
-            - half_slices[i]
-        )
-        lamb = np.einsum("tl,t->tl", lamb, 1 / s)
-        dl_iter[1, :, lind:] = np.einsum(
-            "l,tl->tl",
-            cpi[0, lind:],
-            dl_iter[0, :, lind:] * lamb[:, lind:],
-        )
-
-        dl_test[sind, :, lind:] = (
-            dl_iter[0, :, lind:] * vsign[sind, lind:] * np.exp(lrenorm[i, :, lind:])
-        )
-        dl_test[sind + sgn, :, lind - 1 :] = (
-            dl_iter[1, :, lind - 1 :]
-            * vsign[sind + sgn, lind - 1 :]
-            * np.exp(lrenorm[i, :, lind - 1 :])
-        )
-
-        dl_entry = np.zeros((ntheta, L), dtype=np.float64)
-        for m in range(2, L):
-            index = indices >= L - m - 1
-
-            lamb = (
-                np.einsum("l,t->tl", el + 1, omc)
-                + np.einsum("l,t->tl", m - L + el + 1, c)
-                - half_slices[i]
-            )
-            lamb = np.einsum("tl,t->tl", lamb, 1 / s)
-
-            dl_entry = np.where(
-                index,
-                np.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb)
-                - np.einsum("l,tl->tl", cp2[m - 1], dl_iter[0]),
-                dl_entry,
-            )
-            dl_entry[:, -(m + 1)] = 1
-
-            dl_test[sind + sgn * m] = np.where(
-                index,
-                dl_entry * vsign[sind + sgn * m] * np.exp(lrenorm[i]),
-                dl_test[sind + sgn * m],
-            )
-
-            bigi = 1.0 / abs(dl_entry)
-            lbig = np.log(abs(dl_entry))
-
-            dl_iter[0] = np.where(index, bigi * dl_iter[1], dl_iter[0])
-            dl_iter[1] = np.where(index, bigi * dl_entry, dl_iter[1])
-            lrenorm[i] = np.where(index, lrenorm[i] + lbig, lrenorm[i])
-
-    return dl_test
+        state = tuple(np.zeros((ntheta, L), dtype=np.float64) for _ in range(3))
+        for j in range(min(L + abs(mm), 2 * L - 1)):
+            value, state = _recursion_step(i, j, state, start, el, L, mm, polar, np)
+            m = j - (L - 1) if i == 0 else L - 1 - j
+            dl[L - 1 + m] += value
+    return dl
 
 
 @partial(jit, static_argnums=(1, 3, 4, 5))
@@ -521,20 +708,19 @@ def compute_all_slices_jax(
 
     The Wigner-d slice for all :math:`\ell` (`el`) and :math:`\beta` is
     computed recursively over :math:`m` labelled 'm' at a specific
-    :math:`m^{\prime}`. The Price & McEwen recursion is analytically correct
-    from :math:`-\ell < m < \ell` however numerically it can become unstable for
-    :math:`m > 0`. To avoid this we compute :math:`d_{m,
-    m^{\prime}}^{\ell}(\beta)` for negative :math:`m` and then evaluate
-    :math:`d_{m, -m^{\prime}}^{\ell}(\beta) = (-1)^{m-m^{\prime}} d_{-m,
-    m^{\prime}}^{\ell}(\beta)` which we can again evaluate using the same recursion.
+    :math:`m^{\prime}`, by two half recursions running inwards from the edges
+    :math:`m = \mp\ell`. Each half recursion is only stable while the slice grows in its
+    direction, so the halves meet at :math:`m^\star = \mathrm{round}(m^\prime\cos\beta)`,
+    the centre of the oscillatory region of the slice, rather than at :math:`m = 0`;
+    near the poles the slice peaks at :math:`m = \pm m^\prime` and decays away from it.
 
-    On-the-fly renormalisation is implemented to avoid potential over/under-flows,
-    within any given iteration of the recursion the iterants are :math:`\sim \mathcal{O}(1)`.
+    On-the-fly renormalisation by exact powers of two is implemented to avoid
+    over/under-flows, with the scale of the iterates kept as an integer index.
 
     The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
-    :math:`-L < m < L` by `dl[L - 1 - m, \beta, \ell]`. This implementation has
-    computational scaling :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L`
-    operations.
+    :math:`-L < m < L` by `dl[L - 1 + m, \beta, \ell]`. This implementation has
+    computational scaling :math:`\mathcal{O}(L)` and typically requires
+    :math:`\sim 2(L + |m^\prime|)` operations.
 
     Args:
         beta (jnp.ndarray): Array of polar angles in radians.
@@ -543,107 +729,34 @@ def compute_all_slices_jax(
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
-        precomps (List[np.ndarray]): Precomputed recursion coefficients with memory overhead
-            :math:`\mathcal{O}(L^2)`, which is minimal.
+        precomps (List[np.ndarray], optional): Not used, kept for backward
+            compatibility: the recursion evaluates its starting values and coefficients
+            on the fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`.
 
     Returns:
         jnp.ndarray: Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
 
     """
-    # Indexing boundaries and constants
     mm = -spin
     ntheta = len(beta)
-    lims = [0, -1]
-
-    # Trigonometric constant adopted throughout
-    c = jnp.cos(beta)
-    s = jnp.sin(beta)
-    omc = 1.0 - c
     el = jnp.arange(L)
+    start = _scaled_start_values(beta, el, mm, jnp)
+    polar = _polar_terms(beta, mm, jnp)
 
-    # Indexing boundaries
-    half_slices = [el + mm + 1, el - mm + 1]
-
-    dl_test = jnp.zeros((2 * L - 1, ntheta, L), dtype=jnp.float64)
-    if precomps is None:
-        lrenorm, vsign, cpi, cp2, indices = generate_precomputes_jax(
-            L, spin, sampling, nside, forward, 0, beta
-        )
-    else:
-        lrenorm, vsign, cpi, cp2, indices = precomps
-
+    dl = jnp.zeros((2 * L - 1, ntheta, L), dtype=jnp.float64)
     for i in range(2):
-        lind = L - 1
-        sind = lims[i]
-        sgn = (-1) ** (i)
-        dl_iter = jnp.ones((2, ntheta, L), dtype=jnp.float64)
 
-        lamb = (
-            jnp.einsum("l,t->tl", el + 1, omc, optimize=True)
-            + jnp.einsum("l,t->tl", 2 - L + el, c, optimize=True)
-            - half_slices[i]
-        )
-        lamb = jnp.einsum("tl,t->tl", lamb, 1 / s, optimize=True)
+        def pm_recursion_step(j, args):
+            dl, state = args
+            value, state = _recursion_step(i, j, state, start, el, L, mm, polar, jnp)
+            m = j - (L - 1) if i == 0 else L - 1 - j
+            dl = dl.at[L - 1 + m].add(value)
+            return dl, state
 
-        dl_iter = dl_iter.at[1, :, lind:].set(
-            jnp.einsum(
-                "l,tl->tl",
-                cpi[0, lind:],
-                dl_iter[0, :, lind:] * lamb[:, lind:],
-            )
-        )
-
-        dl_test = dl_test.at[sind, :, lind:].set(
-            dl_iter[0, :, lind:] * vsign[sind, lind:] * jnp.exp(lrenorm[i, :, lind:])
-        )
-
-        dl_test = dl_test.at[sind + sgn, :, lind - 1 :].set(
-            dl_iter[1, :, lind - 1 :]
-            * vsign[sind + sgn, lind - 1 :]
-            * jnp.exp(lrenorm[i, :, lind - 1 :])
-        )
-
-        dl_entry = jnp.zeros((ntheta, L), dtype=jnp.float64)
-
-        def pm_recursion_step(m, args):
-            dl_test, dl_entry, dl_iter, lrenorm, indices, omc, c, s = args
-            index = indices >= L - m - 1
-
-            lamb = (
-                jnp.einsum("l,t->tl", el + 1, omc, optimize=True)
-                + jnp.einsum("l,t->tl", m - L + el + 1, c, optimize=True)
-                - half_slices[i]
-            )
-            lamb = jnp.einsum("tl,t->tl", lamb, 1 / s, optimize=True)
-
-            dl_entry = jnp.where(
-                index,
-                jnp.einsum("l,tl->tl", cpi[m - 1], dl_iter[1] * lamb, optimize=True)
-                - jnp.einsum("l,tl->tl", cp2[m - 1], dl_iter[0], optimize=True),
-                dl_entry,
-            )
-            dl_entry = dl_entry.at[:, -(m + 1)].set(1)
-
-            dl_test = dl_test.at[sind + sgn * m].set(
-                jnp.where(
-                    index,
-                    dl_entry * vsign[sind + sgn * m] * jnp.exp(lrenorm[i]),
-                    dl_test[sind + sgn * m],
-                )
-            )
-
-            bigi = 1.0 / abs(dl_entry)
-            lbig = jnp.log(abs(dl_entry))
-
-            dl_iter = dl_iter.at[0].set(jnp.where(index, bigi * dl_iter[1], dl_iter[0]))
-            dl_iter = dl_iter.at[1].set(jnp.where(index, bigi * dl_entry, dl_iter[1]))
-            lrenorm = lrenorm.at[i].set(jnp.where(index, lrenorm[i] + lbig, lrenorm[i]))
-            return dl_test, dl_entry, dl_iter, lrenorm, indices, omc, c, s
-
-        dl_test, dl_entry, dl_iter, lrenorm, indices, omc, c, s = lax.fori_loop(
-            2,
-            L,
-            pm_recursion_step,
-            (dl_test, dl_entry, dl_iter, lrenorm, indices, omc, c, s),
-        )
-    return dl_test
+        # L steps reach m = 0 for all el, then |mm| more steps towards the meeting
+        # point (a separate loop, as |mm| may be traced)
+        state = tuple(jnp.zeros((ntheta, L), dtype=jnp.float64) for _ in range(3))
+        carry = lax.fori_loop(0, L, pm_recursion_step, (dl, state))
+        n_steps = jnp.minimum(L + jnp.abs(mm), 2 * L - 1)
+        dl, _ = lax.fori_loop(L, n_steps, pm_recursion_step, carry)
+    return dl
