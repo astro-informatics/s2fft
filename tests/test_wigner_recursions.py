@@ -4,6 +4,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
+from jax.test_util import check_grads
 
 from s2fft import recursions
 from s2fft.sampling import s2_samples as samples
@@ -334,6 +335,18 @@ def test_price_mcewen_slices_jax_near_poles(L: int, spin: int, sampling: str):
     betas = _thetas_nearest_poles(L, sampling, nside)
     dl = recursions.price_mcewen.compute_all_slices_jax(jnp.asarray(betas), L, spin)
     _check_slices_near_poles(dl, betas, L, spin)
+
+
+@pytest.mark.parametrize("spin", [-2, 0, 2])
+def test_price_mcewen_slices_jax_gradients(spin: int):
+    """Test derivatives of JAX Price & McEwen slices with respect to beta."""
+    L = 8
+    betas = jnp.asarray([0.05, 1.0, 2.0, 3.1])
+
+    def func(betas):
+        return recursions.price_mcewen.compute_all_slices_jax(betas, L, spin)
+
+    check_grads(func, (betas,), order=1, modes=("fwd", "rev"))
 
 
 @pytest.mark.slow

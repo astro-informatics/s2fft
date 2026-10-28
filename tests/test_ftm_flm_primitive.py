@@ -10,6 +10,8 @@ These tests verify:
    result equals an explicit Python loop.
 4. **Composed transforms** — ``vmap(grad(...))`` and ``grad(vmap(...))``
    both produce the same result as a manual loop.
+5. **Direct differentiation** — the underlying ``otf`` functions can also be
+   differentiated themselves, without the primitive's rules.
 """
 
 import jax
@@ -424,3 +426,27 @@ def test_vmap_of_grad_ftm_to_flm(rng):
     via_vmap = jax.vmap(per_sample_grad)(ftms)
     via_loop = jnp.stack([per_sample_grad(ftms[i]) for i in range(batch)])
     np.testing.assert_allclose(np.asarray(via_vmap), np.asarray(via_loop), atol=1e-10)
+
+
+# ---------------------------------------------------------------------------
+# 5. Direct differentiation of the otf functions
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("spin", [-2, 0, 2])
+@pytest.mark.parametrize("sampling", ["mw", "gl"])
+def test_otf_latitudinal_steps_differentiable(spin, sampling, rng):
+    flm, ftm, thetas = _make_inputs(rng, L_TEST, spin, sampling, reality=False)
+
+    def inverse(flm):
+        return otf.inverse_latitudinal_step_jax(
+            flm, thetas, L_TEST, spin, None, sampling, False, L_lower=L_LOWER_TEST
+        )
+
+    def forward(ftm):
+        return otf.forward_latitudinal_step_jax(
+            ftm, thetas, L_TEST, spin, None, sampling, False, L_lower=L_LOWER_TEST
+        )
+
+    check_grads(inverse, (flm,), order=1, modes=("fwd", "rev"))
+    check_grads(forward, (ftm,), order=1, modes=("fwd", "rev"))

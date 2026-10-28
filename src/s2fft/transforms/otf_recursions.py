@@ -1,14 +1,15 @@
 from functools import partial
 
-import jax.lax as lax
 import jax.numpy as jnp
 import numpy as np
 from jax import jit, local_device_count, pmap
 
 from s2fft.recursions.price_mcewen import (
+    _fori_half_recursion,
     _polar_terms,
     _recursion_step,
     _scaled_start_values,
+    _static_extension,
 )
 from s2fft.sampling import s2_samples as samples
 
@@ -88,7 +89,6 @@ def inverse_latitudinal_step(
     return ftm
 
 
-@partial(jit, static_argnums=(2, 4, 5, 6, 8, 9))
 def inverse_latitudinal_step_jax(
     flm: jnp.ndarray,
     beta: jnp.ndarray,
@@ -153,6 +153,25 @@ def inverse_latitudinal_step_jax(
         recover acceleration by the number of devices.
 
     """
+    return _inverse_latitudinal_step_jax(
+        flm,
+        beta,
+        L,
+        spin,
+        nside,
+        sampling,
+        reality,
+        spmd,
+        L_lower,
+        _static_extension(spin),
+    )
+
+
+@partial(jit, static_argnums=(2, 4, 5, 6, 7, 8, 9))
+def _inverse_latitudinal_step_jax(
+    flm, beta, L, spin, nside, sampling, reality, spmd, L_lower, extension
+):
+    """Implementation of :func:`inverse_latitudinal_step_jax`."""
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
     ftm = jnp.zeros(
@@ -163,9 +182,6 @@ def inverse_latitudinal_step_jax(
 
     start = _scaled_start_values(beta, el, mm, jnp)
     polar = _polar_terms(beta, mm, jnp)
-    # Each half recursion runs L steps to reach m = 0 for all el, then |mm| more steps
-    # towards the meeting point (a separate loop, as |mm| may be traced)
-    n_steps = jnp.minimum(L + jnp.abs(mm), 2 * L - 1)
 
     for i in range(2):
         if not (reality and i == 0):
@@ -188,8 +204,9 @@ def inverse_latitudinal_step_jax(
                     jnp.zeros((ftm.shape[0], L - L_lower), dtype=jnp.float64)
                     for _ in range(3)
                 )
-                carry = lax.fori_loop(0, L, pm_recursion_step, (ftm, state))
-                return lax.fori_loop(L, n_steps, pm_recursion_step, carry)[0]
+                return _fori_half_recursion(
+                    pm_recursion_step, (ftm, state), L, mm, extension
+                )[0]
 
             if spmd:
                 # TODO: Generalise this to optional device counts.
@@ -299,7 +316,6 @@ def forward_latitudinal_step(
     return flm
 
 
-@partial(jit, static_argnums=(2, 4, 5, 6, 8, 9))
 def forward_latitudinal_step_jax(
     ftm_in: jnp.ndarray,
     beta_in: jnp.ndarray,
@@ -364,6 +380,25 @@ def forward_latitudinal_step_jax(
         recover acceleration by the number of devices.
 
     """
+    return _forward_latitudinal_step_jax(
+        ftm_in,
+        beta_in,
+        L,
+        spin,
+        nside,
+        sampling,
+        reality,
+        spmd,
+        L_lower,
+        _static_extension(spin),
+    )
+
+
+@partial(jit, static_argnums=(2, 4, 5, 6, 7, 8, 9))
+def _forward_latitudinal_step_jax(
+    ftm_in, beta_in, L, spin, nside, sampling, reality, spmd, L_lower, extension
+):
+    """Implementation of :func:`forward_latitudinal_step_jax`."""
     # Avoid pole-singularities where relevant
     if samples.includes_both_poles(sampling):
         ftm = ftm_in[1:-1]
@@ -385,9 +420,6 @@ def forward_latitudinal_step_jax(
 
     start = _scaled_start_values(beta, el, mm, jnp)
     polar = _polar_terms(beta, mm, jnp)
-    # Each half recursion runs L steps to reach m = 0 for all el, then |mm| more steps
-    # towards the meeting point (a separate loop, as |mm| may be traced)
-    n_steps = jnp.minimum(L + jnp.abs(mm), 2 * L - 1)
 
     for i in range(2):
         if not (reality and i == 0):
@@ -410,8 +442,9 @@ def forward_latitudinal_step_jax(
                     jnp.zeros((ntheta, el.shape[0]), dtype=jnp.float64)
                     for _ in range(3)
                 )
-                carry = lax.fori_loop(0, L, pm_recursion_step, (flm, state))
-                return lax.fori_loop(L, n_steps, pm_recursion_step, carry)[0]
+                return _fori_half_recursion(
+                    pm_recursion_step, (flm, state), L, mm, extension
+                )[0]
 
             if spmd:
                 # TODO: Generalise this to optional device counts.

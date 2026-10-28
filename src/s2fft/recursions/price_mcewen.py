@@ -1,6 +1,7 @@
 import warnings
 from functools import partial
 
+import jax
 import jax.lax as lax
 import jax.numpy as jnp
 import numpy as np
@@ -183,6 +184,31 @@ def _scaled_start_values(beta, el, mm, xp):
     mantissa, exponent = _start_values(beta, el, mm, xp)
     scale = xp.rint(exponent / _SCALE_BITS)
     return mantissa * _exp2(exponent - _SCALE_BITS * scale, xp), scale
+
+
+def _static_extension(spin):
+    r"""
+    Number of steps, :math:`|m^\prime|`, that the half recursions run past :math:`m = 0`,
+    when the spin is concrete, or None when it is traced (e.g. under ``vmap`` over
+    spins).
+    """
+    try:
+        return abs(int(spin))
+    except (jax.errors.ConcretizationTypeError, TypeError):
+        return None
+
+
+def _fori_half_recursion(body, carry, L, mm, extension):
+    r"""
+    Run the steps of a half recursion: :math:`L` steps take every :math:`\ell` to
+    :math:`m = 0` and :math:`|m^\prime|` more run towards the meeting point. With
+    ``extension`` given, a single loop of static length, as reverse-mode differentiation
+    requires; otherwise the extra steps run in a loop with a traced trip count.
+    """
+    if extension is not None:
+        return lax.fori_loop(0, min(L + extension, 2 * L - 1), body, carry)
+    carry = lax.fori_loop(0, L, body, carry)
+    return lax.fori_loop(L, jnp.minimum(L + jnp.abs(mm), 2 * L - 1), body, carry)
 
 
 def _recursion_step(i, j, state, start, el, L, mm, polar, xp):
@@ -691,7 +717,6 @@ def compute_all_slices(
     return dl
 
 
-@partial(jit, static_argnums=(1, 3, 4, 5))
 def compute_all_slices_jax(
     beta: jnp.ndarray,
     L: int,
@@ -737,6 +762,12 @@ def compute_all_slices_jax(
         jnp.ndarray: Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
 
     """
+    return _compute_all_slices_jax(beta, L, spin, _static_extension(spin))
+
+
+@partial(jit, static_argnums=(1, 3))
+def _compute_all_slices_jax(beta, L, spin, extension):
+    """Implementation of :func:`compute_all_slices_jax`."""
     mm = -spin
     ntheta = len(beta)
     el = jnp.arange(L)
@@ -753,10 +784,6 @@ def compute_all_slices_jax(
             dl = dl.at[L - 1 + m].add(value)
             return dl, state
 
-        # L steps reach m = 0 for all el, then |mm| more steps towards the meeting
-        # point (a separate loop, as |mm| may be traced)
         state = tuple(jnp.zeros((ntheta, L), dtype=jnp.float64) for _ in range(3))
-        carry = lax.fori_loop(0, L, pm_recursion_step, (dl, state))
-        n_steps = jnp.minimum(L + jnp.abs(mm), 2 * L - 1)
-        dl, _ = lax.fori_loop(L, n_steps, pm_recursion_step, carry)
+        dl, _ = _fori_half_recursion(pm_recursion_step, (dl, state), L, mm, extension)
     return dl
