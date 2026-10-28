@@ -8,6 +8,13 @@ from s2fft import recursions
 from s2fft.sampling import s2_samples as samples
 from s2fft.utils import quadrature, quadrature_jax, torch_wrapper
 
+#: Deprecated, and no longer used by s2fft. It was the largest spin at which the
+#: Price-McEwen recursion was accurate enough before its loss of accuracy near the poles
+#: was fixed, and it no longer affects ``recursion="auto"``, which now chooses the
+#: Price-McEwen recursion at every spin. It is kept for backward compatibility for at
+#: least two releases, and will be removed in a later one.
+PM_MAX_STABLE_SPIN = 6
+
 
 def _n_sample_wigner_fourier_inverse_fft(sampling: str, n_theta: int) -> int:
     """

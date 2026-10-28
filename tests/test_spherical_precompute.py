@@ -377,6 +377,13 @@ def test_spin_spherical_kernel_jax_jit(spin: int, sampling: str, forward: bool):
     np.testing.assert_allclose(kernel, kernel_risbo, rtol=0, atol=1e-13)
 
 
+def test_pm_max_stable_spin_deprecated_alias():
+    # Deprecated and no longer used, but still importable with its former value
+    from s2fft.precompute_transforms.construct import PM_MAX_STABLE_SPIN
+
+    assert PM_MAX_STABLE_SPIN == 6
+
+
 @pytest.mark.parametrize("sampling", ("gl", "healpix"))
 def test_wigner_kernel_fft_mode_non_equiangular_scheme_raises(sampling):
     mode = "fft"
