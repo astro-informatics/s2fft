@@ -467,9 +467,16 @@ def test_start_values_scalar():
         )
         scalar_mantissas = np.moveaxis(scalar[..., 0], -1, 0)
         scalar_exponents = np.moveaxis(scalar[..., 1], -1, 0)
-        np.testing.assert_allclose(
-            np.ldexp(scalar_mantissas, (scalar_exponents - exponents).astype(int)),
-            mantissas,
-            rtol=1e-14,
-            atol=0,
+        scalar_mantissas = np.ldexp(
+            scalar_mantissas, (scalar_exponents - exponents).astype(int)
         )
+        # The starting values have a condition number of about el + |mm| with respect to
+        # the sines and cosines of beta, and math.sin and np.sin may differ by an ulp
+        # (as on Windows), so the tolerance grows with el + |mm|.
+        for k in el:
+            np.testing.assert_allclose(
+                scalar_mantissas[..., k],
+                mantissas[..., k],
+                rtol=8 * (k + abs(mm) + 1) * np.finfo(float).eps,
+                atol=0,
+            )
