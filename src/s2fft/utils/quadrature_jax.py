@@ -17,6 +17,9 @@ from s2fft.utils.quadrature import (
 from s2fft.utils.quadrature import (
     quad_weights_f2_theta_only as _quad_weights_f2_theta_only,
 )
+from s2fft.utils.quadrature import (
+    quad_weights_gl_theta_only as _quad_weights_gl_theta_only,
+)
 
 
 @_partial(_jit, static_argnums=(0, 1, 2))
@@ -157,6 +160,9 @@ def quad_weights_gl_theta_only(L: int) -> jnp.ndarray:
     r"""
     Compute GL quadrature weights for :math:`\theta` integration.
 
+    The weights and the GL sample angles :func:`~s2fft.sampling.s2_samples.thetas` come
+    from the same computation, at the same nodes.
+
     Args:
         L (int): Harmonic band-limit.
 
@@ -164,45 +170,7 @@ def quad_weights_gl_theta_only(L: int) -> jnp.ndarray:
         jnp.ndarray: Weights computed for each :math:`\theta`.
 
     """
-    x1, x2 = -1.0, 1.0
-    ntheta = samples.ntheta(L, "gl")
-    weights = jnp.zeros(ntheta, dtype=jnp.float64)
-
-    m = int((L + 1) / 2)
-    x1 = 0.5 * (x2 - x1)
-    i = jnp.arange(1, m + 1)
-    z = jnp.cos(jnp.pi * (i - 0.25) / (L + 0.5))
-    z1 = 2.0 * jnp.ones_like(z)
-    pp = jnp.zeros_like(z)
-
-    def optimizer(z, z1, pp):
-        def cond(arg):
-            z, z1, pp = arg
-            return jnp.max(jnp.abs(z - z1)) > 1e-14
-
-        def body(arg):
-            z, z1, pp = arg
-            p1 = jnp.ones_like(z)
-            p2 = jnp.zeros_like(z)
-
-            def inner_loop_step(j, p1_p2):
-                p1, p2 = p1_p2
-                return ((2.0 * j - 1.0) * z * p1 - (j - 1.0) * p2) / j, p1
-
-            p1, p2 = jax.lax.fori_loop(1, L + 1, inner_loop_step, (p1, p2))
-
-            pp = L * (z * p1 - p2) / (z * z - 1.0)
-            z1 = z
-            z = z1 - p1 / pp
-            return z, z1, pp
-
-        return jax.lax.while_loop(cond, body, (z, z1, pp))
-
-    z, z1, pp = optimizer(z, z1, pp)
-    weights = weights.at[i - 1].set(2.0 * x1 / ((1.0 - z**2) * pp * pp))
-    weights = weights.at[L + 1 - i - 1].set(weights[i - 1])
-
-    return weights
+    return jnp.asarray(_quad_weights_gl_theta_only(L))
 
 
 @_partial(_jit, static_argnums=(0))

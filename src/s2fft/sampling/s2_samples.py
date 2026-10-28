@@ -1,5 +1,7 @@
 import numpy as np
 
+from s2fft.sampling import _gauss_legendre
+
 
 def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
     r"""
@@ -333,7 +335,7 @@ def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray
 
     """
     if sampling.lower() == "gl":
-        return np.flip(np.arccos(np.polynomial.legendre.leggauss(L)[0]))
+        return _gauss_legendre.nodes_and_weights(L)[0]
 
     t = np.arange(0, ntheta(L=L, sampling=sampling, nside=nside)).astype(np.float64)
 
