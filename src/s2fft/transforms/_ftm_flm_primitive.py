@@ -29,8 +29,7 @@ eval / lowering / transpose then peel off that batch dim via internal
 ``vmap``. This means the analytical adjoint (forward <-> inverse step) is
 preserved under ``vmap`` — composed transforms like ``grad(vmap(...))``
 take the analytical-transpose path rather than autodiffing through the
-``log``/``exp`` recursions inside ``otf`` (which can produce ``NaN`` in
-edge cases).
+recursions inside ``otf``.
 """
 
 import jax
@@ -281,9 +280,9 @@ def flm_to_ftm(
     """
     Inverse latitudinal step (``flm -> ftm``) via custom JAX primitive.
 
-    If ``precomps`` is None the underlying function regenerates them at
-    trace time; this matches the behaviour of
-    :func:`otf.inverse_latitudinal_step_jax`.
+    ``precomps`` is not used, and is kept for backward compatibility: as in
+    :func:`otf.inverse_latitudinal_step_jax`, the recursion evaluates its
+    starting values and coefficients on the fly.
     """
     return _flm_to_ftm_primitive.bind(
         flm,
@@ -315,9 +314,9 @@ def ftm_to_flm(
     """
     Forward latitudinal step (``ftm -> flm``) via custom JAX primitive.
 
-    If ``precomps`` is None the underlying function regenerates them at
-    trace time; this matches the behaviour of
-    :func:`otf.forward_latitudinal_step_jax`.
+    ``precomps`` is not used, and is kept for backward compatibility: as in
+    :func:`otf.forward_latitudinal_step_jax`, the recursion evaluates its
+    starting values and coefficients on the fly.
     """
     return _ftm_to_flm_primitive.bind(
         ftm,

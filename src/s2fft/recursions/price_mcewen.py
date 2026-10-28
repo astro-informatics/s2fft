@@ -522,9 +522,7 @@ def generate_precomputes_jax(
 ) -> list[jnp.ndarray]:
     r"""
     Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
-    In practice one could compute these on-the-fly but the memory overhead is
-    negligible and well worth the acceleration. JAX implementation of
-    :func:`~generate_precomputes`.
+    JAX implementation of :func:`~generate_precomputes`.
 
     The recursions in s2fft no longer use these arrays: they evaluate their starting
     values and coefficients on the fly (see :func:`compute_all_slices_jax`), so any
@@ -634,10 +632,12 @@ def generate_precomputes_wigner(
 ) -> list[list[np.ndarray]]:
     r"""
     Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
-    In practice one could compute these on-the-fly but the memory overhead is
-    negligible and well worth the acceleration. This is a wrapped extension of
-    :func:`~generate_precomputes` for the case of multiple spins, i.e. the Wigner
-    transform over SO(3).
+    This is a wrapped extension of :func:`~generate_precomputes` for the case of
+    multiple spins, i.e. the Wigner transform over SO(3).
+
+    The recursions in s2fft no longer use these arrays, so any precomputes passed to
+    the Wigner transforms are ignored (see :func:`~generate_precomputes`). This
+    function is kept for backward compatibility.
 
     Args:
         L (int): Harmonic band-limit.
@@ -686,10 +686,13 @@ def generate_precomputes_wigner_jax(
 ) -> list[list[jnp.ndarray]]:
     r"""
     Compute recursion coefficients with :math:`\mathcal{O}(L^2)` memory overhead.
-    In practice one could compute these on-the-fly but the memory overhead is
-    negligible and well worth the acceleration. This is a wrapped extension of
-    :func:`~generate_precomputes` for the case of multiple spins, i.e. the Wigner
-    transform over SO(3). JAX implementation of :func:`~generate_precomputes_wigner`.
+    This is a wrapped extension of :func:`~generate_precomputes` for the case of
+    multiple spins, i.e. the Wigner transform over SO(3). JAX implementation of
+    :func:`~generate_precomputes_wigner`.
+
+    The recursions in s2fft no longer use these arrays, so any precomputes passed to
+    the Wigner transforms are ignored (see :func:`~generate_precomputes_jax`). This
+    function is kept for backward compatibility.
 
     Args:
         L (int): Harmonic band-limit.
