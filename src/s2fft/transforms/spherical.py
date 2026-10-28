@@ -55,8 +55,10 @@ def inverse(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
-            of length :math:`L^2`, which is a minimal memory overhead.
+        precomps (List[np.ndarray]): Not used, kept for backward compatibility:
+            the recursions evaluate their starting values and coefficients on the
+            fly, so arrays passed here, modified or not, have no effect, and
+            gradients with respect to them are zero.
 
         spmd (bool, optional): Whether to map compute over multiple devices. Currently this
             only maps over all available devices, and is only valid for JAX implementations.
@@ -141,8 +143,10 @@ def inverse_numpy(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
-            of length :math:`L^2`, which is a minimal memory overhead.
+        precomps (List[np.ndarray]): Not used, kept for backward compatibility:
+            the recursions evaluate their starting values and coefficients on the
+            fly, so arrays passed here, modified or not, have no effect, and
+            gradients with respect to them are zero.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -244,8 +248,10 @@ def inverse_jax(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
-            of length :math:`L^2`, which is a minimal memory overhead.
+        precomps (List[jnp.ndarray]): Not used, kept for backward compatibility:
+            the recursions evaluate their starting values and coefficients on the
+            fly, so arrays passed here, modified or not, have no effect, and
+            gradients with respect to them are zero.
 
         spmd (bool, optional): Whether to map compute over multiple devices. Currently this
             only maps over all available devices. Defaults to False.
@@ -364,8 +370,10 @@ def forward(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
-            of length :math:`L^2`, which is a minimal memory overhead.
+        precomps (List[np.ndarray]): Not used, kept for backward compatibility:
+            the recursions evaluate their starting values and coefficients on the
+            fly, so arrays passed here, modified or not, have no effect, and
+            gradients with respect to them are zero.
 
         spmd (bool, optional): Whether to map compute over multiple devices. Currently this
             only maps over all available devices, and is only valid for JAX implementations.
@@ -473,8 +481,10 @@ def forward_numpy(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
-            of length :math:`L^2`, which is a minimal memory overhead.
+        precomps (List[np.ndarray]): Not used, kept for backward compatibility:
+            the recursions evaluate their starting values and coefficients on the
+            fly, so arrays passed here, modified or not, have no effect, and
+            gradients with respect to them are zero.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -601,8 +611,10 @@ def forward_jax(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
-            of length :math:`L^2`, which is a minimal memory overhead.
+        precomps (List[jnp.ndarray]): Not used, kept for backward compatibility:
+            the recursions evaluate their starting values and coefficients on the
+            fly, so arrays passed here, modified or not, have no effect, and
+            gradients with respect to them are zero.
 
         spmd (bool, optional): Whether to map compute over multiple devices. Currently this
             only maps over all available devices. Defaults to False.
