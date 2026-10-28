@@ -163,7 +163,7 @@ def inverse_latitudinal_step_jax(
         reality,
         spmd,
         L_lower,
-        _static_extension(spin),
+        _static_extension(spin, L),
     )
 
 
@@ -390,7 +390,7 @@ def forward_latitudinal_step_jax(
         reality,
         spmd,
         L_lower,
-        _static_extension(spin),
+        _static_extension(spin, L),
     )
 
 

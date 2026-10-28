@@ -71,10 +71,6 @@ def _tuplify_precomps(precomps: list | None) -> tuple:
     return tuple(precomps) if precomps is not None else ()
 
 
-def _untuplify_precomps(precomps: tuple) -> list | None:
-    return list(precomps) if precomps else None
-
-
 def _as_spin_operand(spin) -> jnp.ndarray:
     """
     Normalize ``spin`` to a 0-d int JAX array. Accepts Python ints,
@@ -145,9 +141,12 @@ def _flm_to_ftm_abstract(
 
 
 def _flm_to_ftm_impl(flm, thetas, spin, *precomps, **params):
+    # The primitive has its own derivative rules, so the recursion need not be
+    # differentiable: with the spin traced here, it can run its extra steps in a loop
+    # with a traced trip count (extension None) rather than a static bound.
     def fn(d, s, p):
-        return otf.inverse_latitudinal_step_jax(
-            flm=d, beta=thetas, spin=s, precomps=_untuplify_precomps(p), **params
+        return otf._inverse_latitudinal_step_jax(
+            flm=d, beta=thetas, spin=s, extension=None, **params
         )
 
     return _apply_with_batching(fn, flm, spin, precomps)
@@ -211,9 +210,10 @@ def _ftm_to_flm_abstract(
 
 
 def _ftm_to_flm_impl(ftm, thetas, spin, *precomps, **params):
+    # As in _flm_to_ftm_impl, the recursion need not be differentiable here.
     def fn(d, s, p):
-        return otf.forward_latitudinal_step_jax(
-            ftm_in=d, beta_in=thetas, spin=s, precomps=_untuplify_precomps(p), **params
+        return otf._forward_latitudinal_step_jax(
+            ftm_in=d, beta_in=thetas, spin=s, extension=None, **params
         )
 
     return _apply_with_batching(fn, ftm, spin, precomps)

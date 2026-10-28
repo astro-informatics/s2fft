@@ -263,29 +263,33 @@ def _scaled_start_values(beta, el, mm, xp):
     return mantissa * _exp2(exponent - _SCALE_BITS * scale, xp), scale
 
 
-def _static_extension(spin):
+def _static_extension(spin, L):
     r"""
-    Number of steps, :math:`|m^\prime|`, that the half recursions run past :math:`m = 0`,
-    when the spin is concrete, or None when it is traced (e.g. under ``vmap`` over
-    spins).
+    Number of steps that the half recursions run past :math:`m = 0`, as a static
+    bound: :math:`|m^\prime|` when the spin is concrete, or its largest value
+    :math:`L - 1` when the spin is traced (under ``jit`` or ``vmap``). Steps past the
+    meeting point change nothing, and a loop of static length can be differentiated
+    in reverse mode.
     """
     try:
         return abs(int(spin))
     except (jax.errors.ConcretizationTypeError, TypeError):
-        return None
+        return L - 1
 
 
 def _fori_half_recursion(body, carry, L, mm, extension):
     r"""
     Run the steps of a half recursion: :math:`L` steps take every :math:`\ell` to
-    :math:`m = 0` and :math:`|m^\prime|` more run towards the meeting point. With
-    ``extension`` given, a single loop of static length, as reverse-mode differentiation
-    requires; otherwise the extra steps run in a loop with a traced trip count.
+    :math:`m = 0` and ``extension`` more run towards the meeting point, in one loop of
+    static length. With ``extension`` None, the :math:`|m^\prime|` extra steps instead
+    run in a second loop with a traced trip count. That saves steps when the spin is
+    traced, but cannot be differentiated in reverse mode, so it is only for callers
+    with their own derivative rules.
     """
-    if extension is not None:
-        return lax.fori_loop(0, min(L + extension, 2 * L - 1), body, carry)
-    carry = lax.fori_loop(0, L, body, carry)
-    return lax.fori_loop(L, jnp.minimum(L + jnp.abs(mm), 2 * L - 1), body, carry)
+    if extension is None:
+        carry = lax.fori_loop(0, L, body, carry)
+        return lax.fori_loop(L, jnp.minimum(L + jnp.abs(mm), 2 * L - 1), body, carry)
+    return lax.fori_loop(0, min(L + extension, 2 * L - 1), body, carry)
 
 
 def _recursion_step(i, j, state, start, el, L, mm, polar, xp):
@@ -839,7 +843,7 @@ def compute_all_slices_jax(
         jnp.ndarray: Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
 
     """
-    return _compute_all_slices_jax(beta, L, spin, _static_extension(spin))
+    return _compute_all_slices_jax(beta, L, spin, _static_extension(spin, L))
 
 
 @partial(jit, static_argnums=(1, 3))

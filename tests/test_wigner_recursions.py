@@ -352,6 +352,33 @@ def test_price_mcewen_slices_jax_gradients(spin: int):
     check_grads(func, (betas,), order=1, modes=("fwd", "rev"))
 
 
+def test_price_mcewen_slices_jax_gradients_traced_spin():
+    """Test beta derivatives of JAX Price & McEwen slices when jit or vmap trace spin."""
+    L = 8
+    betas = jnp.asarray([0.05, 1.0, 2.0, 3.1])
+    spins = jnp.array([-2, 0, 2])
+
+    def loss(betas, spin):
+        dl = recursions.price_mcewen.compute_all_slices_jax(betas, L, spin)
+        return jnp.sum(dl**2)
+
+    expected = jnp.stack([jax.grad(loss)(betas, int(spin)) for spin in spins])
+    compositions = (
+        jax.grad(jax.jit(loss))(betas, spins[2]),
+        jax.jit(jax.grad(loss))(betas, spins[2]),
+    )
+    for grad in compositions:
+        np.testing.assert_allclose(grad, expected[2], rtol=1e-12, atol=1e-12)
+    grads = jax.vmap(jax.grad(loss), in_axes=(None, 0))(betas, spins)
+    np.testing.assert_allclose(grads, expected, rtol=1e-12, atol=1e-12)
+
+    def loss_over_spins(betas):
+        return jnp.sum(jax.vmap(loss, in_axes=(None, 0))(betas, spins))
+
+    grad = jax.grad(loss_over_spins)(betas)
+    np.testing.assert_allclose(grad, expected.sum(0), rtol=1e-12, atol=1e-12)
+
+
 def test_price_mcewen_single_precision_warning():
     """Test that the JAX recursions warn when double precision is disabled."""
     script = (

@@ -450,3 +450,37 @@ def test_otf_latitudinal_steps_differentiable(spin, sampling, rng):
 
     check_grads(inverse, (flm,), order=1, modes=("fwd", "rev"))
     check_grads(forward, (ftm,), order=1, modes=("fwd", "rev"))
+
+
+@pytest.mark.parametrize("sampling", ["mw", "gl"])
+def test_otf_latitudinal_steps_differentiable_traced_spin(sampling, rng):
+    # Reverse mode must also work when an enclosing jit or vmap traces the spin
+    spins = jnp.array([-2, 0, 2])
+    flm, ftm, thetas = _make_inputs(rng, L_TEST, 0, sampling, reality=False)
+    steps = (
+        (otf.inverse_latitudinal_step_jax, flm),
+        (otf.forward_latitudinal_step_jax, ftm),
+    )
+    for step, x in steps:
+
+        def loss(x, spin, step=step):
+            y = step(
+                x, thetas, L_TEST, spin, None, sampling, False, L_lower=L_LOWER_TEST
+            )
+            return jnp.sum(jnp.abs(y) ** 2)
+
+        expected = jnp.stack([jax.grad(loss)(x, int(spin)) for spin in spins])
+        compositions = (
+            jax.grad(jax.jit(loss))(x, spins[2]),
+            jax.jit(jax.grad(loss))(x, spins[2]),
+        )
+        for grad in compositions:
+            np.testing.assert_allclose(grad, expected[2], rtol=1e-12, atol=1e-12)
+        grads = jax.vmap(jax.grad(loss), in_axes=(None, 0))(x, spins)
+        np.testing.assert_allclose(grads, expected, rtol=1e-12, atol=1e-12)
+
+        def loss_over_spins(x, loss=loss):
+            return jnp.sum(jax.vmap(loss, in_axes=(None, 0))(x, spins))
+
+        grad = jax.grad(loss_over_spins)(x)
+        np.testing.assert_allclose(grad, expected.sum(0), rtol=1e-12, atol=1e-12)
