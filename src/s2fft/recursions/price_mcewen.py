@@ -1,3 +1,4 @@
+import logging
 import math
 import warnings
 from functools import partial
@@ -250,6 +251,13 @@ def _scaled_start_values(beta, el, mm, xp):
     :math:`[2^{-400}, 2^{401})` and scale indices :math:`k`, the value being
     :math:`d\,2^{800 k}`; each of shape (2, ntheta, nel).
     """
+    if xp is jnp and not jax.config.read("jax_enable_x64"):
+        # Logged rather than warned: this module ignores warnings globally
+        logging.getLogger("s2fft").warning(
+            "The Wigner-d recursions require double precision for their accuracy near "
+            "the poles, and give wrong results in single precision: enable it with "
+            'jax.config.update("jax_enable_x64", True).'
+        )
     mantissa, exponent = _start_values(beta, el, mm, xp)
     scale = xp.rint(exponent / _SCALE_BITS)
     return mantissa * _exp2(exponent - _SCALE_BITS * scale, xp), scale

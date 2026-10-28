@@ -1,3 +1,6 @@
+import os
+import subprocess
+import sys
 from collections.abc import Callable
 
 import jax
@@ -347,6 +350,23 @@ def test_price_mcewen_slices_jax_gradients(spin: int):
         return recursions.price_mcewen.compute_all_slices_jax(betas, L, spin)
 
     check_grads(func, (betas,), order=1, modes=("fwd", "rev"))
+
+
+def test_price_mcewen_single_precision_warning():
+    """Test that the JAX recursions warn when double precision is disabled."""
+    script = (
+        "import jax.numpy as jnp\n"
+        "from s2fft.recursions.price_mcewen import compute_all_slices_jax\n"
+        "compute_all_slices_jax(jnp.asarray([0.1]), 8, 2)\n"
+    )
+    result = subprocess.run(  # noqa: S603 (a fixed script)
+        [sys.executable, "-c", script],
+        env={**os.environ, "JAX_ENABLE_X64": "0"},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "Wigner-d recursions require double precision" in result.stderr
 
 
 @pytest.mark.slow
