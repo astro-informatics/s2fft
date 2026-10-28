@@ -242,7 +242,7 @@ def spin_spherical_kernel_jax(
         dl = recursions.price_mcewen.compute_all_slices_jax(
             thetas, L, spin, sampling, forward, nside
         )
-        dl = dl.at[jnp.where(dl != dl)].set(0)
+        dl = jnp.where(jnp.isnan(dl), 0, dl)
         dl = jnp.swapaxes(dl, 0, 2)
         dl = jnp.swapaxes(dl, 0, 1)
 
@@ -255,7 +255,7 @@ def spin_spherical_kernel_jax(
         if samples.includes_south_pole(sampling):
             dl = dl.at[-1].set(0)
             dl = dl.at[-1, :, L - 1 + spin].set((-1) ** (jnp.arange(L) - spin))
-        dl = dl.at[:, : jnp.abs(spin)].multiply(0)
+        dl = jnp.where((jnp.arange(L) < jnp.abs(spin))[None, :, None], 0, dl)
 
         dl = dl[:, :, m_start_ind:]
 

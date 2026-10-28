@@ -361,6 +361,22 @@ def test_spin_spherical_kernel_price_mcewen_high_spin(
         np.testing.assert_allclose(kernel, kernel_risbo, rtol=0, atol=1e-13)
 
 
+@pytest.mark.parametrize("spin", [0, 8, -12])
+@pytest.mark.parametrize("sampling", ["mw", "gl", "healpix"])
+@pytest.mark.parametrize("forward", [False, True])
+def test_spin_spherical_kernel_jax_jit(spin: int, sampling: str, forward: bool):
+    # The kernel from the automatically chosen recursion must also build under jit.
+    L = 16
+    nside = L // 2 if sampling == "healpix" else None
+    kernel = jax.jit(
+        lambda: c.spin_spherical_kernel_jax(L, spin, False, sampling, nside, forward)
+    )()
+    kernel_risbo = c.spin_spherical_kernel_jax(
+        L, spin, False, sampling, nside, forward, "risbo"
+    )
+    np.testing.assert_allclose(kernel, kernel_risbo, rtol=0, atol=1e-13)
+
+
 @pytest.mark.parametrize("sampling", ("gl", "healpix"))
 def test_wigner_kernel_fft_mode_non_equiangular_scheme_raises(sampling):
     mode = "fft"
