@@ -1,3 +1,4 @@
+import math
 import warnings
 from functools import partial
 
@@ -173,6 +174,74 @@ def _start_values(beta, el, mm, xp):
         mantissas.append(xp.where(zero, 0.0, mantissa))
         exponents.append(xp.where(zero, 0.0, exponent))
     return xp.stack(mantissas), xp.stack(exponents)
+
+
+def _stirling_error_scalar(n):
+    """Scalar version of :func:`_stirling_error`."""
+    if n < 16:
+        return float(_STIRLING_ERROR_TABLE[int(n)])
+    n2 = n * n
+    return (
+        1 / 12
+        - (
+            1 / 360
+            - (1 / 1260 - (1 / 1680 - (1 / 1188 - 691 / 360360 / n2) / n2) / n2) / n2
+        )
+        / n2
+    ) / n
+
+
+def _start_values_scalar(beta, el, mm):
+    r"""
+    Scalar version of :func:`_start_values` for a single :math:`\beta` and
+    :math:`\ell`, for the scalar Turok & Bucher recursion.
+
+    Returns:
+        Tuple: Mantissas and exponents of the starting values of the half recursions
+        starting at :math:`m = -\ell` and :math:`m = \ell`, as
+        ``((mantissa_0, exponent_0), (mantissa_1, exponent_1))``.
+
+    """
+    abs_mm = abs(mm)
+    if el < abs_mm:
+        return (0.0, 0), (0.0, 0)
+    k = el - abs_mm
+    a, b = el + abs_mm, k
+    if a == 0 or b == 0:
+        log_binom = 0.0
+    else:
+        n = a + b
+        log_binom = (
+            a * math.log1p(b / a)
+            + b * math.log1p(a / b)
+            + 0.5 * math.log(n / (2 * math.pi * a * b))
+            + _stirling_error_scalar(n)
+            - _stirling_error_scalar(a)
+            - _stirling_error_scalar(b)
+        )
+    log_binom = log_binom / (2 * math.log(2)) - el
+    frac_t, exp_t = math.frexp(math.sin(beta) / 2)
+    starts = []
+    for i in range(2):
+        s_is_sin = mm > 0 if i == 0 else mm < 0
+        s = math.sin(beta / 2) ** 2 if s_is_sin else math.cos(beta / 2) ** 2
+        frac_s, exp_s = math.frexp(s)
+        if (frac_t == 0 and k > 0) or (frac_s == 0 and abs_mm > 0):
+            starts.append((0.0, 0))
+            continue
+        log_mantissa = (
+            (k * math.log2(frac_t) if k > 0 else 0.0)
+            + (abs_mm * math.log2(frac_s) if abs_mm > 0 else 0.0)
+            + log_binom
+        )
+        exponent = math.floor(log_mantissa)
+        starts.append(
+            (
+                2.0 ** (log_mantissa - exponent),
+                exponent + k * exp_t + abs_mm * exp_s + el,
+            )
+        )
+    return tuple(starts)
 
 
 def _scaled_start_values(beta, el, mm, xp):

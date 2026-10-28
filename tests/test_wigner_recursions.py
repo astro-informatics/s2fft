@@ -398,3 +398,28 @@ def test_turok_slice_jax_near_poles(L: int, spin: int, sampling: str):
             np.testing.assert_allclose(
                 dl_turok[m_range], dl_risbo[m_range, el], rtol=0, atol=1e-13
             )
+
+
+def test_start_values_scalar():
+    """Test the scalar starting values of Turok's slice against the vectorised ones."""
+    betas = np.array([1e-3, 0.1, 1.0, np.pi / 2, 2.0, np.pi - 0.1, np.pi - 1e-3])
+    el = np.arange(64)
+    for mm in [0, 1, -2, 7, -12]:
+        mantissas, exponents = recursions.price_mcewen._start_values(betas, el, mm, np)
+        scalar = np.array(
+            [
+                [
+                    recursions.price_mcewen._start_values_scalar(beta, ell, mm)
+                    for ell in el
+                ]
+                for beta in betas
+            ]
+        )
+        scalar_mantissas = np.moveaxis(scalar[..., 0], -1, 0)
+        scalar_exponents = np.moveaxis(scalar[..., 1], -1, 0)
+        np.testing.assert_allclose(
+            np.ldexp(scalar_mantissas, (scalar_exponents - exponents).astype(int)),
+            mantissas,
+            rtol=1e-14,
+            atol=0,
+        )

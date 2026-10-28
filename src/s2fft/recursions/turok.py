@@ -3,7 +3,12 @@ from warnings import warn
 
 import numpy as np
 
-from s2fft.recursions.price_mcewen import _start_values
+from s2fft.recursions.price_mcewen import (
+    _SCALE_BITS,
+    _SCALE_FACTOR,
+    _SCALE_LIMIT,
+    _start_values_scalar,
+)
 
 
 def compute_full(beta: float, el: int, L: int) -> np.ndarray:
@@ -156,13 +161,14 @@ def compute_quarter_slice(
         return dl
 
     # Starting values at the edges m = -el and m = el, as mantissas and exponents
-    mantissa, exponent = _start_values(np.array([beta]), np.array([el]), mm, np)
+    starts = _start_values_scalar(beta, el, mm)
 
     # Trigonometric constant adopted throughout
-    c = np.cos(beta)
-    s = np.sin(beta)
-    sin_half_beta_sq = np.sin(beta / 2) ** 2
-    cos_half_beta_sq = np.cos(beta / 2) ** 2
+    c = math.cos(beta)
+    s = math.sin(beta)
+    # m_c cos(beta) + mm_i through half angles, as in price_mcewen._recursion_step
+    hemisphere = 1.0 if c >= 0 else -1.0
+    half_angle = 2 * (math.sin(beta / 2) if c >= 0 else math.cos(beta / 2)) ** 2
 
     # The two half recursions meet at the centre of the oscillatory region of the slice
     m_star = int(np.rint(mm * c))
@@ -171,33 +177,40 @@ def compute_quarter_slice(
         if not (positive_m_only and i == 0):
             mm_i = mm if i == 0 else -mm
             n_rows = m_star + el if i == 0 else el - m_star + 1
+            # Iterates within [2^-400, 2^400] with an integer scale index k, the value
+            # being d 2^(800 k), as in price_mcewen._recursion_step
+            mantissa, exponent = starts[i]
+            scale = round(exponent / _SCALE_BITS)
             d_prev, d_curr = 0.0, 0.0
-            scale = int(exponent[i, 0, 0])
+            cpi_prev = 0.0
             for q in range(n_rows):
                 if q == 0:
-                    d_next = float(mantissa[i, 0, 0])
+                    d_next = math.ldexp(mantissa, exponent - _SCALE_BITS * scale)
                 else:
-                    # lamb = -(m_c cos(beta) + mm_i) / sin(beta), through half angles
                     m_c = el + 1 - q
-                    if c >= 0:
-                        lamb = (m_c + mm_i) - 2 * m_c * sin_half_beta_sq
-                    else:
-                        lamb = (mm_i - m_c) + 2 * m_c * cos_half_beta_sq
-                    lamb = -lamb / s
-                    cpi = 2.0 / np.sqrt(q * (2 * el + 1 - q))
-                    cp2 = np.sqrt((q - 1) * (2 * el + 2 - q) / (q * (2 * el + 1 - q)))
+                    lamb = (m_c + hemisphere * mm_i) - m_c * half_angle
+                    lamb = -hemisphere * lamb / s
+                    cpi = 2.0 / math.sqrt(q * (2 * el + 1 - q))
+                    cp2 = cpi / cpi_prev if q >= 2 else 0.0
+                    cpi_prev = cpi
                     d_next = cpi * lamb * d_curr - cp2 * d_prev
 
                 m = -el + q if i == 0 else el - q
-                sign = (-1) ** ((m if i == 0 else mm) + el)
-                dl[L - 1 + m] = sign * math.ldexp(d_next, scale)
+                sign = 1 - 2 * (((m if i == 0 else mm) + el) % 2)
+                if scale == 0:
+                    dl[L - 1 + m] = sign * d_next
+                elif scale == -1:
+                    dl[L - 1 + m] = sign * d_next / _SCALE_FACTOR
 
-                # Rescale the iterates by an exact power of two
-                largest = max(abs(d_curr), abs(d_next))
-                shift = math.frexp(largest)[1] if largest > 0 else 0
-                d_prev = math.ldexp(d_curr, -shift)
-                d_curr = math.ldexp(d_next, -shift)
-                scale += shift
+                # Rescale the iterates by an exact power of two when out of range
+                d_prev, d_curr = d_curr, d_next
+                largest = max(abs(d_prev), abs(d_curr))
+                if largest > _SCALE_LIMIT:
+                    d_prev, d_curr = d_prev / _SCALE_FACTOR, d_curr / _SCALE_FACTOR
+                    scale += 1
+                elif 0 < largest < 1 / _SCALE_LIMIT:
+                    d_prev, d_curr = d_prev * _SCALE_FACTOR, d_curr * _SCALE_FACTOR
+                    scale -= 1
 
     return dl
 
