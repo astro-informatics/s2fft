@@ -617,7 +617,8 @@ def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm, adjoint):
         worksize = _s2fft.build_descriptor_C128(
             nside, L, reality, forward, normalize, adjoint
         )
-        worksize //= 16  # 16 bytes per C128 element
+        # 16 bytes per C128 element; rounds up and keeps each batch row non-empty.
+        worksize = worksize // 16 + 1
         workspace_shape = (worksize,)
         workspace_dtype = np.complex128
     else:
@@ -625,7 +626,8 @@ def _healpix_fft_cuda_abstract(f, L, nside, reality, fft_type, norm, adjoint):
         worksize = _s2fft.build_descriptor_C64(
             nside, L, reality, forward, normalize, adjoint
         )
-        worksize //= 8  # 8 bytes per C64 element
+        # 8 bytes per C64 element; rounds up and keeps each batch row non-empty.
+        worksize = worksize // 8 + 1
         workspace_shape = (worksize,)
         workspace_dtype = np.complex64
     # Step 3: Define output shapes based on FFT type.
