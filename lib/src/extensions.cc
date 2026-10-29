@@ -390,12 +390,14 @@ ffi::Error healpix_fft_cuda(cudaStream_t stream, int32_t device_ordinal, int64_t
 
         // Step 1: Build the s2fftDescriptor based on the input parameters.
         size_t work_size = 0;  // Variable to hold the workspace size
-        s2fftDescriptor descriptor = build_descriptor<T>(nside, harmonic_band_limit, reality, forward, normalize,
-                                                         adjoint, false, work_size, device_ordinal);
+        s2fftDescriptor descriptor =
+                build_descriptor<T>(nside, harmonic_band_limit, reality, forward, normalize, adjoint, false,
+                                    work_size, device_ordinal);
 
         // Step 2: Dispatch to either forward or backward transform based on the 'forward' flag.
         if (forward) {
-            return healpix_forward<T>(stream, device_ordinal, input, input_alias, output, workspace, descriptor);
+            return healpix_forward<T>(stream, device_ordinal, input, input_alias, output, workspace,
+                                      descriptor);
         } else {
             return healpix_backward<T>(stream, device_ordinal, input, input_alias, output, workspace,
                                        descriptor);

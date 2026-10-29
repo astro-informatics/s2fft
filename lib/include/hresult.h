@@ -26,25 +26,25 @@ typedef long HRESULT;
 #include <string>
 
 // Macro to check for CUDA errors. Throws so that the FFI handler can return the failure to XLA.
-#define checkCudaErrors(call)                                                                       \
-    do {                                                                                            \
-        cudaError_t err = call;                                                                     \
-        if (err != cudaSuccess) {                                                                   \
+#define checkCudaErrors(call)                                                                           \
+    do {                                                                                                \
+        cudaError_t err = call;                                                                         \
+        if (err != cudaSuccess) {                                                                       \
             throw std::runtime_error(std::string("CUDA call \"") + #call + "\" failed at " + __FILE__ + \
-                                     ":" + std::to_string(__LINE__) + ": " + cudaGetErrorString(err)); \
-        }                                                                                           \
+                                     ":" + std::to_string(__LINE__) + ": " + cudaGetErrorString(err));  \
+        }                                                                                               \
     } while (0)
 
 // cufft API error checking. Throws so that the FFI handler can return the failure to XLA.
 #ifndef CUFFT_CALL
-#define CUFFT_CALL(call)                                                                              \
-    do {                                                                                              \
-        auto status = static_cast<cufftResult>(call);                                                 \
-        if (status != CUFFT_SUCCESS) {                                                                \
+#define CUFFT_CALL(call)                                                                                 \
+    do {                                                                                                 \
+        auto status = static_cast<cufftResult>(call);                                                    \
+        if (status != CUFFT_SUCCESS) {                                                                   \
             throw std::runtime_error(std::string("cuFFT call \"") + #call + "\" failed at " + __FILE__ + \
-                                     ":" + std::to_string(__LINE__) + " with code " +                 \
-                                     std::to_string(static_cast<int>(status)));                       \
-        }                                                                                             \
+                                     ":" + std::to_string(__LINE__) + " with code " +                    \
+                                     std::to_string(static_cast<int>(status)));                          \
+        }                                                                                                \
     } while (0)
 #endif  // CUFFT_CALL
 
