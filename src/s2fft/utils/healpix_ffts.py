@@ -715,13 +715,14 @@ def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm, adj
     is_double, forward, normalize = _get_lowering_info(fft_type, norm, aval_out.dtype)
 
     # Step 4: Select the appropriate FFI lowering function based on precision.
-    # NO operand-output alias here, deliberately. Declaring result 0 as an alias of operand 0
-    # (in-place reuse) made the transform consume uninitialized memory whenever XLA's custom
-    # fusion pass materialized the aliased result as a fresh buffer without copying the
-    # operand into it, and even with a handler-side copy the alias changes XLA's buffer
-    # liveness unsoundly around fused custom calls. Result 0 is therefore always a plain
-    # output buffer, and the CUDA handler copies the operand into it before transforming
-    # in place (see lib/src/extensions.cc) -- sound under every XLA lowering path.
+    # NO operand-output alias here, deliberately. An earlier version declared result 0 as
+    # an alias of operand 0 (in-place reuse) which made the transform consume
+    # uninitialized memory whenever XLA's custom fusion pass materialized the aliased
+    # result as a fresh buffer without copying the operand into it, and even with a
+    # handler-side copy the alias changes XLA's buffer liveness unsoundly around
+    # fused custom calls. Result 0 is therefore always a plain output buffer, and the
+    # CUDA handler copies the operand into it before transforming in place
+    # (see lib/src/extensions.cc) -- sound under every XLA lowering path.
     if is_double:
         ffi_lowered = jax.ffi.ffi_lowering("healpix_fft_cuda_c128")
     else:

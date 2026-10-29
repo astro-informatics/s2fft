@@ -55,14 +55,15 @@ template <ffi::DataType T>
 constexpr bool is_double_v = is_double<T>::value;
 
 /**
- * @brief Copies the operand into the aliased result buffer when XLA materialized them apart.
+ * @brief Copies the operand into result 0 unless XLA assigned both the same buffer.
  *
- * The FFI lowering declares result 0 (`input_alias`) as an alias of operand 0, promising XLA
- * that this handler writes it. The transform below READS `input_alias` in place, so the input
- * data must be present in that buffer. When XLA passes the operand's own buffer the pointers
- * match and nothing happens; when XLA materializes result 0 as a fresh buffer (its custom
- * fusion pass does exactly that around slice+bitcast+custom-call), the copy makes the read
- * sound instead of consuming uninitialized memory.
+ * The handler checks whether XLA assigned the same device buffer to the operand and to
+ * result 0 (`input_alias`). If the buffers differ, the handler initialises result 0 with a
+ * copy of the operand. Both buffers have the same shape: HEALPix maps for the forward
+ * transform and Fourier coefficients (ftm) for the backward transform. The transform then
+ * works in place on result 0, so the operand stays intact when XLA reuses the operand after
+ * the custom call. The FFI lowering declares no operand-output alias, which leaves XLA free
+ * to choose the buffer assignment.
  */
 template <ffi::DataType T>
 ffi::Error copy_operand_to_alias(cudaStream_t stream, const ffi::Buffer<T>& input,
@@ -113,26 +114,26 @@ ffi::Error healpix_forward(cudaStream_t stream, int32_t device_ordinal, ffi::Buf
     // Step 2: Handle batched and non-batched cases separately.
     bool is_batched = (dim_in.size() == 2);
 
-    // Step 2a: Handle batched and non-batched cases separately.
+    // Handle batched and non-batched cases separately.
     if (is_batched) {
-        // Step 2b: Batched case.
+        // Batched case.
         int batch_count = dim_in[0];
-        // Step 2c: Compute offsets for input and output for each batch.
+        // Compute offsets for input and output for each batch.
         int64_t input_offset = descriptor.nside * descriptor.nside * 12;
         int64_t output_offset = (4 * descriptor.nside - 1) * (2 * descriptor.harmonic_band_limit);
 
-        // Step 2d: Fork CUDA streams for parallel processing of batches.
+        // Fork CUDA streams for parallel processing of batches.
         CudaStreamHandler handler;
-        std::vector<cudaStream_t> sub_streams = handler.Fork(device_ordinal, stream, batch_count);
+        std::vector<cudaStream_t> sub_streams = handler.fork(device_ordinal, stream, batch_count);
 
-        // Step 2e: Iterate over each batch.
+        // Iterate over each batch.
         for (int i = 0; i < batch_count; ++i) {
             cudaStream_t sub_stream = sub_streams[i];
-            // Step 2f: Get or create an s2fftExec instance from the PlanCache.
+            // Get or create an s2fftExec instance from the PlanCache.
             auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
             PlanCache::GetInstance().GetS2FFTExec(descriptor, executor, device_ordinal);
 
-            // Step 2f: Calculate device pointers for the current batch's data, output, and workspace.
+            // Calculate device pointers for the current batch's data, output, and workspace.
             fft_complex_type* data_c =
                     reinterpret_cast<fft_complex_type*>(input_alias->typed_data() + i * input_offset);
             fft_complex_type* out_c =
@@ -140,9 +141,9 @@ ffi::Error healpix_forward(cudaStream_t stream, int32_t device_ordinal, ffi::Buf
             fft_complex_type* workspace_c =
                     reinterpret_cast<fft_complex_type*>(workspace->typed_data() + i * executor->m_work_size);
 
-            // Step 2i: Launch the forward transform on this sub-stream.
+            // Launch the forward transform on this sub-stream.
             executor->Forward(descriptor, sub_stream, data_c, workspace_c);
-            // Step 2j: Launch spectral extension kernel with shift and normalization.
+            // Launch spectral extension kernel with shift and normalization.
             int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::FORWARD) ? 0
                               : (descriptor.norm == s2fftKernels::fft_norm::ORTHO) ? 1
                                                                                    : 2;
@@ -150,22 +151,22 @@ ffi::Error healpix_forward(cudaStream_t stream, int32_t device_ordinal, ffi::Buf
                                                     descriptor.harmonic_band_limit, descriptor.shift,
                                                     kernel_norm, sub_stream);
         }
-        // Step 2k: Join all forked streams back to the main stream.
+        // Join all forked streams back to the main stream.
         handler.join(stream, sub_streams);
         return ffi::Error::Success();
     } else {
-        // Step 2l: Non-batched case.
-        // Step 2m: Get device pointers for data, output, and workspace.
+        // Non-batched case.
+        // Get device pointers for data, output, and workspace.
         fft_complex_type* data_c = reinterpret_cast<fft_complex_type*>(input_alias->typed_data());
         fft_complex_type* out_c = reinterpret_cast<fft_complex_type*>(output->typed_data());
         fft_complex_type* workspace_c = reinterpret_cast<fft_complex_type*>(workspace->typed_data());
 
-        // Step 2n: Get or create an s2fftExec instance from the PlanCache.
+        // Get or create an s2fftExec instance from the PlanCache.
         auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
         PlanCache::GetInstance().GetS2FFTExec(descriptor, executor, device_ordinal);
-        // Step 2o: Launch the forward transform.
+        // Launch the forward transform.
         executor->Forward(descriptor, stream, data_c, workspace_c);
-        // Step 2p: Launch spectral extension kernel with shift and normalization.
+        // Launch spectral extension kernel with shift and normalization.
         int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::FORWARD) ? 0
                           : (descriptor.norm == s2fftKernels::fft_norm::ORTHO) ? 1
                                                                                : 2;
@@ -210,29 +211,29 @@ ffi::Error healpix_backward(cudaStream_t stream, int32_t device_ordinal, ffi::Bu
     // Step 2: Handle batched and non-batched cases separately.
     bool is_batched = (dim_in.size() == 3);
 
-    // Step 2a: Handle batched and non-batched cases separately.
+    // Handle batched and non-batched cases separately.
     if (is_batched) {
-        // Step 2b: Batched case.
+        // Batched case.
         // Assertions to ensure correct input/output dimensions for batched operations.
         assert(dim_out.size() == 2);
         assert(dim_in[0] == dim_out[0]);
         int batch_count = dim_in[0];
-        // Step 2c: Compute offsets for input, output, and callback parameters for each batch.
+        // Compute offsets for input, output, and callback parameters for each batch.
         int64_t input_offset = (4 * descriptor.nside - 1) * (2 * descriptor.harmonic_band_limit);
         int64_t output_offset = descriptor.nside * descriptor.nside * 12;
 
-        // Step 2d: Fork CUDA streams for parallel processing of batches.
+        // Fork CUDA streams for parallel processing of batches.
         CudaStreamHandler handler;
-        std::vector<cudaStream_t> sub_streams = handler.Fork(device_ordinal, stream, batch_count);
+        std::vector<cudaStream_t> sub_streams = handler.fork(device_ordinal, stream, batch_count);
 
-        // Step 2e: Iterate over each batch.
+        // Iterate over each batch.
         for (int i = 0; i < batch_count; ++i) {
             cudaStream_t sub_stream = sub_streams[i];
-            // Step 2f: Get or create an s2fftExec instance from the PlanCache.
+            // Get or create an s2fftExec instance from the PlanCache.
             auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
             PlanCache::GetInstance().GetS2FFTExec(descriptor, executor, device_ordinal);
 
-            // Step 2f: Calculate device pointers for the current batch's data, output, and workspace.
+            // Calculate device pointers for the current batch's data, output, and workspace.
             fft_complex_type* data_c =
                     reinterpret_cast<fft_complex_type*>(input_alias->typed_data() + i * input_offset);
             fft_complex_type* out_c =
@@ -244,22 +245,22 @@ ffi::Error healpix_backward(cudaStream_t stream, int32_t device_ordinal, ffi::Bu
                               : (descriptor.norm == s2fftKernels::fft_norm::ORTHO)  ? 1
                                                                                     : 2;
 
-            // Step 2g: Launch spectral folding kernel.
+            // Launch spectral folding kernel.
             s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside,
                                                   descriptor.harmonic_band_limit, descriptor.shift,
                                                   kernel_norm, sub_stream);
-            // Step 2h: Launch the backward transform on this sub-stream.
+            // Launch the backward transform on this sub-stream.
             executor->Backward(descriptor, sub_stream, out_c, workspace_c);
         }
-        // Step 2i: Join all forked streams back to the main stream.
+        // Join all forked streams back to the main stream.
         handler.join(stream, sub_streams);
         return ffi::Error::Success();
     } else {
-        // Step 2j: Non-batched case.
+        // Non-batched case.
         // Assertions to ensure correct input/output dimensions for non-batched operations.
         assert(dim_in.size() == 2);
         assert(dim_out.size() == 1);
-        // Step 2k: Get device pointers for data, output, and workspace.
+        // Get device pointers for data, output, and workspace.
         fft_complex_type* data_c = reinterpret_cast<fft_complex_type*>(input_alias->typed_data());
         fft_complex_type* out_c = reinterpret_cast<fft_complex_type*>(output->typed_data());
         fft_complex_type* workspace_c = reinterpret_cast<fft_complex_type*>(workspace->typed_data());
@@ -267,13 +268,13 @@ ffi::Error healpix_backward(cudaStream_t stream, int32_t device_ordinal, ffi::Bu
                           : (descriptor.norm == s2fftKernels::fft_norm::ORTHO)  ? 1
                                                                                 : 2;
 
-        // Step 2l: Get or create an s2fftExec instance from the PlanCache.
+        // Get or create an s2fftExec instance from the PlanCache.
         auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
         PlanCache::GetInstance().GetS2FFTExec(descriptor, executor, device_ordinal);
-        // Step 2m: Launch spectral folding kernel.
+        // Launch spectral folding kernel.
         s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside, descriptor.harmonic_band_limit,
                                               descriptor.shift, kernel_norm, stream);
-        // Step 2n: Launch the backward transform.
+        // Launch the backward transform.
         executor->Backward(descriptor, stream, out_c, workspace_c);
         return ffi::Error::Success();
     }

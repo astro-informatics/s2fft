@@ -18,7 +18,7 @@
  *       // Create a handler instance
  *       CudaStreamHandler handler;
  *       // Fork 4 streams on device 0, dependent on stream 'main'
- *       auto forked = handler.Fork(0, main, 4);
+ *       auto forked = handler.fork(0, main, 4);
  *       // Do work on the forked streams...
  *       // Join them back into 'main'
  *       handler.join(main, forked);
@@ -52,10 +52,10 @@ public:
     /**
      * @brief Forks N streams on `device`, each waiting on the current state of `dependentStream`.
      *
-     * Returns exactly the N streams to use for this fork, so a later Fork with a smaller N can
+     * Returns exactly the N streams to use for this fork, so a later fork with a smaller N can
      * never hand out streams whose dependencies were set for a different batch count.
      */
-    std::vector<cudaStream_t> Fork(int device, cudaStream_t dependentStream, int N) {
+    std::vector<cudaStream_t> fork(int device, cudaStream_t dependentStream, int N) {
         if (N <= 0) {
             throw std::invalid_argument("Fork requires at least one stream.");
         }
@@ -117,8 +117,8 @@ public:
     CudaStreamHandler() = default;
     ~CudaStreamHandler() = default;
 
-    std::vector<cudaStream_t> Fork(int device, cudaStream_t cudastream, int N) {
-        return CudaStreamHandlerImpl::instance().Fork(device, cudastream, N);
+    std::vector<cudaStream_t> fork(int device, cudaStream_t cudastream, int N) {
+        return CudaStreamHandlerImpl::instance().fork(device, cudastream, N);
     }
 
     void join(cudaStream_t cudastream, const std::vector<cudaStream_t> &forked) {
