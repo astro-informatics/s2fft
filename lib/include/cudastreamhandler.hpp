@@ -40,6 +40,7 @@
 #include <cuda_runtime.h>
 
 #include "cudadeviceguard.hpp"
+#include "hresult.h"
 
 // Singleton class managing per-device CUDA streams and events
 class CudaStreamHandlerImpl {
@@ -74,10 +75,10 @@ public:
         std::vector<cudaStream_t> forked(pool.end() - N, pool.end());
         std::for_each(forked.begin(), forked.end(), [dependentStream](cudaStream_t stream) {
             cudaEvent_t event;
-            cudaEventCreate(&event);
-            cudaEventRecord(event, dependentStream);
-            cudaStreamWaitEvent(stream, event, 0);  // Set the stream to wait on the event
-            cudaEventDestroy(event);
+            checkCudaErrors(cudaEventCreate(&event));
+            checkCudaErrors(cudaEventRecord(event, dependentStream));
+            checkCudaErrors(cudaStreamWaitEvent(stream, event, 0));  // Set the stream to wait on the event
+            checkCudaErrors(cudaEventDestroy(event));
         });
         return forked;
     }
@@ -88,10 +89,10 @@ public:
     void join(cudaStream_t finalStream, const std::vector<cudaStream_t> &forked) {
         std::for_each(forked.begin(), forked.end(), [finalStream](cudaStream_t stream) {
             cudaEvent_t event;
-            cudaEventCreate(&event);
-            cudaEventRecord(event, stream);
-            cudaStreamWaitEvent(finalStream, event, 0);
-            cudaEventDestroy(event);
+            checkCudaErrors(cudaEventCreate(&event));
+            checkCudaErrors(cudaEventRecord(event, stream));
+            checkCudaErrors(cudaStreamWaitEvent(finalStream, event, 0));
+            checkCudaErrors(cudaEventDestroy(event));
         });
     }
 
