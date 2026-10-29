@@ -222,6 +222,32 @@ def test_healpix_ifft_cuda_transforms(cached_healpy_test_case, nside):
 
 
 @pytest.mark.skipif(not gpu_available, reason="GPU not available")
+@pytest.mark.parametrize("nside", [4, 8, 16])
+@pytest.mark.parametrize("dtype", [jnp.complex64, jnp.complex128])
+def test_healpix_cuda_batched_complex_matches_jax(nside, dtype):
+    """Each element of a batched (vmap) CUDA transform must match the JAX transform.
+
+    Complex inputs reach the CUDA primitive without a dtype conversion, and every batch
+    element runs with its own workspace row.
+    """
+    L = 2 * nside
+    rng = np.random.default_rng(0)
+    f = jnp.asarray(
+        rng.normal(size=(3, 12 * nside**2)) + 1j * rng.normal(size=(3, 12 * nside**2)),
+        dtype=dtype,
+    )
+    tol = 1e-4 if dtype == jnp.complex64 else 1e-10
+
+    ftm = jax.vmap(lambda x: healpix_fft_cuda(x, L, nside, False))(f)
+    f_back = jax.vmap(lambda x: healpix_ifft_cuda(x, L, nside, False))(ftm)
+    for i in range(f.shape[0]):
+        ftm_ref = healpix_fft_jax(f[i], L, nside, False)
+        assert_allclose(ftm[i], ftm_ref, rtol=tol, atol=tol * np.abs(ftm_ref).max())
+        f_ref = healpix_ifft_jax(ftm[i], L, nside, False)
+        assert_allclose(f_back[i], f_ref, rtol=tol, atol=tol * np.abs(f_ref).max())
+
+
+@pytest.mark.skipif(not gpu_available, reason="GPU not available")
 def test_healpix_cuda_jit_roundtrip_survives_xla_fusion():
     """Two jitted forward/inverse roundtrips on slices of one array must match eager.
 
