@@ -265,7 +265,7 @@ scaled_colatitude_derivative = np.asarray(
 )
 
 colatitude_derivative = scaled_colatitude_derivative.copy()
-colatitude_derivative[:-1] /= np.sin(theta_values[:-1, None])
+colatitude_derivative[:-1] /= np.sin(theta_values[:-1].reshape((-1, 1)))
 colatitude_derivative[-1] = np.nan
 
 
