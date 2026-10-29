@@ -106,7 +106,7 @@ ffi::Error healpix_forward(cudaStream_t stream, int32_t device_ordinal, ffi::Buf
     using fft_complex_type = fft_complex_t<T>;
     const auto& dim_in = input.dimensions();
 
-    // Step 1a: Make the input data visible in the aliased result buffer (no-op when they alias).
+    // Copy the operand into result 0 (input_alias), which the transform works on in place.
     if (ffi::Error err = copy_operand_to_alias(stream, input, input_alias); !err.success()) {
         return err;
     }
@@ -209,7 +209,7 @@ ffi::Error healpix_backward(cudaStream_t stream, int32_t device_ordinal, ffi::Bu
     const auto& dim_in = input.dimensions();
     const auto& dim_out = output->dimensions();
 
-    // Step 1a: Make the input data visible in the aliased result buffer (no-op when they alias).
+    // Copy the operand into result 0 (input_alias), which the transform works on in place.
     if (ffi::Error err = copy_operand_to_alias(stream, input, input_alias); !err.success()) {
         return err;
     }
@@ -491,7 +491,7 @@ NB_MODULE(_s2fft, m) {
     // same device reuses it; other devices create their own executor on first use.
     m.def("build_descriptor_C64", [](int64_t nside, int64_t harmonic_band_limit, bool reality, bool forward,
                                      bool normalize, bool adjoint) {
-        // Step 2a: Build the s2fftDescriptor on the caller's current device.
+        // Build the s2fftDescriptor on the caller's current device.
         int device = -1;
         cudaGetDevice(&device);
         CudaDeviceScope device_guard(device);
@@ -502,7 +502,7 @@ NB_MODULE(_s2fft, m) {
     });
     m.def("build_descriptor_C128", [](int64_t nside, int64_t harmonic_band_limit, bool reality, bool forward,
                                       bool normalize, bool adjoint) {
-        // Step 2e: Build the s2fftDescriptor on the caller's current device.
+        // Build the s2fftDescriptor on the caller's current device.
         int device = -1;
         cudaGetDevice(&device);
         CudaDeviceScope device_guard(device);
@@ -519,9 +519,9 @@ NB_MODULE(_s2fft, m) {
 
 // Step 1: Define a fallback NB_MODULE when CUDA is not compiled.
 NB_MODULE(_s2fft, m) {
-    // Step 1a: Provide a dummy registration function that returns an empty dictionary.
+    // Provide a dummy registration function that returns an empty dictionary.
     m.def("registration", []() { return nb::dict(); });
-    // Step 1b: Indicate that CUDA support is not compiled.
+    // Indicate that CUDA support is not compiled.
     m.attr("COMPILED_WITH_CUDA") = false;
 }
 
