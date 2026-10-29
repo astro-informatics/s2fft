@@ -28,6 +28,8 @@ description = "Differentiable and accelerated spherical transforms with JAX"
 dependencies = [
     "numpy>=1.20",
     "jax>=0.5.0",
+    "array-api-compat~=1.15",
+    "array-api-extra~=0.11",
 ]
 dynamic = [
     "version",
@@ -98,7 +100,7 @@ build-dir = "build/{wheel_tag}"
 wheel.py-api = "cp312"
 cmake.build-type = "Release"
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
-sdist.include = ["s2fft/_version.py"]
+sdist.include = ["src/s2fft/_version.py"]
 
 [tool.pytest.ini_options]
 addopts = "--color=yes -v"
@@ -169,9 +171,6 @@ lint.pep8-naming.classmethod-decorators = [
     "classmethod",
 ]
 
-[tool.setuptools]
-packages = ["s2fft"]
-
 [tool.setuptools_scm]
 local_scheme = "no-local-version"
-write_to = "s2fft/_version.py"
+write_to = "src/s2fft/_version.py"
