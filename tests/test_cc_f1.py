@@ -423,7 +423,7 @@ def test_single_precision(sampling, method, reality):
     L = 4
     flm = np.zeros((L, 2 * L - 1), dtype=np.complex64)
     flm[2, L - 1 if reality else L] = 0.5 if reality else 0.3 + 0.1j
-    context = jax.experimental.enable_x64(False) if method == "jax" else nullcontext()
+    context = jax.enable_x64(False) if method == "jax" else nullcontext()
     with context:
         field, recovered = _roundtrip(
             jnp.asarray(flm) if method == "jax" else flm,
