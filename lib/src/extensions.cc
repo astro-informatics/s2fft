@@ -11,6 +11,7 @@ namespace nb = nanobind;
 #include "xla/ffi/api/c_api.h"
 #include "xla/ffi/api/ffi.h"
 #include "cuda_runtime.h"
+#include "cudadeviceguard.hpp"
 #include "plan_cache.h"
 #include "s2fft_kernels.h"
 #include "s2fft.h"
@@ -54,6 +55,33 @@ template <ffi::DataType T>
 constexpr bool is_double_v = is_double<T>::value;
 
 /**
+ * @brief Copies the operand into result 0 unless XLA assigned both the same buffer.
+ *
+ * The handler checks whether XLA assigned the same device buffer to the operand and to
+ * result 0 (`input_alias`). If the buffers differ, the handler initialises result 0 with a
+ * copy of the operand. Both buffers have the same shape: HEALPix maps for the forward
+ * transform and Fourier coefficients (ftm) for the backward transform. The transform then
+ * works in place on result 0, so the operand stays intact when XLA reuses the operand after
+ * the custom call. The FFI lowering declares no operand-output alias, which leaves XLA free
+ * to choose the buffer assignment.
+ */
+template <ffi::DataType T>
+ffi::Error copy_operand_to_alias(cudaStream_t stream, const ffi::Buffer<T>& input,
+                                 ffi::Result<ffi::Buffer<T>> input_alias) {
+    if (input_alias->typed_data() == input.typed_data()) {
+        return ffi::Error::Success();
+    }
+    cudaError_t err = cudaMemcpyAsync(input_alias->typed_data(), input.typed_data(), input.size_bytes(),
+                                      cudaMemcpyDeviceToDevice, stream);
+    if (err != cudaSuccess) {
+        return ffi::Error::Internal(
+                std::string("s2fft: failed to copy the operand into the aliased buffer: ") +
+                cudaGetErrorString(err));
+    }
+    return ffi::Error::Success();
+}
+
+/**
  * @brief Performs a forward HEALPix transform on a single element or batch.
  *
  * For a batched call, the input buffer is assumed to be 2D: [batch_size, nside^2*12],
@@ -63,7 +91,7 @@ constexpr bool is_double_v = is_double<T>::value;
  *
  * @tparam T The XLA data type (F32, F64, etc).
  * @param stream CUDA stream to use.
- * @param scratch ScratchAllocator for temporary device memory.
+ * @param device_ordinal CUDA device the buffers and plans live on.
  * @param input Input buffer containing HEALPix pixel-space data.
  * @param output Output buffer to store the FTM result.
  * @param workspace Output buffer for temporary workspace memory.
@@ -71,47 +99,60 @@ constexpr bool is_double_v = is_double<T>::value;
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
-ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Result<ffi::Buffer<T>> input_alias,
-                           ffi::Result<ffi::Buffer<T>> output, ffi::Result<ffi::Buffer<T>> workspace,
-                           s2fftDescriptor descriptor) {
+ffi::Error healpix_forward(cudaStream_t stream, int32_t device_ordinal, ffi::Buffer<T> input,
+                           ffi::Result<ffi::Buffer<T>> input_alias, ffi::Result<ffi::Buffer<T>> output,
+                           ffi::Result<ffi::Buffer<T>> workspace, s2fftDescriptor descriptor) {
     // Step 1: Determine the complex type based on the XLA data type.
     using fft_complex_type = fft_complex_t<T>;
     const auto& dim_in = input.dimensions();
 
-    // Step 1a: Get shift strategy from descriptor.
-    bool is_batched = (dim_in.size() == 2);
+    // Copy the operand into result 0 (input_alias), which the transform works on in place.
+    if (ffi::Error err = copy_operand_to_alias(stream, input, input_alias); !err.success()) {
+        return err;
+    }
+
+    // Get or create an s2fftExec instance from the PlanCache.
+    auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
+    PlanCache::GetInstance().GetS2FFTExec(descriptor, executor, device_ordinal);
+
+    // Each batch element owns one workspace row; the row length (in elements) comes from the
+    // buffer shape set by the Python abstract evaluation.
+    const int64_t workspace_stride = workspace->dimensions().back();
+    if (workspace_stride * static_cast<int64_t>(sizeof(fft_complex_type)) <
+        static_cast<int64_t>(executor->m_work_size)) {
+        return ffi::Error::InvalidArgument("s2fft: workspace row is smaller than the cuFFT work size");
+    }
 
     // Step 2: Handle batched and non-batched cases separately.
+    bool is_batched = (dim_in.size() == 2);
+
+    // Handle batched and non-batched cases separately.
     if (is_batched) {
-        // Step 2a: Batched case.
+        // Batched case.
         int batch_count = dim_in[0];
-        // Step 2b: Compute offsets for input and output for each batch.
+        // Compute offsets for input and output for each batch.
         int64_t input_offset = descriptor.nside * descriptor.nside * 12;
         int64_t output_offset = (4 * descriptor.nside - 1) * (2 * descriptor.harmonic_band_limit);
 
-        // Step 2c: Fork CUDA streams for parallel processing of batches.
+        // Fork CUDA streams for parallel processing of batches.
         CudaStreamHandler handler;
-        handler.Fork(stream, batch_count);
-        auto stream_iter = handler.getIterator();
+        std::vector<cudaStream_t> sub_streams = handler.fork(device_ordinal, stream, batch_count);
 
-        // Step 2d: Iterate over each batch.
-        for (int i = 0; i < batch_count && stream_iter.hasNext(); ++i) {
-            cudaStream_t sub_stream = stream_iter.next();
-            // Step 2e: Get or create an s2fftExec instance from the PlanCache.
-            auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
-            PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
+        // Iterate over each batch.
+        for (int i = 0; i < batch_count; ++i) {
+            cudaStream_t sub_stream = sub_streams[i];
 
-            // Step 2f: Calculate device pointers for the current batch's data, output, and workspace.
+            // Calculate device pointers for the current batch's data, output, and workspace.
             fft_complex_type* data_c =
                     reinterpret_cast<fft_complex_type*>(input_alias->typed_data() + i * input_offset);
             fft_complex_type* out_c =
                     reinterpret_cast<fft_complex_type*>(output->typed_data() + i * output_offset);
             fft_complex_type* workspace_c =
-                    reinterpret_cast<fft_complex_type*>(workspace->typed_data() + i * executor->m_work_size);
+                    reinterpret_cast<fft_complex_type*>(workspace->typed_data() + i * workspace_stride);
 
-            // Step 2g: Launch the forward transform on this sub-stream.
+            // Launch the forward transform on this sub-stream.
             executor->Forward(descriptor, sub_stream, data_c, workspace_c);
-            // Step 2h: Launch spectral extension kernel with shift and normalization.
+            // Launch spectral extension kernel with shift and normalization.
             int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::FORWARD) ? 0
                               : (descriptor.norm == s2fftKernels::fft_norm::ORTHO) ? 1
                                                                                    : 2;
@@ -119,22 +160,19 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resul
                                                     descriptor.harmonic_band_limit, descriptor.shift,
                                                     kernel_norm, sub_stream);
         }
-        // Step 2i: Join all forked streams back to the main stream.
-        handler.join(stream);
+        // Join all forked streams back to the main stream.
+        handler.join(stream, sub_streams);
         return ffi::Error::Success();
     } else {
-        // Step 2j: Non-batched case.
-        // Step 2k: Get device pointers for data, output, and workspace.
+        // Non-batched case.
+        // Get device pointers for data, output, and workspace.
         fft_complex_type* data_c = reinterpret_cast<fft_complex_type*>(input_alias->typed_data());
         fft_complex_type* out_c = reinterpret_cast<fft_complex_type*>(output->typed_data());
         fft_complex_type* workspace_c = reinterpret_cast<fft_complex_type*>(workspace->typed_data());
 
-        // Step 2l: Get or create an s2fftExec instance from the PlanCache.
-        auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
-        PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
-        // Step 2m: Launch the forward transform.
+        // Launch the forward transform.
         executor->Forward(descriptor, stream, data_c, workspace_c);
-        // Step 2n: Launch spectral extension kernel with shift and normalization.
+        // Launch spectral extension kernel with shift and normalization.
         int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::FORWARD) ? 0
                           : (descriptor.norm == s2fftKernels::fft_norm::ORTHO) ? 1
                                                                                : 2;
@@ -155,7 +193,7 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resul
  *
  * @tparam T The XLA data type.
  * @param stream CUDA stream to use.
- * @param scratch ScratchAllocator for temporary device memory.
+ * @param device_ordinal CUDA device the buffers and plans live on.
  * @param input Input buffer containing FTM data.
  * @param output Output buffer to store HEALPix pixel-space data.
  * @param workspace Output buffer for temporary workspace memory.
@@ -163,7 +201,7 @@ ffi::Error healpix_forward(cudaStream_t stream, ffi::Buffer<T> input, ffi::Resul
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
-ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input,
+ffi::Error healpix_backward(cudaStream_t stream, int32_t device_ordinal, ffi::Buffer<T> input,
                             ffi::Result<ffi::Buffer<T>> input_alias, ffi::Result<ffi::Buffer<T>> output,
                             ffi::Result<ffi::Buffer<T>> workspace, s2fftDescriptor descriptor) {
     // Step 1: Determine the complex type based on the XLA data type.
@@ -171,60 +209,73 @@ ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input,
     const auto& dim_in = input.dimensions();
     const auto& dim_out = output->dimensions();
 
-    // Step 1a: Get shift strategy from descriptor.
-    bool is_batched = (dim_in.size() == 3);
+    // Copy the operand into result 0 (input_alias), which the transform works on in place.
+    if (ffi::Error err = copy_operand_to_alias(stream, input, input_alias); !err.success()) {
+        return err;
+    }
+
+    // Get or create an s2fftExec instance from the PlanCache.
+    auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
+    PlanCache::GetInstance().GetS2FFTExec(descriptor, executor, device_ordinal);
+
+    // Each batch element owns one workspace row; the row length (in elements) comes from the
+    // buffer shape set by the Python abstract evaluation.
+    const int64_t workspace_stride = workspace->dimensions().back();
+    if (workspace_stride * static_cast<int64_t>(sizeof(fft_complex_type)) <
+        static_cast<int64_t>(executor->m_work_size)) {
+        return ffi::Error::InvalidArgument("s2fft: workspace row is smaller than the cuFFT work size");
+    }
 
     // Step 2: Handle batched and non-batched cases separately.
+    bool is_batched = (dim_in.size() == 3);
+
+    // Handle batched and non-batched cases separately.
     if (is_batched) {
-        // Step 2a: Batched case.
+        // Batched case.
         // Assertions to ensure correct input/output dimensions for batched operations.
         assert(dim_out.size() == 2);
         assert(dim_in[0] == dim_out[0]);
         int batch_count = dim_in[0];
-        // Step 2b: Compute offsets for input, output, and callback parameters for each batch.
+        // Compute offsets for input, output, and callback parameters for each batch.
         int64_t input_offset = (4 * descriptor.nside - 1) * (2 * descriptor.harmonic_band_limit);
         int64_t output_offset = descriptor.nside * descriptor.nside * 12;
 
-        // Step 2c: Fork CUDA streams for parallel processing of batches.
+        // Fork CUDA streams for parallel processing of batches.
         CudaStreamHandler handler;
-        handler.Fork(stream, batch_count);
-        auto stream_iter = handler.getIterator();
+        std::vector<cudaStream_t> sub_streams = handler.fork(device_ordinal, stream, batch_count);
 
-        // Step 2d: Iterate over each batch.
-        for (int i = 0; i < batch_count && stream_iter.hasNext(); ++i) {
-            cudaStream_t sub_stream = stream_iter.next();
-            // Step 2e: Get or create an s2fftExec instance from the PlanCache.
-            auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
-            PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
+        // Iterate over each batch.
+        for (int i = 0; i < batch_count; ++i) {
+            cudaStream_t sub_stream = sub_streams[i];
 
-            // Step 2f: Calculate device pointers for the current batch's data, output, and workspace.
+            // Calculate device pointers for the current batch's data, output, and workspace.
             fft_complex_type* data_c =
                     reinterpret_cast<fft_complex_type*>(input_alias->typed_data() + i * input_offset);
             fft_complex_type* out_c =
                     reinterpret_cast<fft_complex_type*>(output->typed_data() + i * output_offset);
             fft_complex_type* workspace_c =
-                    reinterpret_cast<fft_complex_type*>(workspace->typed_data() + i * executor->m_work_size);
+                    reinterpret_cast<fft_complex_type*>(workspace->typed_data() + i * workspace_stride);
 
             int kernel_norm = (descriptor.norm == s2fftKernels::fft_norm::BACKWARD) ? 0
                               : (descriptor.norm == s2fftKernels::fft_norm::ORTHO)  ? 1
                                                                                     : 2;
 
-            // Step 2g: Launch spectral folding kernel.
+            // Launch spectral folding kernel.
             s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside,
                                                   descriptor.harmonic_band_limit, descriptor.shift,
                                                   kernel_norm, sub_stream);
-            // Step 2h: Launch the backward transform on this sub-stream.
+            // Launch the backward transform on this sub-stream.
             executor->Backward(descriptor, sub_stream, out_c, workspace_c);
         }
-        // Step 2i: Join all forked streams back to the main stream.
-        handler.join(stream);
+        // Join all forked streams back to the main stream.
+        handler.join(stream, sub_streams);
         return ffi::Error::Success();
     } else {
-        // Step 2j: Non-batched case.
+        // Non-batched case.
         // Assertions to ensure correct input/output dimensions for non-batched operations.
         assert(dim_in.size() == 2);
         assert(dim_out.size() == 1);
-        // Step 2k: Get device pointers for data, output, and workspace.
+        // Get device pointers for data, output, and workspace.
         fft_complex_type* data_c = reinterpret_cast<fft_complex_type*>(input_alias->typed_data());
         fft_complex_type* out_c = reinterpret_cast<fft_complex_type*>(output->typed_data());
         fft_complex_type* workspace_c = reinterpret_cast<fft_complex_type*>(workspace->typed_data());
@@ -232,13 +283,10 @@ ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input,
                           : (descriptor.norm == s2fftKernels::fft_norm::ORTHO)  ? 1
                                                                                 : 2;
 
-        // Step 2l: Get or create an s2fftExec instance from the PlanCache.
-        auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
-        PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
-        // Step 2m: Launch spectral folding kernel.
+        // Launch spectral folding kernel.
         s2fftKernels::launch_spectral_folding(data_c, out_c, descriptor.nside, descriptor.harmonic_band_limit,
                                               descriptor.shift, kernel_norm, stream);
-        // Step 2n: Launch the backward transform.
+        // Launch the backward transform.
         executor->Backward(descriptor, stream, out_c, workspace_c);
         return ffi::Error::Success();
     }
@@ -258,11 +306,13 @@ ffi::Error healpix_backward(cudaStream_t stream, ffi::Buffer<T> input,
  * @param normalize Flag for normalization.
  * @param adjoint Flag indicating if an adjoint operation is desired.
  * @param must_exist If true, throws an error if the plan does not exist in the cache.
+ * @param device_ordinal The CUDA device the plans must belong to (see plan_cache.h).
  * @return s2fftDescriptor configured with the given parameters.
  */
 template <ffi::DataType T>
 s2fftDescriptor build_descriptor(int64_t nside, int64_t harmonic_band_limit, bool reality, bool forward,
-                                 bool normalize, bool adjoint, bool must_exist, size_t& work_size) {
+                                 bool normalize, bool adjoint, bool must_exist, size_t& work_size,
+                                 int32_t device_ordinal) {
     using fft_complex_type = fft_complex_t<T>;
     // Step 1: Determine FFT normalization type based on forward/normalize flags.
     s2fftKernels::fft_norm norm = s2fftKernels::fft_norm::NONE;
@@ -281,10 +331,11 @@ s2fftDescriptor build_descriptor(int64_t nside, int64_t harmonic_band_limit, boo
     s2fftDescriptor descriptor(nside, harmonic_band_limit, reality, adjoint, forward, norm, shift,
                                is_double_v<T>);
 
-    // Step 4: Get or create an s2fftExec instance from the PlanCache.
-    // This call will also initialize the executor if it's newly created.
+    // Step 4: Get or create an s2fftExec instance from the device's PlanCache.
+    // This call will also initialize the executor if it's newly created; the caller holds the
+    // device guard, so newly created cuFFT plans bind to the right device.
     auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
-    HRESULT hr = PlanCache::GetInstance().GetS2FFTExec(descriptor, executor);
+    HRESULT hr = PlanCache::GetInstance().GetS2FFTExec(descriptor, executor, device_ordinal);
     // Step 5: Handle cases where the plan was expected to exist but didn't.
     if (hr == S_OK && must_exist) {
         // This is an error because S_OK means plan was created, but must_exist implies it should have been
@@ -312,6 +363,7 @@ s2fftDescriptor build_descriptor(int64_t nside, int64_t harmonic_band_limit, boo
  *
  * @tparam T The XLA data type.
  * @param stream CUDA stream to use.
+ * @param device_ordinal CUDA device the buffers and plans belong to (XLA execution context).
  * @param nside HEALPix resolution parameter.
  * @param harmonic_band_limit Harmonic band limit L.
  * @param reality Flag indicating whether data is real-valued.
@@ -324,20 +376,34 @@ s2fftDescriptor build_descriptor(int64_t nside, int64_t harmonic_band_limit, boo
  * @return ffi::Error indicating success or failure.
  */
 template <ffi::DataType T>
-ffi::Error healpix_fft_cuda(cudaStream_t stream, int64_t nside, int64_t harmonic_band_limit, bool reality,
-                            bool forward, bool normalize, bool adjoint, ffi::Buffer<T> input,
-                            ffi::Result<ffi::Buffer<T>> input_alias, ffi::Result<ffi::Buffer<T>> output,
-                            ffi::Result<ffi::Buffer<T>> workspace) {
-    // Step 1: Build the s2fftDescriptor based on the input parameters.
-    size_t work_size = 0;  // Variable to hold the workspace size
-    s2fftDescriptor descriptor = build_descriptor<T>(nside, harmonic_band_limit, reality, forward, normalize,
-                                                     adjoint, true, work_size);
+ffi::Error healpix_fft_cuda(cudaStream_t stream, int32_t device_ordinal, int64_t nside,
+                            int64_t harmonic_band_limit, bool reality, bool forward, bool normalize,
+                            bool adjoint, ffi::Buffer<T> input, ffi::Result<ffi::Buffer<T>> input_alias,
+                            ffi::Result<ffi::Buffer<T>> output, ffi::Result<ffi::Buffer<T>> workspace) {
+    // Step 0: Select the device the buffers and plans belong to. The FFI context carries the
+    // device ordinal of the device executing this call; cuFFT plans created below bind to the
+    // device that is current at creation time (astro-informatics/s2fft#389).
+    // CUDA and cuFFT failures below are raised as exceptions (see hresult.h); they must not escape
+    // the FFI handler, so they are returned to XLA as an error.
+    try {
+        CudaDeviceScope device_guard(device_ordinal);
 
-    // Step 2: Dispatch to either forward or backward transform based on the 'forward' flag.
-    if (forward) {
-        return healpix_forward<T>(stream, input, input_alias, output, workspace, descriptor);
-    } else {
-        return healpix_backward<T>(stream, input, input_alias, output, workspace, descriptor);
+        // Step 1: Build the s2fftDescriptor based on the input parameters.
+        size_t work_size = 0;  // Variable to hold the workspace size
+        s2fftDescriptor descriptor =
+                build_descriptor<T>(nside, harmonic_band_limit, reality, forward, normalize, adjoint, false,
+                                    work_size, device_ordinal);
+
+        // Step 2: Dispatch to either forward or backward transform based on the 'forward' flag.
+        if (forward) {
+            return healpix_forward<T>(stream, device_ordinal, input, input_alias, output, workspace,
+                                      descriptor);
+        } else {
+            return healpix_backward<T>(stream, device_ordinal, input, input_alias, output, workspace,
+                                       descriptor);
+        }
+    } catch (const std::exception& e) {
+        return ffi::Error::Internal(std::string("s2fft: ") + e.what());
     }
 }
 
@@ -350,6 +416,7 @@ ffi::Error healpix_fft_cuda(cudaStream_t stream, int64_t nside, int64_t harmonic
 XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C64, healpix_fft_cuda<ffi::DataType::C64>,
                               ffi::Ffi::Bind()
                                       .Ctx<ffi::PlatformStream<cudaStream_t>>()
+                                      .Ctx<ffi::DeviceOrdinal>()
                                       .Attr<int64_t>("nside")
                                       .Attr<int64_t>("harmonic_band_limit")
                                       .Attr<bool>("reality")
@@ -364,6 +431,7 @@ XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C64, healpix_fft_cuda<ffi::DataTy
 XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C128, healpix_fft_cuda<ffi::DataType::C128>,
                               ffi::Ffi::Bind()
                                       .Ctx<ffi::PlatformStream<cudaStream_t>>()
+                                      .Ctx<ffi::DeviceOrdinal>()
                                       .Attr<int64_t>("nside")
                                       .Attr<int64_t>("harmonic_band_limit")
                                       .Attr<bool>("reality")
@@ -419,20 +487,28 @@ NB_MODULE(_s2fft, m) {
     m.def("registration", &s2fft::Registration);
     // Step 2: Declare and expose build_descriptor functions for C64 and C128 to Python.
     // These functions allow Python to query the required workspace size for a given descriptor.
+    // The warm-up executor is cached under the caller's current device so a runtime call on the
+    // same device reuses it; other devices create their own executor on first use.
     m.def("build_descriptor_C64", [](int64_t nside, int64_t harmonic_band_limit, bool reality, bool forward,
                                      bool normalize, bool adjoint) {
-        // Step 2a: Build the s2fftDescriptor.
+        // Build the s2fftDescriptor on the caller's current device.
+        int device = -1;
+        cudaGetDevice(&device);
+        CudaDeviceScope device_guard(device);
         size_t work_size = 0;  // Variable to hold the workspace size
         s2fft::s2fftDescriptor desc = s2fft::build_descriptor<ffi::DataType::C64>(
-                nside, harmonic_band_limit, reality, forward, normalize, adjoint, false, work_size);
+                nside, harmonic_band_limit, reality, forward, normalize, adjoint, false, work_size, device);
         return work_size;
     });
     m.def("build_descriptor_C128", [](int64_t nside, int64_t harmonic_band_limit, bool reality, bool forward,
                                       bool normalize, bool adjoint) {
-        // Step 2e: Build the s2fftDescriptor.
+        // Build the s2fftDescriptor on the caller's current device.
+        int device = -1;
+        cudaGetDevice(&device);
+        CudaDeviceScope device_guard(device);
         size_t work_size = 0;  // Variable to hold the workspace size
         s2fft::s2fftDescriptor desc = s2fft::build_descriptor<ffi::DataType::C128>(
-                nside, harmonic_band_limit, reality, forward, normalize, adjoint, false, work_size);
+                nside, harmonic_band_limit, reality, forward, normalize, adjoint, false, work_size, device);
         return work_size;
     });
     // Step 3: Expose a boolean attribute indicating if CUDA support is compiled in.
@@ -443,9 +519,9 @@ NB_MODULE(_s2fft, m) {
 
 // Step 1: Define a fallback NB_MODULE when CUDA is not compiled.
 NB_MODULE(_s2fft, m) {
-    // Step 1a: Provide a dummy registration function that returns an empty dictionary.
+    // Provide a dummy registration function that returns an empty dictionary.
     m.def("registration", []() { return nb::dict(); });
-    // Step 1b: Indicate that CUDA support is not compiled.
+    // Indicate that CUDA support is not compiled.
     m.attr("COMPILED_WITH_CUDA") = false;
 }
 

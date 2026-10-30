@@ -22,28 +22,30 @@ typedef long HRESULT;
 #define E_OUTOFMEMORY ((HRESULT)0x8007000EL)
 #define E_NOTIMPL ((HRESULT)0x80004001L)
 
-// Macro to check for CUDA errors
-#define checkCudaErrors(call)                                                                 \
-    do {                                                                                      \
-        cudaError_t err = call;                                                               \
-        if (err != cudaSuccess) {                                                             \
-            printf("CUDA error at %s %d: %s\n", __FILE__, __LINE__, cudaGetErrorString(err)); \
-            exit(EXIT_FAILURE);                                                               \
-        }                                                                                     \
+#include <stdexcept>
+#include <string>
+
+// Macro to check for CUDA errors. Throws so that the FFI handler can return the failure to XLA.
+#define checkCudaErrors(call)                                                                           \
+    do {                                                                                                \
+        cudaError_t err = call;                                                                         \
+        if (err != cudaSuccess) {                                                                       \
+            throw std::runtime_error(std::string("CUDA call \"") + #call + "\" failed at " + __FILE__ + \
+                                     ":" + std::to_string(__LINE__) + ": " + cudaGetErrorString(err));  \
+        }                                                                                               \
     } while (0)
 
-// cufft API error chekcing
+// cufft API error checking. Throws so that the FFI handler can return the failure to XLA.
 #ifndef CUFFT_CALL
-#define CUFFT_CALL(call)                                                     \
-    {                                                                        \
-        auto status = static_cast<cufftResult>(call);                        \
-        if (status != CUFFT_SUCCESS)                                         \
-            fprintf(stderr,                                                  \
-                    "ERROR: CUFFT call \"%s\" in line %d of file %s failed " \
-                    "with "                                                  \
-                    "code (%d).\n",                                          \
-                    #call, __LINE__, __FILE__, status);                      \
-    }
+#define CUFFT_CALL(call)                                                                                 \
+    do {                                                                                                 \
+        auto status = static_cast<cufftResult>(call);                                                    \
+        if (status != CUFFT_SUCCESS) {                                                                   \
+            throw std::runtime_error(std::string("cuFFT call \"") + #call + "\" failed at " + __FILE__ + \
+                                     ":" + std::to_string(__LINE__) + " with code " +                    \
+                                     std::to_string(static_cast<int>(status)));                          \
+        }                                                                                                \
+    } while (0)
 #endif  // CUFFT_CALL
 
 #endif  // HRESULT_H
