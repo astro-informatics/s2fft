@@ -10,7 +10,7 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
             Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -39,7 +39,7 @@ def ntheta(L: int = None, sampling: str = "mw", nside: int = None) -> int:
             f"Sampling scheme sampling={sampling} requires bandlimit L >= 1"
         )
 
-    if sampling.lower() in ("mw", "gl"):
+    if sampling.lower() in ("mw", "gl", "f1"):
         return L
 
     elif sampling.lower() == "f2":
@@ -110,7 +110,7 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "cc", "f1", "f2"}.  Defaults to "mw".
 
     Raises:
         ValueError: HEALPix sampling scheme.
@@ -124,7 +124,7 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
     if sampling.lower() in ("mw", "dh", "gl"):
         return 2 * L - 1
 
-    elif sampling.lower() in ("mwss", "cc", "f2"):
+    elif sampling.lower() in ("mwss", "cc", "f1", "f2"):
         return 2 * L
 
     elif sampling.lower() == "healpix":
@@ -147,7 +147,7 @@ def m_offset(L: int, sampling: str) -> int:
         L (int): Harmonic band-limit.
 
         sampling (str): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.
 
     Returns:
         Integer binary (0/1) offset.
@@ -234,7 +234,7 @@ def is_equiangular_in_theta(sampling: str) -> bool:
         Boolean value.
 
     """
-    return sampling.lower() in ("mw", "mwss", "dh", "cc", "f2")
+    return sampling.lower() in ("mw", "mwss", "dh", "cc", "f1", "f2")
 
 
 def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> tuple[int, int]:
@@ -245,7 +245,7 @@ def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> tuple[int, int
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.
 
@@ -260,7 +260,7 @@ def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> tuple[int, int
     if sampling.lower() == "healpix":
         return ntheta(L, sampling, nside), 2 * L
 
-    elif sampling.lower() in ["mw", "dh", "gl", "mwss", "cc", "f2"]:
+    elif sampling.lower() in ["mw", "dh", "gl", "mwss", "cc", "f1", "f2"]:
         return ntheta(L, sampling, nside), nphi_equiang(L, sampling)
 
     else:
@@ -323,7 +323,7 @@ def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray
             Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -353,7 +353,7 @@ def t2theta(
             Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -376,6 +376,9 @@ def t2theta(
 
     if sampling.lower() == "mw":
         return (2 * t + 1) * np.pi / (2 * ntheta(L, sampling) - 1)
+
+    elif sampling.lower() == "f1":
+        return (t + 0.5) * np.pi / ntheta(L, sampling)
 
     elif sampling.lower() == "f2":
         return (t + 1) * np.pi / (ntheta(L, sampling) + 1)
@@ -478,7 +481,7 @@ def phis_equiang(L: int, sampling: str = "mw") -> np.ndarray:
         L (int, optional): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported equiangular sampling
-            schemes include {"mw", "mwss", "dh", "gl", "cc", "f2"}.  Defaults to "mw".
+            schemes include {"mw", "mwss", "dh", "gl", "cc", "f1", "f2"}.  Defaults to "mw".
 
     Returns:
         np.ndarray: Array of :math:`\phi` samples for given sampling scheme.
@@ -499,7 +502,7 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
         p (int): :math:`\phi` index.
 
         sampling (str, optional): Sampling scheme.  Supported equiangular sampling
-            schemes include {"mw", "mwss", "dh", "gl", "cc", "f2"}.  Defaults to "mw".
+            schemes include {"mw", "mwss", "dh", "gl", "cc", "f1", "f2"}.  Defaults to "mw".
 
     Raises:
         ValueError: HEALPix sampling not support (only equiangular schemes supported).
@@ -510,7 +513,7 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
         np.ndarray: :math:`\phi` sample(s) for given sampling scheme.
 
     """
-    if sampling.lower() in ["mw", "gl", "dh", "mwss", "cc", "f2"]:
+    if sampling.lower() in ["mw", "gl", "dh", "mwss", "cc", "f1", "f2"]:
         return 2 * p * np.pi / nphi_equiang(L, sampling)
     else:
         raise ValueError(f"Sampling scheme sampling={sampling} not supported")
@@ -558,7 +561,7 @@ def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> tuple[int
         L (int, optional): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.

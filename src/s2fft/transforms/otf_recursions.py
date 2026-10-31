@@ -64,7 +64,7 @@ def inverse_latitudinal_step(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -82,7 +82,10 @@ def inverse_latitudinal_step(
     """
     mm = -spin
     ntheta = len(beta)
-    ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
+    ftm_shape = samples.ftm_shape(L, sampling, nside)
+    if sampling.lower() in ("cc", "f1"):
+        ftm_shape = (ntheta, ftm_shape[1])
+    ftm = np.zeros(ftm_shape, dtype=np.complex128)
     el = np.arange(L_lower, L)
 
     # Trigonometric constant adopted throughout
@@ -102,6 +105,7 @@ def inverse_latitudinal_step(
             nside=nside,
             forward=False,
             L_lower=L_lower,
+            betas=beta,
         )
     lrenorm, vsign, cpi, cp2, indices = precomps
 
@@ -224,7 +228,7 @@ def inverse_latitudinal_step_jax(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -480,7 +484,7 @@ def forward_latitudinal_step(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -511,7 +515,9 @@ def forward_latitudinal_step(
     half_slices = [el + mm + 1, el - mm + 1]
 
     if precomps is None:
-        precomps = generate_precomputes(L, -mm, sampling, nside, True, L_lower)
+        precomps = generate_precomputes(
+            L, -mm, sampling, nside, True, L_lower, betas=beta
+        )
     lrenorm, vsign, cpi, cp2, indices = precomps
 
     # Create copy to prevent in-place updates propagating to caller
@@ -640,7 +646,7 @@ def forward_latitudinal_step_jax(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to

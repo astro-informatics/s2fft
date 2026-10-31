@@ -149,7 +149,7 @@ def _flm_to_ftm_impl(flm, thetas, spin, *precomps, **params):
             flm=d, beta=thetas, spin=s, precomps=_untuplify_precomps(p), **params
         )
 
-    return _apply_with_batching(fn, flm, spin, precomps)
+    return _apply_with_batching(fn, flm, spin, precomps).astype(flm.dtype)
 
 
 def _flm_to_ftm_jvp(primals, tangents, **params):
@@ -215,7 +215,7 @@ def _ftm_to_flm_impl(ftm, thetas, spin, *precomps, **params):
             ftm_in=d, beta_in=thetas, spin=s, precomps=_untuplify_precomps(p), **params
         )
 
-    return _apply_with_batching(fn, ftm, spin, precomps)
+    return _apply_with_batching(fn, ftm, spin, precomps).astype(ftm.dtype)
 
 
 def _ftm_to_flm_jvp(primals, tangents, **params):
