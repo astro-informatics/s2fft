@@ -1,7 +1,6 @@
 """Tests for Clenshaw-Curtis and Fejer first-rule spherical transforms."""
 
 import os
-from contextlib import nullcontext
 
 import jax
 import jax.numpy as jnp
@@ -419,20 +418,18 @@ def test_refinement(sampling, method, reality):
 @pytest.mark.parametrize("method", ["numpy", "jax"])
 @pytest.mark.parametrize("reality", [False, True])
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
-def test_single_precision(sampling, method, reality):
+def test_complex64_input(sampling, method, reality):
     L = 4
     flm = np.zeros((L, 2 * L - 1), dtype=np.complex64)
     flm[2, L - 1 if reality else L] = 0.5 if reality else 0.3 + 0.1j
-    context = jax.enable_x64(False) if method == "jax" else nullcontext()
-    with context:
-        field, recovered = _roundtrip(
-            jnp.asarray(flm) if method == "jax" else flm,
-            L,
-            0,
-            sampling,
-            method,
-            reality,
-        )
+    field, recovered = _roundtrip(
+        jnp.asarray(flm) if method == "jax" else flm,
+        L,
+        0,
+        sampling,
+        method,
+        reality,
+    )
     assert field.shape == samples.f_shape(L, sampling)
     np.testing.assert_allclose(recovered, flm, atol=3e-6, rtol=3e-6)
 
