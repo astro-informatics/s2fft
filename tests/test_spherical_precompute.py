@@ -12,9 +12,6 @@ from s2fft.sampling import s2_samples as samples
 
 jax.config.update("jax_enable_x64", True)
 
-# Maximum spin number at which Price-McEwen recursion is sufficiently accurate.
-# For spins > PM_MAX_STABLE_SPIN one should default to the Risbo recursion.
-PM_MAX_STABLE_SPIN = 6
 
 L_to_test = [12]
 spin_to_test = [-2, 0, 6]
@@ -35,13 +32,6 @@ def get_tol(sampling):
         return 1e-10
     else:
         return 1e-12
-
-
-def check_spin(recursion, spin):
-    if recursion.lower() == "price-mcewen" and abs(spin) >= PM_MAX_STABLE_SPIN:
-        pytest.skip(
-            f"price-mcewen recursion not accurate above |spin| = {PM_MAX_STABLE_SPIN}"
-        )
 
 
 def check_inverse_transform(
@@ -93,7 +83,6 @@ def test_transform_inverse(
     method: str,
     recursion: str,
 ):
-    check_spin(recursion, spin)
     flm, kernel = get_flm_and_precompute_kernel(
         L, spin, sampling, reality, method, recursion, forward=False
     )
@@ -200,7 +189,6 @@ def test_transform_forward(
     method: str,
     recursion: str,
 ):
-    check_spin(recursion, spin)
     flm, kernel = get_flm_and_precompute_kernel(
         L, spin, sampling, reality, method, recursion, forward=True
     )
@@ -248,7 +236,6 @@ def test_transform_forward_healpix(
     sampling = "healpix"
     spin = 0
     L = ratio * nside
-    check_spin(recursion, spin)
     flm, kernel = get_flm_and_precompute_kernel(
         L,
         spin,
@@ -351,6 +338,50 @@ def test_inverse_transform_unrecognised_method_raises():
     flm = np.zeros(samples.flm_shape(L))
     with pytest.raises(ValueError, match=f"{method} not recognised"):
         inverse(flm, L, method=method)
+
+
+@pytest.mark.parametrize("spin", [8, 12, -12])
+@pytest.mark.parametrize("sampling", sampling_to_test + ["healpix"])
+@pytest.mark.parametrize("forward", [False, True])
+def test_spin_spherical_kernel_price_mcewen_high_spin(
+    spin: int, sampling: str, forward: bool
+):
+    # The Price-McEwen recursion lost accuracy on the rings nearest the poles beyond
+    # |spin| ~ 4 (issue #176) and was refused above |spin| = 6; check its kernels
+    # against those from the independent Risbo recursion.
+    L = 16
+    nside = L // 2 if sampling == "healpix" else None
+    kernel_risbo = c.spin_spherical_kernel_jax(
+        L, spin, False, sampling, nside, forward, "risbo"
+    )
+    for kernel_function in (c.spin_spherical_kernel_jax, c.spin_spherical_kernel):
+        kernel = kernel_function(
+            L, spin, False, sampling, nside, forward, "price-mcewen"
+        )
+        np.testing.assert_allclose(kernel, kernel_risbo, rtol=0, atol=1e-13)
+
+
+@pytest.mark.parametrize("spin", [0, 8, -12])
+@pytest.mark.parametrize("sampling", ["mw", "gl", "healpix"])
+@pytest.mark.parametrize("forward", [False, True])
+def test_spin_spherical_kernel_jax_jit(spin: int, sampling: str, forward: bool):
+    # The kernel from the automatically chosen recursion must also build under jit.
+    L = 16
+    nside = L // 2 if sampling == "healpix" else None
+    kernel = jax.jit(
+        lambda: c.spin_spherical_kernel_jax(L, spin, False, sampling, nside, forward)
+    )()
+    kernel_risbo = c.spin_spherical_kernel_jax(
+        L, spin, False, sampling, nside, forward, "risbo"
+    )
+    np.testing.assert_allclose(kernel, kernel_risbo, rtol=0, atol=1e-13)
+
+
+def test_pm_max_stable_spin_deprecated_alias():
+    # Deprecated and no longer used, but still importable with its former value
+    from s2fft.precompute_transforms.construct import PM_MAX_STABLE_SPIN
+
+    assert PM_MAX_STABLE_SPIN == 6
 
 
 @pytest.mark.parametrize("sampling", ("gl", "healpix"))
