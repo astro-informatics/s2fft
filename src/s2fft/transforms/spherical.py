@@ -40,7 +40,9 @@ def inverse(
 
         L (int): Harmonic band-limit.
 
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        spin (int, optional): Harmonic spin. Defaults to 0. Ignored when
+            :code:`method == "jax_healpy"`, which only computes scalar (spin 0)
+            transforms.
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -53,7 +55,8 @@ def inverse(
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            False. Ignored when :code:`method == "jax_healpy"`, as healpy only
+            transforms real signals, so the signal is always treated as real.
 
         precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
@@ -352,7 +355,9 @@ def forward(
 
         L (int): Harmonic band-limit.
 
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        spin (int, optional): Harmonic spin. Defaults to 0. Ignored when
+            :code:`method == "jax_healpy"`, which only computes scalar (spin 0)
+            transforms.
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -361,11 +366,12 @@ def forward(
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
         method (str, optional): Execution mode in {"numpy", "jax", "jax_cuda",
-            jax_ssht", "jax_healpy"}. Defaults to "numpy".
+            "jax_ssht", "jax_healpy"}. Defaults to "numpy".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            False. Ignored when :code:`method == "jax_healpy"`, as healpy only
+            transforms real signals, so the signal is always treated as real.
 
         precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
