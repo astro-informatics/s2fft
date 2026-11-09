@@ -64,6 +64,12 @@ We denote by :math:`L` the band-limit of the signals we are considering.
       - Yes
       - No
       - Yes
+    * - :ref:`fejer-rule-1-f1`
+      - ``"f1"``
+      - :math:`L \times 2L`
+      - Yes
+      - No
+      - Yes
     * - :ref:`fejer-rule-2-f2`
       - ``"f2"``
       - :math:`(2L - 1) \times 2L`
@@ -226,6 +232,15 @@ For the equations defining the exact positioning of the regions, their centres, 
 
 Further information; `Gorski et al. (2005) <https://arxiv.org/abs/astro-ph/0409513>`_.
 
+.. rubric:: CC and F1 high-bandlimit analysis
+
+For CC and F1, high-bandlimit analysis uses periodic meridional extension
+and Fourier interpolation to a denser CC grid, following Appendix A of
+`Reinecke, Belkner & Carron (2023, A&A 678, A165) <https://doi.org/10.1051/0004-6361/202346717>`_.
+The CC and F1 quadrature weights follow
+`Waldvogel (2006) <https://doi.org/10.1007/s10543-006-0045-4>`_.
+At larger spin, numerical accuracy may be limited by the Price--McEwen recurrence.
+
 .. _clenshaw-curtis-cc:
 
 Clenshaw-Curtis (CC)
@@ -253,7 +268,39 @@ An analogous scheme which excludes the pole is available as :ref:`F2 <fejer-rule
 Due to the redundancy in samples at the poles,
 the total number of distinct sites on the sphere used by this sampling scheme is :math:`(2L-3)(2L)+2 = 4L^2 -6L + 2`.
 
+The default CC grid has :math:`(2L-1)\times 2L` samples and recovers degrees
+:math:`0,\ldots,L-1`. Analysis also accepts a reduced CC latitude grid with
+:math:`n_\theta \geq L+1` and the standard :math:`2L` longitude samples. It
+infers the latitude count from the input and internally resamples the meridional
+Fourier coefficients to a denser CC grid for quadrature. The input and output fields
+remain on the requested grid. Inverse transforms accept an optional ``ntheta`` to
+choose the synthesis grid, for example::
+
+  field = spherical.inverse(flm, L, sampling="cc", ntheta=L + 1)
+  flm = spherical.forward(field, L, sampling="cc")
+
 For further information see `Hotte and Ujiie (2018) <https://doi.org/10.1002%2Fqj.3282>`_.
+
+.. _fejer-rule-1-f1:
+
+Fejér's first rule (F1)
+-----------------------
+
+F1 uses equiangular latitude samples that exclude both poles:
+
+.. math::
+
+  \theta_t &= \frac{\pi(t+1/2)}{n_\theta},
+  &\quad t\in\lbrace 0,\ldots,n_\theta-1\rbrace,\\
+  \varphi_p &= \frac{2\pi p}{n_\phi},
+  &\quad p\in\lbrace 0,\ldots,n_\phi-1\rbrace.
+
+The default F1 grid has :math:`n_\theta=L` and :math:`n_\phi=2L`, and recovers
+degrees :math:`0,\ldots,L-1`. Analysis accepts at least :math:`L` latitude samples
+with the standard :math:`2L` longitudes. It uses a spin-dependent periodic extension
+and Fourier interpolation to a denser CC latitude grid for quadrature. Synthesis
+evaluates the spherical harmonic expansion at the F1 nodes.
+Both transforms use the Price--McEwen recurrence.
 
 .. _fejer-rule-2-f2:
 

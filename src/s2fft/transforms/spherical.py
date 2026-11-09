@@ -19,6 +19,51 @@ from s2fft.utils import (
 )
 
 
+def _validate_cc_f1_ntheta(ntheta: int | None, sampling: str) -> int | None:
+    """Validate an optional CC/F1 synthesis latitude count."""
+    sampling = sampling.lower()
+    if sampling not in ("cc", "f1"):
+        if ntheta is not None:
+            raise ValueError("ntheta is only supported for cc and f1 sampling")
+        return None
+    if ntheta is None:
+        return None
+
+    min_ntheta = 2 if sampling == "cc" else 1
+    if ntheta < min_ntheta:
+        raise ValueError(f"{sampling} synthesis requires ntheta >= {min_ntheta}")
+    return ntheta
+
+
+def _cc_f1_thetas(ntheta: int, sampling: str, xp) -> np.ndarray:
+    """Return CC or F1 latitude nodes for an explicit synthesis size."""
+    if sampling.lower() == "cc":
+        return xp.linspace(0.0, xp.pi, ntheta)
+    return (xp.arange(ntheta) + 0.5) * xp.pi / ntheta
+
+
+def _validate_cc_f1_analysis_shape(f: np.ndarray, L: int, sampling: str) -> int | None:
+    """Validate CC/F1 analysis geometry and return its latitude count."""
+    sampling = sampling.lower()
+    if sampling not in ("cc", "f1"):
+        return None
+    if f.ndim < 2:
+        raise ValueError("CC/F1 analysis input must have latitude and longitude axes")
+
+    ntheta, nphi = f.shape[-2:]
+    min_ntheta = L + 1 if sampling == "cc" else L
+    if ntheta < min_ntheta:
+        raise ValueError(
+            f"{sampling} analysis requires ntheta >= {min_ntheta} for L={L}; "
+            f"got {ntheta}"
+        )
+    if nphi != 2 * L:
+        raise ValueError(
+            f"{sampling} analysis requires the standard nphi=2L={2 * L}; " f"got {nphi}"
+        )
+    return ntheta
+
+
 def inverse(
     flm: np.ndarray,
     L: int,
@@ -31,6 +76,7 @@ def inverse(
     spmd: bool = False,
     L_lower: int = 0,
     _ssht_backend: int = 1,
+    ntheta: int | None = None,
 ) -> np.ndarray:
     r"""
     Wrapper for the inverse spin-spherical harmonic transform.
@@ -45,8 +91,11 @@ def inverse(
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
+        ntheta (int, optional): Number of latitude samples for CC/F1 synthesis.
+            Defaults to the sampling scheme's standard size.
+
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         method (str, optional): Execution mode in {"numpy", "jax", "jax_cuda",
             "jax_ssht", "jax_healpy"}. Defaults to "numpy".
@@ -89,9 +138,13 @@ def inverse(
     if spin >= 8 and method in ("numpy", "jax", "jax_cuda", "torch"):
         raise Warning("Recursive transform may provide lower precision beyond spin ~ 8")
 
+    ntheta = _validate_cc_f1_ntheta(ntheta, sampling)
+
     inverse_kwargs = {"flm": flm, "L": L}
     if method in ("numpy", "jax", "jax_cuda", "torch"):
         inverse_kwargs.update(sampling=sampling, precomps=precomps, L_lower=L_lower)
+        if ntheta is not None:
+            inverse_kwargs["ntheta"] = ntheta
     if method in ("jax", "jax_cuda", "torch"):
         inverse_kwargs["spmd"] = spmd
     if method == "jax_healpy":
@@ -119,6 +172,7 @@ def inverse_numpy(
     reality: bool = False,
     precomps: list = None,
     L_lower: int = 0,
+    ntheta: int | None = None,
 ) -> np.ndarray:
     r"""
     Compute the inverse spin-spherical harmonic transform (numpy).
@@ -138,7 +192,7 @@ def inverse_numpy(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -150,12 +204,20 @@ def inverse_numpy(
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
+        ntheta (int, optional): Number of latitude samples for CC/F1 synthesis.
+            Defaults to the sampling scheme's standard size.
+
     Returns:
         np.ndarray: Signal on the sphere.
 
     """
     # Define latitudinal sample positions and Fourier offsets
-    thetas = samples.thetas(L, sampling, nside)
+    ntheta = _validate_cc_f1_ntheta(ntheta, sampling)
+    default_ntheta = 2 * L - 1 if sampling.lower() == "cc" else L
+    if ntheta is None or ntheta == default_ntheta:
+        thetas = samples.thetas(L, sampling, nside)
+    else:
+        thetas = _cc_f1_thetas(ntheta, sampling, np)
     m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
     L0 = L_lower
@@ -209,7 +271,7 @@ def inverse_numpy(
             return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
 
-@partial(jit, static_argnums=(1, 3, 4, 5, 7, 8, 9))
+@partial(jit, static_argnums=(1, 3, 4, 5, 7, 8, 9, 10))
 def inverse_jax(
     flm: jnp.ndarray,
     L: int,
@@ -221,6 +283,7 @@ def inverse_jax(
     spmd: bool = False,
     L_lower: int = 0,
     use_healpix_custom_primitive: bool = False,
+    ntheta: int | None = None,
 ) -> jnp.ndarray:
     r"""
     Compute the inverse spin-spherical harmonic transform (JAX).
@@ -241,7 +304,7 @@ def inverse_jax(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -255,6 +318,9 @@ def inverse_jax(
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
+        ntheta (int, optional): Number of latitude samples for CC/F1 synthesis.
+            Defaults to the sampling scheme's standard size.
 
         use_healpix_custom_primitive (bool, optional): Whether to use a custom CUDA
             primitive for computing HEALPix fast Fourier transform when `sampling =
@@ -274,7 +340,12 @@ def inverse_jax(
 
     """
     # Define latitudinal sample positions and Fourier offsets
-    thetas = samples.thetas(L, sampling, nside)
+    ntheta = _validate_cc_f1_ntheta(ntheta, sampling)
+    default_ntheta = 2 * L - 1 if sampling.lower() == "cc" else L
+    if ntheta is None or ntheta == default_ntheta:
+        thetas = samples.thetas(L, sampling, nside)
+    else:
+        thetas = _cc_f1_thetas(ntheta, sampling, jnp)
     m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
 
@@ -358,7 +429,7 @@ def forward(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         method (str, optional): Execution mode in {"numpy", "jax", "jax_cuda",
             jax_ssht", "jax_healpy"}. Defaults to "numpy".
@@ -414,7 +485,11 @@ def forward(
 
     forward_kwargs = {"f": f, "L": L}
     if method in ("numpy", "jax", "jax_cuda", "torch"):
-        forward_kwargs.update(sampling=sampling, precomps=precomps, L_lower=L_lower)
+        forward_kwargs.update(
+            sampling=sampling,
+            precomps=precomps,
+            L_lower=L_lower,
+        )
     if method in ("jax", "jax_cuda", "torch"):
         forward_kwargs["spmd"] = spmd
     if method == "jax_healpy":
@@ -435,6 +510,10 @@ def forward(
         f = forward_kwargs.pop("f")
         inverse_kwargs = forward_kwargs.copy()
         inverse_kwargs.pop("precomps")
+        if sampling.lower() in ("cc", "f1"):
+            default_ntheta = 2 * L - 1 if sampling.lower() == "cc" else L
+            if f.shape[-2] != default_ntheta:
+                inverse_kwargs["ntheta"] = f.shape[-2]
         return iterative_refinement.forward_with_iterative_refinement(
             f=f,
             n_iter=iter,
@@ -473,7 +552,7 @@ def forward_numpy(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -489,6 +568,12 @@ def forward_numpy(
         np.ndarray: Spherical harmonic coefficients
 
     """
+    sampling = sampling.lower()
+    ntheta = _validate_cc_f1_analysis_shape(f, L, sampling)
+    resample_for_analysis = sampling == "f1" or (
+        sampling == "cc" and ntheta != 2 * L - 1
+    )
+
     # Resample mw onto mwss and double resolution of both
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -499,15 +584,19 @@ def forward_numpy(
     else:
         thetas = samples.thetas(L, sampling, nside)
 
-    # Define latitudinal sample positions and Fourier offsets
-    weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
+    # Define longitude offsets and the recurrence's lower harmonic bound.
     m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
     L0 = L_lower
 
     # Perform longitundal Fast Fourier Transforms
-    if sampling.lower() == "healpix":
+    if sampling == "healpix":
         ftm = hp.healpix_fft(f, L, nside, "numpy", reality)
+    elif sampling in ("cc", "f1") and resample_for_analysis:
+        ftm = np.fft.fftshift(
+            np.fft.fft(np.real(f) if reality else f, axis=1, norm="backward"),
+            axes=1,
+        )
     else:
         if reality:
             t = np.fft.rfft(np.real(f), axis=1, norm="backward")
@@ -518,34 +607,61 @@ def forward_numpy(
         else:
             ftm = np.fft.fftshift(np.fft.fft(f, axis=1, norm="backward"), axes=1)
 
+    if resample_for_analysis:
+        ftm = resampling.resample_cc_f1_for_analysis(ftm, spin, sampling)
+        analysis_sampling = "cc"
+        cc_L = (ftm.shape[0] + 1) // 2
+        thetas = samples.thetas(cc_L, "cc")
+        weights = quadrature.quad_weights_cc_theta_only(cc_L) * (np.pi / L)
+    else:
+        analysis_sampling = sampling
+        weights = quadrature.quad_weights_transform(L, sampling, 0, nside)
+
+    if sampling in ("cc", "f1") and precomps is not None:
+        n_recurrence_theta = len(thetas[1:-1])
+        if precomps[0].shape[1] != n_recurrence_theta:
+            raise ValueError(
+                "Forward CC/F1 precomputes must match the analysis CC latitude nodes; "
+                "pass their interior nodes with betas when generating precomputes"
+            )
+
     # Apply quadrature weights
     ftm = np.einsum("tm,t->tm", ftm, weights)
 
     # Correct healpix theta row offsets
-    if sampling.lower() == "healpix":
+    if sampling == "healpix":
         phase_shifts = hp.ring_phase_shifts_hp(L, nside, True, reality)
         ftm[:, m_start_ind + m_offset :] *= phase_shifts
 
     # Perform latitudinal wigner-d recursions
-    if samples.includes_both_poles(sampling):
+    if samples.includes_both_poles(analysis_sampling):
         flm = otf.forward_latitudinal_step(
             ftm[1:-1],
             thetas[1:-1],
             L,
             spin,
             nside,
-            sampling,
+            analysis_sampling,
             reality,
             precomps,
             L0,
         )
     else:
         flm = otf.forward_latitudinal_step(
-            ftm, thetas, L, spin, nside, sampling, reality, precomps, L0
+            ftm,
+            thetas,
+            L,
+            spin,
+            nside,
+            analysis_sampling,
+            reality,
+            precomps,
+            L0,
         )
 
     # Include both pole singularities explicitly
-    if samples.includes_both_poles(sampling):
+    if samples.includes_both_poles(analysis_sampling):
+        m_offset = samples.m_offset(L, analysis_sampling)
         flm[L0:, L - 1 + spin] += (-1) ** abs(np.arange(L0, L) - spin) * ftm[
             -1, L - 1 + spin + m_offset
         ]
@@ -601,7 +717,7 @@ def forward_jax(
             if sampling="healpix".  Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
@@ -633,6 +749,12 @@ def forward_jax(
         recover acceleration by the number of devices.
 
     """
+    sampling = sampling.lower()
+    ntheta = _validate_cc_f1_analysis_shape(f, L, sampling)
+    resample_for_analysis = sampling == "f1" or (
+        sampling == "cc" and ntheta != 2 * L - 1
+    )
+
     # Resample mw onto mwss and double resolution of both
     if sampling.lower() == "mw":
         f = resampling_jax.mw_to_mwss(f, L, spin)
@@ -644,16 +766,20 @@ def forward_jax(
         thetas = samples.thetas(L, sampling, nside)
 
     # Define latitudinal sample positions and Fourier offsets
-    weights = quadrature_jax.quad_weights_transform(L, sampling, nside)
     m_offset = samples.m_offset(L, sampling)
     m_start_ind = L - 1 if reality else 0
 
     # Perform longitundal Fast Fourier Transforms
-    if sampling.lower() == "healpix":
+    if sampling == "healpix":
         if use_healpix_custom_primitive:
             ftm = hp.healpix_fft(f, L, nside, "cuda", reality)
         else:
             ftm = hp.healpix_fft(f, L, nside, "jax", reality)
+    elif sampling in ("cc", "f1") and resample_for_analysis:
+        ftm = jnp.fft.fftshift(
+            jnp.fft.fft(jnp.real(f) if reality else f, axis=1, norm="backward"),
+            axes=1,
+        )
     else:
         if reality:
             t = jnp.fft.rfft(jnp.real(f), axis=1, norm="backward")
@@ -664,11 +790,29 @@ def forward_jax(
         else:
             ftm = jnp.fft.fftshift(jnp.fft.fft(f, axis=1, norm="backward"), axes=1)
 
+    if resample_for_analysis:
+        ftm = resampling_jax.resample_cc_f1_for_analysis(ftm, spin, sampling)
+        analysis_sampling = "cc"
+        cc_L = (ftm.shape[0] + 1) // 2
+        thetas = samples.thetas(cc_L, "cc")
+        weights = quadrature_jax.quad_weights_cc_theta_only(cc_L) * (jnp.pi / L)
+    else:
+        analysis_sampling = sampling
+        weights = quadrature_jax.quad_weights_transform(L, sampling, nside)
+
+    if sampling in ("cc", "f1") and precomps is not None:
+        n_recurrence_theta = len(thetas[1:-1])
+        if precomps[0].shape[1] != n_recurrence_theta:
+            raise ValueError(
+                "Forward CC/F1 precomputes must match the analysis CC latitude nodes; "
+                "pass their interior nodes with betas when generating precomputes"
+            )
+
     # Apply quadrature weights
     ftm = jnp.einsum("tm,t->tm", ftm, weights, optimize=True)
 
     # Correct healpix theta row offsets
-    if sampling.lower() == "healpix":
+    if sampling == "healpix":
         phase_shifts = hp.ring_phase_shifts_hp_jax(L, nside, True, reality)
         ftm = ftm.at[:, m_start_ind + m_offset :].multiply(phase_shifts)
 
@@ -682,7 +826,7 @@ def forward_jax(
         L=L,
         spin=spin,
         nside=nside,
-        sampling=sampling,
+        sampling=analysis_sampling,
         reality=reality,
         spmd=spmd,
         L_lower=L_lower,

@@ -102,6 +102,84 @@ def periodic_extension_spatial_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.
     return f_ext
 
 
+def periodic_extension_cc_f1(
+    ftm: np.ndarray, spin: int = 0, sampling: str = "cc"
+) -> np.ndarray:
+    """
+    Continue longitude Fourier coefficients over a full meridian.
+
+    The reflected half is multiplied by ``(-1)**(m + spin)``, corresponding
+    to the longitude shift by pi and spin parity of the double-Fourier-sphere
+    continuation. CC endpoints are shared by the two halves and are included
+    only once; F1 has no endpoint samples and both halves are reflected.
+    """
+    sampling = sampling.lower()
+    if sampling not in ("cc", "f1"):
+        raise ValueError("Meridional continuation only supports cc and f1")
+    n_phi = ftm.shape[-1]
+    modes = np.rint(np.fft.fftshift(np.fft.fftfreq(n_phi) * n_phi)).astype(int)
+    parity = (-1.0) ** (modes + spin)
+    reflected = (
+        np.flip(ftm, axis=-2)
+        if sampling == "f1"
+        else np.flip(ftm[..., 1:-1, :], axis=-2)
+    )
+    return np.concatenate(
+        [ftm, reflected * parity.reshape((1,) * (ftm.ndim - 1) + (n_phi,))],
+        axis=-2,
+    )
+
+
+def _upsample_periodic_fourier(f: np.ndarray, theta_offset: float = 0.0) -> np.ndarray:
+    """
+    Double a periodic meridian and evaluate it on a grid starting at zero.
+
+    The input is uniformly sampled starting at ``theta_offset``. Fourier
+    coefficients are dephased before zero-padding. The even-length Nyquist
+    coefficient is split between its positive and negative frequencies, with
+    the corresponding offset phases, so the original samples are preserved.
+    """
+    n_theta = f.shape[-2]
+    n_theta_up = 2 * n_theta
+    raw_spectrum = np.fft.fft(f, axis=-2, norm="forward")
+    spectrum = raw_spectrum
+    spectrum_up = np.zeros(
+        f.shape[:-2] + (n_theta_up, f.shape[-1]), dtype=spectrum.dtype
+    )
+    n_half = n_theta // 2
+    modes = np.arange(n_theta)
+    modes = np.where(modes < n_half, modes, modes - n_theta)
+    phase = np.exp(-1j * modes * theta_offset)
+    spectrum = spectrum * phase.reshape((1,) * (f.ndim - 2) + (n_theta, 1))
+    spectrum_up[..., :n_half, :] = spectrum[..., :n_half, :]
+    spectrum_up[..., n_theta_up - (n_half - 1) :, :] = spectrum[..., n_half + 1 :, :]
+
+    nyquist = raw_spectrum[..., n_half, :]
+    nyquist_minus = 0.5 * nyquist * np.exp(1j * n_half * theta_offset)
+    nyquist_plus = 0.5 * nyquist * np.exp(-1j * n_half * theta_offset)
+    spectrum_up[..., n_half, :] = nyquist_plus
+    spectrum_up[..., n_theta_up - n_half, :] = nyquist_minus
+    return np.fft.ifft(spectrum_up, axis=-2, norm="forward")
+
+
+def resample_cc_f1_for_analysis(
+    ftm: np.ndarray, spin: int, sampling: str
+) -> np.ndarray:
+    """Resample CC/F1 Fourier coefficients to denser CC latitude nodes."""
+    sampling = sampling.lower()
+    ftm_ext = periodic_extension_cc_f1(ftm, spin, sampling)
+    if sampling == "cc":
+        theta_offset = 0.0
+        n_dense = 2 * ftm.shape[-2] - 1
+    elif sampling == "f1":
+        theta_offset = np.pi / ftm_ext.shape[-2]
+        n_dense = 2 * ftm.shape[-2] + 1
+    else:
+        raise ValueError("Resampling only supports cc and f1")
+    ftm_dense = _upsample_periodic_fourier(ftm_ext, theta_offset)
+    return ftm_dense[..., :n_dense, :]
+
+
 def upsample_by_two_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
     r"""
     Upsample MWSS sampled signal on the sphere defined on domain :math:`[0,\pi]`
