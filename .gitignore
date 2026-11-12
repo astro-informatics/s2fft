@@ -40,3 +40,6 @@ _deps
 # Docs build
 docs/tutorials/
 docs/sg_execution_times.rst
+
+# Local design notes and renders
+design/

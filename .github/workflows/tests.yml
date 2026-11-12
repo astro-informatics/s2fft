@@ -11,7 +11,7 @@ on:
       - src/**
       - tests/**
       - .coveragerc
-      - CMakesLists.txt
+      - s2fft-cuda/**
   schedule:
     - cron: 0 0 * * 0
 

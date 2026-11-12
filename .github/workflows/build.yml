@@ -41,14 +41,51 @@ on:
       - published
 
 jobs:
-  build_wheels:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+  build_pure:
+    # s2fft is pure Python: one wheel for every platform, and the sdist
+    name: Build s2fft wheel and source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Build wheel and sdist
+        run: pipx run build --outdir dist
+      - name: Check the wheel is pure Python
+        run: ls dist && ls dist/*-py3-none-any.whl
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist-s2fft
+          path: dist/*
+
+  build_cuda_plugins:
+    # The CUDA plugins s2fft-cuda12-plugin and s2fft-cuda13-plugin: manylinux wheels built
+    # in the manylinux_2_28 (AlmaLinux 8) container, with nvcc and cuFFT installed from
+    # NVIDIA's RHEL 8 repository. cuFFT is linked dynamically and comes at run time from
+    # the NVIDIA pip packages (extra with-cuda) or the system CUDA, so auditwheel must not
+    # copy it into the wheel. Built for x86_64 and aarch64 (NVIDIA's sbsa repository), as
+    # jax-cuda12-plugin and jax-cuda13-plugin.
+    name: Build s2fft-cuda${{ matrix.cuda-major }}-plugin wheels (${{ matrix.platform.arch }})
+    runs-on: ${{ matrix.platform.runner }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
-
+        cuda-major: [12, 13]
+        platform:
+          - { runner: ubuntu-latest, arch: x86_64, repo: x86_64 }
+          - { runner: ubuntu-24.04-arm, arch: aarch64, repo: sbsa }
+        include:
+          - cuda-major: 12
+            cuda-version: "12-8"
+            cuda-path: /usr/local/cuda-12.8
+            cufft-soname: libcufft.so.11
+            architectures: "70-real;75-real;80-real;86-real;89-real;90-real;100-real;120-real;120-virtual"
+          - cuda-major: 13
+            cuda-version: "13-0"
+            cuda-path: /usr/local/cuda-13.0
+            cufft-soname: libcufft.so.12
+            architectures: "75-real;80-real;86-real;89-real;90-real;100-real;110-real;120-real;120-virtual"
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -56,57 +93,66 @@ jobs:
           fetch-tags: true
       - name: Build wheels
         uses: pypa/cibuildwheel@v4.3.5
+        with:
+          package-dir: s2fft-cuda/cuda${{ matrix.cuda-major }}
+          output-dir: wheelhouse
         env:
-          # Only build on platforms / architectures for which jaxlib wheels
-          # are available
-          CIBW_BUILD: "*-{manylinux_{x86_64,aarch64},macosx_arm64,win_amd64}"
-          CIBW_SKIP: "*t-win_amd64"
+          # CPython 3.11, and one stable-ABI wheel for 3.12+ (wheel.py-api = "cp312")
+          CIBW_BUILD: "cp311-manylinux_${{ matrix.platform.arch }} cp312-manylinux_${{ matrix.platform.arch }}"
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
+          CIBW_BEFORE_ALL_LINUX: >
+            dnf install -y dnf-plugins-core &&
+            dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/${{ matrix.platform.repo }}/cuda-rhel8.repo &&
+            dnf install -y cuda-nvcc-${{ matrix.cuda-version }} cuda-cudart-devel-${{ matrix.cuda-version }} libcufft-devel-${{ matrix.cuda-version }}
+          CIBW_ENVIRONMENT_LINUX: >
+            PATH=${{ matrix.cuda-path }}/bin:$PATH
+            CUDACXX=${{ matrix.cuda-path }}/bin/nvcc
+            CUDA_PATH=${{ matrix.cuda-path }}
+          CIBW_CONFIG_SETTINGS_LINUX: >
+            cmake.define.CMAKE_CUDA_ARCHITECTURES=${{ matrix.architectures }}
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
+            auditwheel repair --exclude ${{ matrix.cufft-soname }} -w {dest_dir} {wheel}
+      - name: Check the wheels (size, no bundled cuFFT, NEEDED and RUNPATH)
+        run: |
+          ls -la wheelhouse
+          for wheel in wheelhouse/*.whl; do
+            unzip -l "$wheel"
+            if unzip -l "$wheel" | grep -q libcufft; then echo "cuFFT bundled in $wheel"; exit 1; fi
+            unzip -o -q "$wheel" -d check
+          done
+          readelf -d check/s2fft_cuda*_plugin/_s2fft*.so | grep -E 'NEEDED|RUNPATH'
       - uses: actions/upload-artifact@v7
         with:
-          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
-          path: ./wheelhouse/*.whl
-
-  build_sdist:
-    name: Build source distribution
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7.0.1
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-      - name: Build sdist
-        run: pipx run build --sdist
-      - uses: actions/upload-artifact@v7
-        with:
-          name: cibw-sdist
-          path: dist/*.tar.gz
+          name: dist-cuda${{ matrix.cuda-major }}-plugin-${{ matrix.platform.arch }}
+          path: wheelhouse/*.whl
 
   upload_test_pypi:
-    needs: [build_wheels, build_sdist]
+    needs: [build_pure, build_cuda_plugins]
     runs-on: ubuntu-latest
     environment: test-pypi
     permissions:
       id-token: write
     if: |
-      (github.event_name == 'release' && github.event.action == 'published') || 
+      (github.event_name == 'release' && github.event.action == 'published') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main')
     steps:
       - uses: actions/download-artifact@v8
         with:
-          # Unpack all CIBW artifacts (wheels + sdist) into dist/
+          # Unpack all artifacts (s2fft wheel and sdist, plugin wheels) into dist/
           # pypa/gh-action-pypi-publish action uploads contents of dist/ unconditionally
-          pattern: cibw-*
+          pattern: dist-*
           path: dist
           merge-multiple: true
         # Try publishing to Test PyPI first - if there are issues this should
         # cause job to fail before attempting to publish on PyPI itself
-      - name: Publish package distribution to Test PyPI
+      - name: Publish package distributions to Test PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
 
   upload_pypi:
-    needs: [build_wheels, build_sdist, upload_test_pypi]
+    needs: [build_pure, build_cuda_plugins, upload_test_pypi]
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
@@ -115,8 +161,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
-          pattern: cibw-*
+          pattern: dist-*
           path: dist
           merge-multiple: true
-      - name: Publish package distribution to PyPI
+      - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

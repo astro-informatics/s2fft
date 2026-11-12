@@ -1,10 +1,7 @@
 [build-system]
 requires = [
-    "setuptools",
     "setuptools-scm",
-    "scikit-build-core>=0.4.3",
-    "nanobind>=1.3.2",
-    "jax >= 0.5.0",
+    "scikit-build-core>=0.11.2",
 ]
 build-backend = "scikit_build_core.build"
 
@@ -33,6 +30,7 @@ dependencies = [
 ]
 dynamic = [
     "version",
+    "optional-dependencies",
 ]
 keywords = [
 ]
@@ -42,7 +40,23 @@ requires-python = ">=3.11"
 license.file = "LICENCE.txt"
 urls.homepage = "https://github.com/astro-informatics/s2fft"
 
-[project.optional-dependencies]
+[tool.scikit-build]
+# Protect the configuration against future changes in scikit-build-core
+minimum-version = "0.11"
+# s2fft is pure Python; the CUDA extension is the separate plugin package
+# s2fft-cuda12-plugin or s2fft-cuda13-plugin (s2fft-cuda/), installed by the extras below.
+wheel.cmake = false
+wheel.packages = ["src/s2fft"]
+metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+sdist.include = ["src/s2fft/_version.py"]
+sdist.exclude = ["s2fft-cuda"]
+
+# The extras, written by the template provider so that the CUDA plugin is pinned to the
+# version of s2fft: the Python code and the compiled kernels change together. As for jax:
+# cudaXY installs cuFFT from pip, cudaXY-local uses the system CUDA, cuda is cuda12.
+[tool.scikit-build.metadata.optional-dependencies]
+provider = "scikit_build_core.metadata.template"
+[tool.scikit-build.metadata.optional-dependencies.result]
 docs = [
     "sphinx>=5.0.0",
     "pydata-sphinx-theme>=0.12.0",
@@ -90,17 +104,45 @@ tests-cached = [
 torch = [
     "torch",
 ]
+cuda12 = [
+    "jax[cuda12]",
+    "s2fft-cuda12-plugin[with-cuda]=={project[version]}",
+]
+cuda12-local = [
+    "jax[cuda12-local]",
+    "s2fft-cuda12-plugin=={project[version]}",
+]
+cuda13 = [
+    "jax[cuda13]>=0.7.2",  # first jax with a jax-cuda13-plugin release
+    "s2fft-cuda13-plugin[with-cuda]=={project[version]}",
+]
+cuda13-local = [
+    "jax[cuda13-local]>=0.7.2",
+    "s2fft-cuda13-plugin=={project[version]}",
+]
+cuda = [
+    "jax[cuda12]",
+    "s2fft-cuda12-plugin[with-cuda]=={project[version]}",
+]
 
-[tool.scikit-build]
-# Protect the configuration against future changes in scikit-build-core
-minimum-version = "0.8"
-# Setuptools-style build caching in a local directory
-build-dir = "build/{wheel_tag}"
-# Build stable ABI wheels for CPython 3.12+
-wheel.py-api = "cp312"
-cmake.build-type = "Release"
-metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
-sdist.include = ["src/s2fft/_version.py"]
+# uv workspace: during development the CUDA extension is built from s2fft-cuda/.
+[tool.uv.sources]
+# Path dependencies, not workspace members: a workspace resolves all members together,
+# which puts the plugins (jax>=<build jax>, numpy>=2) in the same resolution as the
+# tests extra (numpy<2) even without a CUDA extra.
+s2fft-cuda12-plugin = { path = "s2fft-cuda/cuda12" }
+s2fft-cuda13-plugin = { path = "s2fft-cuda/cuda13" }
+
+[tool.uv]
+# The tests extra pins numpy<2 (pyssht), which holds jax back to a release without the
+# cuda13 extra; resolve it separately from the CUDA extras.
+conflicts = [
+    [{ extra = "tests" }, { extra = "cuda12" }],
+    [{ extra = "tests" }, { extra = "cuda12-local" }],
+    [{ extra = "tests" }, { extra = "cuda13" }],
+    [{ extra = "tests" }, { extra = "cuda13-local" }],
+    [{ extra = "tests" }, { extra = "cuda" }],
+]
 
 [tool.pytest.ini_options]
 addopts = "--color=yes -v"
