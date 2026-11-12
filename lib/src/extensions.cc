@@ -425,7 +425,8 @@ XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C64, healpix_fft_cuda<ffi::DataTy
                                       .Arg<ffi::Buffer<ffi::DataType::C64>>()
                                       .Ret<ffi::Buffer<ffi::DataType::C64>>()
                                       .Ret<ffi::Buffer<ffi::DataType::C64>>()
-                                      .Ret<ffi::Buffer<ffi::DataType::C64>>());
+                                      .Ret<ffi::Buffer<ffi::DataType::C64>>(),
+                              {ffi::Traits::kCmdBufferCompatible});
 
 XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C128, healpix_fft_cuda<ffi::DataType::C128>,
                               ffi::Ffi::Bind()
@@ -440,7 +441,8 @@ XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C128, healpix_fft_cuda<ffi::DataT
                                       .Arg<ffi::Buffer<ffi::DataType::C128>>()
                                       .Ret<ffi::Buffer<ffi::DataType::C128>>()
                                       .Ret<ffi::Buffer<ffi::DataType::C128>>()
-                                      .Ret<ffi::Buffer<ffi::DataType::C128>>());
+                                      .Ret<ffi::Buffer<ffi::DataType::C128>>(),
+                              {ffi::Traits::kCmdBufferCompatible});
 
 /**
  * @brief Encapsulates an FFI handler into a nanobind capsule.
