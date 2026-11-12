@@ -37,6 +37,10 @@ on:
         description: Upload the distributions to TestPyPI
         type: boolean
         default: false
+      packages:
+        description: Packages to upload, separated by spaces (a new TestPyPI project can be created with one pending trusted publisher at a time)
+        type: string
+        default: s2fft s2fft-cuda12-plugin s2fft-cuda13-plugin
   pull_request:
   push:
     branches:
@@ -144,6 +148,18 @@ jobs:
           pattern: dist-*
           path: dist
           merge-multiple: true
+      - name: Keep only the packages selected for a manual run
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          PACKAGES: ${{ inputs.packages }}
+        run: |
+          mkdir selected
+          for package in $PACKAGES; do
+            # distribution file names: s2fft-<version>..., s2fft_cuda12_plugin-<version>...
+            prefix="$(echo "$package" | tr - _)-"
+            mv dist/"$prefix"* selected/
+          done
+          rm -rf dist && mv selected dist && ls dist
         # Try publishing to Test PyPI first - if there are issues this should
         # cause job to fail before attempting to publish on PyPI itself
       - name: Publish package distributions to Test PyPI
