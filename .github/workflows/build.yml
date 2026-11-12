@@ -64,12 +64,17 @@ jobs:
     # in the manylinux_2_28 (AlmaLinux 8) container, with nvcc and cuFFT installed from
     # NVIDIA's RHEL 8 repository. cuFFT is linked dynamically and comes at run time from
     # the NVIDIA pip packages (extra with-cuda) or the system CUDA, so auditwheel must not
-    # copy it into the wheel.
-    name: Build s2fft-cuda${{ matrix.cuda-major }}-plugin wheels
-    runs-on: ubuntu-latest
+    # copy it into the wheel. Built for x86_64 and aarch64 (NVIDIA's sbsa repository), as
+    # jax-cuda12-plugin and jax-cuda13-plugin.
+    name: Build s2fft-cuda${{ matrix.cuda-major }}-plugin wheels (${{ matrix.platform.arch }})
+    runs-on: ${{ matrix.platform.runner }}
     strategy:
       fail-fast: false
       matrix:
+        cuda-major: [12, 13]
+        platform:
+          - { runner: ubuntu-latest, arch: x86_64, repo: x86_64 }
+          - { runner: ubuntu-24.04-arm, arch: aarch64, repo: sbsa }
         include:
           - cuda-major: 12
             cuda-version: "12-8"
@@ -93,11 +98,12 @@ jobs:
           output-dir: wheelhouse
         env:
           # CPython 3.11, and one stable-ABI wheel for 3.12+ (wheel.py-api = "cp312")
-          CIBW_BUILD: "cp311-manylinux_x86_64 cp312-manylinux_x86_64"
+          CIBW_BUILD: "cp311-manylinux_${{ matrix.platform.arch }} cp312-manylinux_${{ matrix.platform.arch }}"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
           CIBW_BEFORE_ALL_LINUX: >
             dnf install -y dnf-plugins-core &&
-            dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo &&
+            dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/${{ matrix.platform.repo }}/cuda-rhel8.repo &&
             dnf install -y cuda-nvcc-${{ matrix.cuda-version }} cuda-cudart-devel-${{ matrix.cuda-version }} libcufft-devel-${{ matrix.cuda-version }}
           CIBW_ENVIRONMENT_LINUX: >
             PATH=${{ matrix.cuda-path }}/bin:$PATH
@@ -118,7 +124,7 @@ jobs:
           readelf -d check/s2fft_cuda*_plugin/_s2fft*.so | grep -E 'NEEDED|RUNPATH'
       - uses: actions/upload-artifact@v7
         with:
-          name: dist-cuda${{ matrix.cuda-major }}-plugin
+          name: dist-cuda${{ matrix.cuda-major }}-plugin-${{ matrix.platform.arch }}
           path: wheelhouse/*.whl
 
   upload_test_pypi:
