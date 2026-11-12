@@ -2,7 +2,7 @@
 #include <cuda_runtime.h>
 #include <cufft.h>
 #include <cufftXt.h>
-#include "hresult.h"
+#include "cuda_check.h"
 #include <cmath>  // has to be included before cuda/std/complex
 #include <cstddef>
 #include <cuda/std/complex>
@@ -17,7 +17,7 @@
 namespace s2fft {
 
 template <typename Complex>
-HRESULT s2fftExec<Complex>::Initialize(const s2fftDescriptor &descriptor) {
+void s2fftExec<Complex>::Initialize(const s2fftDescriptor &descriptor) {
     // Step 1: Store the Nside parameter from the descriptor.
     m_nside = descriptor.nside;
 
@@ -106,11 +106,10 @@ HRESULT s2fftExec<Complex>::Initialize(const s2fftDescriptor &descriptor) {
     // Step 9: Store the final maximum workspace size.
     this->m_work_size = worksize;
 
-    return S_OK;
 }
 
 template <typename Complex>
-HRESULT s2fftExec<Complex>::Forward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data,
+void s2fftExec<Complex>::Forward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data,
                                     Complex *workspace) {
     // Step 1: Determine the FFT direction (forward or inverse based on adjoint flag).
     const int DIRECTION = desc.adjoint ? CUFFT_INVERSE : CUFFT_FORWARD;
@@ -139,11 +138,10 @@ HRESULT s2fftExec<Complex>::Forward(const s2fftDescriptor &desc, cudaStream_t st
                            DIRECTION));
 
     // Step 5: Normalization will be applied in spectral_extension kernel (no separate kernel needed)
-    return S_OK;
 }
 
 template <typename Complex>
-HRESULT s2fftExec<Complex>::Backward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data,
+void s2fftExec<Complex>::Backward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data,
                                      Complex *workspace) {
     // Step 1: Determine the FFT direction (forward or inverse based on adjoint flag).
     const int DIRECTION = desc.adjoint ? CUFFT_FORWARD : CUFFT_INVERSE;
@@ -171,7 +169,6 @@ HRESULT s2fftExec<Complex>::Backward(const s2fftDescriptor &desc, cudaStream_t s
                            data + m_equatorial_offset_start, DIRECTION));
 
     // Step 5: Normalization will be applied in spectral_folding kernel (no separate kernel needed)
-    return S_OK;
 }
 
 template class s2fftExec<cufftComplex>;
