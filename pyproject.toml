@@ -113,11 +113,11 @@ cuda12-local = [
     "s2fft-cuda12-plugin=={project[version]}",
 ]
 cuda13 = [
-    "jax[cuda13]>=0.7.0",  # first jax with the cuda13 extra
+    "jax[cuda13]>=0.7.2",  # first jax with a jax-cuda13-plugin release
     "s2fft-cuda13-plugin[with-cuda]=={project[version]}",
 ]
 cuda13-local = [
-    "jax[cuda13-local]>=0.7.0",
+    "jax[cuda13-local]>=0.7.2",
     "s2fft-cuda13-plugin=={project[version]}",
 ]
 cuda = [

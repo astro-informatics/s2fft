@@ -20,7 +20,7 @@ authors = [
 ]
 license = {text = "MIT"}
 requires-python = ">=3.11"
-dynamic = ["version"]
+dynamic = ["version", "dependencies"]
 urls.homepage = "https://github.com/astro-informatics/s2fft"
 
 [project.optional-dependencies]
@@ -40,6 +40,10 @@ cmake.build-type = "Release"
 # The package files are installed by CMake (s2fft-cuda/CMakeLists.txt)
 wheel.packages = []
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+# Local metadata provider (needs experimental): require the jax the plugin is built against
+experimental = true
+metadata.dependencies.provider = "jax_requirement"
+metadata.dependencies.provider-path = "../build_tools"
 
 [[tool.scikit-build.generate]]
 path = "s2fft_cuda12_plugin/_version.py"
@@ -58,6 +62,7 @@ cache-keys = [
     { file = "pyproject.toml" },
     { file = "../CMakeLists.txt" },
     { file = "../python/*.in" },
+    { file = "../build_tools/*.py" },
     { file = "../lib/**/*.cu" },
     { file = "../lib/**/*.cc" },
     { file = "../lib/**/*.h" },
