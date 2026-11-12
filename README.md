@@ -94,7 +94,7 @@ pixels of equal areas, which has many practical advantages.
 >
 > __If running on a GPU__, a CUDA extension module is available which avoids the long compilation time.
 > This implementation can be selected by passing a `method="jax_cuda"` keyword argument to the `sfft.forward` and `s2fft.inverse` functions.
-> Currently we do not publish binary wheels with the CUDA extension support so you will need to [build the package from source](#cuda-extension-support) to use this functionality.
+> The CUDA extension is published as separate plugin packages, installed with `pip install "s2fft[cuda]"` - see [CUDA extension support](#cuda-extension-support).
 
 ## Installation 💻
 
@@ -118,23 +118,29 @@ pip install git+https://github.com/astro-informatics/s2fft
 
 ### CUDA extension support
 
-To install the package with support for the CUDA extension module giving reduced compile times for running HEALPix transforms on the GPU,
-you will need to build from source on a system with CUDA (tested with version 12.3) and CMake (versions 3.19+) installed.
+The CUDA extension module, giving reduced compile times for running HEALPix transforms on the GPU (`method="jax_cuda"`),
+is published as prebuilt Linux x86-64 wheels in two plugin packages, `s2fft-cuda12-plugin` (built with CUDA 12.8) and `s2fft-cuda13-plugin` (built with CUDA 13.0),
+following JAX's `jax-cuda12-plugin` and `jax-cuda13-plugin`.
+They are installed through extras of `s2fft`, which also install JAX with the matching CUDA support:
 
-To install the latest development version from source in verbose mode run
+| Command | Installs |
+|---|---|
+| `pip install "s2fft[cuda12]"` | `jax[cuda12]` and the CUDA 12 plugin, with cuFFT from NVIDIA's pip packages (only an NVIDIA driver is needed) |
+| `pip install "s2fft[cuda13]"` | `jax[cuda13]` and the CUDA 13 plugin, with cuFFT from NVIDIA's pip packages |
+| `pip install "s2fft[cuda12-local]"`, `pip install "s2fft[cuda13-local]"` | the same, using the CUDA installed on the system |
+| `pip install "s2fft[cuda]"` | the same as `s2fft[cuda12]` |
+
+The plugin version is pinned to the `s2fft` version.
+
+To build the plugins from source, on a system with a CUDA 12 or 13 toolkit and CMake (versions 3.19+), run from a clone of the repository
 
 ```bash
-pip install -v git+https://github.com/astro-informatics/s2fft
+pip install .
+pip install -v ./s2fft-cuda/cuda12   # or ./s2fft-cuda/cuda13, matching the CUDA toolkit
 ```
 
-or to install a specific release tag in verbose mode run
-
-```bash
-pip install -v git+https://github.com/astro-informatics/s2fft@TAG
-```
-
-where `TAG` is the relevant version tag.
-The output should indicate if the CUDA install on your system is successfully detected.
+The CUDA architectures can be chosen with `-C cmake.define.CMAKE_CUDA_ARCHITECTURES="80;90"` (default `75;80;86;89;90`).
+With [uv](https://docs.astral.sh/uv/), `uv sync --extra cuda12` (or `cuda13`) builds the plugin from the local sources.
 
 ## Tests 🚦
 
