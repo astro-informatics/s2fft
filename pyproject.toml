@@ -113,11 +113,11 @@ cuda12-local = [
     "s2fft-cuda12-plugin=={project[version]}",
 ]
 cuda13 = [
-    "jax[cuda13]",
+    "jax[cuda13]>=0.7.0",  # first jax with the cuda13 extra
     "s2fft-cuda13-plugin[with-cuda]=={project[version]}",
 ]
 cuda13-local = [
-    "jax[cuda13-local]",
+    "jax[cuda13-local]>=0.7.0",
     "s2fft-cuda13-plugin=={project[version]}",
 ]
 cuda = [
@@ -132,6 +132,17 @@ members = ["s2fft-cuda/cuda12", "s2fft-cuda/cuda13"]
 [tool.uv.sources]
 s2fft-cuda12-plugin = { workspace = true }
 s2fft-cuda13-plugin = { workspace = true }
+
+[tool.uv]
+# The tests extra pins numpy<2 (pyssht), which holds jax back to a release without the
+# cuda13 extra; resolve it separately from the CUDA extras.
+conflicts = [
+    [{ extra = "tests" }, { extra = "cuda12" }],
+    [{ extra = "tests" }, { extra = "cuda12-local" }],
+    [{ extra = "tests" }, { extra = "cuda13" }],
+    [{ extra = "tests" }, { extra = "cuda13-local" }],
+    [{ extra = "tests" }, { extra = "cuda" }],
+]
 
 [tool.pytest.ini_options]
 addopts = "--color=yes -v"
