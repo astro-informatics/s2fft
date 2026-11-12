@@ -126,12 +126,12 @@ cuda = [
 ]
 
 # uv workspace: during development the CUDA extension is built from s2fft-cuda/.
-[tool.uv.workspace]
-members = ["s2fft-cuda/cuda12", "s2fft-cuda/cuda13"]
-
 [tool.uv.sources]
-s2fft-cuda12-plugin = { workspace = true }
-s2fft-cuda13-plugin = { workspace = true }
+# Path dependencies, not workspace members: a workspace resolves all members together,
+# which puts the plugins (jax>=<build jax>, numpy>=2) in the same resolution as the
+# tests extra (numpy<2) even without a CUDA extra.
+s2fft-cuda12-plugin = { path = "s2fft-cuda/cuda12" }
+s2fft-cuda13-plugin = { path = "s2fft-cuda/cuda13" }
 
 [tool.uv]
 # The tests extra pins numpy<2 (pyssht), which holds jax back to a release without the

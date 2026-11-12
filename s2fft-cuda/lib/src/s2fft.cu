@@ -105,12 +105,11 @@ void s2fftExec<Complex>::Initialize(const s2fftDescriptor &descriptor) {
     worksize = std::max(worksize, equator_worksize);
     // Step 9: Store the final maximum workspace size.
     this->m_work_size = worksize;
-
 }
 
 template <typename Complex>
 void s2fftExec<Complex>::Forward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data,
-                                    Complex *workspace) {
+                                 Complex *workspace) {
     // Step 1: Determine the FFT direction (forward or inverse based on adjoint flag).
     const int DIRECTION = desc.adjoint ? CUFFT_INVERSE : CUFFT_FORWARD;
     // Step 2: Extract normalization, shift, and double precision flags from the descriptor.
@@ -142,7 +141,7 @@ void s2fftExec<Complex>::Forward(const s2fftDescriptor &desc, cudaStream_t strea
 
 template <typename Complex>
 void s2fftExec<Complex>::Backward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data,
-                                     Complex *workspace) {
+                                  Complex *workspace) {
     // Step 1: Determine the FFT direction (forward or inverse based on adjoint flag).
     const int DIRECTION = desc.adjoint ? CUFFT_FORWARD : CUFFT_INVERSE;
     // Step 2: Extract normalization, shift, and double precision flags from the descriptor.

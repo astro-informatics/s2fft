@@ -34,7 +34,7 @@ PlanCache::PlanCache() {
  */
 template <typename T>
 bool PlanCache::GetS2FFTExec(s2fftDescriptor &descriptor, std::shared_ptr<s2fftExec<T>> &executor,
-                                int32_t device_ordinal) {
+                             int32_t device_ordinal) {
     // Step 1: Check if the type is cufftComplex (single precision).
     if constexpr (std::is_same_v<T, cufftComplex>) {
         // Step 1a: Try to find the descriptor in the device's single-precision cache.
@@ -110,8 +110,8 @@ PlanCache::~PlanCache() {
 // Explicitly instantiate the templates for the supported complex types.
 // This is necessary for the linker to find the concrete implementations of the templated function.
 template bool PlanCache::GetS2FFTExec<cufftComplex>(s2fftDescriptor &descriptor,
-                                                       std::shared_ptr<s2fftExec<cufftComplex>> &executor,
-                                                       int32_t device_ordinal);
+                                                    std::shared_ptr<s2fftExec<cufftComplex>> &executor,
+                                                    int32_t device_ordinal);
 
 template bool PlanCache::GetS2FFTExec<cufftDoubleComplex>(
         s2fftDescriptor &descriptor, std::shared_ptr<s2fftExec<cufftDoubleComplex>> &executor,

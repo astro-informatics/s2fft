@@ -42,7 +42,7 @@ enum fft_norm { FORWARD = 1, BACKWARD = 2, ORTHO = 3, NONE = 4 };
  */
 template <typename complex>
 void launch_spectral_folding(complex* data, complex* output, const int& nside, const int& L,
-                                const bool& apply_shift, const int& norm, cudaStream_t stream);
+                             const bool& apply_shift, const int& norm, cudaStream_t stream);
 
 /**
  * @brief Launches the spectral extension CUDA kernel.
@@ -64,7 +64,7 @@ void launch_spectral_folding(complex* data, complex* output, const int& nside, c
  */
 template <typename complex>
 void launch_spectral_extension(complex* data, complex* output, const int& nside, const int& L,
-                                  const bool& apply_shift, const int& norm, cudaStream_t stream);
+                               const bool& apply_shift, const int& norm, cudaStream_t stream);
 
 }  // namespace s2fftKernels
 

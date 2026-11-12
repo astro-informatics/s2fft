@@ -6,7 +6,9 @@ requires = [
     "scikit-build-core>=0.11.2",
     "setuptools-scm",
     "nanobind>=1.3.2",
-    "jax>=0.5.0",
+    # The plugin requires at least this jax (build_tools/jax_requirement.py); 0.10.2 is the
+    # last jax release that supports Python 3.11
+    "jax==0.10.2",
 ]
 build-backend = "scikit_build_core.build"
 

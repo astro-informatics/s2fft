@@ -52,7 +52,7 @@ public:
      */
     template <typename T>
     bool GetS2FFTExec(s2fftDescriptor &descriptor, std::shared_ptr<s2fftExec<T>> &executor,
-                         int32_t device_ordinal);
+                      int32_t device_ordinal);
 
     /**
      * @brief Clears all cached s2fftExec instances.
