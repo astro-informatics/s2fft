@@ -2,7 +2,7 @@
 JAX HEALPix Frontend
 ====================
 
-This short tutorial demonstrates how to use the custom ``JAX`` frontend support ``S2FFT`` provides for the `HEALPix <https://healpix.jpl.nasa.gov>`_ C++ library.
+This short tutorial demonstrates how to use the custom ``JAX`` frontend support ``S2FFT`` provides for the `HEALPix <https://healpix.sourceforge.io>`_ C++ library.
 
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
     :align: center
@@ -20,7 +20,7 @@ and then running that cell.
 """
 
 # %%
-# ``S2FFT``'s support for the `HEALPix <https://healpix.jpl.nasa.gov>`_ C++ library resolves issues involving long JIT compile times for HEALPix when running on CPU.
+# ``S2FFT``'s support for the `HEALPix <https://healpix.sourceforge.io>`_ C++ library resolves issues involving long JIT compile times for HEALPix when running on CPU.
 # As with the other introductions, let's import some packages and define an arbitrary bandlimited signal to work with.
 import jax
 import numpy as np
