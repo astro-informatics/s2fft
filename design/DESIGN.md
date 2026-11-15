@@ -372,6 +372,7 @@ flm = s2fft.forward(f, L, sampling="gl", method="jax")
 - v1.6: `s2fft.forward` / `s2fft.inverse` become shims that build the sampling object and call the method.
 - v1.6: `method="numpy"` and `method="torch"` warn and run the JAX path.
 - v1.6: `method="jax_cuda"` warns and maps to `S2FFT_BACKEND="cuda"`.
+- `method="jax_healpy"` (the healpy wrapper) is removed as an option, closing [PR #440](https://github.com/astro-informatics/s2fft/pull/440): the CUDA kernels in the private CUDA PR are faster.
 - v2.0: the shims, `*_numpy`, `*_jax`, `*_torch` and `method=` are removed (#349).
 
 ## 13. TODO
