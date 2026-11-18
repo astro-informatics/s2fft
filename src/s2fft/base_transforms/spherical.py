@@ -24,27 +24,27 @@ def inverse(
     Uses a vectorised separation of variables method with np.fft.
 
     Args:
-        flm (np.ndarray): Spherical harmonic coefficients.
+        flm: Spherical harmonic coefficients.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        spin: Harmonic spin. Defaults to 0.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
-        np.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     """
     return _inverse(
@@ -73,31 +73,31 @@ def _inverse(
     Compute inverse spherical harmonic transform using a specified method.
 
     Args:
-        flm (np.ndarray): Spherical harmonic coefficients.
+        flm: Spherical harmonic coefficients.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        spin: Harmonic spin. Defaults to 0.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
-        method (str, optional): Harmonic transform algorithm. Supported algorithms include
+        method: Harmonic transform algorithm. Supported algorithms include
             {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to
             "sov_fft_vectorized".
 
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
-        np.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     """
     assert flm.shape == samples.flm_shape(L)
@@ -147,33 +147,33 @@ def forward(
     Uses a vectorised separation of variables method with np.fft.
 
     Args:
-        f (np.ndarray): Signal on the sphere.
+        f: Signal on the sphere.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        spin: Harmonic spin. Defaults to 0.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
-        iter (int, optional): Number of iterative refinement iterations to use to
+        iter: Number of iterative refinement iterations to use to
             improve accuracy of forward transform (as an inverse of inverse transform).
             Primarily of use with HEALPix sampling for which there is not a sampling
             theorem, and round-tripping through the forward and inverse transforms will
             introduce an error.
 
     Returns:
-        np.ndarray: Spherical harmonic coefficients.
+        Spherical harmonic coefficients.
 
     """
     common_kwargs = {
@@ -205,36 +205,36 @@ def _forward(
     nside: int = None,
     reality: bool = False,
     L_lower: int = 0,
-):
+) -> np.ndarray:
     r"""
     Compute forward spherical harmonic transform using a specified method.
 
     Args:
-        f (np.ndarray): Signal on the sphere.
+        f: Signal on the sphere.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        spin: Harmonic spin. Defaults to 0.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
 
-        method (str, optional): Harmonic transform algorithm. Supported algorithms include
+        method: Harmonic transform algorithm. Supported algorithms include
             {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to
             "sov_fft_vectorized".
 
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
-        np.ndarray: Spherical harmonic coefficients.
+        Spherical harmonic coefficients.
 
     """
     assert f.shape == samples.f_shape(L, sampling, nside)
@@ -292,33 +292,33 @@ def _compute_inverse_direct(
     nside: int,
     reality: bool,
     L_lower: int,
-):
+) -> np.ndarray:
     r"""
     Compute inverse spherical harmonic transform directly.
 
     Args:
-        flm (np.ndarray): Spherical harmonic coefficients.
+        flm: Spherical harmonic coefficients.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int): Harmonic spin.
+        spin: Harmonic spin.
 
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
-        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+        thetas: Vector of sample positions in :math:`\theta` on the sphere.
 
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
-        np.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     """
     if sampling.lower() != "healpix":
@@ -378,34 +378,34 @@ def _compute_inverse_sov(
     nside: int,
     reality: bool,
     L_lower: int,
-):
+) -> np.ndarray:
     r"""
     Compute inverse spherical harmonic transform by separation of variables with a
         manual Fourier transform.
 
     Args:
-        flm (np.ndarray): Spherical harmonic coefficients.
+        flm: Spherical harmonic coefficients.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int): Harmonic spin.
+        spin: Harmonic spin.
 
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
-        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+        thetas: Vector of sample positions in :math:`\theta` on the sphere.
 
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
-        np.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     """
     ftm = np.zeros((len(thetas), 2 * L - 1), dtype=np.complex128)
@@ -452,34 +452,34 @@ def _compute_inverse_sov_fft(
     nside: int,
     reality: bool,
     L_lower: int,
-):
+) -> np.ndarray:
     r"""
     Compute inverse spherical harmonic transform by separation of variables with a
         Fast Fourier transform.
 
     Args:
-        flm (np.ndarray): Spherical harmonic coefficients.
+        flm: Spherical harmonic coefficients.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int): Harmonic spin.
+        spin: Harmonic spin.
 
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
-        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+        thetas: Vector of sample positions in :math:`\theta` on the sphere.
 
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
-        np.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     """
     if sampling.lower() == "healpix":
@@ -545,34 +545,34 @@ def _compute_inverse_sov_fft_vectorized(
     nside: int,
     reality: bool,
     L_lower: int,
-):
+) -> np.ndarray:
     r"""
     A vectorized function to compute inverse spherical harmonic transform by
         separation of variables with a manual Fourier transform.
 
     Args:
-        flm (np.ndarray): Spherical harmonic coefficients.
+        flm: Spherical harmonic coefficients.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int): Harmonic spin.
+        spin: Harmonic spin.
 
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
-        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+        thetas: Vector of sample positions in :math:`\theta` on the sphere.
 
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
-        np.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     """
     ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
@@ -622,35 +622,35 @@ def _compute_forward_direct(
     nside: int,
     reality: bool,
     L_lower: int,
-):
+) -> np.ndarray:
     r"""
     Compute forward spherical harmonic transform directly.
 
     Args:
-        f (np.ndarray): Signal on the sphere.
+        f: Signal on the sphere.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int): Harmonic spin.
+        spin: Harmonic spin.
 
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
-        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+        thetas: Vector of sample positions in :math:`\theta` on the sphere.
 
-        weights (np.ndarray): Vector of quadrature weights on the sphere.
+        weights: Vector of quadrature weights on the sphere.
 
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
-        np.ndarray: Spherical harmonic coefficients.
+        Spherical harmonic coefficients.
 
     """
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
@@ -713,36 +713,36 @@ def _compute_forward_sov(
     nside: int,
     reality: bool,
     L_lower: int,
-):
+) -> np.ndarray:
     r"""
     Compute forward spherical harmonic transform by separation of variables with a
         manual Fourier transform.
 
     Args:
-        f (np.ndarray): Signal on the sphere.
+        f: Signal on the sphere.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int): Harmonic spin.
+        spin: Harmonic spin.
 
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
-        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+        thetas: Vector of sample positions in :math:`\theta` on the sphere.
 
-        weights (np.ndarray): Vector of quadrature weights on the sphere.
+        weights: Vector of quadrature weights on the sphere.
 
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
-        np.ndarray: Spherical harmonic coefficients.
+        Spherical harmonic coefficients.
 
     """
     if sampling.lower() != "healpix":
@@ -809,36 +809,36 @@ def _compute_forward_sov_fft(
     nside: int,
     reality: bool,
     L_lower: int,
-):
+) -> np.ndarray:
     r"""
     Compute forward spherical harmonic transform by separation of variables with a
         Fast Fourier transform.
 
     Args:
-        f (np.ndarray): Signal on the sphere.
+        f: Signal on the sphere.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int): Harmonic spin.
+        spin: Harmonic spin.
 
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
-        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+        thetas: Vector of sample positions in :math:`\theta` on the sphere.
 
-        weights (np.ndarray): Vector of quadrature weights on the sphere.
+        weights: Vector of quadrature weights on the sphere.
 
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
-        np.ndarray: Spherical harmonic coefficients.
+        Spherical harmonic coefficients.
 
     """
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
@@ -925,36 +925,36 @@ def _compute_forward_sov_fft_vectorized(
     nside: int,
     reality: bool,
     L_lower: int,
-):
+) -> np.ndarray:
     r"""
     A vectorized function to compute forward spherical harmonic transform by
         separation of variables with a manual Fourier transform.
 
     Args:
-        f (np.ndarray): Signal on the sphere.
+        f: Signal on the sphere.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int): Harmonic spin.
+        spin: Harmonic spin.
 
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
-        thetas (np.ndarray): Vector of sample positions in :math:`\theta` on the sphere.
+        thetas: Vector of sample positions in :math:`\theta` on the sphere.
 
-        weights (np.ndarray): Vector of quadrature weights on the sphere.
+        weights: Vector of quadrature weights on the sphere.
 
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
 
-        L_lower (int): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
 
     Returns:
-        np.ndarray: Spherical harmonic coefficients.
+        Spherical harmonic coefficients.
 
     """
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)

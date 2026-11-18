@@ -14,11 +14,11 @@ def inverse(
     flmn: np.ndarray,
     L: int,
     N: int,
-    nside: int = None,
+    nside: int | None = None,
     sampling: str = "mw",
     method: str = "numpy",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[np.ndarray] | None = None,
     L_lower: int = 0,
     _ssht_backend: int = 1,
 ) -> np.ndarray:
@@ -38,46 +38,46 @@ def inverse(
     cases this approach may be desirable to mitigate e.g. memory i/o cost.
 
     Args:
-        flmn (np.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
+        flmn: Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Azimuthal band-limit. For high precision beyond :math:`N \approx 8`,
+        N: Azimuthal band-limit. For high precision beyond :math:`N \approx 8`,
             one should use `method="jax_ssht"`.
 
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        method (str, optional): Execution mode in {"numpy", "jax", "jax_ssht"}.
+        method: Execution mode in {"numpy", "jax", "jax_ssht"}.
             Defaults to "numpy".
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
 
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
-        _ssht_backend (int, optional, experimental): Whether to default to SSHT core
+        _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
-            backend. Use with caution.
+            backend. Experimental, use with caution.
 
     Raises:
         ValueError: Transform method not recognised.
 
     Returns:
-        np.ndarray:  Signal on the on :math:`SO(3)` with shape :math:`[n_{\gamma},
+        Signal on the on :math:`SO(3)` with shape :math:`[n_{\gamma},
         n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the number of samples for
         angle :math:`\xi`.
 
     Note:
-        [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
+        [1] McEwen, Jason D. and Yves Wiaux. "A Novel Sampling Theorem on the Sphere."
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
 
     """
@@ -111,10 +111,10 @@ def inverse_numpy(
     flmn: np.ndarray,
     L: int,
     N: int,
-    nside: int = None,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[np.ndarray] | None = None,
     L_lower: int = 0,
 ) -> np.ndarray:
     r"""
@@ -132,31 +132,31 @@ def inverse_numpy(
     :math:`\alpha` with :math:`\phi`.
 
     Args:
-        flmn (np.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
+        flmn: Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Azimuthal band-limit. Recursive transform will have lower precision
+        N: Azimuthal band-limit. Recursive transform will have lower precision
             beyond :math:`N \approx 8`.
 
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
 
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
-        np.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     """
     if precomps is None:
@@ -201,10 +201,10 @@ def inverse_jax(
     flmn: jnp.ndarray,
     L: int,
     N: int,
-    nside: int = None,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[jnp.ndarray] | None = None,
     L_lower: int = 0,
 ) -> jnp.ndarray:
     r"""
@@ -222,31 +222,31 @@ def inverse_jax(
     :math:`\alpha` with :math:`\phi`.
 
     Args:
-        flmn (jnp.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
+        flmn: Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Azimuthal band-limit. Recursive transform will have lower precision
+        N: Azimuthal band-limit. Recursive transform will have lower precision
             beyond :math:`N \approx 8`.
 
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
 
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
-        jnp.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     """
     if precomps is None:
@@ -310,31 +310,31 @@ def inverse_jax_ssht(
     SSHT C package.
 
     Args:
-        flmn (jnp.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
+        flmn: Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Azimuthal band-limit.
+        N: Azimuthal band-limit.
 
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        _ssht_backend (int, optional, experimental): Whether to default to SSHT core
+        _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
-            backend. Use with caution.
+            backend. Experimental, use with caution.
 
     Returns:
-        np.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     Note:
-        [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
+        [1] McEwen, Jason D. and Yves Wiaux. "A Novel Sampling Theorem on the Sphere."
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
 
     """
@@ -347,11 +347,11 @@ def forward(
     f: np.ndarray,
     L: int,
     N: int,
-    nside: int = None,
+    nside: int | None = None,
     sampling: str = "mw",
     method: str = "numpy",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[np.ndarray] | None = None,
     L_lower: int = 0,
     _ssht_backend: int = 1,
 ) -> np.ndarray:
@@ -371,42 +371,42 @@ def forward(
     approach may be desirable to mitigate e.g. memory i/o cost.
 
     Args:
-        f (np.ndarray): Signal on the on :math:`SO(3)` with shape
+        f: Signal on the on :math:`SO(3)` with shape
             :math:`[n_{\gamma}, n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the
             number of samples for angle :math:`\xi`.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Azimuthal band-limit.
+        N: Azimuthal band-limit.
 
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        method (str, optional): Execution mode in {"numpy", "jax", "jax_ssht"}.
+        method: Execution mode in {"numpy", "jax", "jax_ssht"}.
             Defaults to "numpy".
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
 
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
-        _ssht_backend (int, optional, experimental): Whether to default to SSHT core
+        _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
-            backend. Use with caution.
+            backend. Experimental, use with caution.
 
     Raises:
         ValueError: Transform method not recognised.
 
     Returns:
-        np.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
+        Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
 
     Note:
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
@@ -443,10 +443,10 @@ def forward_numpy(
     f: np.ndarray,
     L: int,
     N: int,
-    nside: int = None,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[np.ndarray] | None = None,
     L_lower: int = 0,
 ) -> np.ndarray:
     r"""
@@ -464,32 +464,32 @@ def forward_numpy(
     :math:`\alpha` with :math:`\phi`.
 
     Args:
-        f (np.ndarray): Signal on the on :math:`SO(3)` with shape
+        f: Signal on the on :math:`SO(3)` with shape
             :math:`[n_{\gamma}, n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the
             number of samples for angle :math:`\xi`.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Azimuthal band-limit.
+        N: Azimuthal band-limit.
 
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
 
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
-        np.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
+        Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
 
     """
     if precomps is None:
@@ -538,10 +538,10 @@ def forward_jax(
     f: jnp.ndarray,
     L: int,
     N: int,
-    nside: int = None,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[jnp.ndarray] | None = None,
     L_lower: int = 0,
 ) -> jnp.ndarray:
     r"""
@@ -559,32 +559,32 @@ def forward_jax(
     :math:`\alpha` with :math:`\phi`.
 
     Args:
-        f (jnp.ndarray): Signal on the on :math:`SO(3)` with shape
+        f: Signal on the on :math:`SO(3)` with shape
             :math:`[n_{\gamma}, n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the
             number of samples for angle :math:`\xi`.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Azimuthal band-limit.
+        N: Azimuthal band-limit.
 
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
 
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
-        jnp.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
+        Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
 
     """
     if precomps is None:
@@ -667,30 +667,30 @@ def forward_jax_ssht(
     SSHT C package.
 
     Args:
-        f (jnp.ndarray): Signal on the on :math:`SO(3)` with shape
+        f: Signal on the on :math:`SO(3)` with shape
             :math:`[n_{\gamma}, n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the
             number of samples for angle :math:`\xi`.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Azimuthal band-limit.
+        N: Azimuthal band-limit.
 
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
+        L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        _ssht_backend (int, optional, experimental): Whether to default to SSHT core
+        _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
-            backend. Use with caution.
+            backend. Experimental, use with caution.
 
     Returns:
-        jnp.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
+        Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
 
     Note:
         [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”

@@ -87,18 +87,18 @@ def generate_flm(
         Real signals are explicitly produced from conjugate symmetry.
 
     Args:
-        rng (Generator): Random number generator.
+        rng: Random number generator.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        L_lower (int, optional): Harmonic lower bound. Defaults to 0.
+        L_lower: Harmonic lower bound. Defaults to 0.
 
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        spin: Harmonic spin. Defaults to 0.
 
-        reality (bool, optional): Reality of signal. Defaults to False.
+        reality: Reality of signal. Defaults to False.
 
     Returns:
-        np.ndarray: Random set of spherical harmonic coefficients.
+        Random set of spherical harmonic coefficients.
 
     """
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
@@ -137,19 +137,19 @@ def generate_flmn(
         Real signals are explicitly produced from conjugate symmetry.
 
     Args:
-        rng (Generator): Random number generator.
+        rng: Random number generator.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int, optional): Number of Fourier coefficients for tangent plane rotations
+        N: Number of Fourier coefficients for tangent plane rotations
             (i.e. directionality). Defaults to 1.
 
-        L_lower (int, optional): Harmonic lower bound. Defaults to 0.
+        L_lower: Harmonic lower bound. Defaults to 0.
 
-        reality (bool, optional): Reality of signal. Defaults to False.
+        reality: Reality of signal. Defaults to False.
 
     Returns:
-        np.ndarray: Random set of Wigner coefficients.
+        Random set of Wigner coefficients.
 
     """
     flmn = np.zeros(wigner_samples.flmn_shape(L, N), dtype=np.complex128)

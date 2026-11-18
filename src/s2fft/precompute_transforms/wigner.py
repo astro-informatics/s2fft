@@ -26,29 +26,29 @@ def inverse(
     :math:`SO(3)`.
 
     Args:
-        flm (np.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
+        flm: Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Directional band-limit.
+        N: Directional band-limit.
 
-        kernel (np.ndarray, optional): Wigner-d kernel. Defaults to None.
+        kernel: Wigner-d kernel. Defaults to None.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
             Defaults to False.
 
-        method (str, optional): Execution mode in {"numpy", "jax", "torch"}.
+        method: Execution mode in {"numpy", "jax", "torch"}.
             Defaults to "jax".
 
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
     Returns:
-        np.ndarray:  Signal on the on :math:`SO(3)` with shape :math:`[n_{\gamma},
+        Signal on the on :math:`SO(3)` with shape :math:`[n_{\gamma},
         n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the number of samples for
         angle :math:`\xi`.
 
@@ -92,25 +92,25 @@ def inverse_transform(
     :math:`SO(3)`.
 
     Args:
-        flmn (np.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
+        flmn: Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
 
-        kernel (np.ndarray): Wigner-d kernel.
+        kernel: Wigner-d kernel.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Directional band-limit.
+        N: Directional band-limit.
 
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
 
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
     Returns:
-        np.ndarray: Pixel-space coefficients.
+        Pixel-space coefficients.
 
     """
     m_offset = s2_samples.m_offset(L, sampling)
@@ -237,31 +237,31 @@ def forward(
     :math:`SO(3)`.
 
     Args:
-        f (np.ndarray): Signal on the on :math:`SO(3)` with shape
+        f: Signal on the on :math:`SO(3)` with shape
             :math:`[n_{\gamma}, n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the
             number of samples for angle :math:`\xi`.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Directional band-limit.
+        N: Directional band-limit.
 
-        kernel (np.ndarray, optional): Wigner-d kernel. Defaults to None.
+        kernel: Wigner-d kernel. Defaults to None.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
             Defaults to False.
 
-        method (str, optional): Execution mode in {"numpy", "jax", "torch"}.
+        method: Execution mode in {"numpy", "jax", "torch"}.
             Defaults to "jax".
 
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
     Returns:
-        np.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
+        Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
 
     Note:
         Importantly, the convention adopted for storage of f is :math:`[\gamma, \beta,
@@ -303,25 +303,25 @@ def forward_transform(
     :math:`SO(3)`.
 
     Args:
-        f (np.ndarray): Signal on the sphere.
+        f: Signal on the sphere.
 
-        kernel (np.ndarray): Wigner-d kernel.
+        kernel: Wigner-d kernel.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Directional band-limit.
+        N: Directional band-limit.
 
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
 
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
     Returns:
-        np.ndarray: Wigner space coefficients.
+        Wigner space coefficients.
 
     """
     n_start_ind = N - 1 if reality else 0
@@ -386,25 +386,25 @@ def forward_transform_jax(
     :math:`SO(3)`.
 
     Args:
-        f (jnp.ndarray): Signal on the sphere.
+        f: Signal on the sphere.
 
-        kernel (jnp.ndarray): Wigner-d kernel.
+        kernel: Wigner-d kernel.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Directional band-limit.
+        N: Directional band-limit.
 
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
 
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
 
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
     Returns:
-        jnp.ndarray: Wigner space coefficients.
+        Wigner space coefficients.
 
     """
     n_start_ind = N - 1 if reality else 0

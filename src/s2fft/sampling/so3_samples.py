@@ -4,7 +4,7 @@ from s2fft.sampling import s2_samples as samples
 
 
 def f_shape(
-    L: int, N: int, sampling: str = "mw", nside: int = None
+    L: int, N: int, sampling: str = "mw", nside: int | None = None
 ) -> tuple[int, int, int]:
     r"""
     Computes the pixel-space sampling shape for signal on the rotation group
@@ -19,22 +19,21 @@ def f_shape(
         :math:`\alpha` with :math:`\phi`.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Directional band-limit.
+        N: Directional band-limit.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
 
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
     Raises:
         ValueError: Unknown sampling scheme.
 
     Returns:
-        Tuple[int,int,int]: Shape of pixel-space sampling of rotation group
-        :math:`SO(3)`.
+        Shape of pixel-space sampling of rotation group :math:`SO(3)`.
 
     """
     if sampling in ["mw", "mwss", "dh", "gl"]:
@@ -53,41 +52,39 @@ def flmn_shape(L: int, N: int) -> tuple[int, int, int]:
     :math:`SO(3)`.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Directional band-limit.
+        N: Directional band-limit.
 
     Returns:
-        Tuple[int,int,int]: Shape of Wigner space sampling of rotation group
-            :math:`SO(3)`.
+        Shape of Wigner space sampling of rotation group :math:`SO(3)`.
 
     """
     return 2 * N - 1, L, 2 * L - 1
 
 
 def fnab_shape(
-    L: int, N: int, sampling: str = "mw", nside: int = None
+    L: int, N: int, sampling: str = "mw", nside: int | None = None
 ) -> tuple[int, int, int]:
     r"""
     Computes the shape of Wigner coefficients for signal on the rotation group
     :math:`SO(3)`.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Directional band-limit.
+        N: Directional band-limit.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
 
-        nside (int, optional): HEALPix Nside resolution parameter.
+        nside: HEALPix Nside resolution parameter.
 
     Raises:
         ValueError: Unknown sampling scheme.
 
     Returns:
-        Tuple[int,int,int]: Shape of Wigner space sampling of rotation group
-            :math:`SO(3)`.
+        Shape of Wigner space sampling of rotation group :math:`SO(3)`.
 
     """
     return _ngamma(N), *samples.ftm_shape(L, sampling, nside)
@@ -98,12 +95,12 @@ def flmn_shape_1d(L: int, N: int) -> int:
     Computes the number of non-zero Wigner coefficients.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Directional band-limit.
+        N: Directional band-limit.
 
     Returns:
-        int: Total number of non-zero Wigner coefficients.
+        Total number of non-zero Wigner coefficients.
 
     """
     return (2 * N - 1) * L * L
@@ -114,16 +111,16 @@ def _nalpha(L: int, sampling: str = "mw") -> int:
     Computes the number of :math:`\alpha` samples.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
 
     Raises:
         ValueError: Unknown sampling scheme.
 
     Returns:
-        int: Number of :math:`\alpha` samples.
+        Number of :math:`\alpha` samples.
 
     """
     if sampling.lower() in ["mw", "dh", "gl"]:
@@ -141,16 +138,16 @@ def _nbeta(L: int, sampling: str = "mw") -> int:
     Computes the number of :math:`\beta` samples.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
 
     Raises:
         ValueError: Unknown sampling scheme.
 
     Returns:
-        int: Number of :math:`\beta` samples.
+        Number of :math:`\beta` samples.
 
     """
     if sampling.lower() in ["mw", "gl"]:
@@ -171,10 +168,10 @@ def _ngamma(N: int) -> int:
     Computes the number of :math:`\gamma` samples.
 
     Args:
-        N (int): Directional band-limit.
+        N: Directional band-limit.
 
     Returns:
-        int: Number of :math:`\gamma` samples, by default :math:`2N-1`.
+        Number of :math:`\gamma` samples, by default :math:`2N-1`.
 
     """
     return 2 * N - 1
@@ -185,18 +182,18 @@ def elmn2ind(el: int, m: int, n: int, L: int, N: int) -> int:
     Convert from Wigner space 3D indexing of :math:`(\ell,m, n)` to 1D index.
 
     Args:
-        el (int): Harmonic degree :math:`\ell`.
+        el: Harmonic degree :math:`\ell`.
 
-        m (int): Harmonic order :math:`m`.
+        m: Harmonic order :math:`m`.
 
-        n (int): Directional order :math:`n`.
+        n: Directional order :math:`n`.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int, optional): Directional band-limit. Defaults to 1.
+        N: Directional band-limit. Defaults to 1.
 
     Returns:
-        int: Corresponding 1D index in Wigner space.
+        Corresponding 1D index in Wigner space.
 
     """
     n_offset = (N - 1 + n) * L * L
@@ -209,12 +206,12 @@ def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int) -> np.ndarray:
     Convert from 3D indexed Wigner coefficients to 1D indexed coefficients.
 
     Args:
-        flm_3d (np.ndarray): 3D indexed Wigner coefficients, index order
+        flm_3d: 3D indexed Wigner coefficients, index order
             :math:`[\ell, m, n]`.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int, optional): Directional band-limit.
+        N: Directional band-limit.
 
     Raises:
         ValueError: `flmn` is already 1D indexed.
@@ -222,7 +219,7 @@ def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int) -> np.ndarray:
         ValueError: `flmn` is not 3D.
 
     Returns:
-        np.ndarray: 1D indexed Wigner coefficients, C flatten index priority :math:`n, \ell, m`.
+        1D indexed Wigner coefficients, C flatten index priority :math:`n, \ell, m`.
 
     """
     flmn_1d = np.zeros(flmn_shape_1d(L, N), dtype=np.complex128)
@@ -247,12 +244,11 @@ def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int) -> np.ndarray:
     Convert from 1D indexed Wigner coefficients to 3D indexed coefficients.
 
     Args:
-        flm_1d (np.ndarray): 1D indexed Wigner coefficients, C flatten index priority
-            :math:`n, \ell, m`.
+        flm_1d : 1D indexed Wigner coefficients, C flatten index priority :math:`n, \ell, m`.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        N (int): Directional band-limit.
+        N: Directional band-limit.
 
     Raises:
         ValueError: `flmn` is already 3D indexed.
@@ -260,7 +256,7 @@ def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int) -> np.ndarray:
         ValueError: `flmn` is not 1D.
 
     Returns:
-        np.ndarray: 3D indexed Wigner coefficients, index order :math:`[\ell, m, n]`.
+        3D indexed Wigner coefficients, index order :math:`[\ell, m, n]`.
 
     """
     flmn_3d = np.zeros(flmn_shape(L, N), dtype=np.complex128)

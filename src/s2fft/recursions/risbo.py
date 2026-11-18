@@ -11,16 +11,16 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
     :math:`\ell - 1`. At present, for :math:`\ell = 0` the recusion is initialised.
 
     Args:
-        dl (np.ndarray): Wigner-d plane for :math:`\ell - 1` at :math:`\beta`.
+        dl: Wigner-d plane for :math:`\ell - 1` at :math:`\beta`.
 
-        beta (float): Argument :math:`\beta` at which to compute Wigner-d plane.
+        beta: Argument :math:`\beta` at which to compute Wigner-d plane.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        el (int): Spherical harmonic degree :math:`\ell`.
+        el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
-        np.ndarray: Plane of Wigner-d for :math:`\ell` and :math:`\beta`, with full plane computed.
+        Plane of Wigner-d for :math:`\ell` and :math:`\beta`, with full plane computed.
 
     """
     _arg_checks(dl, beta, L, el)
@@ -108,11 +108,11 @@ def _arg_checks(dl: np.ndarray, beta: float, L: int, el: int):
     Check arguments of Risbo functions.
 
     Args:
-        dl (np.ndarray): Wigner-d plane of which to check shape.
+        dl: Wigner-d plane of which to check shape.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        el (int): Spherical harmonic degree :math:`\ell`.
+        el: Spherical harmonic degree :math:`\ell`.
 
     """
     assert 0 <= el < L  # Should be < not <= once have init routine.
@@ -132,16 +132,16 @@ def compute_full_vectorised(
     :math:`\ell - 1`. At present, for :math:`\ell = 0` the recusion is initialised.
 
     Args:
-        dl (np.ndarray): Wigner-d plane for :math:`\ell - 1` and for all :math:`\beta`.
+        dl: Wigner-d plane for :math:`\ell - 1` and for all :math:`\beta`.
 
-        beta (np.ndarray): Arguments :math:`\beta` at which to compute Wigner-d plane.
+        beta: Arguments :math:`\beta` at which to compute Wigner-d plane.
 
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        el (int): Spherical harmonic degree :math:`\ell`.
+        el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
-        np.ndarray: Plane of Wigner-d for :math:`\ell` and all angles :math:`\beta`,
+        Plane of Wigner-d for :math:`\ell` and all angles :math:`\beta`,
             with full plane computed.
 
     Notes:
