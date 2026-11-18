@@ -43,7 +43,7 @@ jobs:
       uses: actions/setup-python@v7
       with:
         python-version: "3.13"
-      cache: pip
+        cache: pip
 
     - name: Install GCC version compatible with Conan 1 for so3 build
       run: |
