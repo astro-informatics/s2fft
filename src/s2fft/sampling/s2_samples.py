@@ -300,7 +300,9 @@ def nphi_ring(t: int, nside: int = None) -> int:
         raise ValueError(f"Ring t={t} not contained by nside={nside}")
 
 
-def thetas(L: int | None = None, sampling: str = "mw", nside: int | None = None) -> np.ndarray:
+def thetas(
+    L: int | None = None, sampling: str = "mw", nside: int | None = None
+) -> np.ndarray:
     r"""
     Compute :math:`\theta` samples for given sampling scheme.
 

@@ -8,7 +8,10 @@ from s2fft.sampling import s2_samples as samples
 
 
 def quad_weights_transform(
-    L: int, sampling: str = "mwss", spin: int = 0, nside: int | None = None,
+    L: int,
+    sampling: str = "mwss",
+    spin: int = 0,
+    nside: int | None = None,
 ) -> np.ndarray:
     r"""
     Compute quadrature weights for :math:`\theta` and :math:`\phi`

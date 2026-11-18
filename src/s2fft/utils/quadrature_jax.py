@@ -75,7 +75,9 @@ def quad_weights_transform(
 
 
 @_partial(_jit, static_argnums=(0, 1, 2))
-def quad_weights(L: int | None = None, sampling: str = "mw", nside: int | None = None) -> jnp.ndarray:
+def quad_weights(
+    L: int | None = None, sampling: str = "mw", nside: int | None = None
+) -> jnp.ndarray:
     r"""
     Compute quadrature weights for :math:`\theta` and :math:`\phi`
     integration for various sampling schemes. JAX implementation of

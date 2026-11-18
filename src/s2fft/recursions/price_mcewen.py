@@ -352,7 +352,10 @@ def generate_precomputes_wigner_jax(
 
 
 def compute_all_slices(
-    beta: np.ndarray, L: int, spin: int = 0, precomps: list[np.ndarray] | None = None,
+    beta: np.ndarray,
+    L: int,
+    spin: int = 0,
+    precomps: list[np.ndarray] | None = None,
 ) -> np.ndarray:
     r"""
     Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
