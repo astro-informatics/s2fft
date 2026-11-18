@@ -18,6 +18,7 @@ def generate_precomputes(
     nside: int = None,
     forward: bool = False,
     L_lower: int = 0,
+    betas: np.ndarray | None = None,
 ) -> list[np.ndarray]:
     r"""
     Compute recursion coefficients with :math:`\mathcal{O}(L^3)` memory overhead.
@@ -32,16 +33,22 @@ def generate_precomputes(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.
+            Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        forward (bool, optional): Whether to provide forward or inverse shift.
-            Defaults to False.
+        forward (bool, optional): Whether to generate precomputations for the forward
+            transform rather than the inverse transform. For F1 sampling, automatic
+            forward precomputations use the interior CC nodes at band-limit ``L + 1``.
+            For reduced CC analysis, pass the interior nodes of the resampled CC grid
+            through ``betas``. Explicit ``betas`` take precedence. Defaults to False.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+
+        betas (np.ndarray, optional): Polar nodes used for the precomputations.
 
     Returns:
         List[np.ndarray]: List of precomputed coefficient arrays.
@@ -53,14 +60,21 @@ def generate_precomputes(
     mm = -spin
     L0 = L_lower
     # Correct for mw to mwss conversion
-    if forward and sampling.lower() in ["mw", "mwss"]:
-        sampling = "mwss"
-        beta = samples.thetas(2 * L, "mwss")
+    if betas is not None:
+        beta = np.asarray(betas)
     else:
-        beta = samples.thetas(L, sampling, nside)
+        if forward and sampling.lower() == "f1":
+            # F1 forward analysis resamples onto a CC grid with 2L+1 nodes.
+            # The recurrence uses its 2L-1 interior nodes; poles are handled separately.
+            beta = samples.thetas(L + 1, "cc")[1:-1]
+        elif forward and sampling.lower() in ["mw", "mwss"]:
+            sampling = "mwss"
+            beta = samples.thetas(2 * L, "mwss")
+        else:
+            beta = samples.thetas(L, sampling, nside)
 
-    if forward and samples.includes_both_poles(sampling):
-        beta = beta[1:-1]
+        if forward and samples.includes_both_poles(sampling):
+            beta = beta[1:-1]
 
     ntheta = len(beta)  # Number of theta samples
     el = np.arange(L0, L)
@@ -140,18 +154,22 @@ def generate_precomputes_jax(
         spin (int, optional): Harmonic spin. Defaults to 0.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.
+            Defaults to "mw".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
-        forward (bool, optional): Whether to provide forward or inverse shift.
-            Defaults to False.
+        forward (bool, optional): Whether to generate precomputations for the forward
+            transform rather than the inverse transform. For F1 sampling, automatic
+            forward precomputations use the interior CC nodes at band-limit ``L + 1``.
+            For reduced CC analysis, pass the interior nodes of the resampled CC grid
+            through ``betas``. Explicit ``betas`` take precedence. Defaults to False.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
-        beta (jnp.ndarray): Array of polar angles in radians.
+        betas (jnp.ndarray, optional): Polar nodes used for the precomputations.
 
     Returns:
         List[jnp.ndarray]: List of precomputed coefficient arrays.
@@ -161,7 +179,11 @@ def generate_precomputes_jax(
     L0 = L_lower
     # Correct for mw to mwss conversion
     if betas is None:
-        if forward and sampling.lower() in ["mw", "mwss"]:
+        if forward and sampling.lower() == "f1":
+            # F1 forward analysis resamples onto a CC grid with 2L+1 nodes.
+            # The recurrence uses its 2L-1 interior nodes; poles are handled separately.
+            beta = samples.thetas(L + 1, "cc")[1:-1]
+        elif forward and sampling.lower() in ["mw", "mwss"]:
             sampling = "mwss"
             beta = samples.thetas(2 * L, "mwss")
         else:
