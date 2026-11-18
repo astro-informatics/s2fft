@@ -24,7 +24,7 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
     Bucher recursion.
 
     The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
-    :math:`-L < m < L` by `dl[L - 1 - m]`. This implementation has computational
+    :math:`-L < m < L` by `dl[m + L - 1]`. This implementation has computational
     scaling :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L`
     operations.
 
