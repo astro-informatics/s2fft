@@ -27,12 +27,11 @@ def inverse_transform(
         N: Azimuthal band-limit.
         precomps: Fourier coefficients of the
             reduced Wigner d-functions and the corresponding upsampled quadrature
-            weights. Defaults to None.
+            weights.
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+            {"mw", "mwss"}.
 
     Returns:
         Pixel-space function sampled on the rotation group.
@@ -112,12 +111,11 @@ def inverse_transform_jax(
         N: Azimuthal band-limit.
         precomps: Fourier coefficients of the
             reduced Wigner d-functions and the corresponding upsampled quadrature
-            weights. Defaults to None.
+            weights.
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+            {"mw", "mwss"}.
 
     Returns:
         Pixel-space function sampled on the rotation group.
@@ -199,12 +197,11 @@ def forward_transform(
         N: Azimuthal band-limit.
         precomps: Fourier coefficients of the
             reduced Wigner d-functions and the corresponding upsampled quadrature
-            weights. Defaults to None.
+            weights.
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+            {"mw", "mwss"}.
 
     Returns:
         Wigner coefficients of function f.
@@ -320,12 +317,11 @@ def forward_transform_jax(
         N: Azimuthal band-limit.
         precomps: Fourier coefficients of the
             reduced Wigner d-functions and the corresponding upsampled quadrature
-            weights. Defaults to None.
+            weights.
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+            {"mw", "mwss"}.
 
     Returns:
         Wigner coefficients of function f.

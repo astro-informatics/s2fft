@@ -166,10 +166,8 @@ def healpix_fft(
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
         method: Evaluation method in {"numpy", "jax", "torch", "cuda"}.
-            Defaults to "numpy".
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
 
     Raises:
         ValueError: Deployment method not in {"numpy", "jax", "torch", "cuda"}.
@@ -305,10 +303,8 @@ def healpix_ifft(
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
         method: Evaluation method in {"numpy", "jax", "torch", "cuda"}.
-            Defaults to "numpy".
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
 
     Raises:
         ValueError: Deployment method not in {"numpy", "jax", "torch", "cuda"}.
@@ -472,10 +468,8 @@ def ring_phase_shifts_hp(
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
         forward: Whether to provide forward or inverse shift.
-            Defaults to False.
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
 
     Returns:
         Vector of phase shifts with shape :math:`[n_{\theta}, 2L-1]`.
@@ -501,10 +495,8 @@ def ring_phase_shifts_hp_jax(
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
         forward: Whether to provide forward or inverse shift.
-            Defaults to False.
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
 
     Returns:
         Vector of phase shifts with shape :math:`[n_{\theta}, 2L-1]`.

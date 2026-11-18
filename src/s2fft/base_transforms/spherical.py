@@ -26,16 +26,15 @@ def inverse(
     Args:
         flm: Spherical harmonic coefficients.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+            if sampling="healpix".
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Signal on the sphere.
@@ -69,19 +68,17 @@ def _inverse(
     Args:
         flm: Spherical harmonic coefficients.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         method: Harmonic transform algorithm. Supported algorithms include
-            {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to
-            "sov_fft_vectorized".
+            {"direct", "sov", "sov_fft", "sov_fft_vectorized"}.
         nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+            if sampling="healpix".
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Signal on the sphere.
@@ -136,16 +133,16 @@ def forward(
     Args:
         f: Signal on the sphere.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+            if sampling="healpix".
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            conjugate symmetry is exploited to reduce computational costs.
             False.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
         iter: Number of iterative refinement iterations to use to
             improve accuracy of forward transform (as an inverse of inverse transform).
             Primarily of use with HEALPix sampling for which there is not a sampling
@@ -192,19 +189,17 @@ def _forward(
     Args:
         f: Signal on the sphere.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         method: Harmonic transform algorithm. Supported algorithms include
-            {"direct", "sov", "sov_fft", "sov_fft_vectorized"}. Defaults to
-            "sov_fft_vectorized".
+            {"direct", "sov", "sov_fft", "sov_fft_vectorized"}.
         nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+            if sampling="healpix".
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Spherical harmonic coefficients.

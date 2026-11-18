@@ -21,7 +21,7 @@ def rotate_flms(
         L: Harmonic band-limit.
         rotation: Rotation on the sphere (alpha, beta, gamma).
         dl_array: Precomputed array of reduced Wigner d-function
-            coefficients, see :func:~`generate_rotate_dls`. Defaults to None.
+            coefficients, see :func:~`generate_rotate_dls`.
 
     Returns:
         jnp.ndarray: Rotated spherical harmonic coefficients with shape [L,2L-1].

@@ -33,15 +33,13 @@ def inverse(
     Args:
         flm: Spherical harmonic coefficients.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
-        kernel: Wigner-d kernel. Defaults to None.
+        spin: Harmonic spin.
+        kernel: Wigner-d kernel.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
         method: Execution mode in {"numpy", "jax", "torch"}.
-            Defaults to "jax".
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
@@ -223,15 +221,13 @@ def forward(
     Args:
         f: Signal on the sphere.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
-        kernel: Wigner-d kernel. Defaults to None.
+        spin: Harmonic spin.
+        kernel: Wigner-d kernel.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
         method: Execution mode in {"numpy", "jax", "torch"}.
-            Defaults to "jax".
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
         iter: Number of iterative refinement iterations to use to

@@ -23,7 +23,7 @@ def mw_to_mwss(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     Args:
         f_mw: Signal on the sphere sampled with MW sampling.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
 
     Returns:
         Signal on the sphere sampled with MWSS sampling.
@@ -54,7 +54,7 @@ def mw_to_mwss_theta(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     Args:
         f_mw: Signal on the sphere sampled with MW sampling.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
 
     Raises:
         ValueError: Input spherical signal must have shape matching MW sampling.
@@ -158,9 +158,9 @@ def periodic_extension(
     Args:
         f: Signal on the sphere sampled with MW/MWSS sampling scheme.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}.  Defaults to "mw".
+            {"mw", "mwss"}.
 
     Raises:
         ValueError: Only MW/MWW sampling schemes supported.
@@ -245,7 +245,7 @@ def unextend(f_ext: jnp.ndarray, L: int, sampling: str = "mw") -> jnp.ndarray:
             domain :math:`[0,2\pi]`.
         L: Harmonic band-limit.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}.  Defaults to "mw".
+            {"mw", "mwss"}.
 
     Raises:
         ValueError: Only MW/MWW sampling schemes supported.
@@ -286,7 +286,7 @@ def upsample_by_two_mwss(f: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
         f: Signal on the sphere sampled with MWSS sampling scheme, sampled
             at resolution L.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
 
     Returns:
         Signal on the sphere sampled with MWSS sampling scheme, sampling at resolution 2*L.
@@ -358,7 +358,7 @@ def periodic_extension_spatial_mwss(
     Args:
         f: Signal on the sphere sampled with MWSS sampling scheme.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
 
     Returns:
         Signal on the sphere extended to :math:`\theta` domain

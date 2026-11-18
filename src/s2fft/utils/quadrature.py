@@ -20,8 +20,8 @@ def quad_weights_transform(
     Args:
         L: Harmonic band-limit.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mwss".
-        spin: Harmonic spin. Defaults to 0.
+            {"mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        spin: Harmonic spin.
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
@@ -70,12 +70,11 @@ def quad_weights(
 
     Args:
         L: Harmonic band-limit.  Required if sampling not healpix.
-            Defaults to None.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-        spin: Harmonic spin. Defaults to 0.
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        spin: Harmonic spin.
         nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+            if sampling="healpix".
 
     Raises:
         ValueError: Invalid sampling scheme.
@@ -229,7 +228,7 @@ def quad_weights_mw(L: int, spin: int = 0) -> np.ndarray:
     Args:
         L: Harmonic band-limit.
 
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
 
     Returns:
         Weights computed for each :math:`\theta` (weights are identical
@@ -248,7 +247,7 @@ def quad_weights_mwss(L: int, spin: int = 0) -> np.ndarray:
     Args:
         L: Harmonic band-limit.
 
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
 
     Returns:
         Weights computed for each :math:`\theta` (weights are identical
@@ -270,7 +269,7 @@ def quad_weights_mwss_theta_only(L: int, spin: int = 0) -> np.ndarray:
     Args:
         L: Harmonic band-limit.
 
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
 
     Returns:
         Weights computed for each :math:`\theta`.
@@ -297,7 +296,7 @@ def quad_weights_mw_theta_only(L: int, spin: int = 0) -> np.ndarray:
     Args:
         L: Harmonic band-limit.
 
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
 
     Returns:
         Weights computed for each :math:`\theta`.
@@ -354,7 +353,7 @@ def _fejer_second_rule_rfft_weights(n_points: int, xp: ModuleType = np):
 
     Args:
         n_points: Number of quadrature points / nodes (including left boundary point).
-        xp: Array namespace to use for operations. Defaults to NumPy.
+        xp: Array namespace to use for operations.
 
     Returns:
         Real-valued FFT of array of weights for quadrature nodes. Corresponding weigh
@@ -382,7 +381,7 @@ def quad_weights_cc(L: int, xp: ModuleType = np) -> np.ndarray:
 
     Args:
         L: Harmonic band-limit.
-        xp: Array namespace to use for operations. Defaults to NumPy.
+        xp: Array namespace to use for operations.
 
     Returns:
         Weights computed for each :math:`\theta` (weights are identical
@@ -398,7 +397,7 @@ def quad_weights_cc_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
 
     Args:
         L: Harmonic band-limit.
-        xp: Array namespace to use for operations. Defaults to NumPy.
+        xp: Array namespace to use for operations.
 
     Returns:
         Weights computed for each :math:`\theta`.
@@ -429,7 +428,7 @@ def quad_weights_f2(L: int, xp: ModuleType = np) -> np.ndarray:
 
     Args:
         L: Harmonic band-limit.
-        xp: Array namespace to use for operations. Defaults to NumPy.
+        xp: Array namespace to use for operations.
 
     Returns:
         Weights computed for each :math:`\theta` (weights are identical
@@ -445,7 +444,7 @@ def quad_weights_f2_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
 
     Args:
         L: Harmonic band-limit.
-        xp: Array namespace to use for operations. Defaults to NumPy.
+        xp: Array namespace to use for operations.
 
     Returns:
         Weights computed for each :math:`\theta`.

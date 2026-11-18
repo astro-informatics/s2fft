@@ -17,8 +17,7 @@ def init(dl: np.ndarray, L: int, implementation: str = "vectorized") -> np.ndarr
             `dl[m + L - 1, m' + L - 1]`.
         L: Harmonic band-limit.
         implementation: Implementation to adopt.  Supported
-            implementations include {"loop", "vectorized", "jax"}.  Defaults to
-            "vectorized".
+            implementations include {"loop", "vectorized", "jax"}.
 
     Returns:
         Plane of Wigner-d initialised for :math:`\ell=0`,
@@ -586,8 +585,7 @@ def compute_full(
         L: Harmonic band-limit.
         el: Spherical harmonic degree :math:`\ell`.
         implementation: Implementation to adopt.  Supported
-            implementations include {"loop", "vectorized", "jax"}.  Defaults to
-            "vectorized".
+            implementations include {"loop", "vectorized", "jax"}.
 
     Returns:
         Plane of Wigner-d for `el`, with full plane computed.

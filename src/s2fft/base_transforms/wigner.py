@@ -11,7 +11,7 @@ def inverse(
     L_lower: int = 0,
     sampling: str = "mw",
     reality: bool = False,
-    nside: int = None,
+    nside: int | None = None,
 ) -> np.ndarray:
     r"""
     Compute the inverse Wigner transform, i.e. inverse Fourier transform on
@@ -29,14 +29,13 @@ def inverse(
         flmn: Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
         L: Harmonic bandlimit.
         N: Directional band-limit.
-        L_lower: Harmonic lower bound. Defaults to 0.
+        L_lower: Harmonic lower bound.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl"}.
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+            if sampling="healpix".
 
     Raises:
         ValueError: Sampling scheme not currently supported.
@@ -85,7 +84,7 @@ def forward(
     L_lower: int = 0,
     sampling: str = "mw",
     reality: bool = False,
-    nside: int = None,
+    nside: int | None = None,
 ) -> np.ndarray:
     r"""
     Compute the forward Wigner transform, i.e. Fourier transform on
@@ -105,14 +104,13 @@ def forward(
             number of samples for angle :math:`\xi`.
         L: Harmonic bandlimit.
         N: Directional band-limit.
-        L_lower: Harmonic lower bound. Defaults to 0.
+        L_lower: Harmonic lower bound.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
+            {"mw", "mwss", "dh"}.
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+            if sampling="healpix".
 
     Raises:
         ValueError: Sampling scheme not currently supported.

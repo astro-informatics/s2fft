@@ -43,18 +43,16 @@ def inverse(
         N: Azimuthal band-limit. For high precision beyond :math:`N \approx 8`,
             one should use `method="jax_ssht"`.
         nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+            if sampling="healpix".
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix"}.
         method: Execution mode in {"numpy", "jax", "jax_ssht"}.
-            Defaults to "numpy".
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
         _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
             backend. Experimental, use with caution.
@@ -128,16 +126,15 @@ def inverse_numpy(
         N: Azimuthal band-limit. Recursive transform will have lower precision
             beyond :math:`N \approx 8`.
         nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+            if sampling="healpix".
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix"}.
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Signal on the sphere.
@@ -211,16 +208,15 @@ def inverse_jax(
         N: Azimuthal band-limit. Recursive transform will have lower precision
             beyond :math:`N \approx 8`.
         nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+            if sampling="healpix".
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix"}.
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Signal on the sphere.
@@ -291,12 +287,11 @@ def inverse_jax_ssht(
         L: Harmonic band-limit.
         N: Azimuthal band-limit.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl"}.
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
             backend. Experimental, use with caution.
@@ -348,18 +343,16 @@ def forward(
         L: Harmonic band-limit.
         N: Azimuthal band-limit.
         nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+            if sampling="healpix".
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix"}.
         method: Execution mode in {"numpy", "jax", "jax_ssht"}.
-            Defaults to "numpy".
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
         _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
             backend. Experimental, use with caution.
@@ -432,16 +425,15 @@ def forward_numpy(
         L: Harmonic band-limit.
         N: Azimuthal band-limit.
         nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+            if sampling="healpix".
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix"}.
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
@@ -520,16 +512,15 @@ def forward_jax(
         L: Harmonic band-limit.
         N: Azimuthal band-limit.
         nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+            if sampling="healpix".
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix"}.
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
@@ -621,12 +612,11 @@ def forward_jax_ssht(
         L: Harmonic band-limit.
         N: Azimuthal band-limit.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl"}.
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
             backend. Experimental, use with caution.

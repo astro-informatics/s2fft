@@ -29,14 +29,12 @@ def inverse(
         flm: Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
         L: Harmonic band-limit.
         N: Directional band-limit.
-        kernel: Wigner-d kernel. Defaults to None.
+        kernel: Wigner-d kernel.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix"}.
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
         method: Execution mode in {"numpy", "jax", "torch"}.
-            Defaults to "jax".
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
@@ -223,14 +221,12 @@ def forward(
             number of samples for angle :math:`\xi`.
         L: Harmonic band-limit.
         N: Directional band-limit.
-        kernel: Wigner-d kernel. Defaults to None.
+        kernel: Wigner-d kernel.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix"}.
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
         method: Execution mode in {"numpy", "jax", "torch"}.
-            Defaults to "jax".
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 

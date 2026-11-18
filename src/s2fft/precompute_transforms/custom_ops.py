@@ -25,7 +25,7 @@ def wigner_subset_to_s2(
             Wigner d-functions and the corresponding upsampled quadrature weights.
         L: Harmonic band-limit.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+            {"mw", "mwss"}.
 
     Raises:
         ValueError: If sampling scheme is not recognised.
@@ -106,7 +106,7 @@ def wigner_subset_to_s2_jax(
             Wigner d-functions and the corresponding upsampled quadrature weights.
         L: Harmonic band-limit.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+            {"mw", "mwss"}.
 
     Raises:
         ValueError: If sampling scheme is not recognised.
@@ -190,7 +190,7 @@ def so3_to_wigner_subset(
         L: Harmonic band-limit.
         N: Azimuthal band-limit.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+            {"mw", "mwss"}.
 
     Returns:
         Collection of spin spherical harmonic coefficients with shape :math:`[batch, n_s, L, 2L-1, channels]`.
@@ -230,7 +230,7 @@ def so3_to_wigner_subset_jax(
         L: Harmonic band-limit.
         N: Azimuthal band-limit.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+            {"mw", "mwss"}.
 
     Returns:
         Collection of spin spherical harmonic coefficients
@@ -272,7 +272,7 @@ def s2_to_wigner_subset(
             Wigner d-functions and the corresponding upsampled quadrature weights.
         L: Harmonic band-limit.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+            {"mw", "mwss"}.
 
     Returns:
         Collection of spin spherical harmonic coefficients with shape :math:`[batch, n_s, L, 2L-1, channels]`.
@@ -357,7 +357,7 @@ def s2_to_wigner_subset_jax(
             Wigner d-functions and the corresponding upsampled quadrature weights.
         L: Harmonic band-limit.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+            {"mw", "mwss"}.
 
     Returns:
         Collection of spin spherical harmonic coefficients with shape :math:`[batch, n_s, L, 2L-1, channels]`.

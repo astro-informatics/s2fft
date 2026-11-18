@@ -59,14 +59,13 @@ def inverse_latitudinal_step(
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Coefficients ftm with indexing :math:`[\theta, m]`.
@@ -211,16 +210,15 @@ def inverse_latitudinal_step_jax(
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
         spmd: Whether to map compute over multiple devices. Currently this
-            only maps over all available devices. Defaults to False.
+            only maps over all available devices.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Coefficients ftm with indexing :math:`[\theta, m]`.
@@ -458,14 +456,13 @@ def forward_latitudinal_step(
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Spherical harmonic coefficients.
@@ -610,16 +607,16 @@ def forward_latitudinal_step_jax(
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+            conjugate symmetry is exploited to reduce computational costs.
             False.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
         spmd: Whether to map compute over multiple devices. Currently this
-            only maps over all available devices. Defaults to False.
+            only maps over all available devices.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Spherical harmonic coefficients.

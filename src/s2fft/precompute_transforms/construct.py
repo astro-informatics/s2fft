@@ -60,9 +60,8 @@ def spin_spherical_kernel(
         spin: Harmonic spin.
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
@@ -196,9 +195,8 @@ def spin_spherical_kernel_jax(
         spin: Harmonic spin.
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
@@ -352,13 +350,11 @@ def wigner_kernel(
         N: Directional band-limit.
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
-            Defaults to False.
         mode: Whether to use FFT approach or manually compute each element.
             {"auto", "direct", "fft"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
@@ -479,13 +475,11 @@ def wigner_kernel_jax(
         N: Directional band-limit.
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
         sampling: Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
-            Defaults to False.
         mode: Whether to use FFT approach or manually compute each element.
             {"auto", "direct", "fft"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
@@ -658,7 +652,6 @@ def healpix_phase_shifts(L: int, nside: int, forward: bool = False) -> np.ndarra
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
         forward: Whether to provide forward or inverse shift.
-            Defaults to False.
 
     Returns:
         Vector of phase shifts with shape :math:`[thetas, 2L-1]`.

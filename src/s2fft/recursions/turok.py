@@ -66,7 +66,7 @@ def compute_slice(
         L: Harmonic band-limit.
         mm: Harmonic order at which to slice the matrix.
         positive_m_only: Compute Wigner-d matrix for slice at m greater
-            than zero only.  Defaults to False.
+            than zero only.
 
     Raises:
         ValueError: If el is greater than L.
@@ -116,7 +116,7 @@ def compute_quarter_slice(
         L: Harmonic band-limit.
         mm: Harmonic order at which to slice the matrix.
         positive_m_only: Compute Wigner-d matrix for slice at m greater
-            than zero only.  Defaults to False.
+            than zero only.
 
     Returns:
         Wigner-d matrix slice of dimension [2L-1] populated only on the mm slice.

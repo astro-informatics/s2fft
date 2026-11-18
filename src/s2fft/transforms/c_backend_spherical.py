@@ -51,12 +51,11 @@ def ssht_inverse(
     Args:
         flm: Spherical harmonic coefficients.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         ssht_sampling: Sampling scheme. Supported sampling schemes include
-            {"mw" = 0, "mwss" = 1, "dh" = 2, "gl" = 3}.  Defaults to "mw" = 0.
+            {"mw" = 0, "mwss" = 1, "dh" = 2, "gl" = 3}.
         _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
             backend. Experimental, use with caution.
@@ -169,12 +168,11 @@ def ssht_forward(
     Args:
         f: Signal on the sphere.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
         reality: Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
+            conjugate symmetry is exploited to reduce computational costs.
         ssht_sampling: Sampling scheme. Supported sampling schemes include
-            {"mw" = 0, "mwss" = 1, "dh" = 2, "gl" = 3}.  Defaults to "mw" = 0.
+            {"mw" = 0, "mwss" = 1, "dh" = 2, "gl" = 3}.
         _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
             backend. Experimental, use with caution.
