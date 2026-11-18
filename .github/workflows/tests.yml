@@ -50,7 +50,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y "gcc-${GCC_VERSION}" "g++-${GCC_VERSION}"
         echo "CC=gcc-${GCC_VERSION}" >> "$GITHUB_ENV"
-        echo "CXX=g++-${GCC_VERSION}" >> "$GITHUB_ENV
+        echo "CXX=g++-${GCC_VERSION}" >> "$GITHUB_ENV"
 
     - name: Install dependencies
       run: |
