@@ -32,8 +32,8 @@ def inverse_latitudinal_step(
     flm: np.ndarray,
     beta: np.ndarray,
     L: int,
-    spin: int,
-    nside: int,
+    spin: int = 0,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
     precomps: list[np.ndarray] | None = None,
@@ -55,9 +55,9 @@ def inverse_latitudinal_step(
         flm: Spherical harmonic coefficients.
         beta: Array of polar angles in radians.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix". Defaults to None.
+            if sampling="healpix".
         sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         reality: Whether the signal on the sphere is real. If so,
@@ -182,8 +182,8 @@ def inverse_latitudinal_step_jax(
     flm: jnp.ndarray,
     beta: jnp.ndarray,
     L: int,
-    spin: int,
-    nside: int,
+    spin: int = 0,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
     precomps: list[jnp.ndarray] | None = None,
@@ -206,9 +206,9 @@ def inverse_latitudinal_step_jax(
         flm: Spherical harmonic coefficients.
         beta: Array of polar angles in radians.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix". Defaults to None.
+            if sampling="healpix".
         sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         reality: Whether the signal on the sphere is real. If so,
@@ -429,8 +429,8 @@ def forward_latitudinal_step(
     ftm: np.ndarray,
     beta: np.ndarray,
     L: int,
-    spin: int,
-    nside: int,
+    spin: int = 0,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
     precomps: list[np.ndarray] | None = None,
@@ -452,9 +452,9 @@ def forward_latitudinal_step(
         ftm: Intermediate coefficients with indexing :math:`[\theta, m]`.
         beta: Array of polar angles in radians.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix". Defaults to None.
+            if sampling="healpix".
         sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         reality: Whether the signal on the sphere is real. If so,
@@ -579,8 +579,8 @@ def forward_latitudinal_step_jax(
     ftm_in: jnp.ndarray,
     beta_in: jnp.ndarray,
     L: int,
-    spin: int,
-    nside: int,
+    spin: int = 0,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
     precomps: list[jnp.ndarray] | None = None,
@@ -603,9 +603,9 @@ def forward_latitudinal_step_jax(
         ftm_in: Intermediate coefficients with indexing :math:`[\theta, m]`.
         beta_in: Array of polar angles in radians.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix". Defaults to None.
+            if sampling="healpix".
         sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         reality: Whether the signal on the sphere is real. If so,

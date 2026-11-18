@@ -167,7 +167,7 @@ def _ngamma(N: int) -> int:
     return 2 * N - 1
 
 
-def elmn2ind(el: int, m: int, n: int, L: int, N: int) -> int:
+def elmn2ind(el: int, m: int, n: int, L: int, N: int = 1) -> int:
     r"""
     Convert from Wigner space 3D indexing of :math:`(\ell,m, n)` to 1D index.
 
@@ -176,7 +176,7 @@ def elmn2ind(el: int, m: int, n: int, L: int, N: int) -> int:
         m: Harmonic order :math:`m`.
         n: Directional order :math:`n`.
         L: Harmonic band-limit.
-        N: Directional band-limit. Defaults to 1.
+        N: Directional band-limit.
 
     Returns:
         Corresponding 1D index in Wigner space.

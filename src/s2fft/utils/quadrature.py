@@ -8,7 +8,7 @@ from s2fft.sampling import s2_samples as samples
 
 
 def quad_weights_transform(
-    L: int, sampling: str = "mwss", spin: int = 0, nside: int = 0
+    L: int, sampling: str = "mwss", spin: int = 0, nside: int | None = None,
 ) -> np.ndarray:
     r"""
     Compute quadrature weights for :math:`\theta` and :math:`\phi`
@@ -23,7 +23,7 @@ def quad_weights_transform(
             {"mwss", "dh", "gl", "healpix", "cc", "f2"}.
         spin: Harmonic spin.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix". Defaults to None.
+            if sampling="healpix".
 
     Raises:
         ValueError: Invalid sampling scheme.

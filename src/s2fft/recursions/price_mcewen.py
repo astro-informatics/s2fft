@@ -352,7 +352,7 @@ def generate_precomputes_wigner_jax(
 
 
 def compute_all_slices(
-    beta: np.ndarray, L: int, spin: int, precomps: list[np.ndarray] | None = None,
+    beta: np.ndarray, L: int, spin: int = 0, precomps: list[np.ndarray] | None = None,
 ) -> np.ndarray:
     r"""
     Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
@@ -379,7 +379,7 @@ def compute_all_slices(
     Args:
         beta: Array of polar angles in radians.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
         precomps: Precomputed recursion coefficients with memory overhead
             :math:`\mathcal{O}(L^2)`, which is minimal.
 
@@ -476,7 +476,7 @@ def compute_all_slices(
 def compute_all_slices_jax(
     beta: jnp.ndarray,
     L: int,
-    spin: int,
+    spin: int = 0,
     sampling: str = "mw",
     forward: bool = False,
     nside: int = None,
@@ -507,7 +507,7 @@ def compute_all_slices_jax(
     Args:
         beta: Array of polar angles in radians.
         L: Harmonic band-limit.
-        spin: Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
         precomps: Precomputed recursion coefficients with memory overhead
             :math:`\mathcal{O}(L^2)`, which is minimal.
 
