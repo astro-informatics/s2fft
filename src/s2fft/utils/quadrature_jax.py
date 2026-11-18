@@ -21,7 +21,7 @@ from s2fft.utils.quadrature import (
 
 @_partial(_jit, static_argnums=(0, 1, 2))
 def quad_weights_transform(
-    L: int, sampling: str = "mwss", nside: int = 0
+    L: int, sampling: str = "mwss", nside: int | None = None
 ) -> jnp.ndarray:
     r"""
     Compute quadrature weights for :math:`\theta` and :math:`\phi`
@@ -32,19 +32,17 @@ def quad_weights_transform(
     are twice the base resolution, i.e. 2 * L.
 
     Args:
-        L (int): Harmonic band-limit.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mwss".
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+        L: Harmonic band-limit.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
 
     Raises:
         ValueError: Invalid sampling scheme.
 
     Returns:
-        jnp.ndarray: Quadrature weights *to use in transform* for sampling scheme for
+        Quadrature weights *to use in transform* for sampling scheme for
         each :math:`\theta` (weights are identical as :math:`\phi` varies for given
         :math:`\theta`).
 
@@ -77,29 +75,26 @@ def quad_weights_transform(
 
 
 @_partial(_jit, static_argnums=(0, 1, 2))
-def quad_weights(L: int = None, sampling: str = "mw", nside: int = None) -> jnp.ndarray:
+def quad_weights(
+    L: int | None = None, sampling: str = "mw", nside: int | None = None
+) -> jnp.ndarray:
     r"""
     Compute quadrature weights for :math:`\theta` and :math:`\phi`
     integration for various sampling schemes. JAX implementation of
     :func:`~s2fft.quadrature.quad_weights`.
 
     Args:
-        L (int, optional): Harmonic band-limit.  Required if sampling not healpix.
-            Defaults to None.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+        L: Harmonic band-limit. Required if sampling not healpix.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
 
     Raises:
         ValueError: Invalid sampling scheme.
 
     Returns:
-        jnp.ndarray: Quadrature weights for sampling scheme for each :math:`\theta`
+        Quadrature weights for sampling scheme for each :math:`\theta`
         (weights are identical as :math:`\phi` varies for given :math:`\theta`).
 
     """
@@ -135,15 +130,15 @@ def quad_weights_hp(nside: int) -> jnp.ndarray:
     integration. JAX implementation of :func:`s2fft.quadrature.quad_weights_hp`.
 
     Note:
-        HEALPix weights are identical for all pixels.  Nevertheless, an array of
+        HEALPix weights are identical for all pixels. Nevertheless, an array of
         weights is returned (with identical values) for consistency of interface
         across other sampling schemes.
 
     Args:
-        nside (int): HEALPix Nside resolution parameter.
+        nside: HEALPix Nside resolution parameter.
 
     Returns:
-        jnp.ndarray: Weights computed for each :math:`\theta` (all weights in array are
+        Weights computed for each :math:`\theta` (all weights in array are
         identical).
 
     """
@@ -158,10 +153,10 @@ def quad_weights_gl_theta_only(L: int) -> jnp.ndarray:
     Compute GL quadrature weights for :math:`\theta` integration.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        jnp.ndarray: Weights computed for each :math:`\theta`.
+        Weights computed for each :math:`\theta`.
 
     """
     x1, x2 = -1.0, 1.0
@@ -211,10 +206,10 @@ def quad_weights_gl(L: int) -> jnp.ndarray:
     Compute GL quadrature weights for :math:`\theta` and :math:`\phi` integration.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        jnp.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
@@ -228,10 +223,10 @@ def quad_weights_dh(L: int) -> jnp.ndarray:
     JAX implementation of :func:`s2fft.quadrature.quad_weights_dh`.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        jnp.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
@@ -245,10 +240,10 @@ def quad_weights_dh_theta_only(L: int) -> jnp.ndarray:
     JAX implementation of :func:`s2fft.quadrature.quad_weights_dh_theta_only`.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        jnp.ndarray: Weight computed for each :math:`\theta`.
+        Weight computed for each :math:`\theta`.
 
     """
     thetas = samples.thetas(L, sampling="dh")
@@ -270,12 +265,10 @@ def quad_weights_mw(L: int) -> jnp.ndarray:
     JAX implementation of :func:`s2fft.quadrature.quad_weights_mw`.
 
     Args:
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        L: Harmonic band-limit.
 
     Returns:
-        jnp.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
@@ -289,12 +282,10 @@ def quad_weights_mwss(L: int) -> jnp.ndarray:
     JAX implementation of :func:`s2fft.quadrature.quad_weights_mwss`.
 
     Args:
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        L: Harmonic band-limit.
 
     Returns:
-        jnp.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
@@ -310,12 +301,10 @@ def quad_weights_mwss_theta_only(L: int) -> jnp.ndarray:
     JAX implementation of :func:`s2fft.quadrature.quad_weights_mwss_theta_only`.
 
     Args:
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        L: Harmonic band-limit.
 
     Returns:
-        jnp.ndarray: Weights computed for each :math:`\theta`.
+        Weights computed for each :math:`\theta`.
 
     """
     w = jnp.concatenate((jnp.zeros(1), jax.vmap(mw_weights)(jnp.arange(-(L - 1), L))))
@@ -333,12 +322,10 @@ def quad_weights_mw_theta_only(L: int) -> jnp.ndarray:
     JAX implementation of :func:`s2fft.quadrature.quad_weights_mw_theta_only`.
 
     Args:
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        L: Harmonic band-limit.
 
     Returns:
-        jnp.ndarray: Weights computed for each :math:`\theta`.
+        Weights computed for each :math:`\theta`.
 
     """
     w = jax.vmap(mw_weights)(jnp.arange(-(L - 1), L))
@@ -363,10 +350,10 @@ def mw_weights(m: int) -> float:
     which can be computed analytically.
 
     Args:
-        m (int): Harmonic weight index.
+        m: Harmonic weight index.
 
     Returns:
-        float: MW weight.
+        MW weight.
 
     """
     return jax.lax.cond(
@@ -392,10 +379,10 @@ def quad_weights_cc(L: int) -> jnp.ndarray:
     Compute Clenshaw-Curtis quadrature weights for :math:`\theta` and :math:`\phi` integration.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
@@ -408,10 +395,10 @@ def quad_weights_cc_theta_only(L: int) -> jnp.ndarray:
     Compute Clenshaw-Curtis quadrature weights for :math:`\theta` integration (only).
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        jnp.ndarray: Weights computed for each :math:`\theta`.
+        Weights computed for each :math:`\theta`.
 
     References:
        Waldvogel, J. (2006). Fast construction of the Fejer and Clenshaw-Curtis quadrature rules.
@@ -427,10 +414,10 @@ def quad_weights_f2(L: int) -> jnp.ndarray:
     Compute Fejér's second rule quadrature weights for :math:`\theta` and :math:`\phi` integration.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
@@ -443,10 +430,10 @@ def quad_weights_f2_theta_only(L: int) -> jnp.ndarray:
     Compute Fejér's second rule quadrature weights for :math:`\theta` integration (only).
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        jnp.ndarray: Weights computed for each :math:`\theta`.
+        Weights computed for each :math:`\theta`.
 
     References:
        Waldvogel, J. (2006). Fast construction of the Fejer and Clenshaw-Curtis quadrature rules.

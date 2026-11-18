@@ -32,14 +32,12 @@ def spectral_folding(fm: np.ndarray, nphi: int, L: int) -> np.ndarray:
     coefficients, i.e. aliasing high frequencies.
 
     Args:
-        fm (np.ndarray): Slice of Fourier coefficients corresponding to ring at latitute t.
-
-        nphi (int): Total number of pixel space phi samples for latitude t.
-
-        L (int): Harmonic band-limit.
+        fm: Slice of Fourier coefficients corresponding to ring at latitute t.
+        nphi: Total number of pixel space phi samples for latitude t.
+        L: Harmonic band-limit.
 
     Returns:
-        np.ndarray: Lower resolution set of aliased Fourier coefficients.
+        Lower resolution set of aliased Fourier coefficients.
 
     """
     assert nphi <= 2 * L
@@ -67,14 +65,12 @@ def spectral_folding_jax(fm: jnp.ndarray, nphi: int, L: int) -> jnp.ndarray:
     :func:`~spectral_folding`.
 
     Args:
-        fm (jnp.ndarray): Slice of Fourier coefficients corresponding to ring at latitute t.
-
-        nphi (int): Total number of pixel space phi samples for latitude t.
-
-        L (int): Harmonic band-limit.
+        fm: Slice of Fourier coefficients corresponding to ring at latitute t.
+        nphi: Total number of pixel space phi samples for latitude t.
+        L: Harmonic band-limit.
 
     Returns:
-        jnp.ndarray: Lower resolution set of aliased Fourier coefficients.
+        Lower resolution set of aliased Fourier coefficients.
 
     """
     slice_start = L - nphi // 2
@@ -98,14 +94,12 @@ def spectral_periodic_extension(fm: np.ndarray, nphi: int, L: int) -> np.ndarray
     coefficients, i.e. imposed periodicity in Fourier space.
 
     Args:
-        fm (np.ndarray): Slice of Fourier coefficients corresponding to ring at latitute t.
-
-        nphi (int): Total number of pixel space phi samples for latitude t.
-
-        L (int): Harmonic band-limit.
+        fm: Slice of Fourier coefficients corresponding to ring at latitute t.
+        nphi: Total number of pixel space phi samples for latitude t.
+        L: Harmonic band-limit.
 
     Returns:
-        np.ndarray: Higher resolution set of periodic Fourier coefficients.
+        Higher resolution set of periodic Fourier coefficients.
 
     """
     assert nphi <= 2 * L
@@ -134,12 +128,11 @@ def spectral_periodic_extension_jax(fm: jnp.ndarray, L: int) -> jnp.ndarray:
     :func:`~spectral_periodic_extension`, modified to be JIT-compilable.
 
     Args:
-        fm (jnp.ndarray): Slice of Fourier coefficients corresponding to ring at latitute t.
-
-        L (int): Harmonic band-limit.
+        fm: Slice of Fourier coefficients corresponding to ring at latitute t.
+        L: Harmonic band-limit.
 
     Returns:
-        jnp.ndarray: Higher resolution set of periodic Fourier coefficients.
+        Higher resolution set of periodic Fourier coefficients.
 
     """
     nphi = fm.shape[0]
@@ -169,24 +162,18 @@ def healpix_fft(
     back-projection in the polar regions to manually enforce Fourier periodicity.
 
     Args:
-        f (np.ndarray): HEALPix pixel-space array.
-
-        L (int): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-        method (str, optional): Evaluation method in {"numpy", "jax", "torch", "cuda"}.
-            Defaults to "numpy".
-
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        f: HEALPix pixel-space array.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        method: Evaluation method in {"numpy", "jax", "torch", "cuda"}.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
 
     Raises:
         ValueError: Deployment method not in {"numpy", "jax", "torch", "cuda"}.
 
     Returns:
-        np.ndarray: Array of Fourier coefficients for all latitudes.
+        Array of Fourier coefficients for all latitudes.
 
     """
     if method not in _healpix_fft_functions:
@@ -200,17 +187,14 @@ def healpix_fft_numpy(f: np.ndarray, L: int, nside: int, reality: bool) -> np.nd
     in the polar regions to manually enforce Fourier periodicity.
 
     Args:
-        f (np.ndarray): HEALPix pixel-space array.
-
-        L (int): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        f: HEALPix pixel-space array.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Returns:
-        np.ndarray: Array of Fourier coefficients for all latitudes.
+        Array of Fourier coefficients for all latitudes.
 
     """
     compat_dtype = compatible_complex_dtype(f)
@@ -246,17 +230,14 @@ def healpix_fft_jax(f: jnp.ndarray, L: int, nside: int, reality: bool) -> jnp.nd
     implementation of :func:`~healpix_fft_numpy`.
 
     Args:
-        f (jnp.ndarray): HEALPix pixel-space array.
-
-        L (int): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        f: HEALPix pixel-space array.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Returns:
-        jnp.ndarray: Array of Fourier coefficients for all latitudes.
+        Array of Fourier coefficients for all latitudes.
 
     """
     compat_dtype = compatible_complex_dtype(f)
@@ -318,24 +299,18 @@ def healpix_ifft(
     in the polar regions to mitigate aliasing.
 
     Args:
-        ftm (np.ndarray): Array of Fourier coefficients for all latitudes.
-
-        L (int): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-        method (str, optional): Evaluation method in {"numpy", "jax", "torch", "cuda"}.
-            Defaults to "numpy".
-
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        ftm: Array of Fourier coefficients for all latitudes.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        method: Evaluation method in {"numpy", "jax", "torch", "cuda"}.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
 
     Raises:
         ValueError: Deployment method not in {"numpy", "jax", "torch", "cuda"}.
 
     Returns:
-        np.ndarray: HEALPix pixel-space array.
+        HEALPix pixel-space array.
 
     """
     assert L >= 2 * nside
@@ -352,17 +327,14 @@ def healpix_ifft_numpy(
     regions to mitigate aliasing.
 
     Args:
-        ftm (np.ndarray): Array of Fourier coefficients for all latitudes.
-
-        L (int): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        ftm: Array of Fourier coefficients for all latitudes.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Returns:
-        np.ndarray: HEALPix pixel-space array.
+        HEALPix pixel-space array.
 
     """
     f = np.zeros(samples.f_shape(sampling="healpix", nside=nside), dtype=np.complex128)
@@ -393,17 +365,14 @@ def healpix_ifft_jax(
     :func:`~healpix_ifft_numpy`.
 
     Args:
-        ftm (jnp.ndarray): Array of Fourier coefficients for all latitudes.
-
-        L (int): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        ftm: Array of Fourier coefficients for all latitudes.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Returns:
-        jnp.ndarray: HEALPix pixel-space array.
+        HEALPix pixel-space array.
 
     """
 
@@ -444,12 +413,11 @@ def p2phi_rings(t: np.ndarray, nside: int) -> np.ndarray:
     Vectorised implementation of :func:`~samples.p2phi_ring`.
 
     Args:
-        t (np.ndarrray): vector of :math:`\theta` ring indicies, i.e. [0,1,...,ntheta-1]
-
-        nside (int): HEALPix Nside resolution parameter.
+        t: vector of :math:`\theta` ring indicies, i.e. [0,1,...,ntheta-1]
+        nside: HEALPix Nside resolution parameter.
 
     Returns:
-        np.ndarray: :math:`\phi` offset for each ring index.
+        :math:`\phi` offset for each ring index.
 
     """
     shift = 1 / 2
@@ -471,12 +439,11 @@ def p2phi_rings_jax(t: jnp.ndarray, nside: int) -> jnp.ndarray:
     JAX implementation of :func:`~p2phi_rings`.
 
     Args:
-        t (jnp.ndarrray): vector of :math:`\theta` ring indicies, i.e. [0,1,...,ntheta-1]
-
-        nside (int): HEALPix Nside resolution parameter.
+        t: vector of :math:`\theta` ring indicies, i.e. [0,1,...,ntheta-1]
+        nside: HEALPix Nside resolution parameter.
 
     Returns:
-        jnp.ndarray: :math:`\phi` offset for each ring index.
+        :math:`\phi` offset for each ring index.
 
     """
     shift = 1 / 2
@@ -498,19 +465,14 @@ def ring_phase_shifts_hp(
     Generates a phase shift vector for HEALPix for all :math:`\theta` rings.
 
     Args:
-        L (int, optional): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-        forward (bool, optional): Whether to provide forward or inverse shift.
-            Defaults to False.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        forward: Whether to provide forward or inverse shift.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
 
     Returns:
-        np.ndarray: Vector of phase shifts with shape :math:`[n_{\theta}, 2L-1]`.
+        Vector of phase shifts with shape :math:`[n_{\theta}, 2L-1]`.
 
     """
     t = np.arange(samples.ntheta(L, "healpix", nside))
@@ -530,19 +492,14 @@ def ring_phase_shifts_hp_jax(
     implementation of :func:`~ring_phase_shifts_hp`.
 
     Args:
-        L (int, optional): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-        forward (bool, optional): Whether to provide forward or inverse shift.
-            Defaults to False.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        forward: Whether to provide forward or inverse shift.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
 
     Returns:
-        jnp.ndarray: Vector of phase shifts with shape :math:`[n_{\theta}, 2L-1]`.
+        Vector of phase shifts with shape :math:`[n_{\theta}, 2L-1]`.
 
     """
     t = jnp.arange(samples.ntheta(L, "healpix", nside))
@@ -853,17 +810,14 @@ def healpix_fft_cuda(
     in the polar regions to manually enforce Fourier periodicity.
 
     Args:
-        f (jnp.ndarray): HEALPix pixel-space array.
-
-        L (int): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        f: HEALPix pixel-space array.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        reality (bool): Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Returns:
-        jnp.ndarray: Array of Fourier coefficients for all latitudes.
+        Array of Fourier coefficients for all latitudes.
 
     """
     _check_extension_module()
@@ -894,17 +848,14 @@ def healpix_ifft_cuda(
     regions to mitigate aliasing.
 
     Args:
-        ftm (jnp.ndarray): Array of Fourier coefficients for all latitudes.
-
-        L (int): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        ftm: Array of Fourier coefficients for all latitudes.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        reality (bool): Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Returns:
-        jnp.ndarray: HEALPix pixel-space array.
+        HEALPix pixel-space array.
 
     """
     _check_extension_module()

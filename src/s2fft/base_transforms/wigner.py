@@ -11,7 +11,7 @@ def inverse(
     L_lower: int = 0,
     sampling: str = "mw",
     reality: bool = False,
-    nside: int = None,
+    nside: int | None = None,
 ) -> np.ndarray:
     r"""
     Compute the inverse Wigner transform, i.e. inverse Fourier transform on
@@ -26,29 +26,22 @@ def inverse(
         :math:`\alpha` with :math:`\phi`.
 
     Args:
-        flmn (np.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
-
-        L (int): Harmonic bandlimit.
-
-        N (int): Directional band-limit.
-
-        L_lower (int, optional): Harmonic lower bound. Defaults to 0.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+        flmn: Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
+        L: Harmonic bandlimit.
+        N: Directional band-limit.
+        L_lower: Harmonic lower bound.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl"}.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
 
     Raises:
         ValueError: Sampling scheme not currently supported.
 
     Returns:
-        np.ndarray:  Signal on the on :math:`SO(3)` with shape :math:`[n_{\gamma},
+        Signal on the on :math:`SO(3)` with shape :math:`[n_{\gamma},
         n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the number of samples for
         angle :math:`\xi`.
 
@@ -91,7 +84,7 @@ def forward(
     L_lower: int = 0,
     sampling: str = "mw",
     reality: bool = False,
-    nside: int = None,
+    nside: int | None = None,
 ) -> np.ndarray:
     r"""
     Compute the forward Wigner transform, i.e. Fourier transform on
@@ -106,31 +99,24 @@ def forward(
         :math:`\alpha` with :math:`\phi`.
 
     Args:
-        f (np.ndarray): Signal on the on :math:`SO(3)` with shape
+        f: Signal on the on :math:`SO(3)` with shape
             :math:`[n_{\gamma}, n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the
             number of samples for angle :math:`\xi`.
-
-        L (int): Harmonic bandlimit.
-
-        N (int): Directional band-limit.
-
-        L_lower (int, optional): Harmonic lower bound. Defaults to 0.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh"}.  Defaults to "mw".
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+        L: Harmonic bandlimit.
+        N: Directional band-limit.
+        L_lower: Harmonic lower bound.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh"}.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
 
     Raises:
         ValueError: Sampling scheme not currently supported.
 
     Returns:
-        np.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
+        Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
 
     """
     assert f.shape == samples.f_shape(L, N, sampling, nside)

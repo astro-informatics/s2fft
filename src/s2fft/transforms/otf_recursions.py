@@ -32,11 +32,11 @@ def inverse_latitudinal_step(
     flm: np.ndarray,
     beta: np.ndarray,
     L: int,
-    spin: int,
-    nside: int,
+    spin: int = 0,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[np.ndarray] | None = None,
     L_lower: int = 0,
 ) -> np.ndarray:
     r"""
@@ -52,32 +52,23 @@ def inverse_latitudinal_step(
     simultaneously; facilitating GPU/TPU acceleration.
 
     Args:
-        flm (np.ndarray): Spherical harmonic coefficients.
-
-        beta (np.ndarray): Array of polar angles in radians.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+        flm: Spherical harmonic coefficients.
+        beta: Array of polar angles in radians.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
-
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+        L_lower: Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
-        np.ndarray: Coefficients ftm with indexing :math:`[\theta, m]`.
+        Coefficients ftm with indexing :math:`[\theta, m]`.
 
     """
     mm = -spin
@@ -191,11 +182,11 @@ def inverse_latitudinal_step_jax(
     flm: jnp.ndarray,
     beta: jnp.ndarray,
     L: int,
-    spin: int,
-    nside: int,
+    spin: int = 0,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[jnp.ndarray] | None = None,
     spmd: bool = False,
     L_lower: int = 0,
 ) -> jnp.ndarray:
@@ -212,35 +203,25 @@ def inverse_latitudinal_step_jax(
     simultaneously; facilitating GPU/TPU acceleration.
 
     Args:
-        flm (jnp.ndarray): Spherical harmonic coefficients.
-
-        beta (jnp.ndarray): Array of polar angles in radians.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        precomps (List[jnp.ndarray], optional): Precomputed list of recursion coefficients. At most
+        flm: Spherical harmonic coefficients.
+        beta: Array of polar angles in radians.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
-
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
-            only maps over all available devices. Defaults to False.
-
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+        spmd: Whether to map compute over multiple devices. Currently this
+            only maps over all available devices.
+        L_lower: Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
-        jnp.ndarray: Coefficients ftm with indexing :math:`[\theta, m]`.
+        Coefficients ftm with indexing :math:`[\theta, m]`.
 
     Note:
         The single-program multiple-data (SPMD) optional variable determines whether
@@ -448,11 +429,11 @@ def forward_latitudinal_step(
     ftm: np.ndarray,
     beta: np.ndarray,
     L: int,
-    spin: int,
-    nside: int,
+    spin: int = 0,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[np.ndarray] | None = None,
     L_lower: int = 0,
 ) -> np.ndarray:
     r"""
@@ -468,32 +449,23 @@ def forward_latitudinal_step(
     simultaneously; facilitating GPU/TPU acceleration.
 
     Args:
-        ftm (np.ndarray): Intermediate coefficients with indexing :math:`[\theta, m]`.
-
-        beta (np.ndarray): Array of polar angles in radians.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+        ftm: Intermediate coefficients with indexing :math:`[\theta, m]`.
+        beta: Array of polar angles in radians.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
-
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+        L_lower: Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
-        np.ndarray: Spherical harmonic coefficients.
+        Spherical harmonic coefficients.
 
     """
     mm = -spin  # switch to match convention
@@ -607,11 +579,11 @@ def forward_latitudinal_step_jax(
     ftm_in: jnp.ndarray,
     beta_in: jnp.ndarray,
     L: int,
-    spin: int,
-    nside: int,
+    spin: int = 0,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[jnp.ndarray] | None = None,
     spmd: bool = False,
     L_lower: int = 0,
 ) -> jnp.ndarray:
@@ -628,35 +600,26 @@ def forward_latitudinal_step_jax(
     simultaneously; facilitating GPU/TPU acceleration.
 
     Args:
-        ftm (jnp.ndarray): Intermediate coefficients with indexing :math:`[\theta, m]`.
-
-        beta (jnp.ndarray): Array of polar angles in radians.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
+        ftm_in: Intermediate coefficients with indexing :math:`[\theta, m]`.
+        beta_in: Array of polar angles in radians.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
             False.
-
-        precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
-
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
-            only maps over all available devices. Defaults to False.
-
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+        spmd: Whether to map compute over multiple devices. Currently this
+            only maps over all available devices.
+        L_lower: Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
-        jnp.ndarray: Spherical harmonic coefficients.
+        Spherical harmonic coefficients.
 
     Note:
         The single-program multiple-data (SPMD) optional variable determines whether

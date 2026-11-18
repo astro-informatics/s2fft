@@ -19,17 +19,15 @@ def compute_full(beta: float, el: int, L: int) -> np.ndarray:
     :func:`~fill`).
 
     Args:
-        beta (float): Polar angle in radians.
-
-        el (int): Harmonic degree of Wigner-d matrix.
-
-        L (int): Harmonic band-limit.
+        beta: Polar angle in radians.
+        el: Harmonic degree of Wigner-d matrix.
+        L: Harmonic band-limit.
 
     Raises:
         ValueError: If el is greater than L.
 
     Returns:
-        np.ndarray: Wigner-d matrix of dimension [2L-1, 2L-1].
+        Wigner-d matrix of dimension [2L-1, 2L-1].
 
     """
     if el >= L:
@@ -63,29 +61,20 @@ def compute_slice(
     :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L` operations.
 
     Args:
-        beta (float): Polar angle in radians.
-
-        el (int): Harmonic degree of Wigner-d matrix.
-
-        L (int): Harmonic band-limit.
-
-        mm (int): Harmonic order at which to slice the matrix.
-
-        positive_m_only (bool, optional): Compute Wigner-d matrix for slice at m greater
-            than zero only.  Defaults to False.
-
-        Whether to exploit conjugate symmetry. By construction
-            this only leads to significant improvement for mm = 0. Defaults to False.
+        beta: Polar angle in radians.
+        el: Harmonic degree of Wigner-d matrix.
+        L: Harmonic band-limit.
+        mm: Harmonic order at which to slice the matrix.
+        positive_m_only: Compute Wigner-d matrix for slice at m greater
+            than zero only.
 
     Raises:
         ValueError: If el is greater than L.
-
         ValueError: If el is less than mm.
-
         Warning: If positive_m_only is true but mm not 0.
 
     Returns:
-        np.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
+        Wigner-d matrix mm slice of dimension [2L-1].
 
     """
     if el < mm:
@@ -121,21 +110,16 @@ def compute_quarter_slice(
     at :math:`\beta`.
 
     Args:
-        dl (np.ndarray): Wigner-d matrix slice to populate (shape: 2L-1).
-
-        beta (float): Polar angle in radians.
-
-        l (int): Harmonic degree of Wigner-d matrix.
-
-        L (int): Harmonic band-limit.
-
-        mm (int): Harmonic order at which to slice the matrix.
-
-        positive_m_only (bool, optional): Compute Wigner-d matrix for slice at m greater
-            than zero only.  Defaults to False.
+        dl: Wigner-d matrix slice to populate (shape: 2L-1).
+        beta: Polar angle in radians.
+        l: Harmonic degree of Wigner-d matrix.
+        L: Harmonic band-limit.
+        mm: Harmonic order at which to slice the matrix.
+        positive_m_only: Compute Wigner-d matrix for slice at m greater
+            than zero only.
 
     Returns:
-        np.ndarray: Wigner-d matrix slice of dimension [2L-1] populated only on the mm slice.
+        Wigner-d matrix slice of dimension [2L-1] populated only on the mm slice.
 
     """
     # Analytically evaluate singularities
@@ -241,17 +225,13 @@ def compute_quarter(dl: np.ndarray, beta: float, ell: int, L: int) -> np.ndarray
     recursion.
 
     Args:
-        dl (np.ndarray): Wigner-d matrix slice to populate (shape: 2L-1, 2L-1).
-
-        beta (float): Polar angle in radians.
-
-        ell (int): Harmonic degree of Wigner-d matrix.
-
-        L (int): Harmonic band-limit.
+        dl: Wigner-d matrix slice to populate (shape: 2L-1, 2L-1).
+        beta: Polar angle in radians.
+        ell: Harmonic degree of Wigner-d matrix.
+        L: Harmonic band-limit.
 
     Returns:
-        np.ndarray: Wigner-d matrix of dimension [2L-1, 2L-1] with left quarter
-        triangle populated.
+        Wigner-d matrix of dimension [2L-1, 2L-1] with left quarter triangle populated.
 
     """
     # Analytically evaluate singularities
@@ -371,14 +351,12 @@ def fill(dl: np.ndarray, ell: int, L: int) -> np.ndarray:
     properties of the Wigner-d matrices.
 
     Args:
-        dl (np.ndarray): Wigner-d matrix to populate by symmetry.
-
-        ell (int): Harmonic degree of Wigner-d matrix.
-
-        L (int): Harmonic band-limit.
+        dl: Wigner-d matrix to populate by symmetry.
+        ell: Harmonic degree of Wigner-d matrix.
+        L: Harmonic band-limit.
 
     Returns:
-        np.ndarray: A complete Wigner-d matrix of dimension [2L-1, 2L-1].
+        A complete Wigner-d matrix of dimension [2L-1, 2L-1].
 
     """
     lp1 = 1 - (L - 1 - ell)  # Offset for indexing (currently -L < m < L in 2D)

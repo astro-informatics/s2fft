@@ -15,7 +15,7 @@ def generate_precomputes(
     L: int,
     spin: int = 0,
     sampling: str = "mw",
-    nside: int = None,
+    nside: int | None = None,
     forward: bool = False,
     L_lower: int = 0,
 ) -> list[np.ndarray]:
@@ -27,24 +27,18 @@ def generate_precomputes(
     for large :math:`L`.
 
     Args:
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        forward (bool, optional): Whether to provide forward or inverse shift.
-            Defaults to False.
-
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
+        forward: Whether to provide forward or inverse shift.
+        L_lower: Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
-        List[np.ndarray]: List of precomputed coefficient arrays.
+        List of precomputed coefficient arrays.
 
     Note:
         TODO: this function should be optimised.
@@ -135,26 +129,19 @@ def generate_precomputes_jax(
     :func:`~generate_precomputes`.
 
     Args:
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        forward (bool, optional): Whether to provide forward or inverse shift.
-            Defaults to False.
-
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
-
-        beta (jnp.ndarray): Array of polar angles in radians.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
+        forward: Whether to provide forward or inverse shift.
+        L_lower: Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+        beta: Array of polar angles in radians.
 
     Returns:
-        List[jnp.ndarray]: List of precomputed coefficient arrays.
+        List of precomputed coefficient arrays.
 
     """
     mm = -spin
@@ -278,28 +265,20 @@ def generate_precomputes_wigner(
     transform over SO(3).
 
     Args:
-        L (int): Harmonic band-limit.
-
-        N (int): Azimuthal bandlimit
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        forward (bool, optional): Whether to provide forward or inverse shift.
-            Defaults to False.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+        L: Harmonic band-limit.
+        N: Azimuthal bandlimit
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
+        forward: Whether to provide forward or inverse shift.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        L_lower: Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
-        List[List[np.ndarray]]: 2N-1 length List of Lists of precomputed coefficient arrays.
+        2N-1 length List of Lists of precomputed coefficient arrays.
 
     Note:
         TODO: this function should be optimised.
@@ -330,28 +309,20 @@ def generate_precomputes_wigner_jax(
     transform over SO(3). JAX implementation of :func:`~generate_precomputes_wigner`.
 
     Args:
-        L (int): Harmonic band-limit.
-
-        N (int): Azimuthal bandlimit
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        forward (bool, optional): Whether to provide forward or inverse shift.
-            Defaults to False.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+        L: Harmonic band-limit.
+        N: Azimuthal bandlimit
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
+        forward: Whether to provide forward or inverse shift.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        L_lower: Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
-        List[List[jnp.ndarray]]: 2N-1 length List of Lists of precomputed coefficient arrays.
+        2N-1 length List of Lists of precomputed coefficient arrays.
 
     """
     lrenorm = []
@@ -381,7 +352,10 @@ def generate_precomputes_wigner_jax(
 
 
 def compute_all_slices(
-    beta: np.ndarray, L: int, spin: int, precomps=None
+    beta: np.ndarray,
+    L: int,
+    spin: int = 0,
+    precomps: list[np.ndarray] | None = None,
 ) -> np.ndarray:
     r"""
     Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
@@ -406,17 +380,14 @@ def compute_all_slices(
     operations.
 
     Args:
-        beta (np.ndarray): Array of polar angles in radians.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        precomps (List[np.ndarray]): Precomputed recursion coefficients with memory overhead
+        beta: Array of polar angles in radians.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        precomps: Precomputed recursion coefficients with memory overhead
             :math:`\mathcal{O}(L^2)`, which is minimal.
 
     Returns:
-        np.ndarray: Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
+        Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
 
     """
     # Indexing boundaries and constants
@@ -508,11 +479,11 @@ def compute_all_slices(
 def compute_all_slices_jax(
     beta: jnp.ndarray,
     L: int,
-    spin: int,
+    spin: int = 0,
     sampling: str = "mw",
     forward: bool = False,
     nside: int = None,
-    precomps=None,
+    precomps: list[np.ndarray] | None = None,
 ) -> jnp.ndarray:
     r"""
     Compute a particular slice :math:`m^{\prime}`, denoted `mm`,
@@ -537,17 +508,14 @@ def compute_all_slices_jax(
     operations.
 
     Args:
-        beta (jnp.ndarray): Array of polar angles in radians.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        precomps (List[np.ndarray]): Precomputed recursion coefficients with memory overhead
+        beta: Array of polar angles in radians.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        precomps: Precomputed recursion coefficients with memory overhead
             :math:`\mathcal{O}(L^2)`, which is minimal.
 
     Returns:
-        jnp.ndarray: Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
+        Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
 
     """
     # Indexing boundaries and constants

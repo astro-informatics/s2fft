@@ -11,17 +11,17 @@ def rotate_flms(
     flm: jnp.ndarray,
     L: int,
     rotation: tuple[float, float, float],
-    dl_array: jnp.ndarray = None,
+    dl_array: jnp.ndarray | None = None,
 ) -> jnp.ndarray:
     """
     Rotates an array of spherical harmonic coefficients by angle rotation.
 
     Args:
-        flm (jnp.ndarray): Array of spherical harmonic coefficients.
-        L (int): Harmonic band-limit.
-        rotation  (Tuple[float, float, float]): Rotation on the sphere (alpha, beta, gamma).
-        dl_array (jnp.ndarray, optional): Precomputed array of reduced Wigner d-function
-            coefficients, see :func:~`generate_rotate_dls`. Defaults to None.
+        flm: Array of spherical harmonic coefficients.
+        L: Harmonic band-limit.
+        rotation: Rotation on the sphere (alpha, beta, gamma).
+        dl_array: Precomputed array of reduced Wigner d-function
+            coefficients, see :func:~`generate_rotate_dls`.
 
     Returns:
         jnp.ndarray: Rotated spherical harmonic coefficients with shape [L,2L-1].
@@ -80,11 +80,11 @@ def generate_rotate_dls(L: int, beta: float) -> jnp.ndarray:
         Wigner d-function coefficients at a given rotation beta.
 
     Args:
-        L (int): Harmonic band-limit.
-        beta (float): Rotation on the sphere.
+        L: Harmonic band-limit.
+        beta: Rotation on the sphere.
 
     Returns:
-        jnp.ndarray: Complete array of [L, 2L-1,2L-1] Wigner d-function coefficients
+        Complete array of [L, 2L-1,2L-1] Wigner d-function coefficients
             for a fixed rotation beta.
 
     """

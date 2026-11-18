@@ -31,34 +31,24 @@ def inverse(
     Compute the inverse spherical harmonic transform via precompute.
 
     Args:
-        flm (np.ndarray): Spherical harmonic coefficients.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        kernel (np.ndarray, optional): Wigner-d kernel. Defaults to None.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        flm: Spherical harmonic coefficients.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        kernel: Wigner-d kernel.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
-
-        method (str, optional): Execution mode in {"numpy", "jax", "torch"}.
-            Defaults to "jax".
-
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        method: Execution mode in {"numpy", "jax", "torch"}.
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Raises:
         ValueError: Transform method not recognised.
-
         Warning: Reality set but field is != spin 0 = complex.
 
     Returns:
-        np.ndarray: Pixel-space coefficients with shape.
+        Pixel-space coefficients with shape.
 
     """
     if method not in _inverse_functions:
@@ -99,25 +89,19 @@ def inverse_transform(
     implementation).
 
     Args:
-        flm (np.ndarray): Spherical harmonic coefficients.
-
-        kernel (np.ndarray): Wigner-d kernel.
-
-        L (int): Harmonic band-limit.
-
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        flm: Spherical harmonic coefficients.
+        kernel: Wigner-d kernel.
+        L: Harmonic band-limit.
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-
-        spin (int): Harmonic spin.
-
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Returns:
-        np.ndarray: Pixel-space coefficients.
+        Pixel-space coefficients.
 
     """
     m_offset = samples.m_offset(L, sampling)
@@ -165,25 +149,19 @@ def inverse_transform_jax(
     implementation).
 
     Args:
-        flm (jnp.ndarray): Spherical harmonic coefficients.
-
-        kernel (jnp.ndarray): Wigner-d kernel.
-
-        L (int): Harmonic band-limit.
-
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        flm: Spherical harmonic coefficients.
+        kernel: Wigner-d kernel.
+        L: Harmonic band-limit.
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-
-        spin (int): Harmonic spin.
-
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Returns:
-        jnp.ndarray: Pixel-space coefficients with shape.
+        Pixel-space coefficients with shape.
 
     """
     m_offset = samples.m_offset(L, sampling)
@@ -241,28 +219,18 @@ def forward(
     Compute the forward spherical harmonic transform via precompute.
 
     Args:
-        f (np.ndarray): Signal on the sphere.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        kernel (np.ndarray, optional): Wigner-d kernel. Defaults to None.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        f: Signal on the sphere.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        kernel: Wigner-d kernel.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
-
-        method (str, optional): Execution mode in {"numpy", "jax", "torch"}.
-            Defaults to "jax".
-
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        method: Execution mode in {"numpy", "jax", "torch"}.
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-
-        iter (int, optional): Number of iterative refinement iterations to use to
+        iter: Number of iterative refinement iterations to use to
             improve accuracy of forward transform (as an inverse of inverse transform).
             Primarily of use with HEALPix sampling for which there is not a sampling
             theorem, and round-tripping through the forward and inverse transforms will
@@ -270,11 +238,10 @@ def forward(
 
     Raises:
         ValueError: Transform method not recognised.
-
         Warning: Reality set but field is != spin 0 = complex.
 
     Returns:
-        np.ndarray: Spherical harmonic coefficients.
+        Spherical harmonic coefficients.
 
     """
     if method not in _forward_functions:
@@ -328,25 +295,19 @@ def forward_transform(
     implementation).
 
     Args:
-        f (np.ndarray): Signal on the sphere.
-
-        kernel (np.ndarray): Wigner-d kernel.
-
-        L (int): Harmonic band-limit.
-
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        f: Signal on the sphere.
+        kernel: Wigner-d kernel.
+        L: Harmonic band-limit.
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-
-        spin (int): Harmonic spin.
-
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Returns:
-        np.ndarray: Pixel-space coefficients.
+        Pixel-space coefficients.
 
     """
     if sampling.lower() == "mw":
@@ -398,25 +359,19 @@ def forward_transform_jax(
     implementation).
 
     Args:
-        f (jnp.ndarray): Signal on the sphere.
-
-        kernel (jnp.ndarray): Wigner-d kernel.
-
-        L (int): Harmonic band-limit.
-
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        f: Signal on the sphere.
+        kernel: Wigner-d kernel.
+        L: Harmonic band-limit.
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-
-        spin (int): Harmonic spin.
-
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Returns:
-        jnp.ndarray: Pixel-space coefficients.
+        Pixel-space coefficients.
 
     """
     if sampling.lower() == "mw":

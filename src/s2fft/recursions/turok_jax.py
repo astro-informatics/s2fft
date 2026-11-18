@@ -29,16 +29,13 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
     operations.
 
     Args:
-        beta (float): Polar angle in radians.
-
-        el (int): Harmonic degree of Wigner-d matrix.
-
-        L (int): Harmonic band-limit.
-
-        mm (int): Harmonic order at which to slice the matrix.
+        beta: Polar angle in radians.
+        el: Harmonic degree of Wigner-d matrix.
+        L: Harmonic band-limit.
+        mm: Harmonic order at which to slice the matrix.
 
     Returns:
-        jnp.ndarray: Wigner-d matrix mm slice of dimension [2L-1].
+        Wigner-d matrix mm slice of dimension [2L-1].
 
     """
     dl = jnp.zeros(2 * L - 1, dtype=jnp.float64)
@@ -71,19 +68,14 @@ def _compute_quarter_slice(
     at :math:`\beta`.
 
     Args:
-        dl (np.ndarray): Wigner-d matrix to populate (shape: 2L-1, 2L-1).
-
-        beta (float): Polar angle in radians.
-
-        el (int): Harmonic degree of Wigner-d matrix.
-
-        L (int): Harmonic band-limit.
-
-        mm (int): Harmonic order at which to slice the matrix.
+        dl: Wigner-d matrix to populate (shape: 2L-1, 2L-1).
+        beta: Polar angle in radians.
+        el: Harmonic degree of Wigner-d matrix.
+        L: Harmonic band-limit.
+        mm: Harmonic order at which to slice the matrix.
 
     Returns:
-        jnp.ndarray: Wigner-d matrix slice of dimension [2L-1] populated only on the mm
-            slice.
+        Wigner-d matrix slice of dimension [2L-1] populated only on the mm slice.
 
     """
     # These constants handle overflow by retrospectively renormalising
@@ -188,22 +180,19 @@ def _compute_quarter_slice(
 
 
 @partial(jit, static_argnums=(2, 3))
-def _north_pole(dl, el, L, mm) -> jnp.ndarray:
+def _north_pole(dl: np.ndarray, el: int, L: int, mm: int) -> jnp.ndarray:
     r"""
     Compute Wigner-d matrix for edge case where theta index is located on the
     north pole.
 
     Args:
-        dl (np.ndarray): Wigner-d matrix to populate (shape: 2L-1).
-
-        el (int): Harmonic degree of Wigner-d matrix.
-
-        L (int): Harmonic band-limit.
-
-        mm (int): Harmonic order at which to slice the matrix.
+        dl: Wigner-d matrix to populate (shape: 2L-1).
+        el: Harmonic degree of Wigner-d matrix.
+        L: Harmonic band-limit.
+        mm: Harmonic order at which to slice the matrix.
 
     Returns:
-        jnp.ndarray: Wigner-d matrix slice of dimension [2L-1].
+        Wigner-d matrix slice of dimension [2L-1].
 
     """
     dl = dl.at[:].set(0)
@@ -215,19 +204,16 @@ def _north_pole(dl, el, L, mm) -> jnp.ndarray:
 
 
 @partial(jit, static_argnums=(2, 3))
-def _south_pole(dl, el, L, mm) -> jnp.ndarray:
+def _south_pole(dl: np.ndarray, el: int, L: int, mm: int) -> jnp.ndarray:
     r"""
     Compute Wigner-d matrix for edge case where theta index is located on the
     south pole.
 
     Args:
-        dl (np.ndarray): Wigner-d matrix to populate (shape: 2L-1).
-
-        el (int): Harmonic degree of Wigner-d matrix.
-
-        L (int): Harmonic band-limit.
-
-        mm (int): Harmonic order at which to slice the matrix.
+        dl: Wigner-d matrix to populate (shape: 2L-1).
+        el: Harmonic degree of Wigner-d matrix.
+        L: Harmonic band-limit.
+        mm: Harmonic order at which to slice the matrix.
 
     Returns:
         jnp.ndarray: Wigner-d matrix slice of dimension [2L-1].
@@ -242,18 +228,17 @@ def _south_pole(dl, el, L, mm) -> jnp.ndarray:
 
 
 @partial(jit, static_argnums=(1))
-def _el0(dl, L) -> jnp.ndarray:
+def _el0(dl: np.ndarray, L: int) -> jnp.ndarray:
     r"""
     Compute Wigner-d matrix for edge case where the harmonic degree is 0
     (monopole term).
 
     Args:
-        dl (np.ndarray): Wigner-d matrix to populate (shape: 2L-1).
-
-        L (int): Harmonic band-limit.
+        dl: Wigner-d matrix to populate (shape: 2L-1).
+        L: Harmonic band-limit.
 
     Returns:
-        jnp.ndarray: Wigner-d matrix slice of dimension [2L-1].
+        Wigner-d matrix slice of dimension [2L-1].
 
     """
     dl = dl.at[:].set(0)
@@ -262,7 +247,7 @@ def _el0(dl, L) -> jnp.ndarray:
 
 
 @partial(jit, static_argnums=(2, 3))
-def reindex(dl, el, L, mm) -> jnp.ndarray:
+def reindex(dl: np.ndarray, el: int, L: int, mm: int) -> jnp.ndarray:
     r"""
     Reorders indexing of Wigner-d matrix.
 
@@ -276,16 +261,13 @@ def reindex(dl, el, L, mm) -> jnp.ndarray:
     can operate with static length.
 
     Args:
-        dl (np.ndarray): Wigner-d matrix to populate (shape: 2L-1).
-
-        el (int): Harmonic degree of Wigner-d matrix.
-
-        L (int): Harmonic band-limit.
-
-        mm (int): Harmonic order at which to slice the matrix.
+        dl: Wigner-d matrix to populate (shape: 2L-1).
+        el: Harmonic degree of Wigner-d matrix.
+        L: Harmonic band-limit.
+        mm: Harmonic order at which to slice the matrix.
 
     Returns:
-        jnp.ndarray: Wigner-d matrix slice of dimension [2L-1].
+        Wigner-d matrix slice of dimension [2L-1].
 
     """
     dl = dl.at[: L - 1].set(jnp.roll(dl, L - el - 1)[: L - 1])

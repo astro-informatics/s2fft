@@ -25,12 +25,9 @@ def forward_with_iterative_refinement(
     Args:
         f: Array argument to forward transform (signal on sphere) to compute iteratively
            refined forward transform at.
-
         n_iter: Number of refinement iterations to use, non-negative.
-
         forward_function: Function computing forward transform (approximate inverse of
             backward transform).
-
         backward_function: Function computing backward ('inverse') transform.
 
     Returns:

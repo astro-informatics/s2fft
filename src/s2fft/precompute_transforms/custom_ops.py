@@ -18,21 +18,21 @@ def wigner_subset_to_s2(
     corresponding pixel-space representations.
 
     Args:
-        flmn (np.ndarray): Collection of spin spherical harmonic coefficients
+        flmn: Collection of spin spherical harmonic coefficients
             with shape :math:`[batch, n_s, L, 2L-1, channels]`.
-        spins (np.ndarray): Spins of each field in fs with shape :math:`[n_s]`.
-        DW (Tuple[np.ndarray, np.ndarray]): Fourier coefficients of the reduced
+        spins: Spins of each field in fs with shape :math:`[n_s]`.
+        DW: Fourier coefficients of the reduced
             Wigner d-functions and the corresponding upsampled quadrature weights.
-        L (int): Harmonic band-limit.
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+        L: Harmonic band-limit.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss"}.
 
     Raises:
         ValueError: If sampling scheme is not recognised.
         ValueError: If the number of spins does not match the number of Wigner coefficients.
 
     Returns:
-        np.ndarray: A collection of spin signals with
+        A collection of spin signals with
             shape :math:`[batch, n_s, n_\theta, n_\phi, channels]`.
 
     """
@@ -99,21 +99,21 @@ def wigner_subset_to_s2_jax(
         corresponding pixel-space representations.
 
     Args:
-        flmn (jnp.ndarray): Collection of spin spherical harmonic coefficients
+        flmn: Collection of spin spherical harmonic coefficients
             with shape :math:`[batch, n_s, L, 2L-1, channels]`.
-        spins (jnp.ndarray): Spins of each field in fs with shape :math:`[n_s]`.
-        DW (Tuple[jnp.ndarray, jnp.ndarray]): Fourier coefficients of the reduced
+        spins: Spins of each field in fs with shape :math:`[n_s]`.
+        DW: Fourier coefficients of the reduced
             Wigner d-functions and the corresponding upsampled quadrature weights.
-        L (int): Harmonic band-limit.
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+        L: Harmonic band-limit.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss"}.
 
     Raises:
         ValueError: If sampling scheme is not recognised.
         ValueError: If the number of spins does not match the number of Wigner coefficients.
 
     Returns:
-        jnp.ndarray: A collection of spin signals with shape :math:`[batch, n_s, n_\theta, n_\phi, channels]`.
+        A collection of spin signals with shape :math:`[batch, n_s, n_\theta, n_\phi, channels]`.
 
     """
     if sampling.lower() not in ["mw", "mwss"]:
@@ -183,17 +183,17 @@ def so3_to_wigner_subset(
     value is less than or equal to the azimuthal band-limit :math:`N\leq L`.
 
     Args:
-        f (np.ndarray): Signal on the rotation group with shape :math:`[batch, n_\gamma, n_\theta,n_\phi, channels]`.
-        spins (np.ndarray): Spins of each field in fs with shape :math:`[n_s]`.
-        DW (Tuple[np.ndarray, np.ndarray]): Fourier coefficients of the reduced
+        f: Signal on the rotation group with shape :math:`[batch, n_\gamma, n_\theta,n_\phi, channels]`.
+        spins: Spins of each field in fs with shape :math:`[n_s]`.
+        DW: Fourier coefficients of the reduced
             Wigner d-functions and the corresponding upsampled quadrature weights.
-        L (int): Harmonic band-limit.
-        N (int): Azimuthal band-limit.
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+        L: Harmonic band-limit.
+        N: Azimuthal band-limit.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss"}.
 
     Returns:
-        np.ndarray: Collection of spin spherical harmonic coefficients with shape :math:`[batch, n_s, L, 2L-1, channels]`.
+        Collection of spin spherical harmonic coefficients with shape :math:`[batch, n_s, L, 2L-1, channels]`.
 
     """
     # COMPUTE DFT OVER GAMMA SUBSET
@@ -223,17 +223,17 @@ def so3_to_wigner_subset_jax(
     value is less than or equal to the azimuthal band-limit :math:`N\leq L`.
 
     Args:
-        f (jnp.ndarray): Signal on the rotation group with shape :math:`[batch, n_\gamma, n_\theta,n_\phi, channels]`.
-        spins (jnp.ndarray): Spins of each field in fs with shape :math:`[n_s]`.
-        DW (Tuple[jnp.ndarray, jnp.ndarray]): Fourier coefficients of the reduced
+        f: Signal on the rotation group with shape :math:`[batch, n_\gamma, n_\theta,n_\phi, channels]`.
+        spins: Spins of each field in fs with shape :math:`[n_s]`.
+        DW: Fourier coefficients of the reduced
             Wigner d-functions and the corresponding upsampled quadrature weights.
-        L (int): Harmonic band-limit.
-        N (int): Azimuthal band-limit.
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+        L: Harmonic band-limit.
+        N: Azimuthal band-limit.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss"}.
 
     Returns:
-        jnp.ndarray: Collection of spin spherical harmonic coefficients
+        Collection of spin spherical harmonic coefficients
             with shape :math:`[batch, n_s, L, 2L-1, channels]`.
 
     """
@@ -266,16 +266,16 @@ def s2_to_wigner_subset(
     of spins into a unified representation.
 
     Args:
-        fs (np.ndarray): Collection of spin signal maps on the sphere with shape :math:`[batch, n_s, n_\theta,n_\phi, channels]`.
-        spins (np.ndarray): Spins of each field in fs with shape :math:`[n_s]`.
-        DW (Tuple[np.ndarray, np.ndarray]): Fourier coefficients of the reduced
+        fs: Collection of spin signal maps on the sphere with shape :math:`[batch, n_s, n_\theta,n_\phi, channels]`.
+        spins: Spins of each field in fs with shape :math:`[n_s]`.
+        DW: Fourier coefficients of the reduced
             Wigner d-functions and the corresponding upsampled quadrature weights.
-        L (int): Harmonic band-limit.
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+        L: Harmonic band-limit.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss"}.
 
     Returns:
-        np.ndarray: Collection of spin spherical harmonic coefficients with shape :math:`[batch, n_s, L, 2L-1, channels]`.
+        Collection of spin spherical harmonic coefficients with shape :math:`[batch, n_s, L, 2L-1, channels]`.
 
     """
     if sampling.lower() not in ["mw", "mwss"]:
@@ -351,16 +351,16 @@ def s2_to_wigner_subset_jax(
     of spins into a unified representation.
 
     Args:
-        fs (jnp.ndarray): Collection of spin signal maps on the sphere with shape :math:`[batch, n_s, n_\theta,n_\phi, channels]`.
-        spins (jnp.ndarray): Spins of each field in fs with shape :math:`[n_s]`.
-        DW (Tuple[jnp.ndarray, jnp.ndarray]): Fourier coefficients of the reduced
+        fs: Collection of spin signal maps on the sphere with shape :math:`[batch, n_s, n_\theta,n_\phi, channels]`.
+        spins: Spins of each field in fs with shape :math:`[n_s]`.
+        DW: Fourier coefficients of the reduced
             Wigner d-functions and the corresponding upsampled quadrature weights.
-        L (int): Harmonic band-limit.
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+        L: Harmonic band-limit.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss"}.
 
     Returns:
-        jnp.ndarray: Collection of spin spherical harmonic coefficients with shape :math:`[batch, n_s, L, 2L-1, channels]`.
+        Collection of spin spherical harmonic coefficients with shape :math:`[batch, n_s, L, 2L-1, channels]`.
 
     """
     if sampling.lower() not in ["mw", "mwss"]:

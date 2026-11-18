@@ -12,20 +12,17 @@ def periodic_extension(
     domain, extending :math:`\theta` domain from :math:`[0,\pi]` to :math:`[0,2\pi]`.
 
     Args:
-        f (np.ndarray): Signal on the sphere sampled with MW/MWSS sampling scheme.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}.  Defaults to "mw".
+        f: Signal on the sphere sampled with MW/MWSS sampling scheme.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss"}.
 
     Raises:
         ValueError: Only MW/MWW sampling schemes supported.
 
     Returns:
-        np.ndarray: Signal on the sphere extended to :math:`\theta` domain
+        Signal on the sphere extended to :math:`\theta` domain
         :math:`[0,2\pi]`, in same scheme (MW/MWSS) as input.
 
     """
@@ -68,18 +65,16 @@ def periodic_extension_spatial_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.
     extending :math:`\theta` domain from :math:`[0,\pi]` to :math:`[0,2\pi]`.
 
     For the MWSS sampling scheme, it is possible to do the period extension in
-    :math:`\theta` in the spatial domain.  This is not possible for the MW sampling
+    :math:`\theta` in the spatial domain. This is not possible for the MW sampling
     scheme.
 
     Args:
-        f (np.ndarray): Signal on the sphere sampled with MWSS sampling scheme.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        f: Signal on the sphere sampled with MWSS sampling scheme.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
 
     Returns:
-        np.ndarray: Signal on the sphere extended to :math:`\theta` domain
+        Signal on the sphere extended to :math:`\theta` domain
         :math:`[0,2\pi]`, in MWSS sampling scheme.
 
     """
@@ -112,16 +107,13 @@ def upsample_by_two_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
     unextending :math:`\theta` domain back to :math:`[0,\pi]`.
 
     Args:
-        f (np.ndarray): Signal on the sphere sampled with MWSS sampling scheme, sampled
+        f: Signal on the sphere sampled with MWSS sampling scheme, sampled
             at resolution L.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
 
     Returns:
-        np.ndarray: Signal on the sphere sampled with MWSS sampling scheme, sampling at
-        resolution 2*L.
+        Signal on the sphere sampled with MWSS sampling scheme, sampling at resolution 2*L.
 
     """
     if f.ndim == 2:
@@ -140,13 +132,12 @@ def upsample_by_two_mwss_ext(f_ext: np.ndarray, L: int) -> np.ndarray:
     Upsampling is performed by zero-padding in harmonic space.
 
     Args:
-        f_ext (np.ndarray): Signal on the sphere sampled on extended MWSS sampling
+        f_ext: Signal on the sphere sampled on extended MWSS sampling
             scheme on domain :math:`[0,2\pi]`, sampled at resolution L.
-
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        np.ndarray: Signal on the sphere sampled on extended MWSS sampling scheme on
+        Signal on the sphere sampled on extended MWSS sampling scheme on
         domain :math:`[0,2\pi]`, sampling at resolution 2*L.
 
     """
@@ -174,17 +165,16 @@ def downsample_by_two_mwss(f_ext: np.ndarray, L: int) -> np.ndarray:
         Harmonic band-limit of input sampled signal must be even.
 
     Args:
-        f_ext (np.ndarray): Signal on the sphere sampled with MWSS sampling at
+        f_ext: Signal on the sphere sampled with MWSS sampling at
             resolution L.
-
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Raises:
         ValueError: Harmonic band-limit of input signal must be even.
 
     Returns:
-        np.ndarray: Signal on the sphere sampled with MWSS sampling scheme at
-        resolution L/2.  L must be even so that L/2 is an integer.
+        Signal on the sphere sampled with MWSS sampling scheme at
+        resolution L/2. L must be even so that L/2 is an integer.
 
     """
     # Check L is even.
@@ -202,13 +192,11 @@ def unextend(f_ext: np.ndarray, L: int, sampling: str = "mw") -> np.ndarray:
     :math:`[0,2\pi]` to :math:`[0,\pi]`.
 
     Args:
-        f_ext (np.ndarray): Signal on the sphere sampled on extended :math:`\theta`
+        f_ext: Signal on the sphere sampled on extended :math:`\theta`
             domain :math:`[0,2\pi]`.
-
-        L (int): Harmonic band-limit.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}.  Defaults to "mw".
+        L: Harmonic band-limit.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss"}.
 
     Raises:
         ValueError: Only MW/MWW sampling schemes supported.
@@ -216,7 +204,7 @@ def unextend(f_ext: np.ndarray, L: int, sampling: str = "mw") -> np.ndarray:
         ValueError: Period extension must have correct shape.
 
     Returns:
-        np.ndarray: Signal on the sphere sampled on :math:`\theta` domain
+        Signal on the sphere sampled on :math:`\theta` domain
         :math:`[0,\pi]`.
 
     """
@@ -256,23 +244,22 @@ def mw_to_mwss_phi(f_mw: np.ndarray, L: int) -> np.ndarray:
     Conversion is performed by zero padding in harmonic space.
 
     Note:
-        Can work with arbitrary number of :math:`\theta` samples.  Hence, to convert
+        Can work with arbitrary number of :math:`\theta` samples. Hence, to convert
         both :math:`(\theta,\phi)` sampling to MWSS, can use :func:`~mw_to_mwss_theta`
         to first convert :math:`\theta` sampling before using this function to convert
         the :math:`\phi` sampling.
 
     Args:
-        f_mw (np.ndarray): Signal on the sphere sampled with MW sampling in
+        f_mw: Signal on the sphere sampled with MW sampling in
             :math:`\phi` and arbitrary number of samples in
-
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Raises:
         ValueError: Input spherical signal must have number of samples in :math:`\phi`
             matching MW sampling.
 
     Returns:
-        np.ndarray: Signal on the sphere with MWSS sampling in :math:`\phi` and
+        Signal on the sphere with MWSS sampling in :math:`\phi` and
         sampling in :math:`\theta` of the input signal.
 
     """
@@ -292,22 +279,20 @@ def mw_to_mwss_theta(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
     MWSS sampling.
 
     Conversion is performed by first performing a period extension in
-    :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space.  The
+    :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space. The
     resulting signal is then unextend back to the :math:`\theta` domain of
     :math:`[0,\pi]`.
 
     Args:
-        f_mw (np.ndarray): Signal on the sphere sampled with MW sampling.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        f_mw: Signal on the sphere sampled with MW sampling.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
 
     Raises:
         ValueError: Input spherical signal must have shape matching MW sampling.
 
     Returns:
-        np.ndarray: Signal on the sphere with MWSS sampling in :math:`\theta` and MW
+        Signal on the sphere with MWSS sampling in :math:`\theta` and MW
         sampling in :math:`\phi`.
 
     """
@@ -338,20 +323,18 @@ def mw_to_mwss(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
     Convert signal on the sphere from MW sampling to MWSS sampling.
 
     Conversion is performed by first performing a period extension in
-    :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space.  The
+    :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space. The
     resulting signal is then unextend back to the :math:`\theta` domain of
-    :math:`[0,\pi]`.  Second, zero padding in harmonic space corresponding to
+    :math:`[0,\pi]`. Second, zero padding in harmonic space corresponding to
     :math:`\phi` is performed.
 
     Args:
-        f_mw (np.ndarray): Signal on the sphere sampled with MW sampling.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        f_mw: Signal on the sphere sampled with MW sampling.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
 
     Returns:
-        np.ndarray: Signal on the sphere sampled with MWSS sampling.
+        Signal on the sphere sampled with MWSS sampling.
 
     """
     if f_mw.ndim == 2:

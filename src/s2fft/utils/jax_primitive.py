@@ -14,7 +14,7 @@ def register_primitive(
     jacobian_vector_product: Callable | None = None,
     transpose: Callable | None = None,
     is_linear: bool = False,
-):
+) -> core.Primitive:
     """
     Register a new custom JAX primitive.
 
@@ -23,24 +23,24 @@ def register_primitive(
     platforms, and optional rules for batching and automatic differentiation.
 
     Args:
-        name (str): The name of the primitive.
-        multiple_results (bool): A boolean indicating whether the primitive returns multiple values.
-        abstract_evaluation (Callable): A callable that defines the abstract evaluation rule for the primitive.
+        name: The name of the primitive.
+        multiple_results: A boolean indicating whether the primitive returns multiple values.
+        abstract_evaluation: A callable that defines the abstract evaluation rule for the primitive.
             It should take `ShapedArray` instances as inputs and return `ShapedArray` instances for the outputs.
-        lowering_per_platform (Dict[Union[None, str], Callable]): A dictionary mapping platform names
+        lowering_per_platform: A dictionary mapping platform names
             (e.g., "cpu", "gpu", or None for platform-independent) to their respective lowering rules.
             A lowering rule translates the primitive into a sequence of MLIR operations.
-        batcher (Optional[Callable]): An optional callable that defines the batched evaluation rule for the primitive.
+        batcher: An optional callable that defines the batched evaluation rule for the primitive.
             This is used by JAX's automatic batching (vmap).
-        jacobian_vector_product (Optional[Callable]): An optional callable that defines the Jacobian-vector product
+        jacobian_vector_product: An optional callable that defines the Jacobian-vector product
             (JVP) rule for the primitive. This is used for forward-mode automatic differentiation.
-        transpose (Optional[Callable]): An optional callable that defines the transpose rule for the primitive.
+        transpose: An optional callable that defines the transpose rule for the primitive.
             This is used for reverse-mode automatic differentiation (autograd).
-        is_linear (bool): A boolean indicating whether the primitive is linear. If True and a `transpose` rule
+        is_linear: A boolean indicating whether the primitive is linear. If True and a `transpose` rule
             is provided, `ad.deflinear` is used, which can optimize linear operations.
 
     Returns:
-        jax.core.Primitive: The registered custom JAX primitive object.
+        The registered custom JAX primitive object.
 
     Raises:
         ValueError: If an invalid platform is specified in `lowering_per_platform`.
