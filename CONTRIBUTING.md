@@ -67,3 +67,6 @@ The installed pre-commit hooks will run a series of checks on any staged changes
 If there are problems with the changes this will be flagged in the terminal output.
 Where possible some problems may be automatically fixed - in this case the updated changes will need to be staged and committed again.
 
+## AI usage
+
+Whenever large language models (LLMs) or other AI tools are used, their use must abide by our [AI usage policy](AI_USAGE_POLICY.md).
