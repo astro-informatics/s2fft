@@ -19,11 +19,11 @@ def quad_weights_transform(
 
     Args:
         L: Harmonic band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mwss", "dh", "gl", "healpix", "cc", "f2"}.
         spin: Harmonic spin.
-        nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix". Defaults to None.
 
     Raises:
         ValueError: Invalid sampling scheme.
@@ -69,11 +69,11 @@ def quad_weights(
     integration for various sampling schemes.
 
     Args:
-        L: Harmonic band-limit.  Required if sampling not healpix.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        L: Harmonic band-limit. Required if sampling not healpix.
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         spin: Harmonic spin.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Raises:
@@ -115,7 +115,7 @@ def quad_weights_hp(nside: int) -> np.ndarray:
     integration.
 
     Note:
-        HEALPix weights are identical for all pixels.  Nevertheless, an array of
+        HEALPix weights are identical for all pixels. Nevertheless, an array of
         weights is returned (with identical values) for consistency of interface
         across other sampling schemes.
 

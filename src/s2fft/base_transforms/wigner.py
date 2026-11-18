@@ -30,11 +30,11 @@ def inverse(
         L: Harmonic bandlimit.
         N: Directional band-limit.
         L_lower: Harmonic lower bound.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Raises:
@@ -105,11 +105,11 @@ def forward(
         L: Harmonic bandlimit.
         N: Directional band-limit.
         L_lower: Harmonic lower bound.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Raises:

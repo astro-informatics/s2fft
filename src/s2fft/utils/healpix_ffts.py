@@ -166,7 +166,7 @@ def healpix_fft(
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
         method: Evaluation method in {"numpy", "jax", "torch", "cuda"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Raises:
@@ -190,7 +190,7 @@ def healpix_fft_numpy(f: np.ndarray, L: int, nside: int, reality: bool) -> np.nd
         f: HEALPix pixel-space array.
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Returns:
@@ -233,7 +233,7 @@ def healpix_fft_jax(f: jnp.ndarray, L: int, nside: int, reality: bool) -> jnp.nd
         f: HEALPix pixel-space array.
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Returns:
@@ -303,7 +303,7 @@ def healpix_ifft(
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
         method: Evaluation method in {"numpy", "jax", "torch", "cuda"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Raises:
@@ -330,7 +330,7 @@ def healpix_ifft_numpy(
         ftm: Array of Fourier coefficients for all latitudes.
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Returns:
@@ -368,7 +368,7 @@ def healpix_ifft_jax(
         ftm: Array of Fourier coefficients for all latitudes.
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Returns:
@@ -468,7 +468,7 @@ def ring_phase_shifts_hp(
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
         forward: Whether to provide forward or inverse shift.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Returns:
@@ -495,7 +495,7 @@ def ring_phase_shifts_hp_jax(
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
         forward: Whether to provide forward or inverse shift.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Returns:
@@ -813,7 +813,7 @@ def healpix_fft_cuda(
         f: HEALPix pixel-space array.
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        reality (bool): Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Returns:
@@ -851,7 +851,7 @@ def healpix_ifft_cuda(
         ftm: Array of Fourier coefficients for all latitudes.
         L: Harmonic band-limit.
         nside: HEALPix Nside resolution parameter.
-        reality (bool): Whether the signal on the sphere is real.  If so,
+        reality (bool): Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
 
     Returns:

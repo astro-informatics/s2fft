@@ -42,12 +42,12 @@ def inverse(
         L: Harmonic band-limit.
         N: Azimuthal band-limit. For high precision beyond :math:`N \approx 8`,
             one should use `method="jax_ssht"`.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
         method: Execution mode in {"numpy", "jax", "jax_ssht"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
@@ -125,11 +125,11 @@ def inverse_numpy(
         L: Harmonic band-limit.
         N: Azimuthal band-limit. Recursive transform will have lower precision
             beyond :math:`N \approx 8`.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
@@ -207,11 +207,11 @@ def inverse_jax(
         L: Harmonic band-limit.
         N: Azimuthal band-limit. Recursive transform will have lower precision
             beyond :math:`N \approx 8`.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
@@ -288,9 +288,9 @@ def inverse_jax_ssht(
         N: Azimuthal band-limit.
         L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
@@ -342,12 +342,12 @@ def forward(
             number of samples for angle :math:`\xi`.
         L: Harmonic band-limit.
         N: Azimuthal band-limit.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
         method: Execution mode in {"numpy", "jax", "jax_ssht"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
@@ -424,11 +424,11 @@ def forward_numpy(
             number of samples for angle :math:`\xi`.
         L: Harmonic band-limit.
         N: Azimuthal band-limit.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
@@ -511,11 +511,11 @@ def forward_jax(
             number of samples for angle :math:`\xi`.
         L: Harmonic band-limit.
         N: Azimuthal band-limit.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
@@ -613,9 +613,9 @@ def forward_jax_ssht(
         N: Azimuthal band-limit.
         L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental

@@ -21,9 +21,9 @@ def f_shape(
     Args:
         L: Harmonic band-limit.
         N: Directional band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Raises:
@@ -69,7 +69,7 @@ def fnab_shape(
     Args:
         L: Harmonic band-limit.
         N: Directional band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.
         nside: HEALPix Nside resolution parameter.
 
@@ -104,7 +104,7 @@ def _nalpha(L: int, sampling: str = "mw") -> int:
 
     Args:
         L: Harmonic band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.
 
     Raises:
@@ -130,7 +130,7 @@ def _nbeta(L: int, sampling: str = "mw") -> int:
 
     Args:
         L: Harmonic band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.
 
     Raises:

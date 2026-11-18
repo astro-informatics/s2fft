@@ -15,7 +15,7 @@ def periodic_extension(
         f: Signal on the sphere sampled with MW/MWSS sampling scheme.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss"}.
 
     Raises:
@@ -65,7 +65,7 @@ def periodic_extension_spatial_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.
     extending :math:`\theta` domain from :math:`[0,\pi]` to :math:`[0,2\pi]`.
 
     For the MWSS sampling scheme, it is possible to do the period extension in
-    :math:`\theta` in the spatial domain.  This is not possible for the MW sampling
+    :math:`\theta` in the spatial domain. This is not possible for the MW sampling
     scheme.
 
     Args:
@@ -174,7 +174,7 @@ def downsample_by_two_mwss(f_ext: np.ndarray, L: int) -> np.ndarray:
 
     Returns:
         Signal on the sphere sampled with MWSS sampling scheme at
-        resolution L/2.  L must be even so that L/2 is an integer.
+        resolution L/2. L must be even so that L/2 is an integer.
 
     """
     # Check L is even.
@@ -195,7 +195,7 @@ def unextend(f_ext: np.ndarray, L: int, sampling: str = "mw") -> np.ndarray:
         f_ext: Signal on the sphere sampled on extended :math:`\theta`
             domain :math:`[0,2\pi]`.
         L: Harmonic band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss"}.
 
     Raises:
@@ -244,7 +244,7 @@ def mw_to_mwss_phi(f_mw: np.ndarray, L: int) -> np.ndarray:
     Conversion is performed by zero padding in harmonic space.
 
     Note:
-        Can work with arbitrary number of :math:`\theta` samples.  Hence, to convert
+        Can work with arbitrary number of :math:`\theta` samples. Hence, to convert
         both :math:`(\theta,\phi)` sampling to MWSS, can use :func:`~mw_to_mwss_theta`
         to first convert :math:`\theta` sampling before using this function to convert
         the :math:`\phi` sampling.
@@ -279,7 +279,7 @@ def mw_to_mwss_theta(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
     MWSS sampling.
 
     Conversion is performed by first performing a period extension in
-    :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space.  The
+    :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space. The
     resulting signal is then unextend back to the :math:`\theta` domain of
     :math:`[0,\pi]`.
 
@@ -323,9 +323,9 @@ def mw_to_mwss(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
     Convert signal on the sphere from MW sampling to MWSS sampling.
 
     Conversion is performed by first performing a period extension in
-    :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space.  The
+    :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space. The
     resulting signal is then unextend back to the :math:`\theta` domain of
-    :math:`[0,\pi]`.  Second, zero padding in harmonic space corresponding to
+    :math:`[0,\pi]`. Second, zero padding in harmonic space corresponding to
     :math:`\phi` is performed.
 
     Args:

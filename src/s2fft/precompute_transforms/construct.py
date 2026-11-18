@@ -58,11 +58,11 @@ def spin_spherical_kernel(
     Args:
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
             Defaults to False.
@@ -193,11 +193,11 @@ def spin_spherical_kernel_jax(
     Args:
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
             Defaults to False.
@@ -348,11 +348,11 @@ def wigner_kernel(
     Args:
         L: Harmonic band-limit.
         N: Directional band-limit.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
         mode: Whether to use FFT approach or manually compute each element.
@@ -473,11 +473,11 @@ def wigner_kernel_jax(
     Args:
         L: Harmonic band-limit.
         N: Directional band-limit.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
         mode: Whether to use FFT approach or manually compute each element.

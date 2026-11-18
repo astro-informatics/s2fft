@@ -27,11 +27,11 @@ def inverse(
         flm: Spherical harmonic coefficients.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
@@ -69,13 +69,13 @@ def _inverse(
         flm: Spherical harmonic coefficients.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         method: Harmonic transform algorithm. Supported algorithms include
             {"direct", "sov", "sov_fft", "sov_fft_vectorized"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
@@ -134,11 +134,11 @@ def forward(
         f: Signal on the sphere.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
             False.
         L_lower: Harmonic lower-bound. Transform will only be computed
@@ -190,13 +190,13 @@ def _forward(
         f: Signal on the sphere.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         method: Harmonic transform algorithm. Supported algorithms include
             {"direct", "sov", "sov_fft", "sov_fft_vectorized"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
@@ -268,15 +268,15 @@ def _compute_inverse_direct(
         flm: Spherical harmonic coefficients.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
-        nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-        reality: Whether the signal on the sphere is real.  If so,
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix". Defaults to None.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Signal on the sphere.
@@ -348,15 +348,15 @@ def _compute_inverse_sov(
         flm: Spherical harmonic coefficients.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
-        nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-        reality: Whether the signal on the sphere is real.  If so,
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix". Defaults to None.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Signal on the sphere.
@@ -415,15 +415,15 @@ def _compute_inverse_sov_fft(
         flm: Spherical harmonic coefficients.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
-        nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-        reality: Whether the signal on the sphere is real.  If so,
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix". Defaults to None.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Signal on the sphere.
@@ -501,15 +501,15 @@ def _compute_inverse_sov_fft_vectorized(
         flm: Spherical harmonic coefficients.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
-        nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-        reality: Whether the signal on the sphere is real.  If so,
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix". Defaults to None.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Signal on the sphere.
@@ -570,16 +570,16 @@ def _compute_forward_direct(
         f: Signal on the sphere.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
         weights: Vector of quadrature weights on the sphere.
-        nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-        reality: Whether the signal on the sphere is real.  If so,
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix". Defaults to None.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Spherical harmonic coefficients.
@@ -654,16 +654,16 @@ def _compute_forward_sov(
         f: Signal on the sphere.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
         weights: Vector of quadrature weights on the sphere.
-        nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-        reality: Whether the signal on the sphere is real.  If so,
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix". Defaults to None.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Spherical harmonic coefficients.
@@ -742,16 +742,16 @@ def _compute_forward_sov_fft(
         f: Signal on the sphere.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
         weights: Vector of quadrature weights on the sphere.
-        nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-        reality: Whether the signal on the sphere is real.  If so,
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix". Defaults to None.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Spherical harmonic coefficients.
@@ -850,16 +850,16 @@ def _compute_forward_sov_fft_vectorized(
         f: Signal on the sphere.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
         weights: Vector of quadrature weights on the sphere.
-        nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-        reality: Whether the signal on the sphere is real.  If so,
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix". Defaults to None.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.  Defaults to 0.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Spherical harmonic coefficients.

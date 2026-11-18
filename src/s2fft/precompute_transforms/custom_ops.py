@@ -24,7 +24,7 @@ def wigner_subset_to_s2(
         DW: Fourier coefficients of the reduced
             Wigner d-functions and the corresponding upsampled quadrature weights.
         L: Harmonic band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss"}.
 
     Raises:
@@ -105,7 +105,7 @@ def wigner_subset_to_s2_jax(
         DW: Fourier coefficients of the reduced
             Wigner d-functions and the corresponding upsampled quadrature weights.
         L: Harmonic band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss"}.
 
     Raises:
@@ -189,7 +189,7 @@ def so3_to_wigner_subset(
             Wigner d-functions and the corresponding upsampled quadrature weights.
         L: Harmonic band-limit.
         N: Azimuthal band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss"}.
 
     Returns:
@@ -229,7 +229,7 @@ def so3_to_wigner_subset_jax(
             Wigner d-functions and the corresponding upsampled quadrature weights.
         L: Harmonic band-limit.
         N: Azimuthal band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss"}.
 
     Returns:
@@ -271,7 +271,7 @@ def s2_to_wigner_subset(
         DW: Fourier coefficients of the reduced
             Wigner d-functions and the corresponding upsampled quadrature weights.
         L: Harmonic band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss"}.
 
     Returns:
@@ -356,7 +356,7 @@ def s2_to_wigner_subset_jax(
         DW: Fourier coefficients of the reduced
             Wigner d-functions and the corresponding upsampled quadrature weights.
         L: Harmonic band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss"}.
 
     Returns:

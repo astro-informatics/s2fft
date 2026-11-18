@@ -52,7 +52,7 @@ def ssht_inverse(
         flm: Spherical harmonic coefficients.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         ssht_sampling: Sampling scheme. Supported sampling schemes include
             {"mw" = 0, "mwss" = 1, "dh" = 2, "gl" = 3}.
@@ -169,7 +169,7 @@ def ssht_forward(
         f: Signal on the sphere.
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         ssht_sampling: Sampling scheme. Supported sampling schemes include
             {"mw" = 0, "mwss" = 1, "dh" = 2, "gl" = 3}.

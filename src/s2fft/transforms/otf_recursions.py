@@ -56,11 +56,11 @@ def inverse_latitudinal_step(
         beta: Array of polar angles in radians.
         L: Harmonic band-limit.
         spin: Harmonic spin. Defaults to 0.
-        nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix". Defaults to None.
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
@@ -207,11 +207,11 @@ def inverse_latitudinal_step_jax(
         beta: Array of polar angles in radians.
         L: Harmonic band-limit.
         spin: Harmonic spin. Defaults to 0.
-        nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix". Defaults to None.
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
@@ -453,11 +453,11 @@ def forward_latitudinal_step(
         beta: Array of polar angles in radians.
         L: Harmonic band-limit.
         spin: Harmonic spin. Defaults to 0.
-        nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix". Defaults to None.
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
@@ -604,11 +604,11 @@ def forward_latitudinal_step_jax(
         beta_in: Array of polar angles in radians.
         L: Harmonic band-limit.
         spin: Harmonic spin. Defaults to 0.
-        nside: HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix". Defaults to None.
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
             False.
         precomps: Precomputed list of recursion coefficients. At most

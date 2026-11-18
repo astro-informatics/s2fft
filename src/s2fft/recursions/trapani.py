@@ -16,7 +16,7 @@ def init(dl: np.ndarray, L: int, implementation: str = "vectorized") -> np.ndarr
             for all :math:`-L < m, m^\prime < L`, to be indexed by
             `dl[m + L - 1, m' + L - 1]`.
         L: Harmonic band-limit.
-        implementation: Implementation to adopt.  Supported
+        implementation: Implementation to adopt. Supported
             implementations include {"loop", "vectorized", "jax"}.
 
     Returns:
@@ -364,7 +364,7 @@ def fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndarray:
     Fill in half of Wigner-d plane from quarter.
 
     The Wigner-d plane passed as an argument should be computed for the quarter
-    of the plane :math:`0 <= m, m^\prime <= \ell`.  The
+    of the plane :math:`0 <= m, m^\prime <= \ell`. The
     returned plane is computed by symmetry for
     :math:`-\ell <= m <= \ell` and :math:`0 <= m^\prime <= \ell`.
 
@@ -584,7 +584,7 @@ def compute_full(
         dl: Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.
         L: Harmonic band-limit.
         el: Spherical harmonic degree :math:`\ell`.
-        implementation: Implementation to adopt.  Supported
+        implementation: Implementation to adopt. Supported
             implementations include {"loop", "vectorized", "jax"}.
 
     Returns:

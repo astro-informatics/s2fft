@@ -28,9 +28,9 @@ def inverse_transform(
         precomps: Fourier coefficients of the
             reduced Wigner d-functions and the corresponding upsampled quadrature
             weights.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss"}.
 
     Returns:
@@ -112,9 +112,9 @@ def inverse_transform_jax(
         precomps: Fourier coefficients of the
             reduced Wigner d-functions and the corresponding upsampled quadrature
             weights.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss"}.
 
     Returns:
@@ -198,9 +198,9 @@ def forward_transform(
         precomps: Fourier coefficients of the
             reduced Wigner d-functions and the corresponding upsampled quadrature
             weights.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss"}.
 
     Returns:
@@ -318,9 +318,9 @@ def forward_transform_jax(
         precomps: Fourier coefficients of the
             reduced Wigner d-functions and the corresponding upsampled quadrature
             weights.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss"}.
 
     Returns:

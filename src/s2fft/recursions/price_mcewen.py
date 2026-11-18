@@ -29,9 +29,9 @@ def generate_precomputes(
     Args:
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
         L_lower: Harmonic lower-bound. Transform will only be computed
@@ -131,9 +131,9 @@ def generate_precomputes_jax(
     Args:
         L: Harmonic band-limit.
         spin: Harmonic spin.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
         L_lower: Harmonic lower-bound. Transform will only be computed
@@ -267,12 +267,12 @@ def generate_precomputes_wigner(
     Args:
         L: Harmonic band-limit.
         N: Azimuthal bandlimit
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
@@ -311,12 +311,12 @@ def generate_precomputes_wigner_jax(
     Args:
         L: Harmonic band-limit.
         N: Azimuthal bandlimit
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.

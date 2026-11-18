@@ -30,12 +30,12 @@ def inverse(
         L: Harmonic band-limit.
         N: Directional band-limit.
         kernel: Wigner-d kernel.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         method: Execution mode in {"numpy", "jax", "torch"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Returns:
@@ -87,11 +87,11 @@ def inverse_transform(
         kernel: Wigner-d kernel.
         L: Harmonic band-limit.
         N: Directional band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Returns:
@@ -143,11 +143,11 @@ def inverse_transform_jax(
         kernel (jnp.ndarray): Wigner-d kernel.
         L (int): Harmonic band-limit.
         N (int): Directional band-limit.
-        sampling (str): Sampling scheme.  Supported sampling schemes include
+        sampling (str): Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        reality (bool, optional): Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        nside (int): HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Returns:
@@ -222,12 +222,12 @@ def forward(
         L: Harmonic band-limit.
         N: Directional band-limit.
         kernel: Wigner-d kernel.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         method: Execution mode in {"numpy", "jax", "torch"}.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Returns:
@@ -277,11 +277,11 @@ def forward_transform(
         kernel: Wigner-d kernel.
         L: Harmonic band-limit.
         N: Directional band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Returns:
@@ -354,11 +354,11 @@ def forward_transform_jax(
         kernel: Wigner-d kernel.
         L: Harmonic band-limit.
         N: Directional band-limit.
-        sampling: Sampling scheme.  Supported sampling schemes include
+        sampling: Sampling scheme. Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
-        reality: Whether the signal on the sphere is real.  If so,
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-        nside: HEALPix Nside resolution parameter.  Only required
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
 
     Returns:
