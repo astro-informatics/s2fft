@@ -12,11 +12,8 @@ def compute_full(dl: np.ndarray, beta: float, L: int, el: int) -> np.ndarray:
 
     Args:
         dl: Wigner-d plane for :math:`\ell - 1` at :math:`\beta`.
-
         beta: Argument :math:`\beta` at which to compute Wigner-d plane.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -109,9 +106,7 @@ def _arg_checks(dl: np.ndarray, beta: float, L: int, el: int):
 
     Args:
         dl: Wigner-d plane of which to check shape.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     """
@@ -133,11 +128,8 @@ def compute_full_vectorised(
 
     Args:
         dl: Wigner-d plane for :math:`\ell - 1` and for all :math:`\beta`.
-
         beta: Arguments :math:`\beta` at which to compute Wigner-d plane.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:

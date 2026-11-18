@@ -88,13 +88,9 @@ def generate_flm(
 
     Args:
         rng: Random number generator.
-
         L: Harmonic band-limit.
-
         L_lower: Harmonic lower bound. Defaults to 0.
-
         spin: Harmonic spin. Defaults to 0.
-
         reality: Reality of signal. Defaults to False.
 
     Returns:
@@ -138,14 +134,10 @@ def generate_flmn(
 
     Args:
         rng: Random number generator.
-
         L: Harmonic band-limit.
-
         N: Number of Fourier coefficients for tangent plane rotations
             (i.e. directionality). Defaults to 1.
-
         L_lower: Harmonic lower bound. Defaults to 0.
-
         reality: Reality of signal. Defaults to False.
 
     Returns:

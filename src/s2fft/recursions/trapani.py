@@ -15,9 +15,7 @@ def init(dl: np.ndarray, L: int, implementation: str = "vectorized") -> np.ndarr
         dl: Wigner-d plane :math:`d^\ell_{mm^\prime}(\pi/2)` allocated
             for all :math:`-L < m, m^\prime < L`, to be indexed by
             `dl[m + L - 1, m' + L - 1]`.
-
         L: Harmonic band-limit.
-
         implementation: Implementation to adopt.  Supported
             implementations include {"loop", "vectorized", "jax"}.  Defaults to
             "vectorized".
@@ -53,7 +51,6 @@ def init_nonjax(dl: np.ndarray, L: int) -> np.ndarray:
         dl: Wigner-d plane :math:`d^\ell_{mm^\prime}(\pi/2)` allocated
             for all :math:`-L < m, m^\prime < L`, to be indexed by
             `dl[m + L - 1, m' + L - 1]`.
-
         L: Harmonic band-limit.
 
     Returns:
@@ -81,7 +78,6 @@ def init_jax(dl: jnp.ndarray, L: int) -> jnp.ndarray:
         dl: Wigner-d plane :math:`d^\ell_{mm^\prime}(\pi/2)` allocated
             for all :math:`-L < m, m^\prime < L`, to be indexed by
             `dl[m + L - 1, m' + L - 1]`.
-
         L: Harmonic band-limit.
 
     Returns:
@@ -120,9 +116,7 @@ def compute_eighth(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
         dl: Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -198,9 +192,7 @@ def compute_quarter_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
         dl: Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -272,9 +264,7 @@ def compute_quarter_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
 
     Args:
         dl: Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -351,9 +341,7 @@ def fill_eighth2quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
         dl: Eighth of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -383,9 +371,7 @@ def fill_quarter2half(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
         dl: Quarter of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -415,9 +401,7 @@ def fill_quarter2half_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
         dl: Quarter of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -450,9 +434,7 @@ def fill_quarter2half_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
 
     Args:
         dl (jnp.ndarray): Quarter of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -489,9 +471,7 @@ def fill_half2full(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
         dl: Half of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -521,9 +501,7 @@ def fill_half2full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
         dl: Half of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -556,9 +534,7 @@ def fill_half2full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
 
     Args:
         dl (jnp.ndarray): Half of Wigner-d plane for :math:`\ell` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -607,11 +583,8 @@ def compute_full(
 
     Args:
         dl: Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
-
         implementation: Implementation to adopt.  Supported
             implementations include {"loop", "vectorized", "jax"}.  Defaults to
             "vectorized".
@@ -648,9 +621,7 @@ def compute_full_loop(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
         dl: Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -690,9 +661,7 @@ def compute_quarter(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
         dl: Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -722,9 +691,7 @@ def compute_full_vectorized(dl: np.ndarray, L: int, el: int) -> np.ndarray:
 
     Args:
         dl: Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -756,9 +723,7 @@ def compute_full_jax(dl: jnp.ndarray, L: int, el: int) -> jnp.ndarray:
 
     Args:
         dl: Wigner-d plane for :math:`\ell - 1` at :math:`\pi/2`.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
@@ -780,7 +745,6 @@ def _arg_checks(dl: np.ndarray, L: int):
 
     Args:
         dl: Wigner-d plane of which to check shape.
-
         L: Harmonic band-limit.
 
     """

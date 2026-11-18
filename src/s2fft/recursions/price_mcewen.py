@@ -28,18 +28,13 @@ def generate_precomputes(
 
     Args:
         L: Harmonic band-limit.
-
         spin: Harmonic spin. Defaults to 0.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
-
         forward: Whether to provide forward or inverse shift.
             Defaults to False.
-
         L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
@@ -136,21 +131,15 @@ def generate_precomputes_jax(
 
     Args:
         L: Harmonic band-limit.
-
         spin: Harmonic spin. Defaults to 0.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
-
         forward: Whether to provide forward or inverse shift.
             Defaults to False.
-
         L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
-
         beta: Array of polar angles in radians.
 
     Returns:
@@ -279,22 +268,16 @@ def generate_precomputes_wigner(
 
     Args:
         L: Harmonic band-limit.
-
         N: Azimuthal bandlimit
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
-
         forward: Whether to provide forward or inverse shift.
             Defaults to False.
-
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
-
         L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
@@ -331,22 +314,16 @@ def generate_precomputes_wigner_jax(
 
     Args:
         L: Harmonic band-limit.
-
         N: Azimuthal bandlimit
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
-
         forward: Whether to provide forward or inverse shift.
             Defaults to False.
-
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
-
         L_lower: Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
@@ -407,11 +384,8 @@ def compute_all_slices(
 
     Args:
         beta: Array of polar angles in radians.
-
         L: Harmonic band-limit.
-
         spin: Harmonic spin. Defaults to 0.
-
         precomps: Precomputed recursion coefficients with memory overhead
             :math:`\mathcal{O}(L^2)`, which is minimal.
 
@@ -538,11 +512,8 @@ def compute_all_slices_jax(
 
     Args:
         beta: Array of polar angles in radians.
-
         L: Harmonic band-limit.
-
         spin: Harmonic spin. Defaults to 0.
-
         precomps: Precomputed recursion coefficients with memory overhead
             :math:`\mathcal{O}(L^2)`, which is minimal.
 

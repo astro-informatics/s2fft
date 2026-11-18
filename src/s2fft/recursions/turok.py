@@ -20,9 +20,7 @@ def compute_full(beta: float, el: int, L: int) -> np.ndarray:
 
     Args:
         beta: Polar angle in radians.
-
         el: Harmonic degree of Wigner-d matrix.
-
         L: Harmonic band-limit.
 
     Raises:
@@ -64,21 +62,15 @@ def compute_slice(
 
     Args:
         beta: Polar angle in radians.
-
         el: Harmonic degree of Wigner-d matrix.
-
         L: Harmonic band-limit.
-
         mm: Harmonic order at which to slice the matrix.
-
         positive_m_only: Compute Wigner-d matrix for slice at m greater
             than zero only.  Defaults to False.
 
     Raises:
         ValueError: If el is greater than L.
-
         ValueError: If el is less than mm.
-
         Warning: If positive_m_only is true but mm not 0.
 
     Returns:
@@ -119,15 +111,10 @@ def compute_quarter_slice(
 
     Args:
         dl: Wigner-d matrix slice to populate (shape: 2L-1).
-
         beta: Polar angle in radians.
-
         l: Harmonic degree of Wigner-d matrix.
-
         L: Harmonic band-limit.
-
         mm: Harmonic order at which to slice the matrix.
-
         positive_m_only: Compute Wigner-d matrix for slice at m greater
             than zero only.  Defaults to False.
 
@@ -239,11 +226,8 @@ def compute_quarter(dl: np.ndarray, beta: float, ell: int, L: int) -> np.ndarray
 
     Args:
         dl: Wigner-d matrix slice to populate (shape: 2L-1, 2L-1).
-
         beta: Polar angle in radians.
-
         ell: Harmonic degree of Wigner-d matrix.
-
         L: Harmonic band-limit.
 
     Returns:
@@ -368,9 +352,7 @@ def fill(dl: np.ndarray, ell: int, L: int) -> np.ndarray:
 
     Args:
         dl: Wigner-d matrix to populate by symmetry.
-
         ell: Harmonic degree of Wigner-d matrix.
-
         L: Harmonic band-limit.
 
     Returns:

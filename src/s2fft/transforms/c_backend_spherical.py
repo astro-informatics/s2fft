@@ -50,18 +50,13 @@ def ssht_inverse(
 
     Args:
         flm: Spherical harmonic coefficients.
-
         L: Harmonic band-limit.
-
         spin: Harmonic spin. Defaults to 0.
-
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
-
         ssht_sampling: Sampling scheme. Supported sampling schemes include
             {"mw" = 0, "mwss" = 1, "dh" = 2, "gl" = 3}.  Defaults to "mw" = 0.
-
         _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
             backend. Experimental, use with caution.
@@ -173,18 +168,13 @@ def ssht_forward(
 
     Args:
         f: Signal on the sphere.
-
         L: Harmonic band-limit.
-
         spin: Harmonic spin. Defaults to 0.
-
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
-
         ssht_sampling: Sampling scheme. Supported sampling schemes include
             {"mw" = 0, "mwss" = 1, "dh" = 2, "gl" = 3}.  Defaults to "mw" = 0.
-
         _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
             backend. Experimental, use with caution.
@@ -361,9 +351,7 @@ def healpy_map2alm(f: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
 
     Args:
         f: Signal on the sphere.
-
         L: Harmonic band-limit. Equivalent to `lmax + 1` in healpy.
-
         nside: HEALPix Nside resolution parameter.
 
     Returns:
@@ -416,9 +404,7 @@ def healpy_alm2map(flm: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
 
     Args:
         flm: Spherical harmonic coefficients.
-
         L: Harmonic band-limit. Equivalent to `lmax + 1` in healpy.
-
         nside: HEALPix Nside resolution parameter.
 
     Returns:
@@ -442,11 +428,8 @@ def healpy_forward(f: jnp.ndarray, L: int, nside: int, iter: int = 3) -> jnp.nda
 
     Args:
         f: Signal on the sphere.
-
         L: Harmonic band-limit.
-
         nside: HEALPix Nside resolution parameter.
-
         iter: Number of subiterations (iterative refinement steps) for
             healpy. Note that iterations increase the precision of the forward transform
             as an inverse of inverse transform, but with a linear increase in
@@ -484,9 +467,7 @@ def healpy_inverse(flm: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
 
     Args:
         flm: Spherical harmonic coefficients.
-
         L: Harmonic band-limit.
-
         nside: HEALPix Nside resolution parameter.
 
     Returns:

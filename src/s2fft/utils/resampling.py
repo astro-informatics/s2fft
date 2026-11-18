@@ -13,11 +13,8 @@ def periodic_extension(
 
     Args:
         f: Signal on the sphere sampled with MW/MWSS sampling scheme.
-
         L: Harmonic band-limit.
-
         spin: Harmonic spin. Defaults to 0.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss"}.  Defaults to "mw".
 
@@ -73,9 +70,7 @@ def periodic_extension_spatial_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.
 
     Args:
         f: Signal on the sphere sampled with MWSS sampling scheme.
-
         L: Harmonic band-limit.
-
         spin: Harmonic spin. Defaults to 0.
 
     Returns:
@@ -114,9 +109,7 @@ def upsample_by_two_mwss(f: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
     Args:
         f: Signal on the sphere sampled with MWSS sampling scheme, sampled
             at resolution L.
-
         L: Harmonic band-limit.
-
         spin: Harmonic spin. Defaults to 0.
 
     Returns:
@@ -141,7 +134,6 @@ def upsample_by_two_mwss_ext(f_ext: np.ndarray, L: int) -> np.ndarray:
     Args:
         f_ext: Signal on the sphere sampled on extended MWSS sampling
             scheme on domain :math:`[0,2\pi]`, sampled at resolution L.
-
         L: Harmonic band-limit.
 
     Returns:
@@ -175,7 +167,6 @@ def downsample_by_two_mwss(f_ext: np.ndarray, L: int) -> np.ndarray:
     Args:
         f_ext: Signal on the sphere sampled with MWSS sampling at
             resolution L.
-
         L: Harmonic band-limit.
 
     Raises:
@@ -203,9 +194,7 @@ def unextend(f_ext: np.ndarray, L: int, sampling: str = "mw") -> np.ndarray:
     Args:
         f_ext: Signal on the sphere sampled on extended :math:`\theta`
             domain :math:`[0,2\pi]`.
-
         L: Harmonic band-limit.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss"}.  Defaults to "mw".
 
@@ -263,7 +252,6 @@ def mw_to_mwss_phi(f_mw: np.ndarray, L: int) -> np.ndarray:
     Args:
         f_mw: Signal on the sphere sampled with MW sampling in
             :math:`\phi` and arbitrary number of samples in
-
         L: Harmonic band-limit.
 
     Raises:
@@ -297,9 +285,7 @@ def mw_to_mwss_theta(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
 
     Args:
         f_mw: Signal on the sphere sampled with MW sampling.
-
         L: Harmonic band-limit.
-
         spin: Harmonic spin. Defaults to 0.
 
     Raises:
@@ -344,9 +330,7 @@ def mw_to_mwss(f_mw: np.ndarray, L: int, spin: int = 0) -> np.ndarray:
 
     Args:
         f_mw: Signal on the sphere sampled with MW sampling.
-
         L: Harmonic band-limit.
-
         spin: Harmonic spin. Defaults to 0.
 
     Returns:

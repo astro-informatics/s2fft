@@ -16,11 +16,8 @@ def compute_full(dl: jnp.ndarray, beta: float, L: int, el: int) -> jnp.ndarray:
 
     Args:
         dl: Wigner-d plane for :math:`\ell - 1` at :math:`\beta`.
-
         beta: Argument :math:`\beta` at which to compute Wigner-d plane.
-
         L: Harmonic band-limit.
-
         el: Spherical harmonic degree :math:`\ell`.
 
     Returns:

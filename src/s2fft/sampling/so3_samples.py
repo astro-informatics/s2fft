@@ -20,12 +20,9 @@ def f_shape(
 
     Args:
         L: Harmonic band-limit.
-
         N: Directional band-limit.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
@@ -53,7 +50,6 @@ def flmn_shape(L: int, N: int) -> tuple[int, int, int]:
 
     Args:
         L: Harmonic band-limit.
-
         N: Directional band-limit.
 
     Returns:
@@ -72,12 +68,9 @@ def fnab_shape(
 
     Args:
         L: Harmonic band-limit.
-
         N: Directional band-limit.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
-
         nside: HEALPix Nside resolution parameter.
 
     Raises:
@@ -96,7 +89,6 @@ def flmn_shape_1d(L: int, N: int) -> int:
 
     Args:
         L: Harmonic band-limit.
-
         N: Directional band-limit.
 
     Returns:
@@ -112,7 +104,6 @@ def _nalpha(L: int, sampling: str = "mw") -> int:
 
     Args:
         L: Harmonic band-limit.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
 
@@ -139,7 +130,6 @@ def _nbeta(L: int, sampling: str = "mw") -> int:
 
     Args:
         L: Harmonic band-limit.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
 
@@ -183,13 +173,9 @@ def elmn2ind(el: int, m: int, n: int, L: int, N: int) -> int:
 
     Args:
         el: Harmonic degree :math:`\ell`.
-
         m: Harmonic order :math:`m`.
-
         n: Directional order :math:`n`.
-
         L: Harmonic band-limit.
-
         N: Directional band-limit. Defaults to 1.
 
     Returns:
@@ -208,9 +194,7 @@ def flmn_3d_to_1d(flmn_3d: np.ndarray, L: int, N: int) -> np.ndarray:
     Args:
         flm_3d: 3D indexed Wigner coefficients, index order
             :math:`[\ell, m, n]`.
-
         L: Harmonic band-limit.
-
         N: Directional band-limit.
 
     Raises:
@@ -245,14 +229,11 @@ def flmn_1d_to_3d(flmn_1d: np.ndarray, L: int, N: int) -> np.ndarray:
 
     Args:
         flm_1d : 1D indexed Wigner coefficients, C flatten index priority :math:`n, \ell, m`.
-
         L: Harmonic band-limit.
-
         N: Directional band-limit.
 
     Raises:
         ValueError: `flmn` is already 3D indexed.
-
         ValueError: `flmn` is not 1D.
 
     Returns:

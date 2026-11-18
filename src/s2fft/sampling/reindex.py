@@ -29,7 +29,6 @@ def flm_1d_to_2d_fast(flm_1d: jnp.ndarray, L: int) -> jnp.ndarray:
 
     Args:
         flm_1d: 1D indexed harmonic coefficients.
-
         L: Harmonic band-limit.
 
     Returns:
@@ -68,7 +67,6 @@ def flm_2d_to_1d_fast(flm_2d: jnp.ndarray, L: int) -> jnp.ndarray:
 
     Args:
         flm_2d: 2D indexed harmonic coefficients.
-
         L: Harmonic band-limit.
 
     Returns:
@@ -118,7 +116,6 @@ def flm_hp_to_2d_fast(flm_hp: jnp.ndarray, L: int) -> jnp.ndarray:
 
     Args:
         flm_hp: HEALPix indexed harmonic coefficients.
-
         L: Harmonic band-limit.
 
     Returns:
@@ -172,7 +169,6 @@ def flm_2d_to_hp_fast(flm_2d: jnp.ndarray, L: int) -> jnp.ndarray:
 
     Args:
         flm_2d: 2D indexed harmonic coefficients.
-
         L: Harmonic band-limit.
 
     Returns:

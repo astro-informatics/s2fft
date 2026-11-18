@@ -27,20 +27,14 @@ def inverse(
 
     Args:
         flmn: Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
-
         L: Harmonic bandlimit.
-
         N: Directional band-limit.
-
         L_lower: Harmonic lower bound. Defaults to 0.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl"}.  Defaults to "mw".
-
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
@@ -109,20 +103,14 @@ def forward(
         f: Signal on the on :math:`SO(3)` with shape
             :math:`[n_{\gamma}, n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the
             number of samples for angle :math:`\xi`.
-
         L: Harmonic bandlimit.
-
         N: Directional band-limit.
-
         L_lower: Harmonic lower bound. Defaults to 0.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh"}.  Defaults to "mw".
-
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 

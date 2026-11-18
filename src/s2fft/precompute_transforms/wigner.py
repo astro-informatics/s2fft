@@ -27,23 +27,16 @@ def inverse(
 
     Args:
         flm: Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
-
         L: Harmonic band-limit.
-
         N: Directional band-limit.
-
         kernel: Wigner-d kernel. Defaults to None.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
-
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
             Defaults to False.
-
         method: Execution mode in {"numpy", "jax", "torch"}.
             Defaults to "jax".
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
@@ -93,19 +86,13 @@ def inverse_transform(
 
     Args:
         flmn: Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
-
         kernel: Wigner-d kernel.
-
         L: Harmonic band-limit.
-
         N: Directional band-limit.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
-
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
@@ -155,24 +142,18 @@ def inverse_transform_jax(
 
     Args:
         flmn (jnp.ndarray): Wigner coefficients with shape :math:`[2N-1, L, 2L-1]`.
-
         kernel (jnp.ndarray): Wigner-d kernel.
-
         L (int): Harmonic band-limit.
-
         N (int): Directional band-limit.
-
         sampling (str): Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
-
         reality (bool, optional): Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-
         nside (int): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
     Returns:
-        jnp.ndarray: Pixel-space coefficients.
+        Pixel-space coefficients.
 
     """
     m_offset = s2_samples.m_offset(L, sampling)
@@ -240,23 +221,16 @@ def forward(
         f: Signal on the on :math:`SO(3)` with shape
             :math:`[n_{\gamma}, n_{\beta}, n_{\alpha}]`, where :math:`n_\xi` denotes the
             number of samples for angle :math:`\xi`.
-
         L: Harmonic band-limit.
-
         N: Directional band-limit.
-
         kernel: Wigner-d kernel. Defaults to None.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}. Defaults to "mw".
-
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
             Defaults to False.
-
         method: Execution mode in {"numpy", "jax", "torch"}.
             Defaults to "jax".
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
@@ -304,19 +278,13 @@ def forward_transform(
 
     Args:
         f: Signal on the sphere.
-
         kernel: Wigner-d kernel.
-
         L: Harmonic band-limit.
-
         N: Directional band-limit.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
-
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 
@@ -387,19 +355,13 @@ def forward_transform_jax(
 
     Args:
         f: Signal on the sphere.
-
         kernel: Wigner-d kernel.
-
         L: Harmonic band-limit.
-
         N: Directional band-limit.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix"}.
-
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".
 

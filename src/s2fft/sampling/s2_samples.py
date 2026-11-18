@@ -8,22 +8,16 @@ def ntheta(L: int | None = None, sampling: str = "mw", nside: int | None = None)
     Args:
         L: Harmonic band-limit.  Required if sampling not healpix.
             Defaults to None.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
     Raises:
         ValueError: L not specified when sampling not healpix.
-
         ValueError: HEALPix sampling set but nside not specified.
-
         ValueError: Sampling scheme not supported.
-
         ValueError: Using any non-HEALPix sampling scheme with L < 1.
-
         ValueError: Using Clenshaw-Curtis sampling scheme with L < 2.
 
     Returns:
@@ -75,7 +69,6 @@ def ntheta_extension(L: int, sampling: str = "mw") -> int:
 
     Args:
         L: Harmonic band-limit.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss"}.  Defaults to "mw".
 
@@ -108,13 +101,11 @@ def nphi_equiang(L: int, sampling: str = "mw") -> int:
 
     Args:
         L: Harmonic band-limit.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "cc", "f2"}.  Defaults to "mw".
 
     Raises:
         ValueError: HEALPix sampling scheme.
-
         ValueError: Unknown sampling scheme.
 
     Returns:
@@ -145,7 +136,6 @@ def m_offset(L: int, sampling: str) -> int:
 
     Args:
         L: Harmonic band-limit.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
 
@@ -243,10 +233,8 @@ def ftm_shape(L: int, sampling: str = "mw", nside: int = None) -> tuple[int, int
 
     Args:
         L: Harmonic band-limit.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
         nside: HEALPix Nside resolution parameter.
 
     Raises:
@@ -291,7 +279,6 @@ def nphi_ring(t: int, nside: int = None) -> int:
 
     Args:
         t: Index of HEALPix :math:`\theta` ring.
-
         nside: HEALPix Nside resolution parameter.
 
     Raises:
@@ -321,10 +308,8 @@ def thetas(L: int = None, sampling: str = "mw", nside: int = None) -> np.ndarray
     Args:
         L: Harmonic band-limit.  Required if sampling not healpix.
             Defaults to None.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
@@ -348,21 +333,16 @@ def t2theta(
 
     Args:
         t: :math:`\theta` index.
-
         L: Harmonic band-limit.  Required if sampling not healpix.
             Defaults to None.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
     Raises:
         ValueError: L not specified when sampling not healpix.
-
         ValueError: HEALPix sampling set but nside not specified.
-
         ValueError: Sampling scheme not supported.
 
     Returns:
@@ -404,7 +384,6 @@ def _t2theta_healpix(t: int, nside: int) -> np.ndarray:
 
     Args:
         t: :math:`\theta` index.
-
         nside: HEALPix Nside resolution parameter.
 
     Returns:
@@ -431,7 +410,6 @@ def phis_ring(t: int, nside: int) -> np.ndarray:
 
     Args:
         t: :math:`\theta` index.
-
         nside: HEALPix Nside resolution parameter.
 
     Returns:
@@ -449,9 +427,7 @@ def p2phi_ring(t: int, p: int, nside: int) -> np.ndarray:
 
     Args:
         t: :math:`\theta` index of ring.
-
         p: :math:`\phi` index within ring.
-
         nside: HEALPix Nside resolution parameter.
 
     Returns:
@@ -476,7 +452,6 @@ def phis_equiang(L: int, sampling: str = "mw") -> np.ndarray:
 
     Args:
         L: Harmonic band-limit.
-
         sampling: Sampling scheme.  Supported equiangular sampling
             schemes include {"mw", "mwss", "dh", "gl", "cc", "f2"}.  Defaults to "mw".
 
@@ -495,15 +470,12 @@ def p2phi_equiang(L: int, p: int, sampling: str = "mw") -> np.ndarray:
 
     Args:
         L: Harmonic band-limit.
-
         p: :math:`\phi` index.
-
         sampling: Sampling scheme.  Supported equiangular sampling
             schemes include {"mw", "mwss", "dh", "gl", "cc", "f2"}.  Defaults to "mw".
 
     Raises:
         ValueError: HEALPix sampling not support (only equiangular schemes supported).
-
         ValueError: Unknown sampling scheme.
 
     Returns:
@@ -528,14 +500,10 @@ def ring_phase_shift_hp(
 
     Args:
         L: Harmonic band-limit.
-
         t: :math:`\theta` index of ring.
-
         nside: HEALPix Nside resolution parameter.
-
         forward: Whether to provide forward or inverse shift.
             Defaults to False.
-
         reality: Whether the signal on the sphere is real.  If so,
             conjugate symmetry is exploited to reduce computational costs.
             Defaults to False.
@@ -556,10 +524,8 @@ def f_shape(L: int = None, sampling: str = "mw", nside: int = None) -> tuple[int
 
     Args:
         L: Harmonic band-limit.
-
         sampling: Sampling scheme.  Supported sampling schemes include
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
         nside: HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
 
@@ -610,7 +576,6 @@ def elm2ind(el: int, m: int) -> int:
 
     Args:
         eL: Harmonic degree :math:`\ell`.
-
         m: Harmonic order :math:`m`.
 
     Returns:
@@ -661,9 +626,7 @@ def hp_ang2pix(nside: int, theta: float, phi: float) -> int:
 
     Args:
         nside: HEALPix Nside resolution parameter.
-
         theta: Spherical :math:`\theta` angle.
-
         phi: Spherical :math:`\phi` angle.
 
     Returns:
@@ -685,9 +648,7 @@ def _hp_zphi2pix(nside: int, z: float, phi: float) -> int:
 
     Args:
         nside: HEALPix Nside resolution parameter.
-
         z: Cosine of spherical :math:`\theta` angle, i.e. :math:`\cos(\theta)`.
-
         phi: Spherical :math:`\phi` angle.
 
     Returns:
@@ -739,9 +700,7 @@ def hp_getidx(L: int, el: int, m: int) -> int:
 
     Args:
         L: Harmonic band-limit.
-
         eL: Harmonic degree :math:`\ell`.
-
         m: Harmonic order :math:`m`.
 
     Returns:
@@ -774,7 +733,6 @@ def flm_2d_to_1d(flm_2d: np.ndarray, L: int) -> np.ndarray:
 
     Args:
         flm_2d: 2D indexed harmonic coefficients.
-
         L: Harmonic band-limit.
 
     Returns:
@@ -821,7 +779,6 @@ def flm_1d_to_2d(flm_1d: np.ndarray, L: int) -> np.ndarray:
 
     Args:
         flm_1d: 1D indexed harmonic coefficients.
-
         L: Harmonic band-limit.
 
     Returns:
@@ -880,7 +837,6 @@ def flm_hp_to_2d(flm_hp: np.ndarray, L: int) -> np.ndarray:
 
     Args:
         flm_hp: HEALPix indexed harmonic coefficients.
-
         L: Harmonic band-limit.
 
     Returns:
@@ -937,7 +893,6 @@ def flm_2d_to_hp(flm_2d: np.ndarray, L: int) -> np.ndarray:
 
     Args:
         flm_2d: 2D indexed harmonic coefficients.
-
         L: Harmonic band-limit.
 
     Returns:
@@ -988,7 +943,6 @@ def lm2lm_hp(flm: np.ndarray, L: int) -> np.ndarray:
 
     Args:
         flm: 1D indexed harmonic coefficients.
-
         L: Harmonic band-limit.
 
     Returns:
