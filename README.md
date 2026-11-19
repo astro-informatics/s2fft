@@ -119,7 +119,7 @@ pip install git+https://github.com/astro-informatics/s2fft
 ### CUDA extension support
 
 The CUDA extension module, giving reduced compile times for running HEALPix transforms on the GPU (`method="jax_cuda"`),
-is published as prebuilt Linux x86-64 wheels in two plugin packages, `s2fft-cuda12-plugin` (built with CUDA 12.8) and `s2fft-cuda13-plugin` (built with CUDA 13.0),
+is published as prebuilt Linux x86-64 and aarch64 wheels in two plugin packages, `s2fft-cuda12-plugin` (built with CUDA 12.8) and `s2fft-cuda13-plugin` (built with CUDA 13.0),
 following JAX's `jax-cuda12-plugin` and `jax-cuda13-plugin`.
 They are installed through extras of `s2fft`, which also install JAX with the matching CUDA support:
 
