@@ -7,10 +7,18 @@ on:
     - cron: "0 23 * * *"
   workflow_dispatch: # Allow for running this manually.
 
+permissions: {}
+
+concurrency:
+  group: stats-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   collect-stats:
     name: github-repo-stats
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: run-ghrs
         # Use latest release.
