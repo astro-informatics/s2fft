@@ -20,8 +20,8 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-
   tests-non-cached:
+    name: Tests (non-cached)
 
     # Test job run on Ubuntu runner only which installs full set of test dependencies
     # and generates test data using external packages such as healpy, pyssht and so3
@@ -67,6 +67,7 @@ jobs:
         retention-days: 30
 
   tests-with-cached-data:
+    name: Tests (with cached data)
 
     # Matrix test job using cached test data from previous job to allow running tests
     # with a smaller set of dependencies (in particular not requiring pyssht, so3 or

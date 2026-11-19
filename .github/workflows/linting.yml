@@ -8,6 +8,7 @@ on:
 
 jobs:
   linting:
+    name: Linting
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
