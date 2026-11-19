@@ -50,6 +50,11 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+      - name: Install pipx
+        run: python -m pip install pipx
       - name: Build wheel and sdist
         run: pipx run build --outdir dist
       - name: Check the wheel is pure Python
