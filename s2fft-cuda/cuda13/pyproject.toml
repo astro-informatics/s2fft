@@ -15,10 +15,10 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "s2fft-cuda13-plugin"
 description = "CUDA 13 plugin of s2fft: HEALPix ring FFTs on the GPU as JAX FFI custom calls"
+readme = "../README.md"
 authors = [
-    {name = "Matthew A. Price"},
-    {name = "Jason D. McEwen"},
-    {name = "Contributors"},
+    {name = "Wassim Kabalan"},
+    {name = "s2fft contributors"},
 ]
 license = {text = "MIT"}
 requires-python = ">=3.11"
