@@ -32,13 +32,13 @@ jobs:
       CMAKE_POLICY_VERSION_MINIMUM: 3.5
     steps:
     - name: Checkout Source
-      uses: actions/checkout@v7.0.1
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
         fetch-tags: true
 
     - name: Set up Python
-      uses: actions/setup-python@v7
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: "3.13"
         cache: pip
@@ -54,12 +54,12 @@ jobs:
         pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc --update-cache -m "uses_cached_data or pyssht or healpy"
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v7
+      uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Upload cached test data
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: cached-test-data
         path: tests/cached-test-data
@@ -80,18 +80,18 @@ jobs:
 
     steps:
     - name: Checkout Source
-      uses: actions/checkout@v7.0.1
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
         fetch-tags: true
 
-    - uses: actions/download-artifact@v8
+    - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
       with:
         name: cached-test-data
         path: tests/cached-test-data
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v7
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
@@ -116,6 +116,6 @@ jobs:
         pytest -v --cov-report=xml --cov=s2fft --cov-config=.coveragerc -m "not pyssht and not healpy" --use-cache
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v7
+      uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
