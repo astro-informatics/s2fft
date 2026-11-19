@@ -92,7 +92,6 @@ tests = [
     "torch",
     "ducc0",
     "healpy",
-    "numpy<2",    # Required currently due to lack of Numpy v2 compatible pyssht release
     "pyssht",
     "so3",
 ]
@@ -127,22 +126,8 @@ cuda = [
 
 # uv workspace: during development the CUDA extension is built from s2fft-cuda/.
 [tool.uv.sources]
-# Path dependencies, not workspace members: a workspace resolves all members together,
-# which puts the plugins (jax>=<build jax>, numpy>=2) in the same resolution as the
-# tests extra (numpy<2) even without a CUDA extra.
 s2fft-cuda12-plugin = { path = "s2fft-cuda/cuda12" }
 s2fft-cuda13-plugin = { path = "s2fft-cuda/cuda13" }
-
-[tool.uv]
-# The tests extra pins numpy<2 (pyssht), which holds jax back to a release without the
-# cuda13 extra; resolve it separately from the CUDA extras.
-conflicts = [
-    [{ extra = "tests" }, { extra = "cuda12" }],
-    [{ extra = "tests" }, { extra = "cuda12-local" }],
-    [{ extra = "tests" }, { extra = "cuda13" }],
-    [{ extra = "tests" }, { extra = "cuda13-local" }],
-    [{ extra = "tests" }, { extra = "cuda" }],
-]
 
 [tool.pytest.ini_options]
 addopts = "--color=yes -v"
