@@ -35,7 +35,7 @@ def generate_precomputes(
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         List of precomputed coefficient arrays.
@@ -137,7 +137,7 @@ def generate_precomputes_jax(
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
         beta: Array of polar angles in radians.
 
     Returns:
@@ -275,7 +275,7 @@ def generate_precomputes_wigner(
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         2N-1 length List of Lists of precomputed coefficient arrays.
@@ -319,7 +319,7 @@ def generate_precomputes_wigner_jax(
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         2N-1 length List of Lists of precomputed coefficient arrays.

@@ -65,7 +65,7 @@ def inverse_latitudinal_step(
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Coefficients ftm with indexing :math:`[\theta, m]`.
@@ -218,7 +218,7 @@ def inverse_latitudinal_step_jax(
         spmd: Whether to map compute over multiple devices. Currently this
             only maps over all available devices.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Coefficients ftm with indexing :math:`[\theta, m]`.
@@ -462,7 +462,7 @@ def forward_latitudinal_step(
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Spherical harmonic coefficients.
@@ -616,7 +616,7 @@ def forward_latitudinal_step_jax(
         spmd: Whether to map compute over multiple devices. Currently this
             only maps over all available devices.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Spherical harmonic coefficients.

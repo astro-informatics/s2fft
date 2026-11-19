@@ -34,7 +34,7 @@ def inverse(
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Signal on the sphere.
@@ -78,7 +78,7 @@ def _inverse(
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Signal on the sphere.
@@ -142,7 +142,7 @@ def forward(
             conjugate symmetry is exploited to reduce computational costs.
             False.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
         iter: Number of iterative refinement iterations to use to
             improve accuracy of forward transform (as an inverse of inverse transform).
             Primarily of use with HEALPix sampling for which there is not a sampling
@@ -199,7 +199,7 @@ def _forward(
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Spherical harmonic coefficients.
@@ -276,7 +276,7 @@ def _compute_inverse_direct(
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Signal on the sphere.
@@ -356,7 +356,7 @@ def _compute_inverse_sov(
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Signal on the sphere.
@@ -423,7 +423,7 @@ def _compute_inverse_sov_fft(
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Signal on the sphere.
@@ -509,7 +509,7 @@ def _compute_inverse_sov_fft_vectorized(
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Signal on the sphere.
@@ -579,7 +579,7 @@ def _compute_forward_direct(
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Spherical harmonic coefficients.
@@ -663,7 +663,7 @@ def _compute_forward_sov(
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Spherical harmonic coefficients.
@@ -751,7 +751,7 @@ def _compute_forward_sov_fft(
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Spherical harmonic coefficients.
@@ -859,7 +859,7 @@ def _compute_forward_sov_fft_vectorized(
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Spherical harmonic coefficients.
