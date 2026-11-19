@@ -52,7 +52,7 @@ def inverse(
         spmd: Whether to map compute over multiple devices. Currently this
             only maps over all available devices, and is only valid for JAX implementations.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
         _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
             backend. Experimental, use with caution.
@@ -128,7 +128,7 @@ def inverse_numpy(
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Signal on the sphere.
@@ -225,7 +225,7 @@ def inverse_jax(
         spmd: Whether to map compute over multiple devices. Currently this
             only maps over all available devices.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
         use_healpix_custom_primitive: Whether to use a custom CUDA
             primitive for computing HEALPix fast Fourier transform when `sampling =
             "healpix"` and running on a CUDA compatible GPU device. Using a custom
@@ -333,7 +333,7 @@ def forward(
         spmd: Whether to map compute over multiple devices. Currently this
             only maps over all available devices, and is only valid for JAX implementations.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
         iter: Number of iterative refinement iterations to use to
             improve accuracy of forward transform (as an inverse of inverse transform).
             Primarily of use with HEALPix sampling for which there is not a sampling
@@ -431,7 +431,7 @@ def forward_numpy(
         precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
 
     Returns:
         Spherical harmonic coefficients
@@ -553,7 +553,7 @@ def forward_jax(
         spmd: Whether to map compute over multiple devices. Currently this
             only maps over all available devices.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L\_lower} \leq \ell < \texttt{L}`.
         use_healpix_custom_primitive: Whether to use a custom CUDA
             primitive for computing HEALPix fast Fourier transform when `sampling =
             "healpix"` and running on a CUDA compatible GPU device. Using a custom
