@@ -320,7 +320,13 @@ def test_extension_module_not_available_raise_error(monkeypatch):
         _check_extension_module()
 
 
+@pytest.mark.skipif(
+    sys.modules["s2fft.utils.healpix_ffts"]._s2fft is None,
+    reason="the s2fft CUDA plugin is not installed",
+)
 def test_extension_module_no_cuda_support_raise_error(monkeypatch):
-    monkeypatch.setattr(sys.modules["s2fft_lib._s2fft"], "COMPILED_WITH_CUDA", False)
+    monkeypatch.setattr(
+        sys.modules["s2fft.utils.healpix_ffts"]._s2fft, "COMPILED_WITH_CUDA", False
+    )
     with pytest.raises(MissingCUDASupport):
         _check_extension_module()

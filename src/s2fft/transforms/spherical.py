@@ -318,7 +318,7 @@ def inverse_jax(
         )
     if sampling.lower() == "healpix":
         if use_healpix_custom_primitive:
-            return hp.healpix_ifft(ftm, L, nside, "cuda")
+            return hp.healpix_ifft(ftm, L, nside, "cuda", reality)
         else:
             return hp.healpix_ifft(ftm, L, nside, "jax")
     else:

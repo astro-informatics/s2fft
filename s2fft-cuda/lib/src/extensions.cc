@@ -335,16 +335,15 @@ s2fftDescriptor build_descriptor(int64_t nside, int64_t harmonic_band_limit, boo
     // This call will also initialize the executor if it's newly created; the caller holds the
     // device guard, so newly created cuFFT plans bind to the right device.
     auto executor = std::make_shared<s2fftExec<fft_complex_type>>();
-    HRESULT hr = PlanCache::GetInstance().GetS2FFTExec(descriptor, executor, device_ordinal);
+    const bool created = PlanCache::GetInstance().GetS2FFTExec(descriptor, executor, device_ordinal);
     // Step 5: Handle cases where the plan was expected to exist but didn't.
-    if (hr == S_OK && must_exist) {
-        // This is an error because S_OK means plan was created, but must_exist implies it should have been
-        // found.
+    if (created && must_exist) {
+        // The plan was created here, but must_exist implies it should have been found.
         throw std::runtime_error("S2FFT INTERNAL ERROR: Plan did not exist but it was expected to exist.");
     }
-    // Step 6: If the executor was just created (S_OK), initialize it.
+    // Step 6: If the executor was just created, initialize it.
     // Note: PlanCache::GetS2FFTExec now handles workspace initialization internally
-    if (hr == S_OK) {
+    if (created) {
         executor->Initialize(descriptor);
     }
     // Make sure workspace is set
@@ -383,7 +382,7 @@ ffi::Error healpix_fft_cuda(cudaStream_t stream, int32_t device_ordinal, int64_t
     // Step 0: Select the device the buffers and plans belong to. The FFI context carries the
     // device ordinal of the device executing this call; cuFFT plans created below bind to the
     // device that is current at creation time (astro-informatics/s2fft#389).
-    // CUDA and cuFFT failures below are raised as exceptions (see hresult.h); they must not escape
+    // CUDA and cuFFT failures below are raised as exceptions (see cuda_check.h); they must not escape
     // the FFI handler, so they are returned to XLA as an error.
     try {
         CudaDeviceScope device_guard(device_ordinal);
@@ -426,7 +425,8 @@ XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C64, healpix_fft_cuda<ffi::DataTy
                                       .Arg<ffi::Buffer<ffi::DataType::C64>>()
                                       .Ret<ffi::Buffer<ffi::DataType::C64>>()
                                       .Ret<ffi::Buffer<ffi::DataType::C64>>()
-                                      .Ret<ffi::Buffer<ffi::DataType::C64>>());
+                                      .Ret<ffi::Buffer<ffi::DataType::C64>>(),
+                              {ffi::Traits::kCmdBufferCompatible});
 
 XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C128, healpix_fft_cuda<ffi::DataType::C128>,
                               ffi::Ffi::Bind()
@@ -441,7 +441,8 @@ XLA_FFI_DEFINE_HANDLER_SYMBOL(healpix_fft_cuda_C128, healpix_fft_cuda<ffi::DataT
                                       .Arg<ffi::Buffer<ffi::DataType::C128>>()
                                       .Ret<ffi::Buffer<ffi::DataType::C128>>()
                                       .Ret<ffi::Buffer<ffi::DataType::C128>>()
-                                      .Ret<ffi::Buffer<ffi::DataType::C128>>());
+                                      .Ret<ffi::Buffer<ffi::DataType::C128>>(),
+                              {ffi::Traits::kCmdBufferCompatible});
 
 /**
  * @brief Encapsulates an FFI handler into a nanobind capsule.

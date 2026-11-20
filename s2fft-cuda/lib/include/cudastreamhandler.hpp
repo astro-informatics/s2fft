@@ -40,7 +40,7 @@
 #include <cuda_runtime.h>
 
 #include "cudadeviceguard.hpp"
-#include "hresult.h"
+#include "cuda_check.h"
 
 // Singleton class managing per-device CUDA streams and events
 class CudaStreamHandlerImpl {

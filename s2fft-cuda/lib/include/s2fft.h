@@ -6,7 +6,7 @@
 #define ORTHO_NORM 3
 #define NONE_NORM 4
 
-#include "hresult.h"
+#include "cuda_check.h"
 #include <cmath>  // has to be included before cuda/std/complex
 #include <cuda/std/complex>
 #include <iostream>
@@ -154,9 +154,9 @@ public:
      * maximum required workspace size (m_work_size).
      *
      * @param descriptor The s2fftDescriptor containing the parameters for the FFT.
-     * @return HRESULT indicating success or failure.
+     * @throws std::runtime_error on a CUDA or cuFFT error.
      */
-    HRESULT Initialize(const s2fftDescriptor &descriptor);
+    void Initialize(const s2fftDescriptor &descriptor);
 
     /**
      * @brief Executes the forward Spherical Harmonic Transform.
@@ -168,9 +168,9 @@ public:
      * @param stream The CUDA stream to use for execution.
      * @param data Pointer to the input/output data on the device.
      * @param workspace Pointer to the workspace memory on the device.
-     * @return HRESULT indicating success or failure.
+     * @throws std::runtime_error on a CUDA or cuFFT error.
      */
-    HRESULT Forward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data, Complex *workspace);
+    void Forward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data, Complex *workspace);
 
     /**
      * @brief Executes the backward Spherical Harmonic Transform.
@@ -182,9 +182,9 @@ public:
      * @param stream The CUDA stream to use for execution.
      * @param data Pointer to the input/output data on the device.
      * @param workspace Pointer to the workspace memory on the device.
-     * @return HRESULT indicating success or failure.
+     * @throws std::runtime_error on a CUDA or cuFFT error.
      */
-    HRESULT Backward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data, Complex *workspace);
+    void Backward(const s2fftDescriptor &desc, cudaStream_t stream, Complex *data, Complex *workspace);
 
 public:
     // cuFFT handles for polar and equatorial FFT plans

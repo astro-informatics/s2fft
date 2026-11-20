@@ -5,7 +5,6 @@
 #include <vector>
 #include <cmath>
 #include <cuda/std/complex>
-#include "hresult.h"
 #include "s2fft.h"
 #include <unordered_map>
 #include <type_traits>
@@ -48,11 +47,12 @@ public:
      *        device that is current when they are created, so the cache is keyed per device
      *        (single-process multi-GPU, astro-informatics/s2fft#389). A negative ordinal is a
      *        host-side warm-up lookup (never used by the runtime paths).
-     * @return HRESULT indicating success (S_OK if new, S_FALSE if from cache) or failure.
+     * @return true if the executor was created and initialised here, false if it came from the cache.
+     * @throws std::runtime_error if initialising a new executor fails.
      */
     template <typename T>
-    HRESULT GetS2FFTExec(s2fftDescriptor &descriptor, std::shared_ptr<s2fftExec<T>> &executor,
-                         int32_t device_ordinal);
+    bool GetS2FFTExec(s2fftDescriptor &descriptor, std::shared_ptr<s2fftExec<T>> &executor,
+                      int32_t device_ordinal);
 
     /**
      * @brief Clears all cached s2fftExec instances.

@@ -11,14 +11,21 @@ from jax._src.numpy.util import promote_dtypes_complex
 from jax.core import ShapedArray
 
 try:
-    from s2fft_lib import _s2fft
+    from s2fft_cuda13_plugin import _s2fft
 except ImportError:
-    # s2fft_lib is a compiled extension module containing CUDA kernels for more
-    # efficient HEALPix FFTs. As extension module may not compile on all
-    # systems we guard import here to allow still using the package when the
-    # module is not available
-    warn("s2fft_lib extension module not available", stacklevel=-2)
-    _s2fft = None
+    try:
+        from s2fft_cuda12_plugin import _s2fft
+    except ImportError:
+        # _s2fft is the compiled extension module containing CUDA kernels for more
+        # efficient HEALPix FFTs. It is shipped by the separate plugin packages
+        # s2fft-cuda12-plugin and s2fft-cuda13-plugin (extras s2fft[cuda12] and
+        # s2fft[cuda13]), so we guard the import here to allow still using the
+        # package when the module is not available
+        warn(
+            'The s2fft CUDA plugin is not installed (pip install "s2fft[cuda]")',
+            stacklevel=-2,
+        )
+        _s2fft = None
 
 from s2fft.sampling import s2_samples as samples
 from s2fft.utils._dtype_association import compatible_complex_dtype
@@ -670,14 +677,15 @@ class MissingCUDASupport(Exception):  # noqa: D101
 class MissingExtensionModule(Exception):  # noqa: D101
     def __init__(self):  # noqa: D107
         super().__init__(
-            "The s2fft_lib extension module is not available. This is likely due to it "
-            "not being built successfully when the package was installed."
+            "The s2fft CUDA plugin is not available. Install it with "
+            '`pip install "s2fft[cuda12]"` or `pip install "s2fft[cuda13]"` '
+            '(`pip install "s2fft[cuda]"` selects CUDA 12).'
         )
 
 
 def _check_extension_module():
     """
-    Checks s2fft_lib extension module is available and compiled with CUDA support.
+    Checks the s2fft CUDA plugin is available and compiled with CUDA support.
 
     If not true and appropriate error is raised.
     """
@@ -724,7 +732,7 @@ def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm, adj
     # handler-side copy the alias changes XLA's buffer liveness unsoundly around
     # fused custom calls. Result 0 is therefore always a plain output buffer, and the
     # CUDA handler copies the operand into it before transforming in place
-    # (see lib/src/extensions.cc) -- sound under every XLA lowering path.
+    # (see s2fft-cuda/lib/src/extensions.cc) -- sound under every XLA lowering path.
     if is_double:
         ffi_lowered = jax.ffi.ffi_lowering("healpix_fft_cuda_c128")
     else:
