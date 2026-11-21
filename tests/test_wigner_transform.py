@@ -4,6 +4,8 @@ import numpy as np
 import pytest
 
 from s2fft.base_transforms import wigner as base_wigner
+from s2fft.precompute_transforms import wigner as precompute_wigner
+from s2fft.precompute_transforms.construct import wigner_kernel_jax
 from s2fft.recursions.price_mcewen import (
     generate_precomputes_wigner,
     generate_precomputes_wigner_jax,
@@ -116,17 +118,28 @@ def test_ssht_c_backend_forward_wigner_transform(
     np.testing.assert_allclose(flmn, flmn_check, atol=1e-12)
 
 
-def test_N_exceptions(flmn_generator):
-    N = 10
+@pytest.mark.parametrize("N", [8, 12, 16])
+@pytest.mark.parametrize("sampling", ["mw", "gl"])
+@pytest.mark.parametrize("method", ["numpy", "jax"])
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
+def test_transform_high_N(flmn_generator, N: int, sampling: str, method: str):
+    # Regression test for issue #227: the on-the-fly recursion lost accuracy on the
+    # rings nearest the poles beyond N ~ 8, so that N >= 8 was refused. Validate against
+    # the precompute transforms with kernels from the independent Risbo recursion.
     L = 16
-    flmn = flmn_generator(L=L, N=N)
-    f = base_wigner.inverse(flmn, L, N)
+    flmn = flmn_generator(L=L, N=N, reality=False)
 
-    with pytest.raises(Warning):
-        wigner.inverse(flmn, L, N)
+    kernel = wigner_kernel_jax(L, N, False, sampling, forward=False)
+    f_check = precompute_wigner.inverse(flmn, L, N, kernel, sampling, False, "jax")
+    f = wigner.inverse(flmn, L, N, sampling=sampling, method=method)
+    np.testing.assert_allclose(f, f_check, rtol=0, atol=1e-12)
 
-    with pytest.raises(Warning):
-        wigner.forward(f, L, N)
+    kernel = wigner_kernel_jax(L, N, False, sampling, forward=True)
+    flmn_check = precompute_wigner.forward(
+        f_check, L, N, kernel, sampling, False, "jax"
+    )
+    flmn_recov = wigner.forward(f_check, L, N, sampling=sampling, method=method)
+    np.testing.assert_allclose(flmn_recov, flmn_check, rtol=0, atol=1e-12)
 
 
 def test_sampling_ssht_backend_exceptions(flmn_generator):

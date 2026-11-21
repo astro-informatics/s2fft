@@ -6,6 +6,8 @@ import pytest
 import torch
 
 from s2fft.base_transforms import spherical as base
+from s2fft.precompute_transforms import spherical as precompute_spherical
+from s2fft.precompute_transforms.construct import spin_spherical_kernel_jax
 from s2fft.recursions.price_mcewen import generate_precomputes
 from s2fft.sampling import s2_samples as samples
 from s2fft.transforms import spherical
@@ -205,19 +207,38 @@ def test_transform_forward_healpix(
     np.testing.assert_allclose(test_data["flm_hp"], flm_check, atol=1e-14)
 
 
-def test_spin_exceptions(flm_generator):
-    spin = 10
-    L = 16
-    sampling = "mw"
+@pytest.mark.parametrize("spin", [8, 12, -12])
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "gl", "healpix"])
+@pytest.mark.parametrize("method", ["numpy", "jax"])
+@pytest.mark.filterwarnings("ignore::RuntimeWarning")
+def test_transform_high_spin(
+    flm_generator: Callable, spin: int, sampling: str, method: str
+):
+    # Regression test for issue #176: the on-the-fly recursion lost accuracy on the
+    # rings nearest the poles beyond |spin| ~ 4, so that spin >= 8 was refused. Validate
+    # against the precompute transforms with kernels from the independent Risbo
+    # recursion.
+    L = 24
+    nside = L // 2 if sampling == "healpix" else None
+    flm = flm_generator(L=L, spin=spin, reality=False)
 
-    flm = flm_generator(L=L, reality=False)
-    f = spherical.inverse(flm, L, spin=0, sampling=sampling, method="jax")
+    kernel = spin_spherical_kernel_jax(L, spin, False, sampling, nside, False, "risbo")
+    f_check = precompute_spherical.inverse(
+        flm, L, spin, kernel, sampling, False, "jax", nside
+    )
+    f = spherical.inverse(
+        flm, L, spin=spin, nside=nside, sampling=sampling, method=method
+    )
+    np.testing.assert_allclose(f, f_check, rtol=0, atol=1e-12)
 
-    with pytest.raises(Warning):
-        spherical.inverse(flm, L, spin=spin, sampling=sampling, method="jax")
-
-    with pytest.raises(Warning):
-        spherical.forward(f, L, spin=spin, sampling=sampling, method="jax")
+    kernel = spin_spherical_kernel_jax(L, spin, False, sampling, nside, True, "risbo")
+    flm_check = precompute_spherical.forward(
+        f_check, L, spin, kernel, sampling, False, "jax", nside
+    )
+    flm_recov = spherical.forward(
+        f_check, L, spin=spin, nside=nside, sampling=sampling, method=method
+    )
+    np.testing.assert_allclose(flm_recov, flm_check, rtol=0, atol=1e-12)
 
 
 @pytest.mark.healpy
