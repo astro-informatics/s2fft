@@ -194,9 +194,11 @@ def _inverse_latitudinal_step_jax(
                     )
                     m = j - (L - 1) if i == 0 else L - 1 - j
 
-                    # Sum into transform vector mth component
-                    ftm = ftm.at[:, L - 1 + m + m_offset].add(
-                        jnp.sum(dl * flm[L_lower:, L - 1 + m], axis=-1)
+                    # Sum into transform vector mth component (as a column set, which XLA
+                    # updates in place, rather than a complex scatter-add)
+                    col = L - 1 + m + m_offset
+                    ftm = ftm.at[:, col].set(
+                        ftm[:, col] + jnp.sum(dl * flm[L_lower:, L - 1 + m], axis=-1)
                     )
                     return ftm, state
 
@@ -432,9 +434,12 @@ def _forward_latitudinal_step_jax(
                     )
                     m = j - (L - 1) if i == 0 else L - 1 - j
 
-                    # Sum into transform vector mth component
-                    flm = flm.at[:, L - 1 + m].add(
-                        jnp.sum(dl * ftm[:, L - 1 + m + m_offset, None], axis=0)
+                    # Sum into transform vector mth component (as a column set, which XLA
+                    # updates in place, rather than a complex scatter-add)
+                    col = L - 1 + m
+                    flm = flm.at[:, col].set(
+                        flm[:, col]
+                        + jnp.sum(dl * ftm[:, L - 1 + m + m_offset, None], axis=0)
                     )
                     return flm, state
 
