@@ -92,6 +92,10 @@ tests = [
     "torch",
     "ducc0",
     "healpy",
+    # jax 0.12.1 (jax commit 7c57966624) subtracts a real array from a complex one without
+    # converting it to complex, and test_healpix_c_backend_forward_custom_gradients fails for
+    # iter > 0: TypeError: real does not accept dtype float64
+    "jax<0.12.1",
     "pyssht",
     "so3",
 ]
