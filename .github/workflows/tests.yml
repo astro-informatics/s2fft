@@ -11,7 +11,7 @@ on:
       - src/**
       - tests/**
       - .coveragerc
-      - s2fft-cuda/**
+      - plugins/**
   schedule:
     - cron: 0 0 * * 0
 

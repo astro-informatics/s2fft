@@ -1,6 +1,6 @@
 # s2fft-cuda12-plugin: the CUDA plugin of s2fft built with CUDA 12, installed by the extras
 # s2fft[cuda12] and s2fft[cuda12-local]. The sources are shared with the CUDA 13 plugin in the
-# parent directory (s2fft-cuda/); the two files differ only in the CUDA major version.
+# parent directory (plugins/s2fft-cuda/); the two files differ only in the CUDA major version.
 [build-system]
 requires = [
     "scikit-build-core>=0.11.2",
@@ -39,7 +39,7 @@ build-dir = "build/{wheel_tag}"
 # Stable ABI wheels for CPython 3.12+
 wheel.py-api = "cp312"
 cmake.build-type = "Release"
-# The package files are installed by CMake (s2fft-cuda/CMakeLists.txt)
+# The package files are installed by CMake (plugins/s2fft-cuda/CMakeLists.txt)
 wheel.packages = []
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
 # Local metadata provider (needs experimental): require the jax the plugin is built against
@@ -55,7 +55,7 @@ __version__ = "${version}"
 
 [tool.setuptools_scm]
 # The git repository root, relative to this file
-root = "../.."
+root = "../../.."
 local_scheme = "no-local-version"
 
 [tool.uv]

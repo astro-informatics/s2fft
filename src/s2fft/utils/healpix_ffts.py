@@ -732,7 +732,7 @@ def _healpix_fft_cuda_lowering(ctx, f, *, L, nside, reality, fft_type, norm, adj
     # handler-side copy the alias changes XLA's buffer liveness unsoundly around
     # fused custom calls. Result 0 is therefore always a plain output buffer, and the
     # CUDA handler copies the operand into it before transforming in place
-    # (see s2fft-cuda/lib/src/extensions.cc) -- sound under every XLA lowering path.
+    # (see plugins/s2fft-cuda/lib/src/extensions.cc) -- sound under every XLA lowering path.
     if is_double:
         ffi_lowered = jax.ffi.ffi_lowering("healpix_fft_cuda_c128")
     else:

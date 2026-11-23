@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19...3.25)
 
-# CUDA plugin of s2fft, built by the packages s2fft-cuda/cuda12 (s2fft-cuda12-plugin) and
-# s2fft-cuda/cuda13 (s2fft-cuda13-plugin) with scikit-build-core. The architectures are taken from CMAKE_CUDA_ARCHITECTURES when it is
+# CUDA plugin of s2fft, built by the packages plugins/s2fft-cuda/cuda12 (s2fft-cuda12-plugin) and
+# plugins/s2fft-cuda/cuda13 (s2fft-cuda13-plugin) with scikit-build-core. The architectures are taken from CMAKE_CUDA_ARCHITECTURES when it is
 # given (the wheel builds pass the list explicitly); the default below is set before the
 # CUDA language is enabled, so that it takes effect.
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)

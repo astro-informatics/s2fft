@@ -14,5 +14,5 @@ and the same with `cuda13`.
 To build a plugin from a clone of the repository, with a CUDA 12 or 13 toolkit and CMake 3.19+, run
 
 ```bash
-pip install -v ./s2fft-cuda/cuda12   # or ./s2fft-cuda/cuda13
+pip install -v ./plugins/s2fft-cuda/cuda12   # or ./plugins/s2fft-cuda/cuda13
 ```

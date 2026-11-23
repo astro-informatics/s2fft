@@ -99,7 +99,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v4.3.5
         with:
-          package-dir: s2fft-cuda/cuda${{ matrix.cuda-major }}
+          package-dir: plugins/s2fft-cuda/cuda${{ matrix.cuda-major }}
           output-dir: wheelhouse
         env:
           # CPython 3.11, and one stable-ABI wheel for 3.12+ (wheel.py-api = "cp312")

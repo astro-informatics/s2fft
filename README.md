@@ -136,7 +136,7 @@ To build the plugins from source, on a system with a CUDA 12 or 13 toolkit and C
 
 ```bash
 pip install .
-pip install -v ./s2fft-cuda/cuda12   # or ./s2fft-cuda/cuda13, matching the CUDA toolkit
+pip install -v ./plugins/s2fft-cuda/cuda12   # or ./plugins/s2fft-cuda/cuda13, matching the CUDA toolkit
 ```
 
 The CUDA architectures can be chosen with `-C cmake.define.CMAKE_CUDA_ARCHITECTURES="80;90"` (default `75;80;86;89;90`).
