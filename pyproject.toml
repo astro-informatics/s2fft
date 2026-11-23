@@ -103,6 +103,9 @@ tests-cached = [
     "pytest",
     "pytest-cov",
     "torch",
+    # With jax 0.12.1 on macOS arm64, test_ftm_to_flm_vmap_matches_loop[healpix] fails:
+    # jax.vmap of ftm_to_flm differs from the loop over the batch
+    "jax<0.12.1",
 ]
 torch = [
     "torch",
