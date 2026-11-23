@@ -129,6 +129,12 @@ cuda = [
 s2fft-cuda12-plugin = { path = "s2fft-cuda/cuda12" }
 s2fft-cuda13-plugin = { path = "s2fft-cuda/cuda13" }
 
+# so3 1.3.6 (tests extra) has a single wheel, for cp38 on macOS, so uv builds it from
+# source. That build compiles fftw through Conan, and the fftw CMakeLists.txt asks for a
+# CMake older than 3.5, which recent CMake rejects. Same setting as the CI (tests.yml).
+[tool.uv.extra-build-variables]
+so3 = { CMAKE_POLICY_VERSION_MINIMUM = "3.5" }
+
 [tool.pytest.ini_options]
 addopts = "--color=yes -v"
 testpaths = [
