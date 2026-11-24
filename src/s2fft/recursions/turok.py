@@ -59,7 +59,7 @@ def compute_slice(
     recursion.
 
     The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for :math:`-L <
-    m < L` by `dl[L - 1 - m]`. This implementation has computational scaling
+    m < L` by `dl[m + L - 1]`. This implementation has computational scaling
     :math:`\mathcal{O}(L)` and typically requires :math:`\sim 2L` operations.
 
     Args:
