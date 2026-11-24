@@ -30,7 +30,7 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
     single :math:`\ell`.
 
     The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
-    :math:`-L < m < L` by `dl[L - 1 + m]`, and is zero for :math:`|m| > \ell`. This
+    :math:`-L < m < L` by `dl[m + L - 1]`, and is zero for :math:`|m| > \ell`. This
     implementation has computational scaling :math:`\mathcal{O}(L)` and typically
     requires :math:`\sim 2(L + |m^\prime|)` operations.
 

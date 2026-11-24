@@ -8,6 +8,7 @@ import pytest
 from numpy.testing import assert_allclose
 from packaging.version import Version as _Version
 
+import s2fft
 from s2fft.utils.healpix_ffts import (
     MissingCUDASupport,
     MissingExtensionModule,
@@ -218,6 +219,99 @@ def test_healpix_ifft_cuda_transforms(cached_healpy_test_case, nside):
         atol=1e-7,
         rtol=1e-7,
     )
+
+
+@pytest.mark.skipif(not gpu_available, reason="GPU not available")
+@pytest.mark.parametrize("nside", [4, 8, 16])
+@pytest.mark.parametrize("dtype", [jnp.complex64, jnp.complex128])
+def test_healpix_cuda_batched_complex_matches_jax(nside, dtype):
+    """Each element of a batched (vmap) CUDA transform must match the JAX transform.
+
+    Complex inputs reach the CUDA primitive without a dtype conversion, and every batch
+    element runs with its own workspace row.
+    """
+    L = 2 * nside
+    rng = np.random.default_rng(0)
+    f = jnp.asarray(
+        rng.normal(size=(3, 12 * nside**2)) + 1j * rng.normal(size=(3, 12 * nside**2)),
+        dtype=dtype,
+    )
+    tol = 1e-4 if dtype == jnp.complex64 else 1e-10
+
+    ftm = jax.vmap(lambda x: healpix_fft_cuda(x, L, nside, False))(f)
+    f_back = jax.vmap(lambda x: healpix_ifft_cuda(x, L, nside, False))(ftm)
+    for i in range(f.shape[0]):
+        ftm_ref = healpix_fft_jax(f[i], L, nside, False)
+        assert_allclose(ftm[i], ftm_ref, rtol=tol, atol=tol * np.abs(ftm_ref).max())
+        f_ref = healpix_ifft_jax(ftm[i], L, nside, False)
+        assert_allclose(f_back[i], f_ref, rtol=tol, atol=tol * np.abs(f_ref).max())
+
+
+@pytest.mark.skipif(not gpu_available, reason="GPU not available")
+def test_healpix_cuda_jit_roundtrip_survives_xla_fusion():
+    """Two jitted forward/inverse roundtrips on slices of one array must match eager.
+
+    Slicing one parent array inside a single jit triggers the XLA custom-fusion pass around
+    the CUDA custom calls, and the jitted roundtrips must match eager to float64 precision.
+    """
+    nside = 16
+    L = 2 * nside
+    rng = np.random.default_rng(0)
+    maps = jnp.asarray(rng.normal(size=(2, 12 * nside**2)))
+
+    def roundtrip(f):
+        flm = s2fft.forward(
+            f, L, nside=nside, sampling="healpix", method="jax_cuda", reality=True
+        )
+        return jnp.real(
+            s2fft.inverse(
+                flm, L, nside=nside, sampling="healpix", method="jax_cuda", reality=True
+            )
+        )
+
+    eager = (roundtrip(maps[0]), roundtrip(maps[1]))
+    jitted = jax.jit(lambda m: (roundtrip(m[0]), roundtrip(m[1])))(maps)
+    again = jax.jit(lambda m: (roundtrip(m[0]), roundtrip(m[1])))(maps)
+    for i in range(2):
+        assert_allclose(jitted[i], eager[i], atol=1e-12, rtol=1e-12)
+        assert_allclose(again[i], jitted[i], atol=1e-12, rtol=1e-12)
+
+
+@pytest.mark.skipif(not gpu_available, reason="GPU not available")
+def test_healpix_cuda_jit_gradient_matches_finite_differences():
+    """The jitted value_and_grad of a CUDA roundtrip chi-squared must match finite differences.
+
+    The gradient exercises the adjoint (transpose) path of the CUDA primitive under jit.
+    """
+    nside = 16
+    L = 2 * nside
+    rng = np.random.default_rng(0)
+    f = jnp.asarray(rng.normal(size=12 * nside**2))
+
+    def roundtrip(f, method):
+        flm = s2fft.forward(
+            f, L, nside=nside, sampling="healpix", method=method, reality=True
+        )
+        return jnp.real(
+            s2fft.inverse(
+                flm, L, nside=nside, sampling="healpix", method=method, reality=True
+            )
+        )
+
+    obs = roundtrip(f * 0.5, "jax")
+
+    def chi2(f):
+        return jnp.sum(0.5 * (roundtrip(f, "jax_cuda") - obs) ** 2)
+
+    value, grad = jax.jit(jax.value_and_grad(chi2))(f)
+    assert_allclose(value, chi2(f), rtol=1e-10)
+
+    v = jax.random.normal(jax.random.PRNGKey(7), f.shape)
+    v = v / jnp.linalg.norm(v)
+    h = 1e-5
+    fd = float((chi2(f + h * v) - chi2(f - h * v)) / (2 * h))
+    gd = float(jnp.vdot(grad, v))
+    assert abs(gd - fd) / max(abs(fd), 1e-30) < 1e-4
 
 
 def test_extension_module_not_available_raise_error(monkeypatch):
