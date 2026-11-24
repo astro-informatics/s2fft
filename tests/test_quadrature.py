@@ -1,3 +1,5 @@
+from functools import cache
+
 import numpy as np
 import pytest
 from jax import config
@@ -179,3 +181,60 @@ def test_quadrature_weights(sampling, L_or_nside, quadrature_module):
         assert np.isclose(
             (weights * samples.nphi_equiang(L, sampling)).sum(), 4 * np.pi
         )
+
+
+def _gauss_legendre_nodes_to_check(L: int) -> list[int]:
+    """All nodes for small L; for large L, those nearest the poles and the equator."""
+    if L <= 64:
+        return list(range(L))
+    return sorted({0, 1, 2, L // 4, (L - 1) // 2, L // 2, L - 3, L - 2, L - 1})
+
+
+@cache
+def _gauss_legendre_reference(L: int) -> tuple[list[float], list[float]]:
+    """GL nodes as angles, and weights, from 40-digit Newton iterations in x."""
+    mpmath = pytest.importorskip("mpmath")  # A dependency of sympy, and so of torch
+    with mpmath.workdps(40):
+        thetas, weights = [], []
+        for k in _gauss_legendre_nodes_to_check(L):
+            x = mpmath.cos(mpmath.pi * (4 * k + 3) / (4 * L + 2))
+            for _ in range(100):
+                p = mpmath.legendre(L, x)
+                dp = L * (x * p - mpmath.legendre(L - 1, x)) / (x * x - 1)
+                x -= p / dp
+                if abs(p / dp) < mpmath.mpf(10) ** -38:
+                    break
+            else:
+                raise RuntimeError(f"Reference node {k} did not converge at L = {L}")
+            p = mpmath.legendre(L, x)
+            dp = L * (x * p - mpmath.legendre(L - 1, x)) / (x * x - 1)
+            thetas.append(float(mpmath.acos(x)))
+            weights.append(float(2 / ((1 - x * x) * dp * dp)))
+    return thetas, weights
+
+
+@pytest.mark.parametrize("L", [1, 2, 3, 4, 7, 8, 16, 33, 64, 1001, 2049])
+@pytest.mark.parametrize("quadrature_module", [quadrature, quadrature_jax])
+def test_gl_angles_and_weights_against_mpmath(L, quadrature_module):
+    # The GL angles and weights are the correctly rounded nodes and weights. Taking
+    # arccos of the rounded roots instead put the angles hundreds of ulps out near the
+    # poles at L = 64. L = 1001 and 2049 add the middle node of a large odd L, and the
+    # polar nodes of a large L.
+    nodes = _gauss_legendre_nodes_to_check(L)
+    thetas, weights = _gauss_legendre_reference(L)
+    np.testing.assert_array_equal(samples.thetas(L, "gl")[nodes], thetas)
+    np.testing.assert_array_equal(
+        np.asarray(quadrature_module.quad_weights_gl_theta_only(L))[nodes], weights
+    )
+
+
+def test_gl_angles_and_weights_inputs_and_copies():
+    # A zero-dimensional integer array works as L
+    np.testing.assert_array_equal(
+        quadrature.quad_weights_gl_theta_only(np.array(3)),
+        quadrature.quad_weights_gl_theta_only(3),
+    )
+    # The results are cached, and callers get copies
+    weights = quadrature.quad_weights_gl_theta_only(3)
+    weights[:] = 0
+    assert np.all(quadrature.quad_weights_gl_theta_only(3) > 0)
