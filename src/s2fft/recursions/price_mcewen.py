@@ -44,6 +44,11 @@ _SCALE_LIMIT = 2.0**400
 _SCALE_FACTOR = 2.0**800
 _SCALE_BITS = 800
 
+# Below this polar angle the slices are taken to first order in beta, with an error of
+# at most (el beta)^2 / 2: the recursion loses accuracy for beta below about 1e-150,
+# where its three-term coefficients approach the largest floats.
+_NORTH_POLE_ANGLE = 1e-100
+
 
 def _stirling_error(n, xp):
     r"""
@@ -430,19 +435,42 @@ def _polar_terms(beta, mm, xp):
 
 def _set_pole_values(dl, beta, L, mm, xp):
     r"""
-    The slices ``dl``, of shape (2L-1, ntheta, L), with their values at exactly
-    :math:`\beta = 0` and :math:`\beta = \pi` set to
-    :math:`d^\ell_{m, m^\prime}(0) = \delta_{m, m^\prime}` and
-    :math:`d^\ell_{m, m^\prime}(\pi) = (-1)^{\ell - m^\prime}\delta_{m, -m^\prime}`
-    for :math:`\ell \geq |m^\prime|`. The starting values of the recursion vanish at
-    :math:`\beta = 0`, so it cannot give the first.
+    The slices ``dl``, of shape (2L-1, ntheta, L), with their values next to the poles
+    set in closed form, for :math:`\ell \geq |m^\prime|`. At exactly
+    :math:`\beta = \pi`,
+    :math:`d^\ell_{m, m^\prime}(\pi) = (-1)^{\ell - m^\prime}\delta_{m, -m^\prime}`.
+    For :math:`|\beta|` below ``_NORTH_POLE_ANGLE`` (and at :math:`\beta = 0`, where the
+    starting values of the recursion vanish), the slice to first order in
+    :math:`\beta`,
+    :math:`d^\ell_{m, m^\prime}(\beta) = \delta_{m, m^\prime}
+    + \beta\,\partial_\beta d^\ell_{m, m^\prime}(0)`, whose error is at most
+    :math:`(\ell\beta)^2/2`; the derivative, :math:`-i\langle \ell m|J_y|\ell m^\prime\rangle`,
+    is :math:`-\sqrt{(\ell - m^\prime)(\ell + m^\prime + 1)}/2` for
+    :math:`m = m^\prime + 1`, :math:`\sqrt{(\ell + m^\prime)(\ell - m^\prime + 1)}/2` for
+    :math:`m = m^\prime - 1` and zero otherwise, so derivatives with respect to
+    :math:`\beta` hold there too. The recursion must have been run at a safe angle
+    instead of these small :math:`\beta`, so that its values and derivatives, which
+    are discarded, stay finite.
     """
     el = xp.arange(L)
     m = xp.arange(-L + 1, L)[:, None]
     valid = el >= xp.abs(mm)
     north = xp.where((m == mm) & valid, 1.0, 0.0)
+    slope = xp.where(
+        (m == mm + 1) & valid,
+        -0.5 * xp.sqrt(xp.maximum((el - mm) * (el + mm + 1), 0)),
+        xp.where(
+            (m == mm - 1) & valid,
+            0.5 * xp.sqrt(xp.maximum((el + mm) * (el - mm + 1), 0)),
+            0.0,
+        ),
+    )
     south = xp.where((m == -mm) & valid, 1.0 - 2.0 * ((el - mm) % 2), 0.0)
-    dl = xp.where((beta == 0)[None, :, None], north[:, None, :], dl)
+    dl = xp.where(
+        (xp.abs(beta) < _NORTH_POLE_ANGLE)[None, :, None],
+        north[:, None, :] + beta[None, :, None] * slope[:, None, :],
+        dl,
+    )
     return xp.where((beta == np.pi)[None, :, None], south[:, None, :], dl)
 
 
@@ -804,11 +832,14 @@ def compute_all_slices(
     On-the-fly renormalisation by exact powers of two is implemented to avoid
     over/under-flows, with the scale of the iterates kept as an integer index.
 
-    At exactly :math:`\beta = 0` and :math:`\beta = \pi` the slice is returned in
-    closed form, :math:`d^\ell_{m, m^\prime}(0) = \delta_{m, m^\prime}` and
+    Next to the poles the slice is returned in closed form: at exactly
+    :math:`\beta = \pi`,
     :math:`d^\ell_{m, m^\prime}(\pi) = (-1)^{\ell - m^\prime}\delta_{m, -m^\prime}`
-    for :math:`\ell \geq |m^\prime|`: the starting values of the recursion vanish at
-    :math:`\beta = 0`.
+    for :math:`\ell \geq |m^\prime|`, and for :math:`|\beta| < 10^{-100}` (including
+    :math:`\beta = 0`, where the starting values of the recursion vanish) to first
+    order in :math:`\beta`, from
+    :math:`d^\ell_{m, m^\prime}(0) = \delta_{m, m^\prime}`, within
+    :math:`(\ell\beta)^2/2`.
 
     The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
     :math:`-L < m < L` by `dl[L - 1 + m, \beta, \ell]`. This implementation has
@@ -834,8 +865,10 @@ def compute_all_slices(
     beta = np.asarray(beta)
     ntheta = len(beta)
     el = np.arange(L)
-    start = _scaled_start_values(beta, el, mm, np)
-    polar = _polar_terms(beta, mm, np)
+    # The recursion runs at a safe angle where _set_pole_values replaces its values
+    safe_beta = np.where(np.abs(beta) < _NORTH_POLE_ANGLE, np.pi / 2, beta)
+    start = _scaled_start_values(safe_beta, el, mm, np)
+    polar = _polar_terms(safe_beta, mm, np)
 
     dl = np.zeros((2 * L - 1, ntheta, L), dtype=np.float64)
     for i in range(2):
@@ -872,11 +905,14 @@ def compute_all_slices_jax(
     On-the-fly renormalisation by exact powers of two is implemented to avoid
     over/under-flows, with the scale of the iterates kept as an integer index.
 
-    At exactly :math:`\beta = 0` and :math:`\beta = \pi` the slice is returned in
-    closed form, :math:`d^\ell_{m, m^\prime}(0) = \delta_{m, m^\prime}` and
+    Next to the poles the slice is returned in closed form: at exactly
+    :math:`\beta = \pi`,
     :math:`d^\ell_{m, m^\prime}(\pi) = (-1)^{\ell - m^\prime}\delta_{m, -m^\prime}`
-    for :math:`\ell \geq |m^\prime|`: the starting values of the recursion vanish at
-    :math:`\beta = 0`.
+    for :math:`\ell \geq |m^\prime|`, and for :math:`|\beta| < 10^{-100}` (including
+    :math:`\beta = 0`, where the starting values of the recursion vanish) to first
+    order in :math:`\beta`, from
+    :math:`d^\ell_{m, m^\prime}(0) = \delta_{m, m^\prime}`, within
+    :math:`(\ell\beta)^2/2`.
 
     The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
     :math:`-L < m < L` by `dl[L - 1 + m, \beta, \ell]`. This implementation has
@@ -910,8 +946,10 @@ def _compute_all_slices_jax(beta, L, spin, extension):
     mm = -spin
     ntheta = len(beta)
     el = jnp.arange(L)
-    start = _scaled_start_values(beta, el, mm, jnp)
-    polar = _polar_terms(beta, mm, jnp)
+    # The recursion runs at a safe angle where _set_pole_values replaces its values
+    safe_beta = jnp.where(jnp.abs(beta) < _NORTH_POLE_ANGLE, np.pi / 2, beta)
+    start = _scaled_start_values(safe_beta, el, mm, jnp)
+    polar = _polar_terms(safe_beta, mm, jnp)
 
     dl = jnp.zeros((2 * L - 1, ntheta, L), dtype=jnp.float64)
     for i in range(2):
