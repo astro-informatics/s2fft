@@ -55,14 +55,17 @@ _DATA_NDIM = 2
 def _apply_with_batching(fn_unbatched, data, spin, precomps):
     """
     Call ``fn_unbatched(data2d, spin0d, precomps_or_None)`` over leading
-    batch dims. ``data`` is 2D + batch, ``spin`` is 0d + same batch, each
-    precomp array also has the same number of leading batch dims as ``data``.
+    batch dims. ``data`` is 2D + batch, and each precomp array has the same
+    number of leading batch dims as ``data``. ``spin`` is 0d plus the outermost
+    of those batch dims from the first that batched it (see
+    ``_batch_primitive``), and none if none did.
     """
     n_batch = data.ndim - _DATA_NDIM
+    n_spin = jnp.ndim(spin)
     inner = fn_unbatched
-    in_axes = (0, 0, (0,) * len(precomps))
-    for _ in range(n_batch):
-        inner = jax.vmap(inner, in_axes=in_axes)
+    for level in range(n_batch):
+        spin_axis = 0 if level >= n_batch - n_spin else None
+        inner = jax.vmap(inner, in_axes=(0, spin_axis, (0,) * len(precomps)))
     return inner(data, spin, precomps)
 
 
@@ -111,7 +114,14 @@ def _batch_primitive(primitive, batched_args, batch_axes, **params):
     if batch_size is None:
         return primitive.bind(fxm, thetas, spin, *precomps, **params), None
     fxm_b = _lift_to_batch(fxm, fxm_ax, batch_size)
-    spin_b = _lift_to_batch(spin, spin_ax, batch_size)
+    # A spin that no level of vmap has batched stays 0d, so that the recursion's
+    # lax.cond on it stays a cond rather than a select that runs both branches. Once
+    # one level batches it, every outer level lifts it, so its batch dims are the
+    # outermost ones of the data.
+    if spin_ax is None and jnp.ndim(spin) == 0:
+        spin_b = spin
+    else:
+        spin_b = _lift_to_batch(spin, spin_ax, batch_size)
     precomps_b = tuple(
         _lift_to_batch(p, ax, batch_size)
         for p, ax in zip(precomps, precomps_ax, strict=False)

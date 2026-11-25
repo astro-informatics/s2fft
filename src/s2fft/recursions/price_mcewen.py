@@ -297,7 +297,9 @@ def _fori_half_recursion(body, carry, L, mm, extension, skip_at_zero_spin=False)
     With ``skip_at_zero_spin``, nothing runs when :math:`m^\prime = 0`, as for half
     recursion 0 of a real signal at spin 0. Since ``extension`` bounds
     :math:`|m^\prime|`, the spin is zero when it is, so that test is static; with
-    ``extension`` None it is a ``lax.cond`` on the traced spin.
+    ``extension`` None it is a ``lax.cond`` on the traced spin. A traced spin with a
+    static ``extension`` (:math:`L - 1`) always runs, also at spin 0: that only costs
+    time, and fills the rows :math:`m < 0` that would otherwise stay zero.
     """
     if extension is None:
 

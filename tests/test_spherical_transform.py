@@ -1,6 +1,7 @@
 from collections.abc import Callable
 
 import jax
+import jax.numpy as jnp
 import numpy as np
 import pytest
 import torch
@@ -410,6 +411,30 @@ def test_reality_vmap_over_mixed_spins(rng: np.random.Generator, sampling: str):
     np.testing.assert_allclose(
         f_tangent, jax.vmap(inverse)(flms[::-1].copy(), spins), rtol=0, atol=1e-14
     )
+
+
+def test_reality_vmap_over_signals_keeps_the_spin_zero_skip():
+    # Under vmap over the signals alone the spin stays unbatched, so at spin 0 with
+    # reality=True half recursion 0 is skipped by a lax.cond, lowered as a case, and
+    # not run for every element; a batched spin turns it into a select.
+    L = 8
+    fs = jnp.zeros((3, L, 2 * L - 1))
+    flms = jnp.zeros((3, L, 2 * L - 1), dtype=jnp.complex128)
+    spins = jnp.zeros(3, dtype=int)
+
+    def lowered(fun, *args):
+        return jax.jit(jax.vmap(fun)).lower(*args).as_text()
+
+    def forward(f, spin=0):
+        return spherical.forward_jax(f, L, spin, None, "gl", True)
+
+    def inverse(flm, spin=0):
+        return spherical.inverse_jax(flm, L, spin, None, "gl", True)
+
+    assert "stablehlo.case" in lowered(forward, fs)
+    assert "stablehlo.case" in lowered(inverse, flms)
+    assert "stablehlo.case" not in lowered(forward, fs, spins)
+    assert "stablehlo.case" not in lowered(inverse, flms, spins)
 
 
 @pytest.mark.healpy
