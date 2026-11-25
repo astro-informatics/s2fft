@@ -268,6 +268,10 @@ def inverse_jax(
     Returns:
         jnp.ndarray: Signal on the sphere.
 
+    Raises:
+        RuntimeError: If JAX's 64-bit floats are disabled (``jax_enable_x64``), which
+            the Wigner-d recursion needs.
+
     Note:
         The single-program multiple-data (SPMD) optional variable determines whether
         the transform is run over a single device or all available devices. For very low
@@ -630,6 +634,10 @@ def forward_jax(
 
     Returns:
         jnp.ndarray: Spherical harmonic coefficients
+
+    Raises:
+        RuntimeError: If JAX's 64-bit floats are disabled (``jax_enable_x64``), which
+            the Wigner-d recursion needs.
 
     Note:
         The single-program multiple-data (SPMD) optional variable determines whether

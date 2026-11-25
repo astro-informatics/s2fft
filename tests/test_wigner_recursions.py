@@ -382,8 +382,8 @@ def test_price_mcewen_slices_jax_gradients_traced_spin():
     np.testing.assert_allclose(grad, expected.sum(0), rtol=1e-12, atol=1e-12)
 
 
-def test_price_mcewen_single_precision_warning():
-    """Test that the JAX recursions warn when double precision is disabled."""
+def test_price_mcewen_single_precision_raises():
+    """Test that the JAX recursions raise when double precision is disabled."""
     script = (
         "import jax.numpy as jnp\n"
         "from s2fft.recursions.price_mcewen import compute_all_slices_jax\n"
@@ -394,9 +394,10 @@ def test_price_mcewen_single_precision_warning():
         env={**os.environ, "JAX_ENABLE_X64": "0"},
         capture_output=True,
         text=True,
-        check=True,
     )
-    assert "Wigner-d recursions require double precision" in result.stderr
+    assert result.returncode != 0
+    assert "RuntimeError" in result.stderr
+    assert "jax_enable_x64" in result.stderr
 
 
 @pytest.mark.slow

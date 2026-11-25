@@ -1,4 +1,3 @@
-import logging
 import math
 import warnings
 from functools import partial
@@ -135,7 +134,20 @@ def _start_values(beta, el, mm, xp):
         :math:`m = -\ell` (index 0) and :math:`m = \ell` (index 1); zero for
         :math:`\ell < |m^\prime|`.
 
+    Raises:
+        RuntimeError: For JAX arrays when 64-bit floats are disabled: the iterates of
+            the recursion lie far outside the range of single precision, so it would
+            return zeros. The error is raised while tracing, before any computation, so
+            no single-precision trace is kept for later calls with 64-bit floats.
+
     """
+    if xp is jnp and not jax.config.read("jax_enable_x64"):
+        raise RuntimeError(
+            "The Price-McEwen Wigner-d recursion needs 64-bit floats in JAX, and gives "
+            "wrong results without them. Enable them with "
+            'jax.config.update("jax_enable_x64", True) at the start of the program, or '
+            "make the call inside `with jax.enable_x64(True):`."
+        )
     el = xp.asarray(el, dtype=xp.float64)
     abs_mm = xp.abs(mm)
     valid = el >= abs_mm
@@ -251,13 +263,6 @@ def _scaled_start_values(beta, el, mm, xp):
     :math:`[2^{-400}, 2^{401})` and scale indices :math:`k`, the value being
     :math:`d\,2^{800 k}`; each of shape (2, ntheta, nel).
     """
-    if xp is jnp and not jax.config.read("jax_enable_x64"):
-        # Logged rather than warned: this module ignores warnings globally
-        logging.getLogger("s2fft").warning(
-            "The Wigner-d recursions require double precision for their accuracy near "
-            "the poles, and give wrong results in single precision: enable it with "
-            'jax.config.update("jax_enable_x64", True).'
-        )
     mantissa, exponent = _start_values(beta, el, mm, xp)
     scale = xp.rint(exponent / _SCALE_BITS)
     return mantissa * _exp2(exponent - _SCALE_BITS * scale, xp), scale
@@ -846,6 +851,9 @@ def compute_all_slices_jax(
 
     Returns:
         jnp.ndarray: Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
+
+    Raises:
+        RuntimeError: If JAX's 64-bit floats are disabled (``jax_enable_x64``).
 
     """
     return _compute_all_slices_jax(beta, L, spin, _static_extension(spin, L))
