@@ -199,6 +199,15 @@ for name, case in cases.items():
         values[name] = np.asarray(case())
     except Exception as error:
         errors[name] = f"{type(error).__name__}: {error}"
+# The same calls in double precision, with x64 enabled only inside a context, to check
+# that the calls above left no single precision state behind
+flm, f, flmn, weights = (inputs[key] for key in ("flm", "f", "flmn", "weights"))
+with jax.enable_x64(True):
+    for name, case in cases.items():
+        try:
+            values[name + "_x64"] = np.asarray(case())
+        except Exception as error:
+            errors[name + "_x64"] = f"{type(error).__name__}: {error}"
 np.savez(sys.argv[2], **values)
 print(json.dumps({"errors": errors, "x64": jax.config.read("jax_enable_x64")}))
 """
@@ -206,13 +215,14 @@ print(json.dumps({"errors": errors, "x64": jax.config.read("jax_enable_x64")}))
 
 def test_otf_transforms_x64_disabled(tmp_path, rng: np.random.Generator):
     """
-    Test the on-the-fly transforms with JAX's 64-bit mode disabled.
+    Test that the on-the-fly transforms refuse to run with JAX's 64-bit mode disabled.
 
     In single precision the Wigner-d recursions overflowed and returned mostly zeros,
-    without an error. Each call must either agree with its double precision result to
-    single precision accuracy, or raise an error that names x64 or double precision,
-    and leave x64 disabled. The calls run in a subprocess, so that disabling x64 cannot
-    leak into other tests.
+    without an error. With x64 disabled, each call must raise a RuntimeError that names
+    jax_enable_x64, and leave x64 disabled. The same calls inside jax.enable_x64 must
+    then match their double precision results, so that no single precision state is
+    left behind. The calls run in a subprocess, so that disabling x64 cannot leak into
+    other tests.
     """
     L, N, spin = 16, 2, 2
     flm = signal_generator.generate_flm(rng, L, spin=spin)
@@ -246,17 +256,29 @@ def test_otf_transforms_x64_disabled(tmp_path, rng: np.random.Generator):
     report = json.loads(result.stdout.splitlines()[-1])
     assert report["x64"] is False, "x64 was left enabled"
     values = np.load(outputs)
+
+    def relative_error(value, reference):
+        return np.max(np.abs(value - reference)) / np.max(np.abs(reference))
+
     problems = []
     for name, reference in references.items():
-        if name in report["errors"]:
-            message = report["errors"][name]
-            if not re.search(r"x64|double precision|64-bit", message, re.IGNORECASE):
-                problems.append(f"{name} raised an unclear error: {message}")
-            continue
-        value = values[name]
-        error = np.max(np.abs(value - reference)) / np.max(np.abs(reference))
-        if not (np.all(np.isfinite(value)) and error < 1e-4):
+        message = report["errors"].get(name)
+        if message is None:
+            value = values[name]
             problems.append(
-                f"{name}: relative error {error:.3g}, {np.mean(value == 0):.0%} zeros"
+                f"{name} returned values with x64 disabled (relative error "
+                f"{relative_error(value, reference):.3g}, "
+                f"{np.mean(value == 0):.0%} zeros)"
             )
-    assert not problems, "With x64 disabled, " + "; ".join(problems)
+        elif not re.match(r"RuntimeError: .*jax_enable_x64", message, re.DOTALL):
+            problems.append(f"{name} raised with x64 disabled: {message}")
+        if name + "_x64" in report["errors"]:
+            message = report["errors"][name + "_x64"]
+            problems.append(f"{name} raised inside jax.enable_x64: {message}")
+        else:
+            error = relative_error(values[name + "_x64"], reference)
+            if not error < 1e-12:
+                problems.append(
+                    f"{name} inside jax.enable_x64: relative error {error:.3g}"
+                )
+    assert not problems, "; ".join(problems)
