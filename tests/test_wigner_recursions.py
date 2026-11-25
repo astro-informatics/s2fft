@@ -593,3 +593,21 @@ def test_compute_all_slices_pole_values_and_derivatives(spin: int):
         jnp.asarray(beta), L, spin
     )
     np.testing.assert_allclose(np.einsum("mtlt->mtl", jac), slope, rtol=0, atol=1e-15)
+
+
+def test_static_extension():
+    """Test the static loop bound: |spin| for a known spin, L - 1 for a traced one."""
+    L = 8
+    static_extension = recursions.common.static_extension
+    assert static_extension(-3, L) == 3
+    assert static_extension(np.int64(2), L) == 2
+    assert static_extension(jnp.asarray(-5), L) == 5
+    seen = []
+
+    def record(spin):
+        seen.append(static_extension(spin, L))
+        return spin
+
+    jax.jit(record)(1)
+    jax.vmap(record)(jnp.arange(3))
+    assert seen == [L - 1, L - 1]

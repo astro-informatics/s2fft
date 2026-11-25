@@ -266,15 +266,17 @@ def scaled_start_values(beta, el, mm, xp):
 def static_extension(spin, L):
     r"""
     Number of steps that the half recursions run past :math:`m = 0`, as a static
-    bound: :math:`|m^\prime|` when the spin is concrete, or its largest value
-    :math:`L - 1` when the spin is traced (under ``jit`` or ``vmap``). Steps past the
+    bound: :math:`|m^\prime|` when the spin is known, or its largest value
+    :math:`L - 1` when it is a JAX tracer (under ``jit`` or ``vmap``). Steps past the
     meeting point change nothing, and a loop of static length can be differentiated
-    in reverse mode.
+    in reverse mode. A traced spin is supported because s2fft's Wigner transforms
+    vmap the spherical ones over it. The bound has to be taken before ``jit`` traces
+    the spin, so the JAX recursions and latitudinal steps are thin wrappers that pass
+    it to their jitted implementations as a static argument.
     """
-    try:
-        return abs(int(spin))
-    except (jax.errors.ConcretizationTypeError, TypeError):
+    if isinstance(spin, jax.core.Tracer):
         return L - 1
+    return abs(int(spin))
 
 
 def fori_half_recursion(body, carry, L, mm, extension, skip_at_zero_spin=False):
