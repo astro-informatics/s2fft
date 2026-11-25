@@ -47,7 +47,10 @@ def test_transform_inverse(
     use_generate_precomputes: bool,
 ):
     if reality and spin != 0:
-        pytest.skip("Reality only valid for scalar fields (spin=0).")
+        pytest.skip(
+            "The test data are not a real signal at spin != 0; "
+            "test_inverse_reality_spin covers reality=True there."
+        )
     if spmd and method != "jax":
         pytest.skip("GPU distribution only valid for JAX.")
 
@@ -147,7 +150,10 @@ def test_transform_forward(
     use_generate_precomputes: bool,
 ):
     if reality and spin != 0:
-        pytest.skip("Reality only valid for scalar fields (spin=0).")
+        pytest.skip(
+            "The test data are not a real signal at spin != 0; "
+            "test_forward_reality_spin_all_columns covers reality=True there."
+        )
     if spmd and method != "jax":
         pytest.skip("GPU distribution only valid for JAX.")
 
@@ -275,10 +281,11 @@ def _risbo_planes(betas: np.ndarray, L: int) -> np.ndarray:
 
 
 def _real_spin_signal(
-    rng: np.random.Generator, L: int, spin: int, sampling: str
+    rng: np.random.Generator, L: int, spin: int, sampling: str, nside: int = None
 ) -> tuple[np.ndarray, np.ndarray]:
     r"""
-    A real signal on the grid of `sampling` and its spin-`spin` coefficients.
+    A real signal on the grid of `sampling` (and `nside`) and its spin-`spin`
+    coefficients.
 
     The signal is :math:`f = \sin^{|s|}\theta\, h` with :math:`s` = `spin` and :math:`h`
     a real spin-0 signal of band-limit :math:`L - |s|`. Its :math:`m`-th Fourier row is
@@ -303,28 +310,39 @@ def _real_spin_signal(
     norm = np.sqrt((2 * np.arange(L) + 1) / (4 * np.pi))
     m = np.arange(-(L - 1), L)
 
-    def signal(thetas: np.ndarray, phis: np.ndarray) -> np.ndarray:
+    def signal(thetas: np.ndarray, phis: list) -> list:
+        # One ring of the signal for each theta, at that ring's phis
         d = _risbo_planes(thetas, L)[..., L - 1]
-        h = np.einsum("lm,l,tlm,pm->tp", hlm, norm, d, np.exp(1j * np.outer(phis, m)))
-        return np.sin(thetas)[:, None] ** abs(spin) * h.real
+        htm = np.einsum("lm,l,tlm->tm", hlm, norm, d)
+        return [
+            np.sin(theta) ** abs(spin)
+            * np.real(np.exp(1j * np.outer(phis[t], m)) @ htm[t])
+            for t, theta in enumerate(thetas)
+        ]
 
     x, weights = np.polynomial.legendre.leggauss(L)
     thetas = np.arccos(x)
     phis = 2 * np.pi * np.arange(2 * L - 1) / (2 * L - 1)
-    ftm = signal(thetas, phis) @ np.exp(-1j * np.outer(phis, m)) * 2 * np.pi / len(phis)
+    ftm = np.stack(signal(thetas, [phis] * L)) @ np.exp(-1j * np.outer(phis, m))
+    ftm *= 2 * np.pi / len(phis)
     d = _risbo_planes(thetas, L)[..., L - 1 - spin]
     flm = (-1) ** spin * norm[:, None] * np.einsum("t,tlm,tm->lm", weights, d, ftm)
     flm[: abs(spin)] = 0
     flm[np.abs(m)[None, :] > np.arange(L)[:, None]] = 0
-    f = signal(samples.thetas(L, sampling), samples.phis_equiang(L, sampling))
-    return f, flm
+    thetas = samples.thetas(L, sampling, nside)
+    if sampling == "healpix":
+        rings = [samples.phis_ring(t, nside) for t in range(len(thetas))]
+        return np.concatenate(signal(thetas, rings)), flm
+    rings = [samples.phis_equiang(L, sampling)] * len(thetas)
+    return np.stack(signal(thetas, rings)), flm
 
 
 @pytest.mark.parametrize("spin", [-3, -2, -1, 1, 2, 3])
-@pytest.mark.parametrize("sampling", ["gl", "mw"])
+@pytest.mark.parametrize("sampling", ["gl", "mw", "mwss", "dh", "cc", "f2"])
 @pytest.mark.parametrize("method", ["numpy", "jax"])
+@pytest.mark.parametrize("L_lower", [0, 2])
 def test_forward_reality_spin_all_columns(
-    rng: np.random.Generator, spin: int, sampling: str, method: str
+    rng: np.random.Generator, spin: int, sampling: str, method: str, L_lower: int
 ):
     # For a real signal with spin s != 0, the m < 0 coefficients are not conjugates of
     # the m > 0 ones but f^s_{el, -m} = (-1)^(s + m) conj(f^{-s}_{el, m}), so reality=True
@@ -332,18 +350,105 @@ def test_forward_reality_spin_all_columns(
     # checked against coefficients computed without the transforms.
     L = 8
     f, flm_check = _real_spin_signal(rng, L, spin, sampling)
+    flm_check[:L_lower] = 0
     flm = spherical.forward(
-        f, L, spin=spin, sampling=sampling, method=method, reality=False
+        f,
+        L,
+        spin=spin,
+        sampling=sampling,
+        method=method,
+        reality=False,
+        L_lower=L_lower,
     )
     flm_real = spherical.forward(
-        f, L, spin=spin, sampling=sampling, method=method, reality=True
+        f, L, spin=spin, sampling=sampling, method=method, reality=True, L_lower=L_lower
     )
     np.testing.assert_allclose(flm, flm_check, rtol=0, atol=1e-12)
     np.testing.assert_allclose(flm_real, flm, rtol=0, atol=1e-12)
 
 
 @pytest.mark.parametrize("spin", [-3, -2, -1, 1, 2, 3])
-@pytest.mark.parametrize("sampling", ["gl", "mw"])
+@pytest.mark.parametrize("method", ["numpy", "jax"])
+@pytest.mark.parametrize("L_lower", [0, 2])
+def test_forward_reality_spin_all_columns_healpix(
+    rng: np.random.Generator, spin: int, method: str, L_lower: int
+):
+    # HEALPix has no exact quadrature, but for any real map the forward transform with
+    # reality=True is the same linear map as with reality=False, so the two must agree
+    # on all 2L - 1 columns.
+    nside = 4
+    L = 2 * nside
+    f = rng.standard_normal(12 * nside**2)
+    flm, flm_real = (
+        spherical.forward(
+            f,
+            L,
+            spin=spin,
+            nside=nside,
+            sampling="healpix",
+            method=method,
+            reality=reality,
+            L_lower=L_lower,
+        )
+        for reality in (False, True)
+    )
+    np.testing.assert_allclose(flm_real, flm, rtol=0, atol=1e-12)
+
+
+@pytest.mark.parametrize("spin", [-3, -1, 2])
+@pytest.mark.parametrize("sampling", ["gl", "dh"])
+def test_forward_reality_spin_gradient(
+    rng: np.random.Generator, spin: int, sampling: str
+):
+    # Without resampling in theta (GL, DH), the forward transform of a real signal with
+    # reality=True is the same real-linear map as with reality=False, so reverse mode
+    # must give the same gradient of a real loss.
+    L = 8
+    f = jnp.asarray(rng.standard_normal(samples.f_shape(L, sampling)))
+    weights = jnp.asarray(
+        rng.standard_normal((L, 2 * L - 1)) + 1j * rng.standard_normal((L, 2 * L - 1))
+    )
+    grad, grad_real = (
+        jax.grad(
+            lambda x: jnp.real(
+                jnp.sum(
+                    weights
+                    * spherical.forward_jax(
+                        x, L, spin=spin, sampling=sampling, reality=reality
+                    )
+                )
+            )
+        )(f)
+        for reality in (False, True)
+    )
+    np.testing.assert_allclose(grad_real, grad, rtol=0, atol=1e-12)
+
+
+@pytest.mark.parametrize("spin", [-3, -2, -1, 1, 2, 3])
+@pytest.mark.parametrize("method", ["numpy", "jax"])
+def test_inverse_reality_spin_healpix(rng: np.random.Generator, spin: int, method: str):
+    # As test_inverse_reality_spin, at the HEALPix pixel centres.
+    nside = 4
+    L = 2 * nside
+    f_check, flm = _real_spin_signal(rng, L, spin, "healpix", nside)
+    f, f_real = (
+        spherical.inverse(
+            flm,
+            L,
+            spin=spin,
+            nside=nside,
+            sampling="healpix",
+            method=method,
+            reality=reality,
+        )
+        for reality in (False, True)
+    )
+    np.testing.assert_allclose(f, f_check, rtol=0, atol=1e-12)
+    np.testing.assert_allclose(f_real, f, rtol=0, atol=1e-12)
+
+
+@pytest.mark.parametrize("spin", [-3, -2, -1, 1, 2, 3])
+@pytest.mark.parametrize("sampling", ["gl", "mw", "mwss", "dh", "cc", "f2"])
 @pytest.mark.parametrize("method", ["numpy", "jax"])
 def test_inverse_reality_spin(
     rng: np.random.Generator, spin: int, sampling: str, method: str
