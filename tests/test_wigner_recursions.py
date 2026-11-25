@@ -10,6 +10,7 @@ import pytest
 from jax.test_util import check_grads
 
 from s2fft import recursions
+from s2fft.precompute_transforms.construct import spin_spherical_kernel_jax
 from s2fft.sampling import s2_samples as samples
 
 jax.config.update("jax_enable_x64", True)
@@ -445,6 +446,35 @@ def test_compute_all_slices_south_pole(spin: int):
     dl_jax = recursions.price_mcewen.compute_all_slices_jax(jnp.asarray(beta), L, spin)
     np.testing.assert_allclose(dl_numpy, expected, rtol=0, atol=1e-14)
     np.testing.assert_allclose(dl_jax, expected, rtol=0, atol=1e-14)
+
+
+@pytest.mark.parametrize("spin", [0, 1, -2, 11])
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "gl", "healpix", "cc", "f2"])
+@pytest.mark.parametrize("forward", [False, True])
+def test_price_mcewen_slices_finite(spin: int, sampling: str, forward: bool):
+    """
+    Test that the Price & McEwen slices are finite on every ring, poles included.
+
+    The JAX kernel replaced NaN in the slices by zeros, which would hide a failure of
+    the recursion, so the slices are tested here as the kernel computes them, and the
+    kernel too.
+    """
+    L = 12
+    nside = L // 2 if sampling == "healpix" else None
+    if forward and sampling in ["mw", "mwss"]:
+        sampling_thetas, thetas = "mwss", samples.thetas(2 * L, "mwss")
+    else:
+        sampling_thetas, thetas = sampling, samples.thetas(L, sampling, nside)
+    dl_jax = recursions.price_mcewen.compute_all_slices_jax(
+        jnp.asarray(thetas), L, spin, sampling_thetas, forward, nside
+    )
+    assert np.all(np.isfinite(dl_jax))
+    dl_numpy = recursions.price_mcewen.compute_all_slices(thetas, L, spin)
+    assert np.all(np.isfinite(dl_numpy))
+    kernel = spin_spherical_kernel_jax(
+        L, spin, False, sampling, nside, forward, "price-mcewen"
+    )
+    assert np.all(np.isfinite(kernel))
 
 
 @pytest.mark.parametrize("L", [16, 32])
