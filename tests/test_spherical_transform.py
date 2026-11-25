@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 import torch
 
+from s2fft import recursions
 from s2fft.base_transforms import spherical as base
 from s2fft.precompute_transforms import spherical as precompute_spherical
 from s2fft.precompute_transforms.construct import spin_spherical_kernel_jax
@@ -239,6 +240,126 @@ def test_transform_high_spin(
         f_check, L, spin=spin, nside=nside, sampling=sampling, method=method
     )
     np.testing.assert_allclose(flm_recov, flm_check, rtol=0, atol=1e-12)
+
+
+@pytest.mark.parametrize("spin", [-2, 1, 2])
+@pytest.mark.parametrize("method", ["numpy", "jax"])
+def test_forward_reality_matches_complex(
+    rng: np.random.Generator, spin: int, method: str
+):
+    # For a real map on GL sampling (no periodic extension in theta), the m >= 0
+    # coefficients are the same linear function of the map with reality=True and False
+    L = 8
+    f = rng.standard_normal((L, 2 * L - 1))
+    flm = spherical.forward(
+        f, L, spin=spin, sampling="gl", method=method, reality=False
+    )
+    flm_real = spherical.forward(
+        f, L, spin=spin, sampling="gl", method=method, reality=True
+    )
+    np.testing.assert_allclose(
+        flm_real[:, L - 1 :], flm[:, L - 1 :], rtol=0, atol=1e-13
+    )
+
+
+def _risbo_planes(betas: np.ndarray, L: int) -> np.ndarray:
+    """Wigner-d planes d^el_{m, m'}(beta) by Risbo, indexed [t, el, L - 1 + m, L - 1 + m']."""
+    planes = np.zeros((len(betas), L, 2 * L - 1, 2 * L - 1))
+    for t, beta in enumerate(betas):
+        dl = np.zeros((2 * L - 1, 2 * L - 1))
+        for el in range(L):
+            dl = recursions.risbo.compute_full(dl, beta, L, el)
+            planes[t, el] = dl
+    return planes
+
+
+def _real_spin_signal(
+    rng: np.random.Generator, L: int, spin: int, sampling: str
+) -> tuple[np.ndarray, np.ndarray]:
+    r"""
+    A real signal on the grid of `sampling` and its spin-`spin` coefficients.
+
+    The signal is :math:`f = \sin^{|s|}\theta\, h` with :math:`s` = `spin` and :math:`h`
+    a real spin-0 signal of band-limit :math:`L - |s|`. Its :math:`m`-th Fourier row is
+    :math:`\sin^{|m| + |s|}\theta` times a polynomial in :math:`\cos\theta` of degree at
+    most :math:`L - 1 - |m| - |s|`, which lies in the span of :math:`d^\ell_{m, -s}` and
+    in that of :math:`d^\ell_{m, s}` for :math:`\ell < L`, so :math:`f` is band-limited
+    at :math:`L` for spin :math:`s` and for spin :math:`-s`.
+
+    The signal and its coefficients are both evaluated by direct sums over Risbo's
+    Wigner-d, without the transforms: the coefficients by Gauss-Legendre quadrature with
+    :math:`L` nodes and :math:`2L - 1` points in :math:`\phi`, which is exact for
+    :math:`f` times a spin-:math:`s` harmonic of degree :math:`\ell < L`, with
+    :math:`{}_sY_{\ell m} = (-1)^s \sqrt{(2\ell + 1)/(4\pi)}\, e^{im\phi}\,
+    d^\ell_{m, -s}(\theta)`.
+    """
+    hlm = np.zeros((L, 2 * L - 1), dtype=np.complex128)
+    for el in range(L - abs(spin)):
+        hlm[el, L - 1] = rng.standard_normal()
+        for m in range(1, el + 1):
+            hlm[el, L - 1 + m] = rng.standard_normal() + 1j * rng.standard_normal()
+            hlm[el, L - 1 - m] = (-1) ** m * np.conj(hlm[el, L - 1 + m])
+    norm = np.sqrt((2 * np.arange(L) + 1) / (4 * np.pi))
+    m = np.arange(-(L - 1), L)
+
+    def signal(thetas: np.ndarray, phis: np.ndarray) -> np.ndarray:
+        d = _risbo_planes(thetas, L)[..., L - 1]
+        h = np.einsum("lm,l,tlm,pm->tp", hlm, norm, d, np.exp(1j * np.outer(phis, m)))
+        return np.sin(thetas)[:, None] ** abs(spin) * h.real
+
+    x, weights = np.polynomial.legendre.leggauss(L)
+    thetas = np.arccos(x)
+    phis = 2 * np.pi * np.arange(2 * L - 1) / (2 * L - 1)
+    ftm = signal(thetas, phis) @ np.exp(-1j * np.outer(phis, m)) * 2 * np.pi / len(phis)
+    d = _risbo_planes(thetas, L)[..., L - 1 - spin]
+    flm = (-1) ** spin * norm[:, None] * np.einsum("t,tlm,tm->lm", weights, d, ftm)
+    flm[: abs(spin)] = 0
+    flm[np.abs(m)[None, :] > np.arange(L)[:, None]] = 0
+    f = signal(samples.thetas(L, sampling), samples.phis_equiang(L, sampling))
+    return f, flm
+
+
+@pytest.mark.parametrize("spin", [-3, -2, -1, 1, 2, 3])
+@pytest.mark.parametrize("sampling", ["gl", "mw"])
+@pytest.mark.parametrize("method", ["numpy", "jax"])
+def test_forward_reality_spin_all_columns(
+    rng: np.random.Generator, spin: int, sampling: str, method: str
+):
+    # For a real signal with spin s != 0, the m < 0 coefficients are not conjugates of
+    # the m > 0 ones but f^s_{el, -m} = (-1)^(s + m) conj(f^{-s}_{el, m}), so reality=True
+    # must give reality=False's coefficients on all 2L - 1 columns. reality=False is
+    # checked against coefficients computed without the transforms.
+    L = 8
+    f, flm_check = _real_spin_signal(rng, L, spin, sampling)
+    flm = spherical.forward(
+        f, L, spin=spin, sampling=sampling, method=method, reality=False
+    )
+    flm_real = spherical.forward(
+        f, L, spin=spin, sampling=sampling, method=method, reality=True
+    )
+    np.testing.assert_allclose(flm, flm_check, rtol=0, atol=1e-12)
+    np.testing.assert_allclose(flm_real, flm, rtol=0, atol=1e-12)
+
+
+@pytest.mark.parametrize("spin", [-3, -2, -1, 1, 2, 3])
+@pytest.mark.parametrize("sampling", ["gl", "mw"])
+@pytest.mark.parametrize("method", ["numpy", "jax"])
+def test_inverse_reality_spin(
+    rng: np.random.Generator, spin: int, sampling: str, method: str
+):
+    # The inverse with reality=True must give the real signal whose spin s != 0
+    # coefficients (all 2L - 1 columns) it is passed, as reality=False does.
+    # reality=False is checked against the signal computed without the transforms.
+    L = 8
+    f_check, flm = _real_spin_signal(rng, L, spin, sampling)
+    f = spherical.inverse(
+        flm, L, spin=spin, sampling=sampling, method=method, reality=False
+    )
+    f_real = spherical.inverse(
+        flm, L, spin=spin, sampling=sampling, method=method, reality=True
+    )
+    np.testing.assert_allclose(f, f_check, rtol=0, atol=1e-12)
+    np.testing.assert_allclose(f_real, f, rtol=0, atol=1e-12)
 
 
 @pytest.mark.healpy
