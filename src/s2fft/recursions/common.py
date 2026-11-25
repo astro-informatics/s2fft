@@ -131,7 +131,7 @@ def start_values(beta, el, mm, xp):
     """
     if xp is jnp and not jax.config.read("jax_enable_x64"):
         raise RuntimeError(
-            "The Price-McEwen Wigner-d recursion needs 64-bit floats in JAX, and gives "
+            "The Wigner-d recursions of s2fft need 64-bit floats in JAX, and give "
             "wrong results without them. Enable them with "
             'jax.config.update("jax_enable_x64", True) at the start of the program.'
         )
@@ -253,7 +253,8 @@ def scaled_start_values(beta, el, mm, xp):
     mantissa, exponent = start_values(beta, el, mm, xp)
     scale = xp.rint(exponent / SCALE_BITS)
     # Exact powers of two 2^(exponent - 800 scale), flushed to zero below 2^-1022, built
-    # from their bit patterns: jnp.ldexp and jnp.exp2 round on GPU
+    # from their bit patterns: jnp.ldexp and jnp.exp2 are not exact powers of two in
+    # general (they round on GPU)
     biased_exponent = xp.clip(exponent - SCALE_BITS * scale + 1023, 0, 2046)
     bits = biased_exponent.astype(xp.int64) << 52
     if xp is np:

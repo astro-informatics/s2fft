@@ -167,7 +167,7 @@ import numpy as np
 
 try:
     from jax import enable_x64
-except ImportError:  # jax < 0.8
+except ImportError:  # older JAX releases
     from jax.experimental import enable_x64
 
 from s2fft.precompute_transforms.construct import spin_spherical_kernel_jax
