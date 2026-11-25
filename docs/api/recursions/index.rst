@@ -15,13 +15,13 @@ Wigner-d recursions
    * - :func:`~s2fft.recursions.price_mcewen.compute_all_slices_jax`
      - Computes all necessary slices of Wigner-d planes using Price-McEwen recursion (JAX).
    * - :func:`~s2fft.recursions.price_mcewen.generate_precomputes`
-     - Constructs list of :math:`\mathcal{O}(L^2)` precomputes to accelerate Price-McEwen recursion for spin-spherical harmonic transform (NumPy).
+     - Deprecated: constructs the :math:`\mathcal{O}(L^2)` precomputes for the spin-spherical harmonic transform, which the Price-McEwen recursion no longer uses (NumPy).
    * - :func:`~s2fft.recursions.price_mcewen.generate_precomputes_jax`
-     - Constructs list of :math:`\mathcal{O}(L^2)` precomputes to accelerate Price-McEwen recursion for spin-spherical harmonic transform (JAX).
+     - Deprecated: constructs the :math:`\mathcal{O}(L^2)` precomputes for the spin-spherical harmonic transform, which the Price-McEwen recursion no longer uses (JAX).
    * - :func:`~s2fft.recursions.price_mcewen.generate_precomputes_wigner`
-     - Constructs list of :math:`\mathcal{O}(NL^2)` precomputes to accelerate Price-McEwen recursion for Wigner transform (NumPy).
+     - Deprecated: constructs the :math:`\mathcal{O}(NL^2)` precomputes for the Wigner transform, which the Price-McEwen recursion no longer uses (NumPy).
    * - :func:`~s2fft.recursions.price_mcewen.generate_precomputes_wigner_jax`
-     - Constructs list of :math:`\mathcal{O}(NL^2)` precomputes to accelerate Price-McEwen recursion for Wigner transform (JAX).
+     - Deprecated: constructs the :math:`\mathcal{O}(NL^2)` precomputes for the Wigner transform, which the Price-McEwen recursion no longer uses (JAX).
 
 .. list-table:: Turok-Bucher recursion functions
    :widths: 25 25

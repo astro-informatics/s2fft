@@ -17,6 +17,7 @@ from s2fft.utils import (
     resampling_jax,
     torch_wrapper,
 )
+from s2fft.utils.deprecation import warn_precomps_deprecated
 
 
 def inverse(
@@ -55,10 +56,10 @@ def inverse(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Not used, kept for backward compatibility:
-            the recursions evaluate their starting values and coefficients on the
-            fly, so arrays passed here, modified or not, have no effect, and
-            gradients with respect to them are zero.
+        precomps (List[np.ndarray]): Deprecated and ignored, and passing it warns: the
+            recursions evaluate their starting values and coefficients on the fly, so
+            arrays passed here have no effect, and gradients with respect to them are
+            zero. It will be removed in a future release.
 
         spmd (bool, optional): Whether to map compute over multiple devices. Currently this
             only maps over all available devices, and is only valid for JAX implementations.
@@ -85,12 +86,14 @@ def inverse(
         recover acceleration by the number of devices.
 
     """
+    if precomps is not None:
+        warn_precomps_deprecated()
     if method not in _inverse_functions:
         raise ValueError(f"Method {method} not recognised.")
 
     inverse_kwargs = {"flm": flm, "L": L}
     if method in ("numpy", "jax", "jax_cuda", "torch"):
-        inverse_kwargs.update(sampling=sampling, precomps=precomps, L_lower=L_lower)
+        inverse_kwargs.update(sampling=sampling, L_lower=L_lower)
     if method in ("jax", "jax_cuda", "torch"):
         inverse_kwargs["spmd"] = spmd
     if method == "jax_healpy":
@@ -143,10 +146,10 @@ def inverse_numpy(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Not used, kept for backward compatibility:
-            the recursions evaluate their starting values and coefficients on the
-            fly, so arrays passed here, modified or not, have no effect, and
-            gradients with respect to them are zero.
+        precomps (List[np.ndarray]): Deprecated and ignored, and passing it warns: the
+            recursions evaluate their starting values and coefficients on the fly, so
+            arrays passed here have no effect, and gradients with respect to them are
+            zero. It will be removed in a future release.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -155,6 +158,8 @@ def inverse_numpy(
         np.ndarray: Signal on the sphere.
 
     """
+    if precomps is not None:
+        warn_precomps_deprecated()
     # Define latitudinal sample positions and Fourier offsets
     thetas = samples.thetas(L, sampling, nside)
     m_offset = samples.m_offset(L, sampling)
@@ -171,7 +176,7 @@ def inverse_numpy(
 
     # Perform latitudinal wigner-d recursions
     ftm = otf.inverse_latitudinal_step(
-        flm, thetas, L, spin, nside, sampling, reality, precomps, L0
+        flm, thetas, L, spin, nside, sampling, reality, None, L0
     )
 
     # Remove south pole singularity
@@ -248,10 +253,10 @@ def inverse_jax(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[jnp.ndarray]): Not used, kept for backward compatibility:
-            the recursions evaluate their starting values and coefficients on the
-            fly, so arrays passed here, modified or not, have no effect, and
-            gradients with respect to them are zero.
+        precomps (List[jnp.ndarray]): Deprecated and ignored, and passing it warns: the
+            recursions evaluate their starting values and coefficients on the fly, so
+            arrays passed here have no effect, and gradients with respect to them are
+            zero. It will be removed in a future release.
 
         spmd (bool, optional): Whether to map compute over multiple devices. Currently this
             only maps over all available devices. Defaults to False.
@@ -280,6 +285,8 @@ def inverse_jax(
         recover acceleration by the number of devices.
 
     """
+    if precomps is not None:
+        warn_precomps_deprecated()
     # Define latitudinal sample positions and Fourier offsets
     thetas = samples.thetas(L, sampling, nside)
     m_offset = samples.m_offset(L, sampling)
@@ -309,7 +316,6 @@ def inverse_jax(
         reality=reality,
         spmd=spmd,
         L_lower=L_lower,
-        precomps=precomps,
     )
 
     # Correct healpix theta row offsets
@@ -374,10 +380,10 @@ def forward(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Not used, kept for backward compatibility:
-            the recursions evaluate their starting values and coefficients on the
-            fly, so arrays passed here, modified or not, have no effect, and
-            gradients with respect to them are zero.
+        precomps (List[np.ndarray]): Deprecated and ignored, and passing it warns: the
+            recursions evaluate their starting values and coefficients on the fly, so
+            arrays passed here have no effect, and gradients with respect to them are
+            zero. It will be removed in a future release.
 
         spmd (bool, optional): Whether to map compute over multiple devices. Currently this
             only maps over all available devices, and is only valid for JAX implementations.
@@ -412,6 +418,8 @@ def forward(
         recover acceleration by the number of devices.
 
     """
+    if precomps is not None:
+        warn_precomps_deprecated()
     if method not in _forward_functions:
         raise ValueError(f"Method {method} not recognised.")
 
@@ -420,7 +428,7 @@ def forward(
 
     forward_kwargs = {"f": f, "L": L}
     if method in ("numpy", "jax", "jax_cuda", "torch"):
-        forward_kwargs.update(sampling=sampling, precomps=precomps, L_lower=L_lower)
+        forward_kwargs.update(sampling=sampling, L_lower=L_lower)
     if method in ("jax", "jax_cuda", "torch"):
         forward_kwargs["spmd"] = spmd
     if method == "jax_healpy":
@@ -440,7 +448,6 @@ def forward(
     if iter > 0 and method != "jax_healpy":
         f = forward_kwargs.pop("f")
         inverse_kwargs = forward_kwargs.copy()
-        inverse_kwargs.pop("precomps")
         return iterative_refinement.forward_with_iterative_refinement(
             f=f,
             n_iter=iter,
@@ -485,10 +492,10 @@ def forward_numpy(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Not used, kept for backward compatibility:
-            the recursions evaluate their starting values and coefficients on the
-            fly, so arrays passed here, modified or not, have no effect, and
-            gradients with respect to them are zero.
+        precomps (List[np.ndarray]): Deprecated and ignored, and passing it warns: the
+            recursions evaluate their starting values and coefficients on the fly, so
+            arrays passed here have no effect, and gradients with respect to them are
+            zero. It will be removed in a future release.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -497,6 +504,8 @@ def forward_numpy(
         np.ndarray: Spherical harmonic coefficients
 
     """
+    if precomps is not None:
+        warn_precomps_deprecated()
     # Resample mw onto mwss and double resolution of both
     if sampling.lower() == "mw":
         f = resampling.mw_to_mwss(f, L, spin)
@@ -551,12 +560,12 @@ def forward_numpy(
             nside,
             sampling,
             reality,
-            precomps,
+            None,
             L0,
         )
     else:
         flm = otf.forward_latitudinal_step(
-            ftm, thetas, L, spin, nside, sampling, reality, precomps, L0
+            ftm, thetas, L, spin, nside, sampling, reality, None, L0
         )
 
     # Include both pole singularities explicitly
@@ -623,10 +632,10 @@ def forward_jax(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[jnp.ndarray]): Not used, kept for backward compatibility:
-            the recursions evaluate their starting values and coefficients on the
-            fly, so arrays passed here, modified or not, have no effect, and
-            gradients with respect to them are zero.
+        precomps (List[jnp.ndarray]): Deprecated and ignored, and passing it warns: the
+            recursions evaluate their starting values and coefficients on the fly, so
+            arrays passed here have no effect, and gradients with respect to them are
+            zero. It will be removed in a future release.
 
         spmd (bool, optional): Whether to map compute over multiple devices. Currently this
             only maps over all available devices. Defaults to False.
@@ -655,6 +664,8 @@ def forward_jax(
         recover acceleration by the number of devices.
 
     """
+    if precomps is not None:
+        warn_precomps_deprecated()
     # Resample mw onto mwss and double resolution of both
     if sampling.lower() == "mw":
         f = resampling_jax.mw_to_mwss(f, L, spin)
@@ -715,7 +726,6 @@ def forward_jax(
         reality=reality,
         spmd=spmd,
         L_lower=L_lower,
-        precomps=precomps,
     )
 
     # Apply harmonic normalisation

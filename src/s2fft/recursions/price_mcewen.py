@@ -1,5 +1,4 @@
 import math
-import warnings
 from functools import partial
 
 import jax
@@ -9,8 +8,7 @@ import numpy as np
 from jax import jit
 
 from s2fft.sampling import s2_samples as samples
-
-warnings.filterwarnings("ignore")
+from s2fft.utils.deprecation import warn_precomps_deprecated
 
 # Stirling series error log(n!) - (n log(n) - n + log(2 pi n) / 2) for n = 0, ..., 15
 # (zero for n = 0, where it is not used).
@@ -500,9 +498,10 @@ def generate_precomputes(
 
     The recursions in s2fft no longer use these arrays: they evaluate their starting
     values and coefficients on the fly (see :func:`compute_all_slices_jax`), so any
-    precomputes passed to the transforms are ignored. This function is kept for
-    backward compatibility; ``lrenorm`` holds the logarithms of the starting values,
-    now evaluated directly rather than by a running sum.
+    precomputes passed to the transforms are ignored. This function is deprecated, and
+    calling it warns: it will be removed in a future release. ``lrenorm`` holds the
+    logarithms of the starting values, now evaluated directly rather than by a
+    running sum.
 
     Args:
         L (int): Harmonic band-limit.
@@ -528,6 +527,12 @@ def generate_precomputes(
         TODO: this function should be optimised.
 
     """
+    warn_precomps_deprecated("generate_precomputes")
+    return _generate_precomputes(L, spin, sampling, nside, forward, L_lower)
+
+
+def _generate_precomputes(L, spin, sampling, nside, forward, L_lower):
+    """Implementation of :func:`generate_precomputes`, without its warning."""
     mm = -spin
     L0 = L_lower
     # Correct for mw to mwss conversion
@@ -547,11 +552,13 @@ def generate_precomputes(
     cpi = np.zeros((L + 1, L - L0), dtype=np.float64)
     cp2 = np.zeros((L + 1, L - L0), dtype=np.float64)
 
-    # Initialising coefficients cp(m)= cplus(l-m).
-    cpi[0] = 2.0 / np.sqrt(2 * el)
-    for m in range(2, L + 1):
-        cpi[m - 1] = 2.0 / np.sqrt(m * (2 * el + 1 - m))
-        cp2[m - 1] = cpi[m - 1] / cpi[m - 2]
+    # Initialising coefficients cp(m)= cplus(l-m). They are infinite or NaN where
+    # m > 2 el, without numpy's warnings for those entries.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        cpi[0] = 2.0 / np.sqrt(2 * el)
+        for m in range(2, L + 1):
+            cpi[m - 1] = 2.0 / np.sqrt(m * (2 * el + 1 - m))
+            cp2[m - 1] = cpi[m - 1] / cpi[m - 2]
 
     for k in range(L0, L):
         cpi[:, k - L0] = np.roll(cpi[:, k - L0], (L - k - 1), axis=-1)
@@ -574,7 +581,6 @@ def generate_precomputes(
     return [lrenorm, vsign, cpi, cp2, indices]
 
 
-@partial(jit, static_argnums=(0, 2, 3, 4, 5))
 def generate_precomputes_jax(
     L: int,
     spin: int = 0,
@@ -590,9 +596,10 @@ def generate_precomputes_jax(
 
     The recursions in s2fft no longer use these arrays: they evaluate their starting
     values and coefficients on the fly (see :func:`compute_all_slices_jax`), so any
-    precomputes passed to the transforms are ignored. This function is kept for
-    backward compatibility; ``lrenorm`` holds the logarithms of the starting values,
-    now evaluated directly rather than by a running sum.
+    precomputes passed to the transforms are ignored. This function is deprecated, and
+    calling it warns: it will be removed in a future release. ``lrenorm`` holds the
+    logarithms of the starting values, now evaluated directly rather than by a
+    running sum.
 
     Args:
         L (int): Harmonic band-limit.
@@ -617,6 +624,13 @@ def generate_precomputes_jax(
         List[jnp.ndarray]: List of precomputed coefficient arrays.
 
     """
+    warn_precomps_deprecated("generate_precomputes_jax")
+    return _generate_precomputes_jax(L, spin, sampling, nside, forward, L_lower, betas)
+
+
+@partial(jit, static_argnums=(0, 2, 3, 4, 5))
+def _generate_precomputes_jax(L, spin, sampling, nside, forward, L_lower, betas):
+    """Implementation of :func:`generate_precomputes_jax`, without its warning."""
     mm = -spin
     L0 = L_lower
     # Correct for mw to mwss conversion
@@ -701,7 +715,8 @@ def generate_precomputes_wigner(
 
     The recursions in s2fft no longer use these arrays, so any precomputes passed to
     the Wigner transforms are ignored (see :func:`~generate_precomputes`). This
-    function is kept for backward compatibility.
+    function is deprecated, and calling it warns: it will be removed in a future
+    release.
 
     Args:
         L (int): Harmonic band-limit.
@@ -732,14 +747,14 @@ def generate_precomputes_wigner(
         TODO: this function should be optimised.
 
     """
+    warn_precomps_deprecated("generate_precomputes_wigner")
     precomps = []
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
-        precomps.append(generate_precomputes(L, -n, sampling, nside, forward, L_lower))
+        precomps.append(_generate_precomputes(L, -n, sampling, nside, forward, L_lower))
     return precomps
 
 
-@partial(jit, static_argnums=(0, 1, 2, 3, 4, 5, 6))
 def generate_precomputes_wigner_jax(
     L: int,
     N: int,
@@ -757,7 +772,8 @@ def generate_precomputes_wigner_jax(
 
     The recursions in s2fft no longer use these arrays, so any precomputes passed to
     the Wigner transforms are ignored (see :func:`~generate_precomputes_jax`). This
-    function is kept for backward compatibility.
+    function is deprecated, and calling it warns: it will be removed in a future
+    release.
 
     Args:
         L (int): Harmonic band-limit.
@@ -787,6 +803,15 @@ def generate_precomputes_wigner_jax(
         which do not depend on n, once.
 
     """
+    warn_precomps_deprecated("generate_precomputes_wigner_jax")
+    return _generate_precomputes_wigner_jax(
+        L, N, sampling, nside, forward, reality, L_lower
+    )
+
+
+@partial(jit, static_argnums=(0, 1, 2, 3, 4, 5, 6))
+def _generate_precomputes_wigner_jax(L, N, sampling, nside, forward, reality, L_lower):
+    """Implementation of :func:`generate_precomputes_wigner_jax`, without its warning."""
     lrenorm = []
     vsign = []
     cpi = []
@@ -795,7 +820,9 @@ def generate_precomputes_wigner_jax(
     captured_repeats = False
     n_start_ind = 0 if reality else -N + 1
     for n in range(n_start_ind, N):
-        precomps = generate_precomputes_jax(L, -n, sampling, nside, forward, L_lower)
+        precomps = _generate_precomputes_jax(
+            L, -n, sampling, nside, forward, L_lower, None
+        )
         lrenorm.append(precomps[0])
         vsign.append(precomps[1])
         if not captured_repeats:
@@ -853,14 +880,17 @@ def compute_all_slices(
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
-        precomps (List[np.ndarray], optional): Not used, kept for backward
-            compatibility: the recursion evaluates its starting values and coefficients
-            on the fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`.
+        precomps (List[np.ndarray], optional): Deprecated and ignored, and passing it
+            warns: the recursion evaluates its starting values and coefficients on the
+            fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`. It will be removed in a
+            future release.
 
     Returns:
         np.ndarray: Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
 
     """
+    if precomps is not None:
+        warn_precomps_deprecated()
     mm = -spin
     beta = np.asarray(beta)
     ntheta = len(beta)
@@ -926,9 +956,10 @@ def compute_all_slices_jax(
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
-        precomps (List[np.ndarray], optional): Not used, kept for backward
-            compatibility: the recursion evaluates its starting values and coefficients
-            on the fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`.
+        precomps (List[np.ndarray], optional): Deprecated and ignored, and passing it
+            warns: the recursion evaluates its starting values and coefficients on the
+            fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`. It will be removed in a
+            future release.
 
     Returns:
         jnp.ndarray: Wigner-d matrix mm slice of dimension :math:`[2L-1, n_{\theta}, n_{\ell}]`.
@@ -937,6 +968,8 @@ def compute_all_slices_jax(
         RuntimeError: If JAX's 64-bit floats are disabled (``jax_enable_x64``).
 
     """
+    if precomps is not None:
+        warn_precomps_deprecated()
     return _compute_all_slices_jax(beta, L, spin, _static_extension(spin, L))
 
 

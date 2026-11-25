@@ -12,6 +12,7 @@ from s2fft.recursions.price_mcewen import (
     _static_extension,
 )
 from s2fft.sampling import s2_samples as samples
+from s2fft.utils.deprecation import warn_precomps_deprecated
 
 
 def inverse_latitudinal_step(
@@ -56,9 +57,10 @@ def inverse_latitudinal_step(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray], optional): Not used, kept for backward
-            compatibility: the recursion evaluates its starting values and coefficients
-            on the fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`.
+        precomps (List[np.ndarray], optional): Deprecated and ignored, and passing it
+            warns: the recursion evaluates its starting values and coefficients on the
+            fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`. It will be removed in a
+            future release.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -67,6 +69,8 @@ def inverse_latitudinal_step(
         np.ndarray: Coefficients ftm with indexing :math:`[\theta, m]`.
 
     """
+    if precomps is not None:
+        warn_precomps_deprecated()
     mm = -spin
     ntheta = len(beta)
     ftm = np.zeros(samples.ftm_shape(L, sampling, nside), dtype=np.complex128)
@@ -135,9 +139,10 @@ def inverse_latitudinal_step_jax(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray], optional): Not used, kept for backward
-            compatibility: the recursion evaluates its starting values and coefficients
-            on the fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`.
+        precomps (List[np.ndarray], optional): Deprecated and ignored, and passing it
+            warns: the recursion evaluates its starting values and coefficients on the
+            fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`. It will be removed in a
+            future release.
 
         spmd (bool, optional): Whether to map compute over multiple devices. Currently this
             only maps over all available devices. Defaults to False.
@@ -156,6 +161,8 @@ def inverse_latitudinal_step_jax(
         recover acceleration by the number of devices.
 
     """
+    if precomps is not None:
+        warn_precomps_deprecated()
     return _inverse_latitudinal_step_jax(
         flm,
         beta,
@@ -292,9 +299,10 @@ def forward_latitudinal_step(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray], optional): Not used, kept for backward
-            compatibility: the recursion evaluates its starting values and coefficients
-            on the fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`.
+        precomps (List[np.ndarray], optional): Deprecated and ignored, and passing it
+            warns: the recursion evaluates its starting values and coefficients on the
+            fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`. It will be removed in a
+            future release.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -303,6 +311,8 @@ def forward_latitudinal_step(
         np.ndarray: Spherical harmonic coefficients.
 
     """
+    if precomps is not None:
+        warn_precomps_deprecated()
     mm = -spin  # switch to match convention
     ntheta = len(beta)  # Number of theta samples
     flm = np.zeros(samples.flm_shape(L), dtype=np.complex128)
@@ -372,9 +382,10 @@ def forward_latitudinal_step_jax(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray], optional): Not used, kept for backward
-            compatibility: the recursion evaluates its starting values and coefficients
-            on the fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`.
+        precomps (List[np.ndarray], optional): Deprecated and ignored, and passing it
+            warns: the recursion evaluates its starting values and coefficients on the
+            fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`. It will be removed in a
+            future release.
 
         spmd (bool, optional): Whether to map compute over multiple devices. Currently this
             only maps over all available devices. Defaults to False.
@@ -393,6 +404,8 @@ def forward_latitudinal_step_jax(
         recover acceleration by the number of devices.
 
     """
+    if precomps is not None:
+        warn_precomps_deprecated()
     return _forward_latitudinal_step_jax(
         ftm_in,
         beta_in,
