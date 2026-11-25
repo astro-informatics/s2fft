@@ -24,6 +24,7 @@ from s2fft.recursions.price_mcewen import generate_precomputes_jax
 from s2fft.sampling import s2_samples as samples
 from s2fft.transforms import _ftm_flm_primitive as ftm_flm_prim
 from s2fft.transforms import otf_recursions as otf
+from s2fft.transforms import spherical
 
 jax.config.update("jax_enable_x64", True)
 
@@ -502,3 +503,50 @@ def test_otf_latitudinal_steps_differentiable_traced_spin(sampling, rng):
 
         grad = jax.grad(loss_over_spins)(x)
         np.testing.assert_allclose(grad, expected.sum(0), rtol=1e-12, atol=1e-12)
+
+
+@pytest.mark.parametrize("batch", [(2, 3), (3, 3)])
+@pytest.mark.parametrize("direction", ["forward", "inverse"])
+def test_nested_vmap_with_the_spin_batched_at_one_level(batch, direction, rng):
+    # The batching rule leaves a spin that no level of vmap batches unbatched, and maps
+    # over it at the levels that do, which are the outermost ones from the first that
+    # batched it. Under two levels of vmap with the spin batched at one of them, each
+    # result must equal its own unbatched call.
+    b_out, b_in = batch
+    x = rng.standard_normal((b_out, b_in, L_TEST, 2 * L_TEST - 1))
+    if direction == "forward":
+
+        def fun(y, spin):
+            return spherical.forward_jax(y, L_TEST, spin, None, "gl", True)
+
+    else:
+        x = x + 0j
+
+        def fun(y, spin):
+            return spherical.inverse_jax(y, L_TEST, spin, None, "gl", True)
+
+    spins_out = np.array([0, 2, -1])[:b_out]
+    spins_in = np.array([1, 0, -3])[:b_in]
+    outer = jax.vmap(lambda xs, s: jax.vmap(lambda y: fun(y, s))(xs))(x, spins_out)
+    inner = jax.vmap(lambda xs: jax.vmap(fun)(xs, spins_in))(x)
+    for a in range(b_out):
+        for b in range(b_in):
+            np.testing.assert_allclose(
+                outer[a, b], fun(x[a, b], int(spins_out[a])), rtol=0, atol=1e-13
+            )
+            np.testing.assert_allclose(
+                inner[a, b], fun(x[a, b], int(spins_in[b])), rtol=0, atol=1e-13
+            )
+
+
+def test_nested_vmap_over_signals_keeps_the_spin_zero_skip():
+    # With the spin a runtime argument that no level of vmap batches, the lax.cond that
+    # skips half recursion 0 at spin 0 with reality=True stays a cond (a case op)
+    fs = jnp.zeros((2, 3, L_TEST, 2 * L_TEST - 1))
+
+    def batched(x, spin):
+        return jax.vmap(
+            jax.vmap(lambda y: spherical.forward_jax(y, L_TEST, spin, None, "gl", True))
+        )(x)
+
+    assert "stablehlo.case" in jax.jit(batched).lower(fs, 0).as_text()
