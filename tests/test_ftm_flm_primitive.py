@@ -119,6 +119,24 @@ def test_ftm_to_flm_matches_otf(spin, sampling, rng):
     np.testing.assert_allclose(np.asarray(actual), np.asarray(expected), atol=1e-12)
 
 
+@pytest.mark.parametrize("spin", [-3, -2, -1, 1, 2, 3])
+@pytest.mark.parametrize("sampling", ["mw", "gl"])
+def test_latitudinal_steps_reality_nonzero_spin(spin, sampling, rng):
+    # The direct latitudinal steps skip half recursion 0 for a real signal only at spin
+    # 0. At spin != 0 both half recursions run, so reality=True must give the same
+    # result as reality=False on every column.
+    flm, ftm, thetas = _make_inputs(rng, L_TEST, spin, sampling, reality=False)
+    for step, x in (
+        (otf.inverse_latitudinal_step_jax, flm),
+        (otf.forward_latitudinal_step_jax, ftm),
+    ):
+        expected = step(x, thetas, L_TEST, spin, None, sampling, False)
+        actual = step(x, thetas, L_TEST, spin, None, sampling, True)
+        np.testing.assert_allclose(
+            np.asarray(actual), np.asarray(expected), rtol=0, atol=1e-13
+        )
+
+
 @pytest.mark.parametrize("sampling", SAMPLING_TEST)
 def test_flm_to_ftm_matches_with_explicit_precomps(sampling, rng):
     spin = 1
