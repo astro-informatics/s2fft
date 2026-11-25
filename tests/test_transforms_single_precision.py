@@ -1,10 +1,21 @@
+import json
+import os
+import re
+import subprocess
+import sys
+
 import jax
+import jax.numpy as jnp
 import numpy as np
 import pytest
 import torch
 
 import s2fft
+from s2fft.precompute_transforms.construct import spin_spherical_kernel_jax
 from s2fft.precompute_transforms.spherical import forward, inverse
+from s2fft.sampling import s2_samples as samples
+from s2fft.transforms import spherical, wigner
+from s2fft.utils import signal_generator
 from s2fft.utils._dtype_association import compatible_complex_dtype
 
 jax.config.update("jax_enable_x64", True)
@@ -144,3 +155,108 @@ def test_lower_precision_transforms(
         log_error_ratio = log_round_trip_error_double / log_round_trip_error_single
 
         assert log_ratio_range[0] <= log_error_ratio <= log_ratio_range[1]
+
+
+# Run by test_otf_transforms_x64_disabled in a subprocess with JAX_ENABLE_X64=0
+_X64_DISABLED_SCRIPT = """\
+import json
+import sys
+
+import jax
+import jax.numpy as jnp
+import numpy as np
+
+assert not jax.config.read("jax_enable_x64")
+
+from s2fft.precompute_transforms.construct import spin_spherical_kernel_jax
+from s2fft.transforms import spherical, wigner
+
+inputs = np.load(sys.argv[1])
+L, N, spin = (int(inputs[key]) for key in ("L", "N", "spin"))
+flm = inputs["flm"].astype(np.complex64)
+f = inputs["f"].astype(np.complex64)
+flmn = inputs["flmn"].astype(np.complex64)
+weights = inputs["weights"].astype(np.float32)
+
+
+def inverse(flm):
+    return spherical.inverse_jax(flm, L, spin=spin, sampling="mw")
+
+
+cases = {
+    "inverse_jax": lambda: inverse(flm),
+    "forward_jax": lambda: spherical.forward_jax(f, L, spin=spin, sampling="mw"),
+    "auto_kernel": lambda: spin_spherical_kernel_jax(L, spin, recursion="auto"),
+    "wigner_inverse_jax": lambda: wigner.inverse_jax(flmn, L, N),
+    "grad_inverse_jax": lambda: jax.grad(
+        lambda x: jnp.sum(weights * jnp.real(inverse(x)))
+    )(flm),
+    "vmap_inverse_jax": lambda: jax.vmap(inverse)(jnp.stack([flm, 2 * flm])),
+}
+values, errors = {}, {}
+for name, case in cases.items():
+    try:
+        values[name] = np.asarray(case())
+    except Exception as error:
+        errors[name] = f"{type(error).__name__}: {error}"
+np.savez(sys.argv[2], **values)
+print(json.dumps({"errors": errors, "x64": jax.config.read("jax_enable_x64")}))
+"""
+
+
+def test_otf_transforms_x64_disabled(tmp_path, rng: np.random.Generator):
+    """
+    Test the on-the-fly transforms with JAX's 64-bit mode disabled.
+
+    In single precision the Wigner-d recursions overflowed and returned mostly zeros,
+    without an error. Each call must either agree with its double precision result to
+    single precision accuracy, or raise an error that names x64 or double precision,
+    and leave x64 disabled. The calls run in a subprocess, so that disabling x64 cannot
+    leak into other tests.
+    """
+    L, N, spin = 16, 2, 2
+    flm = signal_generator.generate_flm(rng, L, spin=spin)
+    flmn = signal_generator.generate_flmn(rng, L, N)
+    weights = rng.standard_normal(samples.f_shape(L, "mw"))
+
+    def inverse(flm):
+        return spherical.inverse_jax(flm, L, spin=spin, sampling="mw")
+
+    f = np.asarray(inverse(flm))
+    references = {
+        "inverse_jax": f,
+        "forward_jax": spherical.forward_jax(f, L, spin=spin, sampling="mw"),
+        "auto_kernel": spin_spherical_kernel_jax(L, spin, recursion="auto"),
+        "wigner_inverse_jax": wigner.inverse_jax(flmn, L, N),
+        "grad_inverse_jax": jax.grad(lambda x: jnp.sum(weights * jnp.real(inverse(x))))(
+            flm
+        ),
+        "vmap_inverse_jax": jax.vmap(inverse)(jnp.stack([flm, 2 * flm])),
+    }
+    inputs, outputs = tmp_path / "inputs.npz", tmp_path / "outputs.npz"
+    np.savez(inputs, L=L, N=N, spin=spin, flm=flm, f=f, flmn=flmn, weights=weights)
+    result = subprocess.run(  # noqa: S603 (a fixed script)
+        [sys.executable, "-c", _X64_DISABLED_SCRIPT, str(inputs), str(outputs)],
+        env={**os.environ, "JAX_ENABLE_X64": "0"},
+        capture_output=True,
+        text=True,
+        timeout=900,
+    )
+    assert result.returncode == 0, result.stderr
+    report = json.loads(result.stdout.splitlines()[-1])
+    assert report["x64"] is False, "x64 was left enabled"
+    values = np.load(outputs)
+    problems = []
+    for name, reference in references.items():
+        if name in report["errors"]:
+            message = report["errors"][name]
+            if not re.search(r"x64|double precision|64-bit", message, re.IGNORECASE):
+                problems.append(f"{name} raised an unclear error: {message}")
+            continue
+        value = values[name]
+        error = np.max(np.abs(value - reference)) / np.max(np.abs(reference))
+        if not (np.all(np.isfinite(value)) and error < 1e-4):
+            problems.append(
+                f"{name}: relative error {error:.3g}, {np.mean(value == 0):.0%} zeros"
+            )
+    assert not problems, "With x64 disabled, " + "; ".join(problems)
