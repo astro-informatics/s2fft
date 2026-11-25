@@ -57,15 +57,6 @@ plt.show()
 flm = s2fft.forward_jax(f, L)
 
 # %%
-# If you are planning on applying this transform many times (e.g. during training of a model) we recommend precomputing and storing some small arrays that are used every time.
-# This trades off additional memory usage for enhanced speed and should be fine at small and moderate bandlimits ``L``.
-#
-# To do this simply compute these and pass as a static argument.
-
-precomps = s2fft.generate_precomputes_jax(L, forward=True)
-flm_pre = s2fft.forward_jax(f, L, precomps=precomps)
-
-# %%
 # Computing the inverse spherical harmonic transform
 # --------------------------------------------------
 #
@@ -74,19 +65,9 @@ flm_pre = s2fft.forward_jax(f, L, precomps=precomps)
 f_recov = s2fft.inverse_jax(flm, L)
 
 # %%
-# Again, if you are planning on applying this transform many times we recommend precomputing and storing some small arrays that are used every time.
-# Recall, this trades off additional memory usage for enhanced speed and should be fine at small and moderate bandlimits ``L``.
-#
-# To do this simply compute these and pass as a static argument.
-
-precomps = s2fft.generate_precomputes_jax(L, forward=False)
-f_recov_pre = s2fft.inverse_jax(flm_pre, L, precomps=precomps)
-
-# %%
 # Computing the error
 # -------------------
 #
 # Let's check the associated error, which should be close to machine precision for the sampling scheme used.
 
 print(f"Mean absolute error = {np.nanmean(np.abs(f_recov - f))}")
-print(f"Mean absolute error using precomputes = {np.nanmean(np.abs(f_recov_pre - f))}")
