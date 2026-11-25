@@ -140,16 +140,16 @@ def _start_values(beta, el, mm, xp):
     Raises:
         RuntimeError: For JAX arrays when 64-bit floats are disabled: the iterates of
             the recursion lie far outside the range of single precision, so it would
-            return zeros. The error is raised while tracing, before any computation, so
-            no single-precision trace is kept for later calls with 64-bit floats.
+            return zeros. The error is raised before any computation, while tracing (or,
+            through the transforms, while their primitive is lowered), so no
+            single-precision trace is kept for later calls with 64-bit floats.
 
     """
     if xp is jnp and not jax.config.read("jax_enable_x64"):
         raise RuntimeError(
             "The Price-McEwen Wigner-d recursion needs 64-bit floats in JAX, and gives "
             "wrong results without them. Enable them with "
-            'jax.config.update("jax_enable_x64", True) at the start of the program, or '
-            "make the call inside `with jax.enable_x64(True):`."
+            'jax.config.update("jax_enable_x64", True) at the start of the program.'
         )
     el = xp.asarray(el, dtype=xp.float64)
     abs_mm = xp.abs(mm)

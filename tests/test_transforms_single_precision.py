@@ -202,7 +202,11 @@ for name, case in cases.items():
 # The same calls in double precision, with x64 enabled only inside a context, to check
 # that the calls above left no single precision state behind
 flm, f, flmn, weights = (inputs[key] for key in ("flm", "f", "flmn", "weights"))
-with jax.enable_x64(True):
+# jax.enable_x64 is jax.experimental.enable_x64 in older JAX versions
+enable_x64 = getattr(jax, "enable_x64", None)
+if enable_x64 is None:
+    from jax.experimental import enable_x64
+with enable_x64(True):
     for name, case in cases.items():
         try:
             values[name + "_x64"] = np.asarray(case())
