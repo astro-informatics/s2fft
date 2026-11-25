@@ -435,43 +435,57 @@ def _polar_terms(beta, mm, xp):
 
 def _set_pole_values(dl, beta, L, mm, xp):
     r"""
-    The slices ``dl``, of shape (2L-1, ntheta, L), with their values next to the poles
-    set in closed form, for :math:`\ell \geq |m^\prime|`. At exactly
-    :math:`\beta = \pi`,
-    :math:`d^\ell_{m, m^\prime}(\pi) = (-1)^{\ell - m^\prime}\delta_{m, -m^\prime}`.
-    For :math:`|\beta|` below ``_NORTH_POLE_ANGLE`` (and at :math:`\beta = 0`, where the
-    starting values of the recursion vanish), the slice to first order in
-    :math:`\beta`,
+    The slices ``dl``, of shape (2L-1, ntheta, L), with their values at the poles set
+    in closed form, to first order in the distance from the pole, for
+    :math:`\ell \geq |m^\prime|`. That is
     :math:`d^\ell_{m, m^\prime}(\beta) = \delta_{m, m^\prime}
-    + \beta\,\partial_\beta d^\ell_{m, m^\prime}(0)`, whose error is at most
-    :math:`(\ell\beta)^2/2`; the derivative, :math:`-i\langle \ell m|J_y|\ell m^\prime\rangle`,
-    is :math:`-\sqrt{(\ell - m^\prime)(\ell + m^\prime + 1)}/2` for
-    :math:`m = m^\prime + 1`, :math:`\sqrt{(\ell + m^\prime)(\ell - m^\prime + 1)}/2` for
-    :math:`m = m^\prime - 1` and zero otherwise, so derivatives with respect to
-    :math:`\beta` hold there too. The recursion must have been run at a safe angle
-    instead of these small :math:`\beta`, so that its values and derivatives, which
+    + \beta\,\partial_\beta d^\ell_{m, m^\prime}(0)` for :math:`|\beta|` below
+    ``_NORTH_POLE_ANGLE`` (and at :math:`\beta = 0`, where the starting values of the
+    recursion vanish), with an error of at most :math:`(\ell\beta)^2/2`, and, from
+    :math:`d^\ell_{m, m^\prime}(\beta) = (-1)^{\ell + m} d^\ell_{m, -m^\prime}(\pi - \beta)`,
+    the same about :math:`\pi` for :math:`\beta` exactly ``np.pi``, where the value is
+    :math:`(-1)^{\ell - m^\prime}\delta_{m, -m^\prime}`. The derivative at the pole,
+    :math:`-i\langle \ell m|J_y|\ell m^\prime\rangle`, is
+    :math:`-\sqrt{(\ell - m^\prime)(\ell + m^\prime + 1)}/2` for
+    :math:`m = m^\prime + 1`, :math:`\sqrt{(\ell + m^\prime)(\ell - m^\prime + 1)}/2`
+    for :math:`m = m^\prime - 1` and zero otherwise, so derivatives with respect to
+    :math:`\beta` hold at the poles too. The recursion must have been run at a safe
+    angle instead of these :math:`\beta`, so that its values and derivatives, which
     are discarded, stay finite.
     """
     el = xp.arange(L)
     m = xp.arange(-L + 1, L)[:, None]
     valid = el >= xp.abs(mm)
-    north = xp.where((m == mm) & valid, 1.0, 0.0)
-    slope = xp.where(
-        (m == mm + 1) & valid,
-        -0.5 * xp.sqrt(xp.maximum((el - mm) * (el + mm + 1), 0)),
-        xp.where(
-            (m == mm - 1) & valid,
-            0.5 * xp.sqrt(xp.maximum((el + mm) * (el - mm + 1), 0)),
-            0.0,
-        ),
-    )
-    south = xp.where((m == -mm) & valid, 1.0 - 2.0 * ((el - mm) % 2), 0.0)
-    dl = xp.where(
-        (xp.abs(beta) < _NORTH_POLE_ANGLE)[None, :, None],
-        north[:, None, :] + beta[None, :, None] * slope[:, None, :],
-        dl,
-    )
-    return xp.where((beta == np.pi)[None, :, None], south[:, None, :], dl)
+
+    def first_order(mm):
+        # delta_{m, mm} and the derivative of the slice at beta = 0
+        delta = xp.where((m == mm) & valid, 1.0, 0.0)
+        slope = xp.where(
+            (m == mm + 1) & valid,
+            -0.5 * xp.sqrt(xp.maximum((el - mm) * (el + mm + 1), 0)),
+            xp.where(
+                (m == mm - 1) & valid,
+                0.5 * xp.sqrt(xp.maximum((el + mm) * (el - mm + 1), 0)),
+                0.0,
+            ),
+        )
+        return delta[:, None, :], slope[:, None, :]
+
+    north, south = _pole_masks(beta, xp)
+    delta, slope = first_order(mm)
+    dl = xp.where(north[None, :, None], delta + beta[None, :, None] * slope, dl)
+    delta, slope = first_order(-mm)
+    sign = (1.0 - 2.0 * ((el + m) % 2))[:, None, :]
+    south_value = sign * (delta + (np.pi - beta)[None, :, None] * slope)
+    return xp.where(south[None, :, None], south_value, dl)
+
+
+def _pole_masks(beta, xp):
+    """
+    The polar angles taken in closed form by :func:`_set_pole_values`: those below
+    ``_NORTH_POLE_ANGLE`` in magnitude, and those exactly ``np.pi``.
+    """
+    return xp.abs(beta) < _NORTH_POLE_ANGLE, beta == np.pi
 
 
 def _log_start_values(beta, el, mm, xp):
@@ -861,14 +875,15 @@ def compute_all_slices(
     On-the-fly renormalisation by exact powers of two is implemented to avoid
     over/under-flows, with the scale of the iterates kept as an integer index.
 
-    Next to the poles the slice is returned in closed form: at exactly
-    :math:`\beta = \pi`,
-    :math:`d^\ell_{m, m^\prime}(\pi) = (-1)^{\ell - m^\prime}\delta_{m, -m^\prime}`
-    for :math:`\ell \geq |m^\prime|`, and for :math:`|\beta| < 10^{-100}` (including
-    :math:`\beta = 0`, where the starting values of the recursion vanish) to first
-    order in :math:`\beta`, from
-    :math:`d^\ell_{m, m^\prime}(0) = \delta_{m, m^\prime}`, within
-    :math:`(\ell\beta)^2/2`.
+    At the poles the slice is returned in closed form, to first order in the distance
+    from the pole, so that derivatives with respect to :math:`\beta` hold there too:
+    from :math:`d^\ell_{m, m^\prime}(0) = \delta_{m, m^\prime}` for
+    :math:`|\beta| < 10^{-100}` (including :math:`\beta = 0`, where the starting values
+    of the recursion vanish), within :math:`(\ell\beta)^2/2`, and from
+    :math:`d^\ell_{m, m^\prime}(\pi) = (-1)^{\ell - m^\prime}\delta_{m, -m^\prime}`,
+    for :math:`\ell \geq |m^\prime|`, at :math:`\beta` exactly ``np.pi``. A ring
+    computed as, say, :math:`\pi(2t + 1)/(2L - 1)` may differ from ``np.pi`` in its
+    last bit, and then gets the recursion's value, accurate to round-off.
 
     The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
     :math:`-L < m < L` by `dl[L - 1 + m, \beta, \ell]`. This implementation has
@@ -898,7 +913,8 @@ def compute_all_slices(
     ntheta = len(beta)
     el = np.arange(L)
     # The recursion runs at a safe angle where _set_pole_values replaces its values
-    safe_beta = np.where(np.abs(beta) < _NORTH_POLE_ANGLE, np.pi / 2, beta)
+    north, south = _pole_masks(beta, np)
+    safe_beta = np.where(north | south, np.pi / 2, beta)
     start = _scaled_start_values(safe_beta, el, mm, np)
     polar = _polar_terms(safe_beta, mm, np)
 
@@ -937,14 +953,15 @@ def compute_all_slices_jax(
     On-the-fly renormalisation by exact powers of two is implemented to avoid
     over/under-flows, with the scale of the iterates kept as an integer index.
 
-    Next to the poles the slice is returned in closed form: at exactly
-    :math:`\beta = \pi`,
-    :math:`d^\ell_{m, m^\prime}(\pi) = (-1)^{\ell - m^\prime}\delta_{m, -m^\prime}`
-    for :math:`\ell \geq |m^\prime|`, and for :math:`|\beta| < 10^{-100}` (including
-    :math:`\beta = 0`, where the starting values of the recursion vanish) to first
-    order in :math:`\beta`, from
-    :math:`d^\ell_{m, m^\prime}(0) = \delta_{m, m^\prime}`, within
-    :math:`(\ell\beta)^2/2`.
+    At the poles the slice is returned in closed form, to first order in the distance
+    from the pole, so that derivatives with respect to :math:`\beta` hold there too:
+    from :math:`d^\ell_{m, m^\prime}(0) = \delta_{m, m^\prime}` for
+    :math:`|\beta| < 10^{-100}` (including :math:`\beta = 0`, where the starting values
+    of the recursion vanish), within :math:`(\ell\beta)^2/2`, and from
+    :math:`d^\ell_{m, m^\prime}(\pi) = (-1)^{\ell - m^\prime}\delta_{m, -m^\prime}`,
+    for :math:`\ell \geq |m^\prime|`, at :math:`\beta` exactly ``np.pi``. A ring
+    computed as, say, :math:`\pi(2t + 1)/(2L - 1)` may differ from ``np.pi`` in its
+    last bit, and then gets the recursion's value, accurate to round-off.
 
     The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
     :math:`-L < m < L` by `dl[L - 1 + m, \beta, \ell]`. This implementation has
@@ -982,7 +999,8 @@ def _compute_all_slices_jax(beta, L, spin, extension):
     ntheta = len(beta)
     el = jnp.arange(L)
     # The recursion runs at a safe angle where _set_pole_values replaces its values
-    safe_beta = jnp.where(jnp.abs(beta) < _NORTH_POLE_ANGLE, np.pi / 2, beta)
+    north, south = _pole_masks(beta, jnp)
+    safe_beta = jnp.where(north | south, np.pi / 2, beta)
     start = _scaled_start_values(safe_beta, el, mm, jnp)
     polar = _polar_terms(safe_beta, mm, jnp)
 

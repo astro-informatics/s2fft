@@ -559,3 +559,40 @@ def test_start_values_scalar():
                 rtol=8 * (k + abs(mm) + 1) * np.finfo(float).eps,
                 atol=0,
             )
+
+
+@pytest.mark.parametrize("spin", [-3, 0, 2, 5])
+def test_compute_all_slices_pole_values_and_derivatives(spin: int):
+    """
+    Test the slices at beta = 0 and pi, which are set in closed form to first order
+    in the distance from the pole: the values exactly, numpy and JAX, and the JAX
+    derivatives with respect to beta, against the ladder coefficients
+    -i <el m|J_y|el m'> and d^el_{m,m'}(beta) = (-1)^(el + m) d^el_{m,-m'}(pi - beta).
+    """
+    L = 6
+    mm = -spin
+    beta = np.array([0.0, np.pi])
+    value = np.zeros((2 * L - 1, 2, L))
+    slope = np.zeros((2 * L - 1, 2, L))
+    for el in range(abs(spin), L):
+        for t, (mp, sign) in enumerate([(mm, 1), (-mm, -1)]):
+            for m in range(-el, el + 1):
+                parity = 1 if t == 0 else (-1) ** (el + m)
+                if m == mp:
+                    value[L - 1 + m, t, el] = parity
+                elif m == mp + 1:
+                    slope[L - 1 + m, t, el] = (
+                        -sign * parity * np.sqrt((el - mp) * (el + mp + 1)) / 2
+                    )
+                elif m == mp - 1:
+                    slope[L - 1 + m, t, el] = (
+                        sign * parity * np.sqrt((el + mp) * (el - mp + 1)) / 2
+                    )
+    dl_numpy = recursions.price_mcewen.compute_all_slices(beta, L, spin)
+    dl_jax = recursions.price_mcewen.compute_all_slices_jax(jnp.asarray(beta), L, spin)
+    np.testing.assert_array_equal(dl_numpy, value)
+    np.testing.assert_array_equal(dl_jax, value)
+    jac = jax.jacfwd(recursions.price_mcewen.compute_all_slices_jax)(
+        jnp.asarray(beta), L, spin
+    )
+    np.testing.assert_allclose(np.einsum("mtlt->mtl", jac), slope, rtol=0, atol=1e-15)
