@@ -448,6 +448,26 @@ def test_compute_all_slices_south_pole(spin: int):
     np.testing.assert_allclose(dl_jax, expected, rtol=0, atol=1e-14)
 
 
+@pytest.mark.parametrize("spin", [0, 2, -3])
+@pytest.mark.parametrize(
+    "beta", [1e-300, 1e-250, 1e-200, 1e-160, 1e-150, 1e-100, 1e-20]
+)
+def test_compute_all_slices_tiny_beta(beta: float, spin: int):
+    # Within about 1e-150 of the north pole, quantities such as sin^2(beta/2) underflow;
+    # the slices must still be finite there, and agree with Risbo's
+    L = 8
+    expected = _risbo_slice(beta, L, -spin)
+    assert np.all(np.isfinite(expected))
+    valid = _valid_entries(L, spin)
+    for dl in (
+        recursions.price_mcewen.compute_all_slices(np.array([beta]), L, spin),
+        recursions.price_mcewen.compute_all_slices_jax(jnp.asarray([beta]), L, spin),
+    ):
+        dl = np.asarray(dl)[:, 0]
+        assert np.all(np.isfinite(dl))
+        np.testing.assert_allclose(dl[valid], expected[valid], rtol=0, atol=1e-14)
+
+
 @pytest.mark.parametrize("spin", [0, 1, -2, 11])
 @pytest.mark.parametrize("sampling", ["mw", "mwss", "dh", "gl", "healpix", "cc", "f2"])
 @pytest.mark.parametrize("forward", [False, True])
