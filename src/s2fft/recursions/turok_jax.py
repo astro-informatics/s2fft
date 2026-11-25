@@ -4,10 +4,10 @@ import jax.lax as lax
 import jax.numpy as jnp
 from jax import jit
 
-from s2fft.recursions.price_mcewen import (
-    _polar_terms,
-    _recursion_step,
-    _scaled_start_values,
+from s2fft.recursions.common import (
+    polar_terms,
+    recursion_step,
+    scaled_start_values,
 )
 
 
@@ -49,23 +49,21 @@ def compute_slice(beta: float, el: int, L: int, mm: int) -> jnp.ndarray:
     """
     beta = jnp.reshape(jnp.asarray(beta, dtype=jnp.float64), (1,))
     el = jnp.reshape(el, (1,))
-    start = _scaled_start_values(beta, el, mm, jnp)
-    polar = _polar_terms(beta, mm, jnp)
+    start = scaled_start_values(beta, el, mm, jnp)
+    polar = polar_terms(beta, mm, jnp)
 
     dl = jnp.zeros(2 * L - 1, dtype=jnp.float64)
     for i in range(2):
 
-        def recursion_step(j, args):
+        def slice_step(j, args):
             dl, state = args
-            value, state = _recursion_step(i, j, state, start, el, L, mm, polar, jnp)
+            value, state = recursion_step(i, j, state, start, el, L, mm, polar, jnp)
             m = j - (L - 1) if i == 0 else L - 1 - j
             dl = dl.at[L - 1 + m].add(value[0, 0])
             return dl, state
 
         state = tuple(jnp.zeros((1, 1), dtype=jnp.float64) for _ in range(3))
-        dl, _ = lax.fori_loop(
-            0, min(L + abs(mm), 2 * L - 1), recursion_step, (dl, state)
-        )
+        dl, _ = lax.fori_loop(0, min(L + abs(mm), 2 * L - 1), slice_step, (dl, state))
 
     # Analytically evaluate singularities
     m = jnp.arange(-(L - 1), L)

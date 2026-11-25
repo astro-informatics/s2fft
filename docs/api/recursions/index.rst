@@ -23,6 +23,27 @@ Wigner-d recursions
    * - :func:`~s2fft.recursions.price_mcewen.generate_precomputes_wigner_jax`
      - Deprecated: constructs the :math:`\mathcal{O}(NL^2)` precomputes for the Wigner transform, which the Price-McEwen recursion no longer uses (JAX).
 
+.. list-table:: Helpers shared by the recursions
+   :widths: 25 25
+   :header-rows: 1
+
+   * - Function Name
+     - Description
+   * - :func:`~s2fft.recursions.common.start_values`
+     - Starting values of the half recursions, as exact base-2 exponents and mantissas.
+   * - :func:`~s2fft.recursions.common.start_values_scalar`
+     - Scalar version of the starting values, for the Turok-Bucher recursion.
+   * - :func:`~s2fft.recursions.common.scaled_start_values`
+     - Starting values as rescaled iterates and integer scale indices.
+   * - :func:`~s2fft.recursions.common.polar_terms`
+     - Functions of the polar angle used by the recursion, and the meeting point of the half recursions.
+   * - :func:`~s2fft.recursions.common.recursion_step`
+     - One step of a half recursion over m, for all polar angles and degrees at once.
+   * - :func:`~s2fft.recursions.common.fori_half_recursion`
+     - Runs the steps of a half recursion in a loop.
+   * - :func:`~s2fft.recursions.common.static_extension`
+     - Static bound on the steps the half recursions run past m = 0.
+
 .. list-table:: Turok-Bucher recursion functions
    :widths: 25 25
    :header-rows: 1
@@ -110,3 +131,4 @@ Wigner-d recursions
    trapani
    turok
    turok_jax
+   common

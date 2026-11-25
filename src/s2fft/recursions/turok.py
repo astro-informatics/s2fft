@@ -3,11 +3,11 @@ from warnings import warn
 
 import numpy as np
 
-from s2fft.recursions.price_mcewen import (
-    _SCALE_BITS,
-    _SCALE_FACTOR,
-    _SCALE_LIMIT,
-    _start_values_scalar,
+from s2fft.recursions.common import (
+    SCALE_BITS,
+    SCALE_FACTOR,
+    SCALE_LIMIT,
+    start_values_scalar,
 )
 
 
@@ -161,12 +161,12 @@ def compute_quarter_slice(
         return dl
 
     # Starting values at the edges m = -el and m = el, as mantissas and exponents
-    starts = _start_values_scalar(beta, el, mm)
+    starts = start_values_scalar(beta, el, mm)
 
     # Trigonometric constant adopted throughout
     c = math.cos(beta)
     s = math.sin(beta)
-    # m_c cos(beta) + mm_i through half angles, as in price_mcewen._recursion_step
+    # m_c cos(beta) + mm_i through half angles, as in common.recursion_step
     hemisphere = 1.0 if c >= 0 else -1.0
     half_angle = 2 * (math.sin(beta / 2) if c >= 0 else math.cos(beta / 2)) ** 2
 
@@ -178,14 +178,14 @@ def compute_quarter_slice(
             mm_i = mm if i == 0 else -mm
             n_rows = m_star + el if i == 0 else el - m_star + 1
             # Iterates within [2^-400, 2^400] with an integer scale index k, the value
-            # being d 2^(800 k), as in price_mcewen._recursion_step
+            # being d 2^(800 k), as in common.recursion_step
             mantissa, exponent = starts[i]
-            scale = round(exponent / _SCALE_BITS)
+            scale = round(exponent / SCALE_BITS)
             d_prev, d_curr = 0.0, 0.0
             cpi_prev = 0.0
             for q in range(n_rows):
                 if q == 0:
-                    d_next = math.ldexp(mantissa, exponent - _SCALE_BITS * scale)
+                    d_next = math.ldexp(mantissa, exponent - SCALE_BITS * scale)
                 else:
                     m_c = el + 1 - q
                     lamb = (m_c + hemisphere * mm_i) - m_c * half_angle
@@ -200,16 +200,16 @@ def compute_quarter_slice(
                 if scale == 0:
                     dl[L - 1 + m] = sign * d_next
                 elif scale == -1:
-                    dl[L - 1 + m] = sign * d_next / _SCALE_FACTOR
+                    dl[L - 1 + m] = sign * d_next / SCALE_FACTOR
 
                 # Rescale the iterates by an exact power of two when out of range
                 d_prev, d_curr = d_curr, d_next
                 largest = max(abs(d_prev), abs(d_curr))
-                if largest > _SCALE_LIMIT:
-                    d_prev, d_curr = d_prev / _SCALE_FACTOR, d_curr / _SCALE_FACTOR
+                if largest > SCALE_LIMIT:
+                    d_prev, d_curr = d_prev / SCALE_FACTOR, d_curr / SCALE_FACTOR
                     scale += 1
-                elif 0 < largest < 1 / _SCALE_LIMIT:
-                    d_prev, d_curr = d_prev * _SCALE_FACTOR, d_curr * _SCALE_FACTOR
+                elif 0 < largest < 1 / SCALE_LIMIT:
+                    d_prev, d_curr = d_prev * SCALE_FACTOR, d_curr * SCALE_FACTOR
                     scale -= 1
 
     return dl

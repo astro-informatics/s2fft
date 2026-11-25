@@ -4,12 +4,12 @@ import jax.numpy as jnp
 import numpy as np
 from jax import jit, local_device_count, pmap
 
-from s2fft.recursions.price_mcewen import (
-    _fori_half_recursion,
-    _polar_terms,
-    _recursion_step,
-    _scaled_start_values,
-    _static_extension,
+from s2fft.recursions.common import (
+    fori_half_recursion,
+    polar_terms,
+    recursion_step,
+    scaled_start_values,
+    static_extension,
 )
 from s2fft.sampling import s2_samples as samples
 from s2fft.utils.deprecation import warn_precomps_deprecated
@@ -77,8 +77,8 @@ def inverse_latitudinal_step(
     el = np.arange(L_lower, L)
     m_offset = samples.m_offset(L, sampling)
 
-    start = _scaled_start_values(beta, el, mm, np)
-    polar = _polar_terms(beta, mm, np)
+    start = scaled_start_values(beta, el, mm, np)
+    polar = polar_terms(beta, mm, np)
 
     for i in range(2):
         # For a real signal only the columns m >= 0 of ftm are needed, the others
@@ -87,7 +87,7 @@ def inverse_latitudinal_step(
         if not (reality and i == 0 and mm == 0):
             state = tuple(np.zeros((ntheta, L - L_lower)) for _ in range(3))
             for j in range(min(L + abs(mm), 2 * L - 1)):
-                dl, state = _recursion_step(i, j, state, start, el, L, mm, polar, np)
+                dl, state = recursion_step(i, j, state, start, el, L, mm, polar, np)
                 m = j - (L - 1) if i == 0 else L - 1 - j
                 ftm[:, L - 1 + m + m_offset] += np.sum(
                     dl * flm[L_lower:, L - 1 + m], axis=-1
@@ -173,7 +173,7 @@ def inverse_latitudinal_step_jax(
         reality,
         spmd,
         L_lower,
-        _static_extension(spin, L),
+        static_extension(spin, L),
     )
 
 
@@ -190,8 +190,8 @@ def _inverse_latitudinal_step_jax(
     el = jnp.arange(L_lower, L)
     m_offset = samples.m_offset(L, sampling)
 
-    start = _scaled_start_values(beta, el, mm, jnp)
-    polar = _polar_terms(beta, mm, jnp)
+    start = scaled_start_values(beta, el, mm, jnp)
+    polar = polar_terms(beta, mm, jnp)
 
     for i in range(2):
         # For a real signal only the columns m >= 0 of ftm are needed, the others
@@ -202,7 +202,7 @@ def _inverse_latitudinal_step_jax(
         def eval_recursion(ftm, start, polar):
             def pm_recursion_step(j, args):
                 ftm, state = args
-                dl, state = _recursion_step(i, j, state, start, el, L, mm, polar, jnp)
+                dl, state = recursion_step(i, j, state, start, el, L, mm, polar, jnp)
                 m = j - (L - 1) if i == 0 else L - 1 - j
 
                 # Sum into transform vector mth component
@@ -215,7 +215,7 @@ def _inverse_latitudinal_step_jax(
                 jnp.zeros((ftm.shape[0], L - L_lower), dtype=jnp.float64)
                 for _ in range(3)
             )
-            return _fori_half_recursion(
+            return fori_half_recursion(
                 pm_recursion_step,
                 (ftm, state),
                 L,
@@ -319,8 +319,8 @@ def forward_latitudinal_step(
     el = np.arange(L_lower, L)
     m_offset = samples.m_offset(L, sampling)
 
-    start = _scaled_start_values(beta, el, mm, np)
-    polar = _polar_terms(beta, mm, np)
+    start = scaled_start_values(beta, el, mm, np)
+    polar = polar_terms(beta, mm, np)
 
     for i in range(2):
         # For a real signal at spin 0 the coefficients m < 0 follow by conjugate
@@ -330,7 +330,7 @@ def forward_latitudinal_step(
         if not (reality and i == 0 and mm == 0):
             state = tuple(np.zeros((ntheta, L - L_lower)) for _ in range(3))
             for j in range(min(L + abs(mm), 2 * L - 1)):
-                dl, state = _recursion_step(i, j, state, start, el, L, mm, polar, np)
+                dl, state = recursion_step(i, j, state, start, el, L, mm, polar, np)
                 m = j - (L - 1) if i == 0 else L - 1 - j
                 flm[L_lower:, L - 1 + m] += np.sum(
                     dl * ftm[:, L - 1 + m + m_offset, None], axis=0
@@ -416,7 +416,7 @@ def forward_latitudinal_step_jax(
         reality,
         spmd,
         L_lower,
-        _static_extension(spin, L),
+        static_extension(spin, L),
     )
 
 
@@ -444,8 +444,8 @@ def _forward_latitudinal_step_jax(
     el = jnp.arange(L_lower, L)
     m_offset = samples.m_offset(L, sampling)
 
-    start = _scaled_start_values(beta, el, mm, jnp)
-    polar = _polar_terms(beta, mm, jnp)
+    start = scaled_start_values(beta, el, mm, jnp)
+    polar = polar_terms(beta, mm, jnp)
 
     for i in range(2):
         # For a real signal at spin 0 the coefficients m < 0 follow by conjugate
@@ -456,7 +456,7 @@ def _forward_latitudinal_step_jax(
         def eval_recursion(flm, start, el):
             def pm_recursion_step(j, args):
                 flm, state = args
-                dl, state = _recursion_step(i, j, state, start, el, L, mm, polar, jnp)
+                dl, state = recursion_step(i, j, state, start, el, L, mm, polar, jnp)
                 m = j - (L - 1) if i == 0 else L - 1 - j
 
                 # Sum into transform vector mth component
@@ -468,7 +468,7 @@ def _forward_latitudinal_step_jax(
             state = tuple(
                 jnp.zeros((ntheta, el.shape[0]), dtype=jnp.float64) for _ in range(3)
             )
-            return _fori_half_recursion(
+            return fori_half_recursion(
                 pm_recursion_step,
                 (flm, state),
                 L,

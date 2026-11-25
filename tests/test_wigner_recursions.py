@@ -534,13 +534,10 @@ def test_start_values_scalar():
     betas = np.array([1e-3, 0.1, 1.0, np.pi / 2, 2.0, np.pi - 0.1, np.pi - 1e-3])
     el = np.arange(64)
     for mm in [0, 1, -2, 7, -12]:
-        mantissas, exponents = recursions.price_mcewen._start_values(betas, el, mm, np)
+        mantissas, exponents = recursions.common.start_values(betas, el, mm, np)
         scalar = np.array(
             [
-                [
-                    recursions.price_mcewen._start_values_scalar(beta, ell, mm)
-                    for ell in el
-                ]
+                [recursions.common.start_values_scalar(beta, ell, mm) for ell in el]
                 for beta in betas
             ]
         )
