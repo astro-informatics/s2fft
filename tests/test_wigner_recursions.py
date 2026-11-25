@@ -419,6 +419,34 @@ def test_price_mcewen_slices_near_poles_high_L(sampling: str):
         )
 
 
+@pytest.mark.parametrize("spin", [-2, 0, 1])
+def test_compute_all_slices_north_pole(spin: int):
+    # d^el_{m, m'}(0) = delta_{m, m'} with m' = -spin, stored at dl[L - 1 + m, beta, el]
+    L = 6
+    beta = np.array([0.0])
+    expected = np.zeros((2 * L - 1, 1, L))
+    expected[L - 1 - spin, 0, abs(spin) :] = 1.0
+    dl_numpy = recursions.price_mcewen.compute_all_slices(beta, L, spin)
+    dl_jax = recursions.price_mcewen.compute_all_slices_jax(jnp.asarray(beta), L, spin)
+    np.testing.assert_allclose(dl_numpy, expected, rtol=0, atol=1e-14)
+    np.testing.assert_allclose(dl_jax, expected, rtol=0, atol=1e-14)
+
+
+@pytest.mark.parametrize("spin", [-2, 0, 1])
+def test_compute_all_slices_south_pole(spin: int):
+    # d^el_{m, m'}(pi) = (-1)^(el - m') delta_{m, -m'} with m' = -spin, stored at
+    # dl[L - 1 + m, beta, el]
+    L = 6
+    beta = np.array([np.pi])
+    el = np.arange(abs(spin), L)
+    expected = np.zeros((2 * L - 1, 1, L))
+    expected[L - 1 + spin, 0, abs(spin) :] = (-1.0) ** (el + spin)
+    dl_numpy = recursions.price_mcewen.compute_all_slices(beta, L, spin)
+    dl_jax = recursions.price_mcewen.compute_all_slices_jax(jnp.asarray(beta), L, spin)
+    np.testing.assert_allclose(dl_numpy, expected, rtol=0, atol=1e-14)
+    np.testing.assert_allclose(dl_jax, expected, rtol=0, atol=1e-14)
+
+
 @pytest.mark.parametrize("L", [16, 32])
 @pytest.mark.parametrize("spin", [0, 2, 5, 8, 12, -12])
 @pytest.mark.parametrize("sampling", ["mw", "gl", "healpix"])
