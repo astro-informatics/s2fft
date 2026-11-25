@@ -534,6 +534,13 @@ def forward_numpy(
         phase_shifts = hp.ring_phase_shifts_hp(L, nside, True, reality)
         ftm[:, m_start_ind + m_offset :] *= phase_shifts
 
+    # For a real signal the columns m < 0 of ftm are the conjugates of those m > 0.
+    # They are not used at spin 0, but are at other spins.
+    if reality:
+        ftm[:, m_offset : L - 1 + m_offset] = np.flip(
+            np.conj(ftm[:, L + m_offset :]), axis=-1
+        )
+
     # Perform latitudinal wigner-d recursions
     if samples.includes_both_poles(sampling):
         flm = otf.forward_latitudinal_step(
@@ -564,8 +571,9 @@ def forward_numpy(
         "lm,l->lm", flm[L0:], np.sqrt((2 * np.arange(L0, L) + 1) / (4 * np.pi))
     )
 
-    # Mirror to complete hermitian conjugate
-    if reality:
+    # Mirror to complete hermitian conjugate: at spin 0 the coefficients m < 0 of a
+    # real signal follow from those m > 0, and at other spins they were computed
+    if reality and spin == 0:
         m_conj = (-1) ** (np.arange(1, L) % 2)
         flm[..., :m_start_ind] = np.flip(
             m_conj * np.conj(flm[..., m_start_ind + 1 :]), axis=-1
@@ -686,6 +694,13 @@ def forward_jax(
         phase_shifts = hp.ring_phase_shifts_hp_jax(L, nside, True, reality)
         ftm = ftm.at[:, m_start_ind + m_offset :].multiply(phase_shifts)
 
+    # For a real signal the columns m < 0 of ftm are the conjugates of those m > 0.
+    # They are not used at spin 0, but are at other spins.
+    if reality:
+        ftm = ftm.at[:, m_offset : L - 1 + m_offset].set(
+            jnp.flip(jnp.conj(ftm[:, L + m_offset :]), axis=-1)
+        )
+
     # Perform latitudinal wigner-d recursions via custom JAX primitive.
     # The primitive registers transpose, JVP and vmap rules so that grad,
     # vmap, and their compositions all work without falling back to the
@@ -713,12 +728,18 @@ def forward_jax(
         )
     )
 
-    # Hermitian conjugate symmetry
+    # Hermitian conjugate symmetry: at spin 0 the coefficients m < 0 of a real signal
+    # follow from those m > 0, and at other spins they were computed
     if reality:
         flm = flm.at[..., :m_start_ind].set(
-            jnp.flip(
-                (-1) ** (jnp.arange(1, L) % 2) * jnp.conj(flm[..., m_start_ind + 1 :]),
-                axis=-1,
+            jnp.where(
+                spin == 0,
+                jnp.flip(
+                    (-1) ** (jnp.arange(1, L) % 2)
+                    * jnp.conj(flm[..., m_start_ind + 1 :]),
+                    axis=-1,
+                ),
+                flm[..., :m_start_ind],
             )
         )
 

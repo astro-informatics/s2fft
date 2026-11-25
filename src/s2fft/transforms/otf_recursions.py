@@ -77,7 +77,10 @@ def inverse_latitudinal_step(
     polar = _polar_terms(beta, mm, np)
 
     for i in range(2):
-        if not (reality and i == 0):
+        # For a real signal only the columns m >= 0 of ftm are needed, the others
+        # following by conjugate symmetry. Half recursion 1 gives them all at spin 0,
+        # but at other spins half recursion 0 gives the rows 0 <= m < m* near one pole.
+        if not (reality and i == 0 and mm == 0):
             state = tuple(np.zeros((ntheta, L - L_lower)) for _ in range(3))
             for j in range(min(L + abs(mm), 2 * L - 1)):
                 dl, state = _recursion_step(i, j, state, start, el, L, mm, polar, np)
@@ -184,43 +187,49 @@ def _inverse_latitudinal_step_jax(
     polar = _polar_terms(beta, mm, jnp)
 
     for i in range(2):
-        if not (reality and i == 0):
+        # For a real signal only the columns m >= 0 of ftm are needed, the others
+        # following by conjugate symmetry. Half recursion 1 gives them all at spin 0,
+        # but at other spins half recursion 0 gives the rows 0 <= m < m* near one pole,
+        # so it is only skipped at spin 0.
 
-            def eval_recursion(ftm, start, polar):
-                def pm_recursion_step(j, args):
-                    ftm, state = args
-                    dl, state = _recursion_step(
-                        i, j, state, start, el, L, mm, polar, jnp
-                    )
-                    m = j - (L - 1) if i == 0 else L - 1 - j
+        def eval_recursion(ftm, start, polar):
+            def pm_recursion_step(j, args):
+                ftm, state = args
+                dl, state = _recursion_step(i, j, state, start, el, L, mm, polar, jnp)
+                m = j - (L - 1) if i == 0 else L - 1 - j
 
-                    # Sum into transform vector mth component
-                    ftm = ftm.at[:, L - 1 + m + m_offset].add(
-                        jnp.sum(dl * flm[L_lower:, L - 1 + m], axis=-1)
-                    )
-                    return ftm, state
-
-                state = tuple(
-                    jnp.zeros((ftm.shape[0], L - L_lower), dtype=jnp.float64)
-                    for _ in range(3)
+                # Sum into transform vector mth component
+                ftm = ftm.at[:, L - 1 + m + m_offset].add(
+                    jnp.sum(dl * flm[L_lower:, L - 1 + m], axis=-1)
                 )
-                return _fori_half_recursion(
-                    pm_recursion_step, (ftm, state), L, mm, extension
-                )[0]
+                return ftm, state
 
-            if spmd:
-                # TODO: Generalise this to optional device counts.
-                ndevices = local_device_count()
-                opsdevice = int(ntheta / ndevices)
+            state = tuple(
+                jnp.zeros((ftm.shape[0], L - L_lower), dtype=jnp.float64)
+                for _ in range(3)
+            )
+            return _fori_half_recursion(
+                pm_recursion_step,
+                (ftm, state),
+                L,
+                mm,
+                extension,
+                skip_at_zero_spin=reality and i == 0,
+            )[0]
 
-                ftm = pmap(eval_recursion, in_axes=(0, 1, 0))(
-                    ftm.reshape(ndevices, opsdevice, ftm.shape[-1]),
-                    [p.reshape(2, ndevices, opsdevice, L - L_lower) for p in start],
-                    [p.reshape(ndevices, opsdevice) for p in polar],
-                ).reshape(ntheta, ftm.shape[-1])
+        if spmd:
+            # TODO: Generalise this to optional device counts.
+            ndevices = local_device_count()
+            opsdevice = int(ntheta / ndevices)
 
-            else:
-                ftm = eval_recursion(ftm, start, polar)
+            ftm = pmap(eval_recursion, in_axes=(0, 1, 0))(
+                ftm.reshape(ndevices, opsdevice, ftm.shape[-1]),
+                [p.reshape(2, ndevices, opsdevice, L - L_lower) for p in start],
+                [p.reshape(ndevices, opsdevice) for p in polar],
+            ).reshape(ntheta, ftm.shape[-1])
+
+        else:
+            ftm = eval_recursion(ftm, start, polar)
 
     # Remove south pole singularity
     if samples.includes_south_pole(sampling):
@@ -304,7 +313,11 @@ def forward_latitudinal_step(
     polar = _polar_terms(beta, mm, np)
 
     for i in range(2):
-        if not (reality and i == 0):
+        # For a real signal at spin 0 the coefficients m < 0 follow by conjugate
+        # symmetry from those m >= 0, which half recursion 1 gives alone. At other spins
+        # they do not, and half recursion 0 gives them and the rows 0 <= m < m* near
+        # one pole.
+        if not (reality and i == 0 and mm == 0):
             state = tuple(np.zeros((ntheta, L - L_lower)) for _ in range(3))
             for j in range(min(L + abs(mm), 2 * L - 1)):
                 dl, state = _recursion_step(i, j, state, start, el, L, mm, polar, np)
@@ -422,44 +435,49 @@ def _forward_latitudinal_step_jax(
     polar = _polar_terms(beta, mm, jnp)
 
     for i in range(2):
-        if not (reality and i == 0):
+        # For a real signal at spin 0 the coefficients m < 0 follow by conjugate
+        # symmetry from those m >= 0, which half recursion 1 gives alone. At other spins
+        # they do not, and half recursion 0 gives them and the rows 0 <= m < m* near
+        # one pole, so it is only skipped at spin 0.
 
-            def eval_recursion(flm, start, el):
-                def pm_recursion_step(j, args):
-                    flm, state = args
-                    dl, state = _recursion_step(
-                        i, j, state, start, el, L, mm, polar, jnp
-                    )
-                    m = j - (L - 1) if i == 0 else L - 1 - j
+        def eval_recursion(flm, start, el):
+            def pm_recursion_step(j, args):
+                flm, state = args
+                dl, state = _recursion_step(i, j, state, start, el, L, mm, polar, jnp)
+                m = j - (L - 1) if i == 0 else L - 1 - j
 
-                    # Sum into transform vector mth component
-                    flm = flm.at[:, L - 1 + m].add(
-                        jnp.sum(dl * ftm[:, L - 1 + m + m_offset, None], axis=0)
-                    )
-                    return flm, state
-
-                state = tuple(
-                    jnp.zeros((ntheta, el.shape[0]), dtype=jnp.float64)
-                    for _ in range(3)
+                # Sum into transform vector mth component
+                flm = flm.at[:, L - 1 + m].add(
+                    jnp.sum(dl * ftm[:, L - 1 + m + m_offset, None], axis=0)
                 )
-                return _fori_half_recursion(
-                    pm_recursion_step, (flm, state), L, mm, extension
-                )[0]
+                return flm, state
 
-            if spmd:
-                # TODO: Generalise this to optional device counts.
-                ndevices = local_device_count()
-                opsdevice = int((L - L_lower) / ndevices)
+            state = tuple(
+                jnp.zeros((ntheta, el.shape[0]), dtype=jnp.float64) for _ in range(3)
+            )
+            return _fori_half_recursion(
+                pm_recursion_step,
+                (flm, state),
+                L,
+                mm,
+                extension,
+                skip_at_zero_spin=reality and i == 0,
+            )[0]
 
-                flm = flm.at[L_lower:].set(
-                    pmap(eval_recursion, in_axes=(0, 2, 0))(
-                        flm[L_lower:].reshape(ndevices, opsdevice, 2 * L - 1),
-                        [p.reshape(2, ntheta, ndevices, opsdevice) for p in start],
-                        el.reshape(ndevices, opsdevice),
-                    ).reshape(L - L_lower, 2 * L - 1)
-                )
-            else:
-                flm = flm.at[L_lower:].set(eval_recursion(flm[L_lower:], start, el))
+        if spmd:
+            # TODO: Generalise this to optional device counts.
+            ndevices = local_device_count()
+            opsdevice = int((L - L_lower) / ndevices)
+
+            flm = flm.at[L_lower:].set(
+                pmap(eval_recursion, in_axes=(0, 2, 0))(
+                    flm[L_lower:].reshape(ndevices, opsdevice, 2 * L - 1),
+                    [p.reshape(2, ntheta, ndevices, opsdevice) for p in start],
+                    el.reshape(ndevices, opsdevice),
+                ).reshape(L - L_lower, 2 * L - 1)
+            )
+        else:
+            flm = flm.at[L_lower:].set(eval_recursion(flm[L_lower:], start, el))
 
     # Include both pole singularities explicitly
     if samples.includes_south_pole(sampling):

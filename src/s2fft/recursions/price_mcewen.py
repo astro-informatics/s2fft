@@ -282,7 +282,7 @@ def _static_extension(spin, L):
         return L - 1
 
 
-def _fori_half_recursion(body, carry, L, mm, extension):
+def _fori_half_recursion(body, carry, L, mm, extension, skip_at_zero_spin=False):
     r"""
     Run the steps of a half recursion: :math:`L` steps take every :math:`\ell` to
     :math:`m = 0` and ``extension`` more run towards the meeting point, in one loop of
@@ -290,10 +290,25 @@ def _fori_half_recursion(body, carry, L, mm, extension):
     run in a second loop with a traced trip count. That saves steps when the spin is
     traced, but cannot be differentiated in reverse mode, so it is only for callers
     with their own derivative rules.
+
+    With ``skip_at_zero_spin``, nothing runs when :math:`m^\prime = 0`, as for half
+    recursion 0 of a real signal at spin 0. Since ``extension`` bounds
+    :math:`|m^\prime|`, the spin is zero when it is, so that test is static; with
+    ``extension`` None it is a ``lax.cond`` on the traced spin.
     """
     if extension is None:
-        carry = lax.fori_loop(0, L, body, carry)
-        return lax.fori_loop(L, jnp.minimum(L + jnp.abs(mm), 2 * L - 1), body, carry)
+
+        def run(carry):
+            carry = lax.fori_loop(0, L, body, carry)
+            return lax.fori_loop(
+                L, jnp.minimum(L + jnp.abs(mm), 2 * L - 1), body, carry
+            )
+
+        if skip_at_zero_spin:
+            return lax.cond(mm == 0, lambda carry: carry, run, carry)
+        return run(carry)
+    if skip_at_zero_spin and extension == 0:
+        return carry
     return lax.fori_loop(0, min(L + extension, 2 * L - 1), body, carry)
 
 
