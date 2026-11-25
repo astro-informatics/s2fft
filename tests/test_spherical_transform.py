@@ -362,6 +362,56 @@ def test_inverse_reality_spin(
     np.testing.assert_allclose(f_real, f, rtol=0, atol=1e-12)
 
 
+@pytest.mark.parametrize("sampling", ["mw", "mwss", "gl"])
+def test_reality_vmap_over_mixed_spins(rng: np.random.Generator, sampling: str):
+    # With reality=True the JAX transforms skip half recursion 0 at spin 0 only, by a
+    # lax.cond on the spin, which they trace. Under vmap over spins that mix zero and
+    # non-zero values the cond becomes a select, so each batched result must equal its
+    # own unbatched call, and reality=False's coefficients and signal on all columns.
+    L = 8
+    spins = np.array([0, 1, -2, 0, 3])
+    signals = [_real_spin_signal(rng, L, int(spin), sampling) for spin in spins]
+    fs = np.stack([f for f, _ in signals])
+    flms = np.stack([flm for _, flm in signals])
+
+    def forward(f, spin, reality=True):
+        return spherical.forward_jax(f, L, spin, None, sampling, reality)
+
+    def inverse(flm, spin, reality=True):
+        return spherical.inverse_jax(flm, L, spin, None, sampling, reality)
+
+    flm_batched = jax.vmap(forward)(fs, spins)
+    f_batched = jax.vmap(inverse)(flms, spins)
+    for k, spin in enumerate(spins.tolist()):
+        np.testing.assert_allclose(
+            flm_batched[k], forward(fs[k], spin), rtol=0, atol=1e-14
+        )
+        np.testing.assert_allclose(
+            f_batched[k], inverse(flms[k], spin), rtol=0, atol=1e-14
+        )
+        np.testing.assert_allclose(
+            flm_batched[k], forward(fs[k], spin, False), rtol=0, atol=1e-12
+        )
+        np.testing.assert_allclose(
+            f_batched[k], inverse(flms[k], spin, False), rtol=0, atol=1e-12
+        )
+
+    # The transforms are linear, so a jvp through the batched transforms gives the
+    # batched transforms of the tangents.
+    _, flm_tangent = jax.jvp(
+        lambda f: jax.vmap(forward)(f, spins), (fs,), (fs[::-1].copy(),)
+    )
+    np.testing.assert_allclose(
+        flm_tangent, jax.vmap(forward)(fs[::-1].copy(), spins), rtol=0, atol=1e-14
+    )
+    _, f_tangent = jax.jvp(
+        lambda flm: jax.vmap(inverse)(flm, spins), (flms,), (flms[::-1].copy(),)
+    )
+    np.testing.assert_allclose(
+        f_tangent, jax.vmap(inverse)(flms[::-1].copy(), spins), rtol=0, atol=1e-14
+    )
+
+
 @pytest.mark.healpy
 @pytest.mark.pyssht
 def test_sampling_ssht_backend_exceptions(flm_generator):
