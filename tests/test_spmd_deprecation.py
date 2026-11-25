@@ -1,3 +1,6 @@
+import os
+import subprocess
+import sys
 import warnings
 
 import jax
@@ -49,17 +52,42 @@ def _calls() -> dict:
 
 @pytest.mark.parametrize("name", list(_calls()))
 def test_spmd_warns_and_runs_on_one_device(name: str):
+    # Each call warns once, attributed to the caller, also when repeated: the jitted
+    # transforms warn from unjitted wrappers, not while they are traced
     call = _calls()[name]
-    with warnings.catch_warnings(record=True) as record:
-        warnings.simplefilter("always")
-        result = call(True)
-    deprecations = _spmd_deprecations(record)
-    assert len(deprecations) == 1
-    if not name.endswith("_jax") or "step" in name:
-        # Raised outside jit, so attributed to the caller
+    for _ in range(2):
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter("always")
+            result = call(True)
+        deprecations = _spmd_deprecations(record)
+        assert len(deprecations) == 1
         assert deprecations[0].filename == __file__
     with warnings.catch_warnings(record=True) as record:
         warnings.simplefilter("always")
         expected = call(False)
     assert not _spmd_deprecations(record)
     np.testing.assert_array_equal(result, expected)
+
+
+def test_spmd_warning_reaches_users():
+    # With Python's default warning filters, as for a user's script: once for each
+    # line, so for both calls of each jitted transform
+    script = (
+        "import numpy as np\n"
+        "import s2fft\n"
+        "f, flm = np.zeros((8, 15)), np.zeros((8, 15), dtype=complex)\n"
+        "s2fft.forward_jax(f, 8, spmd=True)\n"
+        "s2fft.forward_jax(f, 8, spmd=True)\n"
+        "s2fft.inverse_jax(flm, 8, spmd=True)\n"
+        "s2fft.inverse_jax(flm, 8, spmd=True)\n"
+    )
+    result = subprocess.run(  # noqa: S603 (a fixed script)
+        [sys.executable, "-c", script],
+        env={**os.environ, "JAX_ENABLE_X64": "1"},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert (
+        result.stderr.count("DeprecationWarning: The spmd argument is deprecated") == 4
+    )

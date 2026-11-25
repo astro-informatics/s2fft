@@ -211,7 +211,6 @@ def inverse_numpy(
             return np.fft.ifft(np.fft.ifftshift(ftm, axes=1), axis=1, norm="forward")
 
 
-@partial(jit, static_argnums=(1, 3, 4, 5, 7, 8, 9))
 def inverse_jax(
     flm: jnp.ndarray,
     L: int,
@@ -279,6 +278,16 @@ def inverse_jax(
         warn_spmd_deprecated()
     if precomps is not None:
         warn_precomps_deprecated()
+    return _inverse_jax(
+        flm, L, spin, nside, sampling, reality, L_lower, use_healpix_custom_primitive
+    )
+
+
+@partial(jit, static_argnums=(1, 3, 4, 5, 6, 7))
+def _inverse_jax(
+    flm, L, spin, nside, sampling, reality, L_lower, use_healpix_custom_primitive
+):
+    """Implementation of :func:`inverse_jax`, jitted, without its deprecated arguments."""
     # Define latitudinal sample positions and Fourier offsets
     thetas = samples.thetas(L, sampling, nside)
     m_offset = samples.m_offset(L, sampling)
@@ -579,7 +588,6 @@ def forward_numpy(
     return flm * (-1) ** spin
 
 
-@partial(jit, static_argnums=(1, 3, 4, 5, 7, 8, 9))
 def forward_jax(
     f: jnp.ndarray,
     L: int,
@@ -647,6 +655,16 @@ def forward_jax(
         warn_spmd_deprecated()
     if precomps is not None:
         warn_precomps_deprecated()
+    return _forward_jax(
+        f, L, spin, nside, sampling, reality, L_lower, use_healpix_custom_primitive
+    )
+
+
+@partial(jit, static_argnums=(1, 3, 4, 5, 6, 7))
+def _forward_jax(
+    f, L, spin, nside, sampling, reality, L_lower, use_healpix_custom_primitive
+):
+    """Implementation of :func:`forward_jax`, jitted, without its deprecated arguments."""
     # Resample mw onto mwss and double resolution of both
     if sampling.lower() == "mw":
         f = resampling_jax.mw_to_mwss(f, L, spin)

@@ -61,6 +61,16 @@ def _calls(precomps: list | None) -> dict:
         "wigner inverse jax": lambda: s2fft.wigner.inverse(
             jnp.asarray(flmn), L, N, method="jax", precomps=precomps
         ),
+        "forward_jax": lambda: s2fft.forward_jax(jnp.asarray(f), L, precomps=precomps),
+        "inverse_jax": lambda: s2fft.inverse_jax(
+            jnp.asarray(flm), L, precomps=precomps
+        ),
+        "wigner forward_jax": lambda: s2fft.wigner.forward_jax(
+            jnp.asarray(fw), L, N, precomps=precomps
+        ),
+        "wigner inverse_jax": lambda: s2fft.wigner.inverse_jax(
+            jnp.asarray(flmn), L, N, precomps=precomps
+        ),
         "compute_all_slices": lambda: price_mcewen.compute_all_slices(
             beta, L, 1, precomps=precomps
         ),
@@ -123,11 +133,18 @@ def test_generate_precomputes_warns(generator, args: tuple):
 
 
 def test_precomps_warning_reaches_users():
-    # With Python's default warning filters, as for a user's script
+    # With Python's default warning filters, as for a user's script, which show a
+    # warning attributed to the script once for each line: so once for each call here,
+    # including the second calls of the jitted transforms
     script = (
         "import numpy as np\n"
         "import s2fft\n"
-        "s2fft.forward(np.zeros((8, 15)), 8, precomps=[np.zeros(1)])\n"
+        "f, flm = np.zeros((8, 15)), np.zeros((8, 15), dtype=complex)\n"
+        "s2fft.forward(f, 8, precomps=[np.zeros(1)])\n"
+        "s2fft.forward_jax(f, 8, precomps=[np.zeros(1)])\n"
+        "s2fft.forward_jax(f, 8, precomps=[np.zeros(1)])\n"
+        "s2fft.inverse_jax(flm, 8, precomps=[np.zeros(1)])\n"
+        "s2fft.inverse_jax(flm, 8, precomps=[np.zeros(1)])\n"
     )
     result = subprocess.run(  # noqa: S603 (a fixed script)
         [sys.executable, "-c", script],
@@ -136,4 +153,7 @@ def test_precomps_warning_reaches_users():
         text=True,
         check=True,
     )
-    assert "DeprecationWarning: The precomps argument is deprecated" in result.stderr
+    assert (
+        result.stderr.count("DeprecationWarning: The precomps argument is deprecated")
+        == 5
+    )

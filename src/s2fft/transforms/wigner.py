@@ -196,7 +196,6 @@ def inverse_numpy(
     return f
 
 
-@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7))
 def inverse_jax(
     flmn: jnp.ndarray,
     L: int,
@@ -252,7 +251,12 @@ def inverse_jax(
     """
     if precomps is not None:
         warn_precomps_deprecated()
+    return _inverse_jax(flmn, L, N, nside, sampling, reality, L_lower)
 
+
+@partial(jit, static_argnums=(1, 2, 3, 4, 5, 6))
+def _inverse_jax(flmn, L, N, nside, sampling, reality, L_lower):
+    """Implementation of :func:`inverse_jax`, jitted, without its deprecated argument."""
     fban = jnp.zeros(samples.f_shape(L, N, sampling, nside), dtype=jnp.complex128)
 
     flmn = flmn.at[:, L_lower:].set(
@@ -529,7 +533,6 @@ def forward_numpy(
     return flmn
 
 
-@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7))
 def forward_jax(
     f: jnp.ndarray,
     L: int,
@@ -587,7 +590,12 @@ def forward_jax(
     """
     if precomps is not None:
         warn_precomps_deprecated()
+    return _forward_jax(f, L, N, nside, sampling, reality, L_lower)
 
+
+@partial(jit, static_argnums=(1, 2, 3, 4, 5, 6))
+def _forward_jax(f, L, N, nside, sampling, reality, L_lower):
+    """Implementation of :func:`forward_jax`, jitted, without its deprecated argument."""
     flmn = jnp.zeros(samples.flmn_shape(L, N), dtype=jnp.complex128)
 
     if reality:
