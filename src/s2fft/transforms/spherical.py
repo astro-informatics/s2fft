@@ -17,7 +17,10 @@ from s2fft.utils import (
     resampling_jax,
     torch_wrapper,
 )
-from s2fft.utils.deprecation import warn_precomps_deprecated
+from s2fft.utils.deprecation import (
+    warn_precomps_deprecated,
+    warn_spmd_deprecated,
+)
 
 
 def inverse(
@@ -61,8 +64,8 @@ def inverse(
             arrays passed here have no effect, and gradients with respect to them are
             zero. It will be removed in a future release.
 
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
-            only maps over all available devices, and is only valid for JAX implementations.
+        spmd (bool, optional): Deprecated and ignored, and passing True warns: the
+            transform runs on one device. It will be removed in a future release.
             Defaults to False.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
@@ -78,14 +81,9 @@ def inverse(
     Returns:
         np.ndarray: Signal on the sphere.
 
-    Note:
-        The single-program multiple-data (SPMD) optional variable determines whether
-        the transform is run over a single device or all available devices. For very low
-        harmonic bandlimits L this is inefficient as the I/O overhead for communication
-        between devices is noticable, however as L increases one will asymptotically
-        recover acceleration by the number of devices.
-
     """
+    if spmd:
+        warn_spmd_deprecated()
     if precomps is not None:
         warn_precomps_deprecated()
     if method not in _inverse_functions:
@@ -94,8 +92,6 @@ def inverse(
     inverse_kwargs = {"flm": flm, "L": L}
     if method in ("numpy", "jax", "jax_cuda", "torch"):
         inverse_kwargs.update(sampling=sampling, L_lower=L_lower)
-    if method in ("jax", "jax_cuda", "torch"):
-        inverse_kwargs["spmd"] = spmd
     if method == "jax_healpy":
         if sampling.lower() != "healpix":
             raise ValueError("Healpy only supports healpix sampling.")
@@ -258,8 +254,9 @@ def inverse_jax(
             arrays passed here have no effect, and gradients with respect to them are
             zero. It will be removed in a future release.
 
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
-            only maps over all available devices. Defaults to False.
+        spmd (bool, optional): Deprecated and ignored, and passing True warns: the
+            transform runs on one device. It will be removed in a future release.
+            Defaults to False.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -277,14 +274,9 @@ def inverse_jax(
         RuntimeError: If JAX's 64-bit floats are disabled (``jax_enable_x64``), which
             the Wigner-d recursion needs.
 
-    Note:
-        The single-program multiple-data (SPMD) optional variable determines whether
-        the transform is run over a single device or all available devices. For very low
-        harmonic bandlimits L this is inefficient as the I/O overhead for communication
-        between devices is noticable, however as L increases one will asymptotically
-        recover acceleration by the number of devices.
-
     """
+    if spmd:
+        warn_spmd_deprecated()
     if precomps is not None:
         warn_precomps_deprecated()
     # Define latitudinal sample positions and Fourier offsets
@@ -314,7 +306,7 @@ def inverse_jax(
         nside=nside,
         sampling=sampling,
         reality=reality,
-        spmd=spmd,
+        spmd=False,
         L_lower=L_lower,
     )
 
@@ -385,8 +377,8 @@ def forward(
             arrays passed here have no effect, and gradients with respect to them are
             zero. It will be removed in a future release.
 
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
-            only maps over all available devices, and is only valid for JAX implementations.
+        spmd (bool, optional): Deprecated and ignored, and passing True warns: the
+            transform runs on one device. It will be removed in a future release.
             Defaults to False.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
@@ -410,14 +402,9 @@ def forward(
     Returns:
         np.ndarray: Spherical harmonic coefficients.
 
-    Note:
-        The single-program multiple-data (SPMD) optional variable determines whether
-        the transform is run over a single device or all available devices. For very low
-        harmonic bandlimits L this is inefficient as the I/O overhead for communication
-        between devices is noticable, however as L increases one will asymptotically
-        recover acceleration by the number of devices.
-
     """
+    if spmd:
+        warn_spmd_deprecated()
     if precomps is not None:
         warn_precomps_deprecated()
     if method not in _forward_functions:
@@ -429,8 +416,6 @@ def forward(
     forward_kwargs = {"f": f, "L": L}
     if method in ("numpy", "jax", "jax_cuda", "torch"):
         forward_kwargs.update(sampling=sampling, L_lower=L_lower)
-    if method in ("jax", "jax_cuda", "torch"):
-        forward_kwargs["spmd"] = spmd
     if method == "jax_healpy":
         if sampling.lower() != "healpix":
             raise ValueError("Healpy only supports healpix sampling.")
@@ -637,8 +622,9 @@ def forward_jax(
             arrays passed here have no effect, and gradients with respect to them are
             zero. It will be removed in a future release.
 
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
-            only maps over all available devices. Defaults to False.
+        spmd (bool, optional): Deprecated and ignored, and passing True warns: the
+            transform runs on one device. It will be removed in a future release.
+            Defaults to False.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -656,14 +642,9 @@ def forward_jax(
         RuntimeError: If JAX's 64-bit floats are disabled (``jax_enable_x64``), which
             the Wigner-d recursion needs.
 
-    Note:
-        The single-program multiple-data (SPMD) optional variable determines whether
-        the transform is run over a single device or all available devices. For very low
-        harmonic bandlimits L this is inefficient as the I/O overhead for communication
-        between devices is noticable, however as L increases one will asymptotically
-        recover acceleration by the number of devices.
-
     """
+    if spmd:
+        warn_spmd_deprecated()
     if precomps is not None:
         warn_precomps_deprecated()
     # Resample mw onto mwss and double resolution of both
@@ -724,7 +705,7 @@ def forward_jax(
         nside=nside,
         sampling=sampling,
         reality=reality,
-        spmd=spmd,
+        spmd=False,
         L_lower=L_lower,
     )
 

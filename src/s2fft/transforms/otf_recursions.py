@@ -2,7 +2,7 @@ from functools import partial
 
 import jax.numpy as jnp
 import numpy as np
-from jax import jit, local_device_count, pmap
+from jax import jit
 
 from s2fft.recursions.common import (
     fori_half_recursion,
@@ -12,7 +12,10 @@ from s2fft.recursions.common import (
     static_extension,
 )
 from s2fft.sampling import s2_samples as samples
-from s2fft.utils.deprecation import warn_precomps_deprecated
+from s2fft.utils.deprecation import (
+    warn_precomps_deprecated,
+    warn_spmd_deprecated,
+)
 
 
 def inverse_latitudinal_step(
@@ -144,8 +147,9 @@ def inverse_latitudinal_step_jax(
             fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`. It will be removed in a
             future release.
 
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
-            only maps over all available devices. Defaults to False.
+        spmd (bool, optional): Deprecated and ignored, and passing True warns: the
+            transform runs on one device. It will be removed in a future release.
+            Defaults to False.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -153,14 +157,9 @@ def inverse_latitudinal_step_jax(
     Returns:
         jnp.ndarray: Coefficients ftm with indexing :math:`[\theta, m]`.
 
-    Note:
-        The single-program multiple-data (SPMD) optional variable determines whether
-        the transform is run over a single device or all available devices. For very low
-        harmonic bandlimits L this is inefficient as the I/O overhead for communication
-        between devices is noticable, however as L increases one will asymptotically
-        recover acceleration by the number of devices.
-
     """
+    if spmd:
+        warn_spmd_deprecated()
     if precomps is not None:
         warn_precomps_deprecated()
     return _inverse_latitudinal_step_jax(
@@ -171,7 +170,7 @@ def inverse_latitudinal_step_jax(
         nside,
         sampling,
         reality,
-        spmd,
+        False,
         L_lower,
         static_extension(spin, L),
     )
@@ -224,19 +223,7 @@ def _inverse_latitudinal_step_jax(
                 skip_at_zero_spin=reality and i == 0,
             )[0]
 
-        if spmd:
-            # TODO: Generalise this to optional device counts.
-            ndevices = local_device_count()
-            opsdevice = int(ntheta / ndevices)
-
-            ftm = pmap(eval_recursion, in_axes=(0, 1, 0))(
-                ftm.reshape(ndevices, opsdevice, ftm.shape[-1]),
-                [p.reshape(2, ndevices, opsdevice, L - L_lower) for p in start],
-                [p.reshape(ndevices, opsdevice) for p in polar],
-            ).reshape(ntheta, ftm.shape[-1])
-
-        else:
-            ftm = eval_recursion(ftm, start, polar)
+        ftm = eval_recursion(ftm, start, polar)
 
     # Remove south pole singularity
     if samples.includes_south_pole(sampling):
@@ -387,8 +374,9 @@ def forward_latitudinal_step_jax(
             fly, at a cost of :math:`\mathcal{O}(n_{\theta} L)`. It will be removed in a
             future release.
 
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
-            only maps over all available devices. Defaults to False.
+        spmd (bool, optional): Deprecated and ignored, and passing True warns: the
+            transform runs on one device. It will be removed in a future release.
+            Defaults to False.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -396,14 +384,9 @@ def forward_latitudinal_step_jax(
     Returns:
         jnp.ndarray: Spherical harmonic coefficients.
 
-    Note:
-        The single-program multiple-data (SPMD) optional variable determines whether
-        the transform is run over a single device or all available devices. For very low
-        harmonic bandlimits L this is inefficient as the I/O overhead for communication
-        between devices is noticable, however as L increases one will asymptotically
-        recover acceleration by the number of devices.
-
     """
+    if spmd:
+        warn_spmd_deprecated()
     if precomps is not None:
         warn_precomps_deprecated()
     return _forward_latitudinal_step_jax(
@@ -414,7 +397,7 @@ def forward_latitudinal_step_jax(
         nside,
         sampling,
         reality,
-        spmd,
+        False,
         L_lower,
         static_extension(spin, L),
     )
@@ -477,20 +460,7 @@ def _forward_latitudinal_step_jax(
                 skip_at_zero_spin=reality and i == 0,
             )[0]
 
-        if spmd:
-            # TODO: Generalise this to optional device counts.
-            ndevices = local_device_count()
-            opsdevice = int((L - L_lower) / ndevices)
-
-            flm = flm.at[L_lower:].set(
-                pmap(eval_recursion, in_axes=(0, 2, 0))(
-                    flm[L_lower:].reshape(ndevices, opsdevice, 2 * L - 1),
-                    [p.reshape(2, ntheta, ndevices, opsdevice) for p in start],
-                    el.reshape(ndevices, opsdevice),
-                ).reshape(L - L_lower, 2 * L - 1)
-            )
-        else:
-            flm = flm.at[L_lower:].set(eval_recursion(flm[L_lower:], start, el))
+        flm = flm.at[L_lower:].set(eval_recursion(flm[L_lower:], start, el))
 
     # Include both pole singularities explicitly
     if samples.includes_south_pole(sampling):
