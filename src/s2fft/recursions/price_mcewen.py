@@ -1,6 +1,5 @@
 from functools import partial
 
-import jax.lax as lax
 import jax.numpy as jnp
 import numpy as np
 from jax import jit
@@ -258,24 +257,16 @@ def _generate_precomputes_jax(L, spin, sampling, nside, forward, L_lower, betas)
     cpi = jnp.zeros((L + 1, L - L0), dtype=jnp.float64)
     cp2 = jnp.zeros((L + 1, L - L0), dtype=jnp.float64)
 
-    # Initialising coefficients cp(m)= cplus(l-m).
+    # Initialising coefficients cp(m)= cplus(l-m), for all m at once.
+    m = jnp.arange(2, L + 1)[:, None]
     cpi = cpi.at[0].add(2.0 / jnp.sqrt(2 * el))
+    cpi = cpi.at[1:L].add(2.0 / jnp.sqrt(m * (2 * el + 1 - m)))
+    cp2 = cp2.at[1:L].add(cpi[1:L] / cpi[: L - 1])
 
-    def cpi_cp2_loop(m, args):
-        cpi, cp2 = args
-        cpi = cpi.at[m - 1].add(2.0 / jnp.sqrt(m * (2 * el + 1 - m)))
-        cp2 = cp2.at[m - 1].add(cpi[m - 1] / cpi[m - 2])
-        return cpi, cp2
-
-    cpi, cp2 = lax.fori_loop(2, L + 1, cpi_cp2_loop, (cpi, cp2))
-
-    def cpi_cp2_roll_loop(m, args):
-        cpi, cp2 = args
-        cpi = cpi.at[:, m - L0].set(jnp.roll(cpi[:, m - L0], (L - m - 1), axis=-1))
-        cp2 = cp2.at[:, m - L0].set(jnp.roll(cp2[:, m - L0], (L - m - 1), axis=-1))
-        return cpi, cp2
-
-    cpi, cp2 = lax.fori_loop(L0, L, cpi_cp2_roll_loop, (cpi, cp2))
+    # Roll the column of each el by L - 1 - el, for all el at once.
+    rows = (jnp.arange(L + 1)[:, None] - (L - 1 - el)[None, :]) % (L + 1)
+    cpi = jnp.take_along_axis(cpi, rows, axis=0)
+    cp2 = jnp.take_along_axis(cp2, rows, axis=0)
 
     # Then evaluate the negative half row and reflect using
     # Wigner-d symmetry relation.
