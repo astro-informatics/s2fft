@@ -428,6 +428,24 @@ def _polar_terms(beta, mm, xp):
     )
 
 
+def _set_pole_values(dl, beta, L, mm, xp):
+    r"""
+    The slices ``dl``, of shape (2L-1, ntheta, L), with their values at exactly
+    :math:`\beta = 0` and :math:`\beta = \pi` set to
+    :math:`d^\ell_{m, m^\prime}(0) = \delta_{m, m^\prime}` and
+    :math:`d^\ell_{m, m^\prime}(\pi) = (-1)^{\ell - m^\prime}\delta_{m, -m^\prime}`
+    for :math:`\ell \geq |m^\prime|`. The starting values of the recursion vanish at
+    :math:`\beta = 0`, so it cannot give the first.
+    """
+    el = xp.arange(L)
+    m = xp.arange(-L + 1, L)[:, None]
+    valid = el >= xp.abs(mm)
+    north = xp.where((m == mm) & valid, 1.0, 0.0)
+    south = xp.where((m == -mm) & valid, 1.0 - 2.0 * ((el - mm) % 2), 0.0)
+    dl = xp.where((beta == 0)[None, :, None], north[:, None, :], dl)
+    return xp.where((beta == np.pi)[None, :, None], south[:, None, :], dl)
+
+
 def _log_start_values(beta, el, mm, xp):
     r"""
     Natural logarithms of the starting values from :func:`_start_values`, zero where
@@ -786,6 +804,12 @@ def compute_all_slices(
     On-the-fly renormalisation by exact powers of two is implemented to avoid
     over/under-flows, with the scale of the iterates kept as an integer index.
 
+    At exactly :math:`\beta = 0` and :math:`\beta = \pi` the slice is returned in
+    closed form, :math:`d^\ell_{m, m^\prime}(0) = \delta_{m, m^\prime}` and
+    :math:`d^\ell_{m, m^\prime}(\pi) = (-1)^{\ell - m^\prime}\delta_{m, -m^\prime}`
+    for :math:`\ell \geq |m^\prime|`: the starting values of the recursion vanish at
+    :math:`\beta = 0`.
+
     The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
     :math:`-L < m < L` by `dl[L - 1 + m, \beta, \ell]`. This implementation has
     computational scaling :math:`\mathcal{O}(L)` and typically requires
@@ -820,7 +844,7 @@ def compute_all_slices(
             value, state = _recursion_step(i, j, state, start, el, L, mm, polar, np)
             m = j - (L - 1) if i == 0 else L - 1 - j
             dl[L - 1 + m] += value
-    return dl
+    return _set_pole_values(dl, beta, L, mm, np)
 
 
 def compute_all_slices_jax(
@@ -847,6 +871,12 @@ def compute_all_slices_jax(
 
     On-the-fly renormalisation by exact powers of two is implemented to avoid
     over/under-flows, with the scale of the iterates kept as an integer index.
+
+    At exactly :math:`\beta = 0` and :math:`\beta = \pi` the slice is returned in
+    closed form, :math:`d^\ell_{m, m^\prime}(0) = \delta_{m, m^\prime}` and
+    :math:`d^\ell_{m, m^\prime}(\pi) = (-1)^{\ell - m^\prime}\delta_{m, -m^\prime}`
+    for :math:`\ell \geq |m^\prime|`: the starting values of the recursion vanish at
+    :math:`\beta = 0`.
 
     The Wigner-d slice :math:`d^\ell_{m, m^{\prime}}(\beta)` is indexed for
     :math:`-L < m < L` by `dl[L - 1 + m, \beta, \ell]`. This implementation has
@@ -895,4 +925,4 @@ def _compute_all_slices_jax(beta, L, spin, extension):
 
         state = tuple(jnp.zeros((ntheta, L), dtype=jnp.float64) for _ in range(3))
         dl, _ = _fori_half_recursion(pm_recursion_step, (dl, state), L, mm, extension)
-    return dl
+    return _set_pole_values(dl, beta, L, mm, jnp)
