@@ -182,13 +182,13 @@ def inverse_numpy(
     # Remove south pole singularity
     if samples.includes_south_pole(sampling):
         ftm[-1] = 0
-        ftm[-1, L - 1 + spin + m_offset] = np.nansum(
+        ftm[-1, L - 1 + spin + m_offset] = np.sum(
             (-1) ** abs(np.arange(L0, L) - spin) * flm[L0:, L - 1 + spin]
         )
     # Remove north pole singularity
     if samples.includes_north_pole(sampling):
         ftm[0] = 0
-        ftm[0, L - 1 - spin + m_offset] = jnp.nansum(flm[L0:, L - 1 - spin])
+        ftm[0, L - 1 - spin + m_offset] = np.sum(flm[L0:, L - 1 - spin])
 
     # Correct healpix theta row offsets
     if sampling.lower() == "healpix":

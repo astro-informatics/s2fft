@@ -242,7 +242,7 @@ def _inverse_latitudinal_step_jax(
     if samples.includes_south_pole(sampling):
         ftm = ftm.at[-1].set(0)
         ftm = ftm.at[-1, L - 1 + spin + m_offset].set(
-            jnp.nansum(
+            jnp.sum(
                 (-1) ** abs(jnp.arange(L_lower, L) - spin) * flm[L_lower:, L - 1 + spin]
             )
         )
@@ -251,7 +251,7 @@ def _inverse_latitudinal_step_jax(
     if samples.includes_north_pole(sampling):
         ftm = ftm.at[0].set(0)
         ftm = ftm.at[0, L - 1 - spin + m_offset].set(
-            jnp.nansum(flm[L_lower:, L - 1 - spin])
+            jnp.sum(flm[L_lower:, L - 1 - spin])
         )
 
     return ftm
