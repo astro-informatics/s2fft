@@ -8,6 +8,7 @@ import s2fft
 from s2fft.sampling import so3_samples as samples
 from s2fft.transforms import c_backend_spherical as c_sph
 from s2fft.utils import torch_wrapper
+from s2fft.utils.deprecation import warn_precomps_deprecated
 
 
 def inverse(
@@ -42,8 +43,7 @@ def inverse(
 
         L (int): Harmonic band-limit.
 
-        N (int): Azimuthal band-limit. For high precision beyond :math:`N \approx 8`,
-            one should use `method="jax_ssht"`.
+        N (int): Azimuthal band-limit.
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -58,8 +58,10 @@ def inverse(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
-            of length :math:`L^2`, which is a minimal memory overhead.
+        precomps (List[np.ndarray]): Deprecated and ignored, and passing it warns: the
+            recursions evaluate their starting values and coefficients on the fly, so
+            arrays passed here have no effect, and gradients with respect to them are
+            zero. It will be removed in a future release.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -81,11 +83,10 @@ def inverse(
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
 
     """
+    if precomps is not None:
+        warn_precomps_deprecated()
     if method not in _inverse_functions:
         raise ValueError(f"Method {method} not recognised.")
-
-    if N >= 8 and method in ("numpy", "jax", "torch"):
-        raise Warning("Recursive transform may provide lower precision beyond N ~ 8")
 
     inverse_kwargs = {
         "flmn": flmn,
@@ -97,7 +98,7 @@ def inverse(
     }
 
     if method in ("jax", "numpy", "torch"):
-        inverse_kwargs.update(nside=nside, precomps=precomps)
+        inverse_kwargs.update(nside=nside)
 
     if method == "jax_ssht":
         if sampling.lower() == "healpix":
@@ -136,8 +137,7 @@ def inverse_numpy(
 
         L (int): Harmonic band-limit.
 
-        N (int): Azimuthal band-limit. Recursive transform will have lower precision
-            beyond :math:`N \approx 8`.
+        N (int): Azimuthal band-limit.
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -149,8 +149,10 @@ def inverse_numpy(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
-            of length :math:`L^2`, which is a minimal memory overhead.
+        precomps (List[np.ndarray]): Deprecated and ignored, and passing it warns: the
+            recursions evaluate their starting values and coefficients on the fly, so
+            arrays passed here have no effect, and gradients with respect to them are
+            zero. It will be removed in a future release.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -159,10 +161,8 @@ def inverse_numpy(
         np.ndarray: Signal on the sphere.
 
     """
-    if precomps is None:
-        precomps = s2fft.generate_precomputes_wigner(
-            L, N, sampling, nside, False, reality, L_lower
-        )
+    if precomps is not None:
+        warn_precomps_deprecated()
     fban = np.zeros(samples.f_shape(L, N, sampling, nside), dtype=np.complex128)
 
     # Copy flmn argument to avoid in-place updates being propagated back to caller
@@ -183,7 +183,7 @@ def inverse_numpy(
             nside,
             sampling,
             reality if n == 0 else False,
-            precomps[n - n_start_ind],
+            None,
             L_lower,
         )
 
@@ -196,7 +196,6 @@ def inverse_numpy(
     return f
 
 
-@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7))
 def inverse_jax(
     flmn: jnp.ndarray,
     L: int,
@@ -226,8 +225,7 @@ def inverse_jax(
 
         L (int): Harmonic band-limit.
 
-        N (int): Azimuthal band-limit. Recursive transform will have lower precision
-            beyond :math:`N \approx 8`.
+        N (int): Azimuthal band-limit.
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -239,8 +237,10 @@ def inverse_jax(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
-            of length :math:`L^2`, which is a minimal memory overhead.
+        precomps (List[jnp.ndarray]): Deprecated and ignored, and passing it warns: the
+            recursions evaluate their starting values and coefficients on the fly, so
+            arrays passed here have no effect, and gradients with respect to them are
+            zero. It will be removed in a future release.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -249,11 +249,14 @@ def inverse_jax(
         jnp.ndarray: Signal on the sphere.
 
     """
-    if precomps is None:
-        precomps = s2fft.generate_precomputes_wigner_jax(
-            L, N, sampling, nside, False, reality, L_lower
-        )
+    if precomps is not None:
+        warn_precomps_deprecated()
+    return _inverse_jax(flmn, L, N, nside, sampling, reality, L_lower)
 
+
+@partial(jit, static_argnums=(1, 2, 3, 4, 5, 6))
+def _inverse_jax(flmn, L, N, nside, sampling, reality, L_lower):
+    """Implementation of :func:`inverse_jax`, jitted, without its deprecated argument."""
     fban = jnp.zeros(samples.f_shape(L, N, sampling, nside), dtype=jnp.complex128)
 
     flmn = flmn.at[:, L_lower:].set(
@@ -268,17 +271,13 @@ def inverse_jax(
     n_start_ind = 0 if reality else -N + 1
     spins = jnp.arange(n_start_ind, N)
 
-    def func(flm, spin, p0, p1, p2, p3, p4):
-        precomps = [p0, p1, p2, p3, p4]
+    def func(flm, spin):
         return (-1) ** jnp.abs(spin) * s2fft.inverse_jax(
-            flm, L, -spin, nside, sampling, False, precomps, False, L_lower
+            flm, L, -spin, nside, sampling, False, None, False, L_lower
         )
 
     fban = fban.at[N - 1 + n_start_ind :].set(
-        vmap(
-            partial(func, p2=precomps[2][0], p3=precomps[3][0], p4=precomps[4][0]),
-            in_axes=(0, 0, 0, 0),
-        )(flmn[N - 1 + n_start_ind :], spins, precomps[0], precomps[1])
+        vmap(func)(flmn[N - 1 + n_start_ind :], spins)
     )
     if reality:
         f = jnp.fft.irfft(fban[N - 1 :], 2 * N - 1, axis=0, norm="forward")
@@ -392,8 +391,10 @@ def forward(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
-            of length :math:`L^2`, which is a minimal memory overhead.
+        precomps (List[np.ndarray]): Deprecated and ignored, and passing it warns: the
+            recursions evaluate their starting values and coefficients on the fly, so
+            arrays passed here have no effect, and gradients with respect to them are
+            zero. It will be removed in a future release.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -413,11 +414,10 @@ def forward(
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
 
     """
+    if precomps is not None:
+        warn_precomps_deprecated()
     if method not in _inverse_functions:
         raise ValueError(f"Method {method} not recognised.")
-
-    if N >= 8 and method in ("numpy", "jax", "torch"):
-        raise Warning("Recursive transform may provide lower precision beyond N ~ 8")
 
     forward_kwargs = {
         "f": f,
@@ -429,7 +429,7 @@ def forward(
     }
 
     if method in ("jax", "numpy", "torch"):
-        forward_kwargs.update(nside=nside, precomps=precomps)
+        forward_kwargs.update(nside=nside)
 
     if method == "jax_ssht":
         if sampling.lower() == "healpix":
@@ -482,8 +482,10 @@ def forward_numpy(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
-            of length :math:`L^2`, which is a minimal memory overhead.
+        precomps (List[np.ndarray]): Deprecated and ignored, and passing it warns: the
+            recursions evaluate their starting values and coefficients on the fly, so
+            arrays passed here have no effect, and gradients with respect to them are
+            zero. It will be removed in a future release.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -492,10 +494,8 @@ def forward_numpy(
         np.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
 
     """
-    if precomps is None:
-        precomps = s2fft.generate_precomputes_wigner(
-            L, N, sampling, nside, True, reality, L_lower
-        )
+    if precomps is not None:
+        warn_precomps_deprecated()
     flmn = np.zeros(samples.flmn_shape(L, N), dtype=np.complex128)
 
     ax = -2 if sampling.lower() == "healpix" else -3
@@ -518,7 +518,7 @@ def forward_numpy(
             nside,
             sampling,
             reality if n == 0 else False,
-            precomps[n - n_start_ind],
+            None,
             L_lower,
         )
         if reality and n != 0:
@@ -533,7 +533,6 @@ def forward_numpy(
     return flmn
 
 
-@partial(jit, static_argnums=(1, 2, 3, 4, 5, 7))
 def forward_jax(
     f: jnp.ndarray,
     L: int,
@@ -577,8 +576,10 @@ def forward_jax(
             conjugate symmetry is exploited to reduce computational costs.  Defaults to
             False.
 
-        precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
-            of length :math:`L^2`, which is a minimal memory overhead.
+        precomps (List[jnp.ndarray]): Deprecated and ignored, and passing it warns: the
+            recursions evaluate their starting values and coefficients on the fly, so
+            arrays passed here have no effect, and gradients with respect to them are
+            zero. It will be removed in a future release.
 
         L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
             for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
@@ -587,11 +588,14 @@ def forward_jax(
         jnp.ndarray: Wigner coefficients `flmn` with shape :math:`[2N-1, L, 2L-1]`.
 
     """
-    if precomps is None:
-        precomps = s2fft.generate_precomputes_wigner_jax(
-            L, N, sampling, nside, True, reality, L_lower
-        )
+    if precomps is not None:
+        warn_precomps_deprecated()
+    return _forward_jax(f, L, N, nside, sampling, reality, L_lower)
 
+
+@partial(jit, static_argnums=(1, 2, 3, 4, 5, 6))
+def _forward_jax(f, L, N, nside, sampling, reality, L_lower):
+    """Implementation of :func:`forward_jax`, jitted, without its deprecated argument."""
     flmn = jnp.zeros(samples.flmn_shape(L, N), dtype=jnp.complex128)
 
     if reality:
@@ -603,18 +607,12 @@ def forward_jax(
     n_start_ind = 0 if reality else -N + 1
     spins = jnp.arange(n_start_ind, N)
 
-    def func(fba, spin, p0, p1, p2, p3, p4):
-        precomps = [p0, p1, p2, p3, p4]
+    def func(fba, spin):
         return (-1) ** jnp.abs(spin) * s2fft.forward_jax(
-            fba, L, -spin, nside, sampling, False, precomps, False, L_lower
+            fba, L, -spin, nside, sampling, False, None, False, L_lower
         )
 
-    flmn = flmn.at[N - 1 + n_start_ind :].set(
-        vmap(
-            partial(func, p2=precomps[2][0], p3=precomps[3][0], p4=precomps[4][0]),
-            in_axes=(0, 0, 0, 0),
-        )(fban, spins, precomps[0], precomps[1])
-    )
+    flmn = flmn.at[N - 1 + n_start_ind :].set(vmap(func)(fban, spins))
 
     if reality:
         nidx = jnp.arange(1, N)

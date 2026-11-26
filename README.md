@@ -189,7 +189,8 @@ jupyter lab
 
 ## Usage 🚀
 
-To import and use `S2FFT` is as simple follows:
+To import and use `S2FFT` is as simple follows. The JAX transforms need 64-bit floats, so enable
+them with `jax.config.update("jax_enable_x64", True)` at the start of your program.
 
 For a signal on the sphere
 

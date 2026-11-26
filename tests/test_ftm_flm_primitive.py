@@ -10,6 +10,8 @@ These tests verify:
    result equals an explicit Python loop.
 4. **Composed transforms** — ``vmap(grad(...))`` and ``grad(vmap(...))``
    both produce the same result as a manual loop.
+5. **Direct differentiation** — the underlying ``otf`` functions can also be
+   differentiated themselves, without the primitive's rules.
 """
 
 import jax
@@ -22,6 +24,7 @@ from s2fft.recursions.price_mcewen import generate_precomputes_jax
 from s2fft.sampling import s2_samples as samples
 from s2fft.transforms import _ftm_flm_primitive as ftm_flm_prim
 from s2fft.transforms import otf_recursions as otf
+from s2fft.transforms import spherical
 
 jax.config.update("jax_enable_x64", True)
 
@@ -115,6 +118,24 @@ def test_ftm_to_flm_matches_otf(spin, sampling, rng):
         precomps=None,
     )
     np.testing.assert_allclose(np.asarray(actual), np.asarray(expected), atol=1e-12)
+
+
+@pytest.mark.parametrize("spin", [-3, -2, -1, 1, 2, 3])
+@pytest.mark.parametrize("sampling", ["mw", "gl"])
+def test_latitudinal_steps_reality_nonzero_spin(spin, sampling, rng):
+    # The direct latitudinal steps skip half recursion 0 for a real signal only at spin
+    # 0. At spin != 0 both half recursions run, so reality=True must give the same
+    # result as reality=False on every column.
+    flm, ftm, thetas = _make_inputs(rng, L_TEST, spin, sampling, reality=False)
+    for step, x in (
+        (otf.inverse_latitudinal_step_jax, flm),
+        (otf.forward_latitudinal_step_jax, ftm),
+    ):
+        expected = step(x, thetas, L_TEST, spin, None, sampling, False)
+        actual = step(x, thetas, L_TEST, spin, None, sampling, True)
+        np.testing.assert_allclose(
+            np.asarray(actual), np.asarray(expected), rtol=0, atol=1e-13
+        )
 
 
 @pytest.mark.parametrize("sampling", SAMPLING_TEST)
@@ -424,3 +445,108 @@ def test_vmap_of_grad_ftm_to_flm(rng):
     via_vmap = jax.vmap(per_sample_grad)(ftms)
     via_loop = jnp.stack([per_sample_grad(ftms[i]) for i in range(batch)])
     np.testing.assert_allclose(np.asarray(via_vmap), np.asarray(via_loop), atol=1e-10)
+
+
+# ---------------------------------------------------------------------------
+# 5. Direct differentiation of the otf functions
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("spin", [-2, 0, 2])
+@pytest.mark.parametrize("sampling", ["mw", "gl"])
+def test_otf_latitudinal_steps_differentiable(spin, sampling, rng):
+    flm, ftm, thetas = _make_inputs(rng, L_TEST, spin, sampling, reality=False)
+
+    def inverse(flm):
+        return otf.inverse_latitudinal_step_jax(
+            flm, thetas, L_TEST, spin, None, sampling, False, L_lower=L_LOWER_TEST
+        )
+
+    def forward(ftm):
+        return otf.forward_latitudinal_step_jax(
+            ftm, thetas, L_TEST, spin, None, sampling, False, L_lower=L_LOWER_TEST
+        )
+
+    check_grads(inverse, (flm,), order=1, modes=("fwd", "rev"))
+    check_grads(forward, (ftm,), order=1, modes=("fwd", "rev"))
+
+
+@pytest.mark.parametrize("sampling", ["mw", "gl"])
+def test_otf_latitudinal_steps_differentiable_traced_spin(sampling, rng):
+    # Reverse mode must also work when an enclosing jit or vmap traces the spin
+    spins = jnp.array([-2, 0, 2])
+    flm, ftm, thetas = _make_inputs(rng, L_TEST, 0, sampling, reality=False)
+    steps = (
+        (otf.inverse_latitudinal_step_jax, flm),
+        (otf.forward_latitudinal_step_jax, ftm),
+    )
+    for step, x in steps:
+
+        def loss(x, spin, step=step):
+            y = step(
+                x, thetas, L_TEST, spin, None, sampling, False, L_lower=L_LOWER_TEST
+            )
+            return jnp.sum(jnp.abs(y) ** 2)
+
+        expected = jnp.stack([jax.grad(loss)(x, int(spin)) for spin in spins])
+        compositions = (
+            jax.grad(jax.jit(loss))(x, spins[2]),
+            jax.jit(jax.grad(loss))(x, spins[2]),
+        )
+        for grad in compositions:
+            np.testing.assert_allclose(grad, expected[2], rtol=1e-12, atol=1e-12)
+        grads = jax.vmap(jax.grad(loss), in_axes=(None, 0))(x, spins)
+        np.testing.assert_allclose(grads, expected, rtol=1e-12, atol=1e-12)
+
+        def loss_over_spins(x, loss=loss):
+            return jnp.sum(jax.vmap(loss, in_axes=(None, 0))(x, spins))
+
+        grad = jax.grad(loss_over_spins)(x)
+        np.testing.assert_allclose(grad, expected.sum(0), rtol=1e-12, atol=1e-12)
+
+
+@pytest.mark.parametrize("batch", [(2, 3), (3, 3)])
+@pytest.mark.parametrize("direction", ["forward", "inverse"])
+def test_nested_vmap_with_the_spin_batched_at_one_level(batch, direction, rng):
+    # The batching rule leaves a spin that no level of vmap batches unbatched, and maps
+    # over it at the levels that do, which are the outermost ones from the first that
+    # batched it. Under two levels of vmap with the spin batched at one of them, each
+    # result must equal its own unbatched call.
+    b_out, b_in = batch
+    x = rng.standard_normal((b_out, b_in, L_TEST, 2 * L_TEST - 1))
+    if direction == "forward":
+
+        def fun(y, spin):
+            return spherical.forward_jax(y, L_TEST, spin, None, "gl", True)
+
+    else:
+        x = x + 0j
+
+        def fun(y, spin):
+            return spherical.inverse_jax(y, L_TEST, spin, None, "gl", True)
+
+    spins_out = np.array([0, 2, -1])[:b_out]
+    spins_in = np.array([1, 0, -3])[:b_in]
+    outer = jax.vmap(lambda xs, s: jax.vmap(lambda y: fun(y, s))(xs))(x, spins_out)
+    inner = jax.vmap(lambda xs: jax.vmap(fun)(xs, spins_in))(x)
+    for a in range(b_out):
+        for b in range(b_in):
+            np.testing.assert_allclose(
+                outer[a, b], fun(x[a, b], int(spins_out[a])), rtol=0, atol=1e-13
+            )
+            np.testing.assert_allclose(
+                inner[a, b], fun(x[a, b], int(spins_in[b])), rtol=0, atol=1e-13
+            )
+
+
+def test_nested_vmap_over_signals_keeps_the_spin_zero_skip():
+    # With the spin a runtime argument that no level of vmap batches, the lax.cond that
+    # skips half recursion 0 at spin 0 with reality=True stays a cond (a case op)
+    fs = jnp.zeros((2, 3, L_TEST, 2 * L_TEST - 1))
+
+    def batched(x, spin):
+        return jax.vmap(
+            jax.vmap(lambda y: spherical.forward_jax(y, L_TEST, spin, None, "gl", True))
+        )(x)
+
+    assert "stablehlo.case" in jax.jit(batched).lower(fs, 0).as_text()

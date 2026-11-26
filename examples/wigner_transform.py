@@ -47,13 +47,6 @@ flmn = s2fft.utils.signal_generator.generate_flmn(rng, L, N, reality=reality)
 f = s2fft.wigner.inverse_jax(flmn, L, N, reality=reality)
 
 # %%
-# If you are planning on applying this transform many times (e.g. during training of a model) we recommend precomputing and storing some small arrays that are used every time.
-# To do this simply compute these and pass as a static argument.
-
-precomps = s2fft.generate_precomputes_wigner_jax(L, N, forward=False, reality=reality)
-f_pre = s2fft.wigner.inverse_jax(flmn, L, N, reality=reality, precomps=precomps)
-
-# %%
 # Computing the forward Wigner transform
 # --------------------------------------
 #
@@ -62,21 +55,9 @@ f_pre = s2fft.wigner.inverse_jax(flmn, L, N, reality=reality, precomps=precomps)
 flmn_recov = s2fft.wigner.forward_jax(f, L, N, reality=reality)
 
 # %%
-# Again, if you are planning on applying this transform many times (e.g. during training of a model) we recommend precomputing and storing some small arrays that are used every time.
-# To do this simply compute these and pass as a static argument.
-
-precomps = s2fft.generate_precomputes_wigner_jax(L, N, forward=True, reality=reality)
-flmn_recov_pre = s2fft.wigner.forward_jax(
-    f_pre, L, N, reality=reality, precomps=precomps
-)
-
-# %%
 # Computing the error
 # -------------------
 #
 # Let's check the roundtrip error, which should be close to machine precision for the sampling theorem used.
 
 print(f"Mean absolute error = {np.nanmean(np.abs(flmn_recov - flmn))}")
-print(
-    f"Mean absolute error using precomputes = {np.nanmean(np.abs(flmn_recov_pre - flmn))}"
-)

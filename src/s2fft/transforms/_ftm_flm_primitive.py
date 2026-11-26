@@ -16,8 +16,9 @@ Each primitive accepts the following operands:
   while ``spin`` is a JIT tracer.
 * ``*precomps`` — five JAX arrays produced by
   :func:`generate_precomputes_jax`: ``(lrenorm, vsign, cpi, cp2, indices)``.
-  May be omitted entirely (zero operands), in which case the underlying
-  function regenerates them at trace time.
+  May be omitted entirely (zero operands). The underlying functions no
+  longer use them: they evaluate the recursion's starting values and
+  coefficients on the fly.
 
 Static keyword params: ``L``, ``nside``, ``sampling``, ``reality``,
 ``spmd``, ``L_lower``.
@@ -28,8 +29,7 @@ eval / lowering / transpose then peel off that batch dim via internal
 ``vmap``. This means the analytical adjoint (forward <-> inverse step) is
 preserved under ``vmap`` — composed transforms like ``grad(vmap(...))``
 take the analytical-transpose path rather than autodiffing through the
-``log``/``exp`` recursions inside ``otf`` (which can produce ``NaN`` in
-edge cases).
+recursions inside ``otf``.
 """
 
 import jax
@@ -55,23 +55,22 @@ _DATA_NDIM = 2
 def _apply_with_batching(fn_unbatched, data, spin, precomps):
     """
     Call ``fn_unbatched(data2d, spin0d, precomps_or_None)`` over leading
-    batch dims. ``data`` is 2D + batch, ``spin`` is 0d + same batch, each
-    precomp array also has the same number of leading batch dims as ``data``.
+    batch dims. ``data`` is 2D + batch, and each precomp array has the same
+    number of leading batch dims as ``data``. ``spin`` is 0d plus the outermost
+    of those batch dims from the first that batched it (see
+    ``_batch_primitive``), and none if none did.
     """
     n_batch = data.ndim - _DATA_NDIM
+    n_spin = jnp.ndim(spin)
     inner = fn_unbatched
-    in_axes = (0, 0, (0,) * len(precomps))
-    for _ in range(n_batch):
-        inner = jax.vmap(inner, in_axes=in_axes)
+    for level in range(n_batch):
+        spin_axis = 0 if level >= n_batch - n_spin else None
+        inner = jax.vmap(inner, in_axes=(0, spin_axis, (0,) * len(precomps)))
     return inner(data, spin, precomps)
 
 
 def _tuplify_precomps(precomps: list | None) -> tuple:
     return tuple(precomps) if precomps is not None else ()
-
-
-def _untuplify_precomps(precomps: tuple) -> list | None:
-    return list(precomps) if precomps else None
 
 
 def _as_spin_operand(spin) -> jnp.ndarray:
@@ -115,7 +114,14 @@ def _batch_primitive(primitive, batched_args, batch_axes, **params):
     if batch_size is None:
         return primitive.bind(fxm, thetas, spin, *precomps, **params), None
     fxm_b = _lift_to_batch(fxm, fxm_ax, batch_size)
-    spin_b = _lift_to_batch(spin, spin_ax, batch_size)
+    # A spin that no level of vmap has batched stays 0d, so that the recursion's
+    # lax.cond on it stays a cond rather than a select that runs both branches. Once
+    # one level batches it, every outer level lifts it, so its batch dims are the
+    # outermost ones of the data.
+    if spin_ax is None and jnp.ndim(spin) == 0:
+        spin_b = spin
+    else:
+        spin_b = _lift_to_batch(spin, spin_ax, batch_size)
     precomps_b = tuple(
         _lift_to_batch(p, ax, batch_size)
         for p, ax in zip(precomps, precomps_ax, strict=False)
@@ -144,9 +150,12 @@ def _flm_to_ftm_abstract(
 
 
 def _flm_to_ftm_impl(flm, thetas, spin, *precomps, **params):
+    # The primitive has its own derivative rules, so the recursion need not be
+    # differentiable: with the spin traced here, it can run its extra steps in a loop
+    # with a traced trip count (extension None) rather than a static bound.
     def fn(d, s, p):
-        return otf.inverse_latitudinal_step_jax(
-            flm=d, beta=thetas, spin=s, precomps=_untuplify_precomps(p), **params
+        return otf._inverse_latitudinal_step_jax(
+            flm=d, beta=thetas, spin=s, extension=None, **params
         )
 
     return _apply_with_batching(fn, flm, spin, precomps)
@@ -167,8 +176,8 @@ def _flm_to_ftm_jvp(primals, tangents, **params):
 
 def _flm_to_ftm_transpose(cotangent, flm, thetas, spin, *precomps, **params):
     # The transpose of the flm_to_ftm primitive (applied to the initial flm argument) is
-    # the ftm_to_flm primitive. We do not pass through the supplied (flm_to_ftm) precomps
-    # so these are regenerated internally for the ftm_to_flm primitive.
+    # the ftm_to_flm primitive. The supplied (flm_to_ftm) precomps are not passed
+    # through, and the recursions do not use precomps anyway.
     cot_flm = ftm_to_flm(cotangent, thetas, spin=spin, **params)
     return (cot_flm, None, None) + (None,) * len(precomps)
 
@@ -210,9 +219,10 @@ def _ftm_to_flm_abstract(
 
 
 def _ftm_to_flm_impl(ftm, thetas, spin, *precomps, **params):
+    # As in _flm_to_ftm_impl, the recursion need not be differentiable here.
     def fn(d, s, p):
-        return otf.forward_latitudinal_step_jax(
-            ftm_in=d, beta_in=thetas, spin=s, precomps=_untuplify_precomps(p), **params
+        return otf._forward_latitudinal_step_jax(
+            ftm_in=d, beta_in=thetas, spin=s, extension=None, **params
         )
 
     return _apply_with_batching(fn, ftm, spin, precomps)
@@ -233,8 +243,8 @@ def _ftm_to_flm_jvp(primals, tangents, **params):
 
 def _ftm_to_flm_transpose(cotangent, ftm, thetas, spin, *precomps, **params):
     # The transpose of the ftm_to_flm primitive (applied to the initial ftm argument) is
-    # the flm_to_ftm primitive. We do not pass through the supplied (ftm_to_flm) precomps
-    # so these are regenerated internally for the flm_to_ftm primitive.
+    # the flm_to_ftm primitive. The supplied (ftm_to_flm) precomps are not passed
+    # through, and the recursions do not use precomps anyway.
     cot_ftm = flm_to_ftm(cotangent, thetas, spin=spin, **params)
     return (cot_ftm, None, None) + (None,) * len(precomps)
 
@@ -280,9 +290,9 @@ def flm_to_ftm(
     """
     Inverse latitudinal step (``flm -> ftm``) via custom JAX primitive.
 
-    If ``precomps`` is None the underlying function regenerates them at
-    trace time; this matches the behaviour of
-    :func:`otf.inverse_latitudinal_step_jax`.
+    ``precomps`` is not used, and is kept for backward compatibility: as in
+    :func:`otf.inverse_latitudinal_step_jax`, the recursion evaluates its
+    starting values and coefficients on the fly.
     """
     return _flm_to_ftm_primitive.bind(
         flm,
@@ -314,9 +324,9 @@ def ftm_to_flm(
     """
     Forward latitudinal step (``ftm -> flm``) via custom JAX primitive.
 
-    If ``precomps`` is None the underlying function regenerates them at
-    trace time; this matches the behaviour of
-    :func:`otf.forward_latitudinal_step_jax`.
+    ``precomps`` is not used, and is kept for backward compatibility: as in
+    :func:`otf.forward_latitudinal_step_jax`, the recursion evaluates its
+    starting values and coefficients on the fly.
     """
     return _ftm_to_flm_primitive.bind(
         ftm,

@@ -31,9 +31,6 @@ def test_inverse_custom_gradients(
     sampling: str,
     reality: bool,
 ):
-    if reality and spin != 0:
-        pytest.skip("Reality only valid for scalar fields (spin=0).")
-
     flm = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
     flm_target = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
     f_target = spherical.inverse_jax(
@@ -77,9 +74,6 @@ def test_forward_custom_gradients(
     sampling: str,
     reality: bool,
 ):
-    if reality and spin != 0:
-        pytest.skip("Reality only valid for scalar fields (spin=0).")
-
     flm_target = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
     flm = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
     f = spherical.inverse_jax(
@@ -123,9 +117,6 @@ def test_healpix_inverse_custom_gradients(
 ):
     sampling = "healpix"
     L = 2 * nside
-
-    if reality and spin != 0:
-        pytest.skip("Reality only valid for scalar fields (spin=0).")
 
     flm = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
     flm_target = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
@@ -174,9 +165,6 @@ def test_healpix_forward_custom_gradients(
 ):
     sampling = "healpix"
     L = 2 * nside
-
-    if reality and spin != 0:
-        pytest.skip("Reality only valid for scalar fields (spin=0).")
 
     flm_target = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
     flm = flm_generator(L=L, L_lower=L_lower, spin=spin, reality=reality)
@@ -229,8 +217,7 @@ def test_ssht_c_backend_inverse_custom_gradients(
     _ssht_backend: int,
 ):
     if reality and spin != 0:
-        pytest.skip("Reality only valid for scalar fields (spin=0).")
-
+        pytest.skip("ssht has no reality=True at spin != 0 (pyssht raises).")
     if sampling.lower() == "dh" and _ssht_backend == 1:
         pytest.skip("Driscoll Healy ducc0 backend gradient calculation tempremental.")
 
@@ -279,8 +266,7 @@ def test_ssht_c_backend_forward_custom_gradients(
     _ssht_backend: int,
 ):
     if reality and spin != 0:
-        pytest.skip("Reality only valid for scalar fields (spin=0).")
-
+        pytest.skip("ssht has no reality=True at spin != 0 (pyssht raises).")
     if sampling.lower() == "dh" and _ssht_backend == 1:
         pytest.skip("Driscoll Healy ducc0 backend gradient calculation tempremental.")
 
