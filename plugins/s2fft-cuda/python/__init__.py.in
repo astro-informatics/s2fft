@@ -1,0 +1,36 @@
+"""CUDA @S2FFT_CUDA_MAJOR@ plugin of s2fft: HEALPix ring FFTs on the GPU as JAX FFI custom calls.
+
+Installed by the package ``s2fft-cuda@S2FFT_CUDA_MAJOR@-plugin`` through the extras
+``s2fft[cuda@S2FFT_CUDA_MAJOR@]`` (with cuFFT from the NVIDIA pip package
+``@S2FFT_CUFFT_PIP@``) and ``s2fft[cuda@S2FFT_CUDA_MAJOR@-local]`` (with the system
+CUDA installation). s2fft imports :mod:`._s2fft` when this package is available.
+"""
+
+import ctypes
+import importlib.util
+import pathlib
+
+
+def _preload_cufft() -> None:
+    """Load cuFFT from the NVIDIA pip package when it is installed.
+
+    The extension also finds it through its RPATH; this covers installations where the
+    nvidia packages are not next to this package. Without them (the -local extras), the
+    system loader finds the cuFFT of the system CUDA installation.
+    """
+    spec = importlib.util.find_spec("nvidia")
+    if spec is None or not spec.submodule_search_locations:
+        return
+    for root in spec.submodule_search_locations:
+        lib = pathlib.Path(root) / "@S2FFT_CUFFT_SUBDIR@" / "@S2FFT_CUFFT_SONAME@"
+        if lib.exists():
+            ctypes.CDLL(str(lib), mode=ctypes.RTLD_GLOBAL)
+            return
+
+
+_preload_cufft()
+
+from . import _s2fft  # noqa: E402
+from ._version import __version__  # noqa: E402
+
+__all__ = ["__version__", "_s2fft"]
