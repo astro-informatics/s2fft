@@ -29,7 +29,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Required to avoid error when trying to build so3
+      # so3 requires Conan 1 which only supports older CMake policy and GCC versions
       CMAKE_POLICY_VERSION_MINIMUM: 3.5
+      GCC_VERSION: 14
     steps:
     - name: Checkout Source
       uses: actions/checkout@v7.0.1
@@ -42,6 +44,13 @@ jobs:
       with:
         python-version: "3.13"
         cache: pip
+
+    - name: Install GCC version compatible with Conan 1 for so3 build
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y "gcc-${GCC_VERSION}" "g++-${GCC_VERSION}"
+        echo "CC=gcc-${GCC_VERSION}" >> "$GITHUB_ENV"
+        echo "CXX=g++-${GCC_VERSION}" >> "$GITHUB_ENV"
 
     - name: Install dependencies
       run: |
