@@ -45,7 +45,7 @@ def spin_spherical_kernel(
     reality: bool = False,
     sampling: str = "mw",
     nside: int = None,
-    forward: bool = True,
+    forward: bool = False,
     recursion: str = "auto",
 ) -> np.ndarray:
     r"""
@@ -179,7 +179,7 @@ def spin_spherical_kernel_jax(
     reality: bool = False,
     sampling: str = "mw",
     nside: int = None,
-    forward: bool = True,
+    forward: bool = False,
     recursion: str = "auto",
 ) -> jnp.ndarray:
     r"""
