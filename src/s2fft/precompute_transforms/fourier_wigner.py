@@ -22,20 +22,19 @@ def inverse_transform(
     Computes the inverse Wigner transform using the Fourier decomposition algorithm.
 
     Args:
-        flmn (np.ndarray): Wigner coefficients.
-        L (int): Harmonic band-limit.
-        N (int): Azimuthal band-limit.
-        precomps (tuple[np.ndarray, np.ndarray], optional): Fourier coefficients of the
+        flmn: Wigner coefficients.
+        L: Harmonic band-limit.
+        N: Azimuthal band-limit.
+        precomps: Fourier coefficients of the
             reduced Wigner d-functions and the corresponding upsampled quadrature
-            weights. Defaults to None.
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            weights.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss"}.
 
     Returns:
-        np.ndarray: Pixel-space function sampled on the rotation group.
+        Pixel-space function sampled on the rotation group.
 
     """
     if sampling.lower() not in ["mw", "mwss"]:
@@ -107,20 +106,19 @@ def inverse_transform_jax(
     Computes the inverse Wigner transform using the Fourier decomposition algorithm (JAX).
 
     Args:
-        flmn (jnp.ndarray): Wigner coefficients.
-        L (int): Harmonic band-limit.
-        N (int): Azimuthal band-limit.
-        precomps (tuple[np.ndarray, np.ndarray], optional): Fourier coefficients of the
+        flmn: Wigner coefficients.
+        L: Harmonic band-limit.
+        N: Azimuthal band-limit.
+        precomps: Fourier coefficients of the
             reduced Wigner d-functions and the corresponding upsampled quadrature
-            weights. Defaults to None.
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            weights.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss"}.
 
     Returns:
-        jnp.ndarray: Pixel-space function sampled on the rotation group.
+        Pixel-space function sampled on the rotation group.
 
     """
     if sampling.lower() not in ["mw", "mwss"]:
@@ -194,20 +192,19 @@ def forward_transform(
     Computes the forward Wigner transform using the Fourier decomposition algorithm.
 
     Args:
-        f (np.ndarray): Function sampled on the rotation group.
-        L (int): Harmonic band-limit.
-        N (int): Azimuthal band-limit.
-        precomps (tuple[np.ndarray, np.ndarray], optional): Fourier coefficients of the
+        f: Function sampled on the rotation group.
+        L: Harmonic band-limit.
+        N: Azimuthal band-limit.
+        precomps: Fourier coefficients of the
             reduced Wigner d-functions and the corresponding upsampled quadrature
-            weights. Defaults to None.
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            weights.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss"}.
 
     Returns:
-        np.ndarray: Wigner coefficients of function f.
+        Wigner coefficients of function f.
 
     """
     if sampling.lower() not in ["mw", "mwss"]:
@@ -315,20 +312,19 @@ def forward_transform_jax(
     Computes the forward Wigner transform using the Fourier decomposition algorithm (JAX).
 
     Args:
-        f (jnp.ndarray): Function sampled on the rotation group.
-        L (int): Harmonic band-limit.
-        N (int): Azimuthal band-limit.
-        precomps (tuple[np.ndarray, np.ndarray], optional): Fourier coefficients of the
+        f: Function sampled on the rotation group.
+        L: Harmonic band-limit.
+        N: Azimuthal band-limit.
+        precomps: Fourier coefficients of the
             reduced Wigner d-functions and the corresponding upsampled quadrature
-            weights. Defaults to None.
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+            weights.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}. Defaults to "mw".
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss"}.
 
     Returns:
-        jnp.ndarray: Wigner coefficients of function f.
+        Wigner coefficients of function f.
 
     """
     if sampling.lower() not in ["mw", "mwss"]:

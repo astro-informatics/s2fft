@@ -8,7 +8,10 @@ from s2fft.sampling import s2_samples as samples
 
 
 def quad_weights_transform(
-    L: int, sampling: str = "mwss", spin: int = 0, nside: int = 0
+    L: int,
+    sampling: str = "mwss",
+    spin: int = 0,
+    nside: int | None = None,
 ) -> np.ndarray:
     r"""
     Compute quadrature weights for :math:`\theta` and :math:`\phi`
@@ -18,21 +21,18 @@ def quad_weights_transform(
     are twice the base resolution, i.e. 2 * L.
 
     Args:
-        L (int): Harmonic band-limit.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mwss".
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+        L: Harmonic band-limit.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix". Defaults to None.
 
     Raises:
         ValueError: Invalid sampling scheme.
 
     Returns:
-        np.ndarray: Quadrature weights *to use in transform* for sampling scheme for
+        Quadrature weights *to use in transform* for sampling scheme for
         each :math:`\theta` (weights are identical as :math:`\phi` varies for given
         :math:`\theta`).
 
@@ -65,29 +65,25 @@ def quad_weights_transform(
 
 
 def quad_weights(
-    L: int = None, sampling: str = "mw", spin: int = 0, nside: int = None
+    L: int | None = None, sampling: str = "mw", spin: int = 0, nside: int | None = None
 ) -> np.ndarray:
     r"""
     Compute quadrature weights for :math:`\theta` and :math:`\phi`
     integration for various sampling schemes.
 
     Args:
-        L (int, optional): Harmonic band-limit.  Required if sampling not healpix.
-            Defaults to None.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
+        L: Harmonic band-limit. Required if sampling not healpix.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
 
     Raises:
         ValueError: Invalid sampling scheme.
 
     Returns:
-        np.ndarray: Quadrature weights for sampling scheme for each :math:`\theta`
+        Quadrature weights for sampling scheme for each :math:`\theta`
         (weights are identical as :math:`\phi` varies for given :math:`\theta`).
 
     """
@@ -122,16 +118,15 @@ def quad_weights_hp(nside: int) -> np.ndarray:
     integration.
 
     Note:
-        HEALPix weights are identical for all pixels.  Nevertheless, an array of
+        HEALPix weights are identical for all pixels. Nevertheless, an array of
         weights is returned (with identical values) for consistency of interface
         across other sampling schemes.
 
     Args:
-        nside (int): HEALPix Nside resolution parameter.
+        nside: HEALPix Nside resolution parameter.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta` (all weights in array are
-        identical).
+        Weights computed for each :math:`\theta` (all weights in array are identical).
 
     """
     npix = 12 * nside**2
@@ -147,10 +142,10 @@ def quad_weights_gl_theta_only(L: int) -> np.ndarray:
     Compute GL quadrature weights for :math:`\theta` integration.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta`.
+        Weights computed for each :math:`\theta`.
 
     """
     x1, x2 = -1.0, 1.0
@@ -185,10 +180,10 @@ def quad_weights_gl(L: int) -> np.ndarray:
     Compute GL quadrature weights for :math:`\theta` and :math:`\phi` integration.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
@@ -200,10 +195,10 @@ def quad_weights_dh(L: int) -> np.ndarray:
     Compute DH quadrature weights for :math:`\theta` and :math:`\phi` integration.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
@@ -215,10 +210,10 @@ def quad_weights_dh_theta_only(L: int) -> np.ndarray:
     Compute DH quadrature weights for :math:`\theta` integration (only).
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        float: Weights computed for each :math:`\theta`.
+        Weights computed for each :math:`\theta`.
 
     """
     thetas = samples.thetas(L, sampling="dh")
@@ -234,12 +229,12 @@ def quad_weights_mw(L: int, spin: int = 0) -> np.ndarray:
     Compute MW quadrature weights for :math:`\theta` and :math:`\phi` integration.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
@@ -253,12 +248,12 @@ def quad_weights_mwss(L: int, spin: int = 0) -> np.ndarray:
     Compute MWSS quadrature weights for :math:`\theta` and :math:`\phi` integration.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
@@ -275,12 +270,12 @@ def quad_weights_mwss_theta_only(L: int, spin: int = 0) -> np.ndarray:
     Compute MWSS quadrature weights for :math:`\theta` integration (only).
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta`.
+        Weights computed for each :math:`\theta`.
 
     """
     w = np.zeros(2 * L, dtype=np.complex128)
@@ -302,12 +297,12 @@ def quad_weights_mw_theta_only(L: int, spin: int = 0) -> np.ndarray:
     Compute MW quadrature weights for :math:`\theta` integration (only).
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        spin: Harmonic spin.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta`.
+        Weights computed for each :math:`\theta`.
 
     """
     w = np.zeros(2 * L - 1, dtype=np.complex128)
@@ -336,10 +331,10 @@ def mw_weights(m: int) -> float:
     which can be computed analytically.
 
     Args:
-        m (int): Harmonic weight index.
+        m: Harmonic weight index.
 
     Returns:
-        float: MW weight.
+        MW weight.
 
     """
     if m == 1:
@@ -360,11 +355,11 @@ def _fejer_second_rule_rfft_weights(n_points: int, xp: ModuleType = np):
     Compute real-valued FFT of weights for Fejer second quadrature rule.
 
     Args:
-        n_points (int): Number of quadrature points / nodes (including left boundary point).
-        xp (module): Array namespace to use for operations. Defaults to NumPy.
+        n_points: Number of quadrature points / nodes (including left boundary point).
+        xp: Array namespace to use for operations.
 
     Returns:
-        np.ndarray: Real-valued FFT of array of weights for quadrature nodes. Corresponding weigh
+        Real-valued FFT of array of weights for quadrature nodes. Corresponding weigh
         array computed using `irfft` includes zero weight in first element for point at left (-1)
         boundary but excludes zero weight for point at right (1) boundary.
 
@@ -388,11 +383,11 @@ def quad_weights_cc(L: int, xp: ModuleType = np) -> np.ndarray:
     Compute Clenshaw-Curtis quadrature weights for :math:`\theta` and :math:`\phi` integration.
 
     Args:
-        L (int): Harmonic band-limit.
-        xp (module): Array namespace to use for operations. Defaults to NumPy.
+        L: Harmonic band-limit.
+        xp: Array namespace to use for operations.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
@@ -404,11 +399,11 @@ def quad_weights_cc_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
     Compute Clenshaw-Curtis quadrature weights for :math:`\theta` integration (only).
 
     Args:
-        L (int): Harmonic band-limit.
-        xp (module): Array namespace to use for operations. Defaults to NumPy.
+        L: Harmonic band-limit.
+        xp: Array namespace to use for operations.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta`.
+        Weights computed for each :math:`\theta`.
 
     References:
        Waldvogel, J. (2006). Fast construction of the Fejer and Clenshaw-Curtis quadrature rules.
@@ -435,11 +430,11 @@ def quad_weights_f2(L: int, xp: ModuleType = np) -> np.ndarray:
     Compute Fejér's second rule quadrature weights for :math:`\theta` and :math:`\phi` integration.
 
     Args:
-        L (int): Harmonic band-limit.
-        xp (module): Array namespace to use for operations. Defaults to NumPy.
+        L: Harmonic band-limit.
+        xp: Array namespace to use for operations.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        Weights computed for each :math:`\theta` (weights are identical
         as :math:`\phi` varies for given :math:`\theta`).
 
     """
@@ -451,11 +446,11 @@ def quad_weights_f2_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
     Compute Fejér's second rule quadrature weights for :math:`\theta` integration (only).
 
     Args:
-        L (int): Harmonic band-limit.
-        xp (module): Array namespace to use for operations. Defaults to NumPy.
+        L: Harmonic band-limit.
+        xp: Array namespace to use for operations.
 
     Returns:
-        np.ndarray: Weights computed for each :math:`\theta`.
+        Weights computed for each :math:`\theta`.
 
     References:
        Waldvogel, J. (2006). Fast construction of the Fejer and Clenshaw-Curtis quadrature rules.

@@ -49,28 +49,22 @@ def ssht_inverse(
     Requires `pyssht` package to be installed.
 
     Args:
-        flm (jnp.ndarray): Spherical harmonic coefficients.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        ssht_sampling (int, optional): Sampling scheme. Supported sampling schemes include
-            {"mw" = 0, "mwss" = 1, "dh" = 2, "gl" = 3}.  Defaults to "mw" = 0.
-
-        _ssht_backend (int, optional, experimental): Whether to default to SSHT core
+        flm: Spherical harmonic coefficients.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        ssht_sampling: Sampling scheme. Supported sampling schemes include
+            {"mw" = 0, "mwss" = 1, "dh" = 2, "gl" = 3}.
+        _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
-            backend. Use with caution.
+            backend. Experimental, use with caution.
 
     Returns:
-        jnp.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     Note:
-        [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
+        [1] McEwen, Jason D. and Yves Wiaux. "A Novel Sampling Theorem on the Sphere."
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
 
     """
@@ -172,28 +166,22 @@ def ssht_forward(
     Requires `pyssht` package to be installed.
 
     Args:
-        f (jnp.ndarray): Signal on the sphere.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        ssht_sampling (int, optional): Sampling scheme. Supported sampling schemes include
-            {"mw" = 0, "mwss" = 1, "dh" = 2, "gl" = 3}.  Defaults to "mw" = 0.
-
-        _ssht_backend (int, optional, experimental): Whether to default to SSHT core
+        f: Signal on the sphere.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        ssht_sampling: Sampling scheme. Supported sampling schemes include
+            {"mw" = 0, "mwss" = 1, "dh" = 2, "gl" = 3}.
+        _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
-            backend. Use with caution.
+            backend. Experimental, use with caution.
 
     Returns:
-        jnp.ndarray: Harmonic coefficients of signal f.
+        Harmonic coefficients of signal f.
 
     Note:
-        [1] McEwen, Jason D. and Yves Wiaux. “A Novel Sampling Theorem on the Sphere.”
+        [1] McEwen, Jason D. and Yves Wiaux. "A Novel Sampling Theorem on the Sphere."
             IEEE Transactions on Signal Processing 59 (2011): 5876-5887.
 
     """
@@ -360,14 +348,12 @@ def healpy_map2alm(f: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
     Requires `healpy` package to be installed.
 
     Args:
-        f (jnp.ndarray): Signal on the sphere.
-
-        L (int): Harmonic band-limit. Equivalent to `lmax + 1` in healpy.
-
-        nside (int): HEALPix Nside resolution parameter.
+        f: Signal on the sphere.
+        L: Harmonic band-limit. Equivalent to `lmax + 1` in healpy.
+        nside: HEALPix Nside resolution parameter.
 
     Returns:
-        jnp.ndarray: Harmonic coefficients of signal f.
+        Harmonic coefficients of signal f.
 
     """
     return _healpy_map2alm_p.bind(f, L=L, nside=nside)
@@ -415,14 +401,12 @@ def healpy_alm2map(flm: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
     Requires `healpy` package to be installed.
 
     Args:
-        flm (jnp.ndarray): Spherical harmonic coefficients.
-
-        L (int): Harmonic band-limit. Equivalent to `lmax + 1` in healpy.
-
-        nside (int): HEALPix Nside resolution parameter.
+        flm: Spherical harmonic coefficients.
+        L: Harmonic band-limit. Equivalent to `lmax + 1` in healpy.
+        nside: HEALPix Nside resolution parameter.
 
     Returns:
-        jnp.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     """
     return _healpy_alm2map_p.bind(flm, L=L, nside=nside)
@@ -441,19 +425,16 @@ def healpy_forward(f: jnp.ndarray, L: int, nside: int, iter: int = 3) -> jnp.nda
     Requires `healpy` package to be installed.
 
     Args:
-        f (jnp.ndarray): Signal on the sphere.
-
-        L (int): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-        iter (int, optional): Number of subiterations (iterative refinement steps) for
+        f: Signal on the sphere.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        iter: Number of subiterations (iterative refinement steps) for
             healpy. Note that iterations increase the precision of the forward transform
             as an inverse of inverse transform, but with a linear increase in
             computational cost. Between 2 and 3 iterations is a good compromise.
 
     Returns:
-        jnp.ndarray: Harmonic coefficients of signal f.
+        Harmonic coefficients of signal f.
 
     Note:
         [1] Gorski, Krzysztof M., et al. "HEALPix: A framework for high-resolution
@@ -483,14 +464,12 @@ def healpy_inverse(flm: jnp.ndarray, L: int, nside: int) -> jnp.ndarray:
     Requires `healpy` package to be installed.
 
     Args:
-        flm (jnp.ndarray): Spherical harmonic coefficients.
-
-        L (int): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
+        flm: Spherical harmonic coefficients.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
 
     Returns:
-        jnp.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     Note:
         [1] Gorski, Krzysztof M., et al. "HEALPix: A framework for high-resolution

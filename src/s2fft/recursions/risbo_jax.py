@@ -15,16 +15,13 @@ def compute_full(dl: jnp.ndarray, beta: float, L: int, el: int) -> jnp.ndarray:
     :math:`\ell - 1`. At present, for :math:`\ell = 0` the recusion is initialised.
 
     Args:
-        dl (jnp.ndarray): Wigner-d plane for :math:`\ell - 1` at :math:`\beta`.
-
-        beta (float): Argument :math:`\beta` at which to compute Wigner-d plane.
-
-        L (int): Harmonic band-limit.
-
-        el (int): Spherical harmonic degree :math:`\ell`.
+        dl: Wigner-d plane for :math:`\ell - 1` at :math:`\beta`.
+        beta: Argument :math:`\beta` at which to compute Wigner-d plane.
+        L: Harmonic band-limit.
+        el: Spherical harmonic degree :math:`\ell`.
 
     Returns:
-        jnp.ndarray: Plane of Wigner-d for `el` and `beta`, with full plane computed.
+        Plane of Wigner-d for `el` and `beta`, with full plane computed.
 
     """
     if el == 0:

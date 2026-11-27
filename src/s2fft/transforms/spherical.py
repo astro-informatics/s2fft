@@ -23,11 +23,11 @@ def inverse(
     flm: np.ndarray,
     L: int,
     spin: int = 0,
-    nside: int = None,
+    nside: int | None = None,
     sampling: str = "mw",
     method: str = "numpy",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[np.ndarray] | None = None,
     spmd: bool = False,
     L_lower: int = 0,
     _ssht_backend: int = 1,
@@ -36,44 +36,32 @@ def inverse(
     Wrapper for the inverse spin-spherical harmonic transform.
 
     Args:
-        flm (np.ndarray): Spherical harmonic coefficients.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        method (str, optional): Execution mode in {"numpy", "jax", "jax_cuda",
-            "jax_ssht", "jax_healpy"}. Defaults to "numpy".
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+        flm: Spherical harmonic coefficients.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        method: Execution mode in {"numpy", "jax", "jax_cuda",
+            "jax_ssht", "jax_healpy"}.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
-
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
+        spmd: Whether to map compute over multiple devices. Currently this
             only maps over all available devices, and is only valid for JAX implementations.
-            Defaults to False.
-
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
-
-        _ssht_backend (int, optional, experimental): Whether to default to SSHT core
+        L_lower: Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+        _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
-            backend. Use with caution.
+            backend. Experimental, use with caution.
 
     Raises:
         ValueError: Transform method not recognised.
 
     Returns:
-        np.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     Note:
         The single-program multiple-data (SPMD) optional variable determines whether
@@ -114,10 +102,10 @@ def inverse_numpy(
     flm: np.ndarray,
     L: int,
     spin: int = 0,
-    nside: int = None,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[np.ndarray] | None = None,
     L_lower: int = 0,
 ) -> np.ndarray:
     r"""
@@ -128,30 +116,22 @@ def inverse_numpy(
     function is theoretically :math:`\mathcal{O}(L^2)`.
 
     Args:
-        flm (np.ndarray): Spherical harmonic coefficients.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+        flm: Spherical harmonic coefficients.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
-
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+        L_lower: Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
-        np.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     """
     # Define latitudinal sample positions and Fourier offsets
@@ -214,10 +194,10 @@ def inverse_jax(
     flm: jnp.ndarray,
     L: int,
     spin: int = 0,
-    nside: int = None,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[jnp.ndarray] | None = None,
     spmd: bool = False,
     L_lower: int = 0,
     use_healpix_custom_primitive: bool = False,
@@ -231,39 +211,28 @@ def inverse_jax(
     :func:`~inverse_numpy`.
 
     Args:
-        flm (jnp.ndarray): Spherical harmonic coefficients.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
+        flm: Spherical harmonic coefficients.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
-
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
-            only maps over all available devices. Defaults to False.
-
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
-
-        use_healpix_custom_primitive (bool, optional): Whether to use a custom CUDA
+        spmd: Whether to map compute over multiple devices. Currently this
+            only maps over all available devices.
+        L_lower: Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+        use_healpix_custom_primitive: Whether to use a custom CUDA
             primitive for computing HEALPix fast Fourier transform when `sampling =
             "healpix"` and running on a CUDA compatible GPU device. Using a custom
             primitive reduces long compilation times when just-in-time compiling.
-            Defaults to `False`.
 
     Returns:
-        jnp.ndarray: Signal on the sphere.
+        Signal on the sphere.
 
     Note:
         The single-program multiple-data (SPMD) optional variable determines whether
@@ -338,7 +307,7 @@ def forward(
     sampling: str = "mw",
     method: str = "numpy",
     reality: bool = False,
-    precomps: list | None = None,
+    precomps: list[np.ndarray] | None = None,
     spmd: bool = False,
     L_lower: int = 0,
     iter: int | None = None,
@@ -348,52 +317,39 @@ def forward(
     Wrapper for the forward spin-spherical harmonic transform.
 
     Args:
-        f (np.ndarray): Signal on the sphere.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        method (str, optional): Execution mode in {"numpy", "jax", "jax_cuda",
-            jax_ssht", "jax_healpy"}. Defaults to "numpy".
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+        f: Signal on the sphere.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        method: Execution mode in {"numpy", "jax", "jax_cuda",
+            jax_ssht", "jax_healpy"}.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
-
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
+        spmd: Whether to map compute over multiple devices. Currently this
             only maps over all available devices, and is only valid for JAX implementations.
-            Defaults to False.
-
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
-
-        iter (int, optional): Number of iterative refinement iterations to use to
+        L_lower: Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+        iter: Number of iterative refinement iterations to use to
             improve accuracy of forward transform (as an inverse of inverse transform).
             Primarily of use with HEALPix sampling for which there is not a sampling
             theorem, and round-tripping through the forward and inverse transforms will
             introduce an error. If set to `None`, the default, 3 iterations will be used
             if :code:`sampling == "healpix"` and :code:`method == "jax_healpy"` and zero
             otherwise. Not used for `jax_ssht` method.
-
-        _ssht_backend (int, optional, experimental): Whether to default to SSHT core
+        _ssht_backend: Whether to default to SSHT core
             (set to 0) recursions or pick up ducc0 (set to 1) accelerated experimental
-            backend. Use with caution.
+            backend. Experimental, use with caution.
 
     Raises:
         ValueError: Transform method not recognised.
 
     Returns:
-        np.ndarray: Spherical harmonic coefficients.
+        Spherical harmonic coefficients.
 
     Note:
         The single-program multiple-data (SPMD) optional variable determines whether
@@ -449,10 +405,10 @@ def forward_numpy(
     f: np.ndarray,
     L: int,
     spin: int = 0,
-    nside: int = None,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[np.ndarray] | None = None,
     L_lower: int = 0,
 ) -> np.ndarray:
     r"""
@@ -463,30 +419,22 @@ def forward_numpy(
     function is theoretically :math:`\mathcal{O}(L^2)`.
 
     Args:
-        f (np.ndarray): Signal on the sphere
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        precomps (List[np.ndarray]): Precomputed list of recursion coefficients. At most
+        f: Signal on the sphere
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
-
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
+        L_lower: Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
 
     Returns:
-        np.ndarray: Spherical harmonic coefficients
+        Spherical harmonic coefficients
 
     """
     # Resample mw onto mwss and double resolution of both
@@ -574,10 +522,10 @@ def forward_jax(
     f: jnp.ndarray,
     L: int,
     spin: int = 0,
-    nside: int = None,
+    nside: int | None = None,
     sampling: str = "mw",
     reality: bool = False,
-    precomps: list = None,
+    precomps: list[jnp.ndarray] | None = None,
     spmd: bool = False,
     L_lower: int = 0,
     use_healpix_custom_primitive: bool = False,
@@ -591,39 +539,28 @@ def forward_jax(
     :func:`~forward_numpy`.
 
     Args:
-        f (jnp.ndarray): Signal on the sphere
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        nside (int, optional): HEALPix Nside resolution parameter.  Only required
-            if sampling="healpix".  Defaults to None.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
-            conjugate symmetry is exploited to reduce computational costs.  Defaults to
-            False.
-
-        precomps (List[jnp.ndarray]): Precomputed list of recursion coefficients. At most
+        f: Signal on the sphere
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        nside: HEALPix Nside resolution parameter. Only required
+            if sampling="healpix".
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        reality: Whether the signal on the sphere is real. If so,
+            conjugate symmetry is exploited to reduce computational costs.
+        precomps: Precomputed list of recursion coefficients. At most
             of length :math:`L^2`, which is a minimal memory overhead.
-
-        spmd (bool, optional): Whether to map compute over multiple devices. Currently this
-            only maps over all available devices. Defaults to False.
-
-        L_lower (int, optional): Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
-
-        use_healpix_custom_primitive (bool, optional): Whether to use a custom CUDA
+        spmd: Whether to map compute over multiple devices. Currently this
+            only maps over all available devices.
+        L_lower: Harmonic lower-bound. Transform will only be computed
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+        use_healpix_custom_primitive: Whether to use a custom CUDA
             primitive for computing HEALPix fast Fourier transform when `sampling =
             "healpix"` and running on a CUDA compatible GPU device. Using a custom
             primitive reduces long compilation times when just-in-time compiling.
-            Defaults to `False`.
 
     Returns:
-        jnp.ndarray: Spherical harmonic coefficients
+        Spherical harmonic coefficients
 
     Note:
         The single-program multiple-data (SPMD) optional variable determines whether

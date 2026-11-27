@@ -13,22 +13,20 @@ def mw_to_mwss(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     Convert signal on the sphere from MW sampling to MWSS sampling.
 
     Conversion is performed by first performing a period extension in
-    :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space.  The
+    :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space. The
     resulting signal is then unextend back to the :math:`\theta` domain of
-    :math:`[0,\pi]`.  Second, zero padding in harmonic space corresponding to
+    :math:`[0,\pi]`. Second, zero padding in harmonic space corresponding to
     :math:`\phi` is performed.
 
     JAX implementation of :func:`~s2fft.resampling.mw_to_mwss`.
 
     Args:
-        f_mw (jnp.ndarray): Signal on the sphere sampled with MW sampling.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        f_mw: Signal on the sphere sampled with MW sampling.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
 
     Returns:
-        jnp.ndarray: Signal on the sphere sampled with MWSS sampling.
+        Signal on the sphere sampled with MWSS sampling.
 
     """
     if f_mw.ndim == 2:
@@ -46,7 +44,7 @@ def mw_to_mwss_theta(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     MWSS sampling.
 
     Conversion is performed by first performing a period extension in
-    :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space.  The
+    :math:`\theta` to :math:`2\pi`, followed by zero padding in harmonic space. The
     resulting signal is then unextend back to the :math:`\theta` domain of
     :math:`[0,\pi]`.
 
@@ -54,17 +52,15 @@ def mw_to_mwss_theta(f_mw: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
 
 
     Args:
-        f_mw (jnp.ndarray): Signal on the sphere sampled with MW sampling.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        f_mw: Signal on the sphere sampled with MW sampling.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
 
     Raises:
         ValueError: Input spherical signal must have shape matching MW sampling.
 
     Returns:
-        jnp.ndarray: Signal on the sphere with MWSS sampling in :math:`\theta` and MW
+        Signal on the sphere with MWSS sampling in :math:`\theta` and MW
         sampling in :math:`\phi`.
 
     """
@@ -115,23 +111,22 @@ def mw_to_mwss_phi(f_mw: jnp.ndarray, L: int) -> jnp.ndarray:
 
 
     Note:
-        Can work with arbitrary number of :math:`\theta` samples.  Hence, to convert
+        Can work with arbitrary number of :math:`\theta` samples. Hence, to convert
         both :math:`(\theta,\phi)` sampling to MWSS, can use :func:`~mw_to_mwss_theta`
         to first convert :math:`\theta` sampling before using this function to convert
         the :math:`\phi` sampling.
 
     Args:
-        f_mw (jnp.ndarray): Signal on the sphere sampled with MW sampling in
+        f_mw: Signal on the sphere sampled with MW sampling in
             :math:`\phi` and arbitrary number of samples in
-
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Raises:
         ValueError: Input spherical signal must have number of samples in :math:`\phi`
             matching MW sampling.
 
     Returns:
-        jnp.ndarray: Signal on the sphere with MWSS sampling in :math:`\phi` and
+        Signal on the sphere with MWSS sampling in :math:`\phi` and
         sampling in :math:`\theta` of the input signal.
 
     """
@@ -161,20 +156,17 @@ def periodic_extension(
     JAX implementation of :func:`~s2fft.resampling.periodic_extension`.
 
     Args:
-        f (jnp.ndarray): Signal on the sphere sampled with MW/MWSS sampling scheme.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}.  Defaults to "mw".
+        f: Signal on the sphere sampled with MW/MWSS sampling scheme.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss"}.
 
     Raises:
         ValueError: Only MW/MWW sampling schemes supported.
 
     Returns:
-        jnp.ndarray: Signal on the sphere extended to :math:`\theta` domain
+        Signal on the sphere extended to :math:`\theta` domain
         :math:`[0,2\pi]`, in same scheme (MW/MWSS) as input.
 
     """
@@ -249,13 +241,11 @@ def unextend(f_ext: jnp.ndarray, L: int, sampling: str = "mw") -> jnp.ndarray:
     :math:`[0,2\pi]` to :math:`[0,\pi]`.
 
     Args:
-        f_ext (jnp.ndarray): Signal on the sphere sampled on extended :math:`\theta`
+        f_ext: Signal on the sphere sampled on extended :math:`\theta`
             domain :math:`[0,2\pi]`.
-
-        L (int): Harmonic band-limit.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss"}.  Defaults to "mw".
+        L: Harmonic band-limit.
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss"}.
 
     Raises:
         ValueError: Only MW/MWW sampling schemes supported.
@@ -263,7 +253,7 @@ def unextend(f_ext: jnp.ndarray, L: int, sampling: str = "mw") -> jnp.ndarray:
         ValueError: Period extension must have correct shape.
 
     Returns:
-        jnp.ndarray: Signal on the sphere sampled on :math:`\theta` domain
+        Signal on the sphere sampled on :math:`\theta` domain
         :math:`[0,\pi]`.
 
     """
@@ -293,16 +283,13 @@ def upsample_by_two_mwss(f: jnp.ndarray, L: int, spin: int = 0) -> jnp.ndarray:
     JAX implementation of :func:`~s2fft.resampling.upsample_by_two_mwss`.
 
     Args:
-        f (jnp.ndarray): Signal on the sphere sampled with MWSS sampling scheme, sampled
+        f: Signal on the sphere sampled with MWSS sampling scheme, sampled
             at resolution L.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
 
     Returns:
-        jnp.ndarray: Signal on the sphere sampled with MWSS sampling scheme, sampling at
-        resolution 2*L.
+        Signal on the sphere sampled with MWSS sampling scheme, sampling at resolution 2*L.
 
     """
     if f.ndim == 2:
@@ -323,13 +310,12 @@ def upsample_by_two_mwss_ext(f_ext: jnp.ndarray, L: int) -> jnp.ndarray:
     :func:`~s2fft.resampling.upsample_by_two_mwss_ext`.
 
     Args:
-        f_ext (jnp.ndarray): Signal on the sphere sampled on extended MWSS sampling
+        f_ext: Signal on the sphere sampled on extended MWSS sampling
             scheme on domain :math:`[0,2\pi]`, sampled at resolution L.
-
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        jnp.ndarray: Signal on the sphere sampled on extended MWSS sampling scheme on
+        Signal on the sphere sampled on extended MWSS sampling scheme on
         domain :math:`[0,2\pi]`, sampling at resolution 2*L.
 
     """
@@ -364,20 +350,18 @@ def periodic_extension_spatial_mwss(
     extending :math:`\theta` domain from :math:`[0,\pi]` to :math:`[0,2\pi]`.
 
     For the MWSS sampling scheme, it is possible to do the period extension in
-    :math:`\theta` in the spatial domain.  This is not possible for the MW sampling
+    :math:`\theta` in the spatial domain. This is not possible for the MW sampling
     scheme.
 
     JAX implementation of :func:`~s2fft.resampling.periodic_extension_spatial_mwss`.
 
     Args:
-        f (jnp.ndarray): Signal on the sphere sampled with MWSS sampling scheme.
-
-        L (int): Harmonic band-limit.
-
-        spin (int, optional): Harmonic spin. Defaults to 0.
+        f: Signal on the sphere sampled with MWSS sampling scheme.
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
 
     Returns:
-        jnp.ndarray: Signal on the sphere extended to :math:`\theta` domain
+        Signal on the sphere extended to :math:`\theta` domain
         :math:`[0,2\pi]`, in MWSS sampling scheme.
 
     """

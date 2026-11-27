@@ -56,29 +56,22 @@ def spin_spherical_kernel(
     bandlimits :math:`L\geq 512`.
 
     Args:
-        L (int): Harmonic band-limit.
-
-        spin (int): Harmonic spin.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
-
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-
-        forward (bool, optional): Whether to provide forward or inverse shift.
+        forward: Whether to provide forward or inverse shift.
             Defaults to False.
-
-        recursion (str, optional): Recursion to adopt. Supported recursion schemes include
+        recursion: Recursion to adopt. Supported recursion schemes include
             {"auto", "price-mcewen", "risbo"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
 
     Returns:
-        np.ndarray: Transform kernel for spin-spherical harmonic transform.
+        Transform kernel for spin-spherical harmonic transform.
 
     """
     if reality and spin != 0:
@@ -198,29 +191,22 @@ def spin_spherical_kernel_jax(
     bandlimits :math:`L\geq 512`.
 
     Args:
-        L (int): Harmonic band-limit.
-
-        spin (int): Harmonic spin.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        L: Harmonic band-limit.
+        spin: Harmonic spin.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
-
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-
-        forward (bool, optional): Whether to provide forward or inverse shift.
+        forward: Whether to provide forward or inverse shift.
             Defaults to False.
-
-        recursion (str, optional): Recursion to adopt. Supported recursion schemes include
+        recursion: Recursion to adopt. Supported recursion schemes include
             {"auto", "price-mcewen", "risbo"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
 
     Returns:
-        jnp.ndarray: Transform kernel for spin-spherical harmonic transform.
+        Transform kernel for spin-spherical harmonic transform.
 
     """
     if reality and spin != 0:
@@ -360,29 +346,21 @@ def wigner_kernel(
     bandlimits :math:`L\geq 512`.
 
     Args:
-        L (int): Harmonic band-limit.
-
-        N (int): Directional band-limit.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        L: Harmonic band-limit.
+        N: Directional band-limit.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
-
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-
-        forward (bool, optional): Whether to provide forward or inverse shift.
-            Defaults to False.
-
-        mode (str, optional): Whether to use FFT approach or manually compute each element.
+        forward: Whether to provide forward or inverse shift.
+        mode: Whether to use FFT approach or manually compute each element.
             {"auto", "direct", "fft"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
 
     Returns:
-        np.ndarray: Transform kernel for Wigner transform.
+        Transform kernel for Wigner transform.
 
     """
     if mode.lower() == "fft" and not samples.is_equiangular_in_theta(sampling):
@@ -493,29 +471,21 @@ def wigner_kernel_jax(
     bandlimits :math:`L\geq 512`.
 
     Args:
-        L (int): Harmonic band-limit.
-
-        N (int): Directional band-limit.
-
-        reality (bool, optional): Whether the signal on the sphere is real.  If so,
+        L: Harmonic band-limit.
+        N: Directional band-limit.
+        reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
-            Defaults to False.
-
-        sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}. Defaults to "mw".
-
-        nside (int): HEALPix Nside resolution parameter.  Only required
+        sampling: Sampling scheme. Supported sampling schemes include
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
+        nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
-
-        forward (bool, optional): Whether to provide forward or inverse shift.
-            Defaults to False.
-
-        mode (str, optional): Whether to use FFT approach or manually compute each element.
+        forward: Whether to provide forward or inverse shift.
+        mode: Whether to use FFT approach or manually compute each element.
             {"auto", "direct", "fft"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
 
     Returns:
-        jnp.ndarray: Transform kernel for Wigner transform.
+        Transform kernel for Wigner transform.
 
     """
     if mode.lower() == "fft" and not samples.is_equiangular_in_theta(sampling):
@@ -619,10 +589,10 @@ def fourier_wigner_kernel(L: int) -> tuple[np.ndarray, np.ndarray]:
     weights upsampled for the forward Fourier-Wigner transform.
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        Tuple[np.ndarray, np.ndarray]: Tuple of delta Fourier coefficients and weights.
+        Tuple of delta Fourier coefficients and weights.
 
     """
     # Calculate deltas (np.pi/2 Fourier coefficients of Wigner matrices)
@@ -647,10 +617,10 @@ def fourier_wigner_kernel_jax(L: int) -> tuple[jnp.ndarray, jnp.ndarray]:
     weights upsampled for the forward Fourier-Wigner transform (JAX implementation).
 
     Args:
-        L (int): Harmonic band-limit.
+        L: Harmonic band-limit.
 
     Returns:
-        Tuple[jnp.ndarray, jnp.ndarray]: Tuple of delta Fourier coefficients and weights.
+        Tuple of delta Fourier coefficients and weights.
 
     """
     # Calculate deltas (np.pi/2 Fourier coefficients of Wigner matrices)
@@ -679,15 +649,12 @@ def healpix_phase_shifts(L: int, nside: int, forward: bool = False) -> np.ndarra
     Generates a phase shift vector for HEALPix for all :math:`\theta` rings.
 
     Args:
-        L (int, optional): Harmonic band-limit.
-
-        nside (int): HEALPix Nside resolution parameter.
-
-        forward (bool, optional): Whether to provide forward or inverse shift.
-            Defaults to False.
+        L: Harmonic band-limit.
+        nside: HEALPix Nside resolution parameter.
+        forward: Whether to provide forward or inverse shift.
 
     Returns:
-        np.ndarray: Vector of phase shifts with shape :math:`[thetas, 2L-1]`.
+        Vector of phase shifts with shape :math:`[thetas, 2L-1]`.
 
     """
     thetas = samples.thetas(L, "healpix", nside)
