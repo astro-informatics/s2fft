@@ -257,9 +257,9 @@ def _compute_inverse_direct(
     spin: int,
     sampling: str,
     thetas: np.ndarray,
-    nside: int | None = None,
-    reality: bool = False,
-    L_lower: int = 0,
+    nside: int,
+    reality: bool,
+    L_lower: int,
 ) -> np.ndarray:
     r"""
     Compute inverse spherical harmonic transform directly.
@@ -272,11 +272,11 @@ def _compute_inverse_direct(
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix".
+            if sampling="healpix". Defaults to None.
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Signal on the sphere.
@@ -336,9 +336,9 @@ def _compute_inverse_sov(
     spin: int,
     sampling: str,
     thetas: np.ndarray,
-    nside: int | None = None,
-    reality: bool = False,
-    L_lower: int = 0,
+    nside: int,
+    reality: bool,
+    L_lower: int,
 ) -> np.ndarray:
     r"""
     Compute inverse spherical harmonic transform by separation of variables with a
@@ -352,11 +352,11 @@ def _compute_inverse_sov(
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix".
+            if sampling="healpix". Defaults to None.
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Signal on the sphere.
@@ -403,9 +403,9 @@ def _compute_inverse_sov_fft(
     spin: int,
     sampling: str,
     thetas: np.ndarray,
-    nside: int | None = None,
-    reality: bool = False,
-    L_lower: int = 0,
+    nside: int,
+    reality: bool,
+    L_lower: int,
 ) -> np.ndarray:
     r"""
     Compute inverse spherical harmonic transform by separation of variables with a
@@ -419,11 +419,11 @@ def _compute_inverse_sov_fft(
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix".
+            if sampling="healpix". Defaults to None.
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Signal on the sphere.
@@ -489,9 +489,9 @@ def _compute_inverse_sov_fft_vectorized(
     spin: int,
     sampling: str,
     thetas: np.ndarray,
-    nside: int | None = None,
-    reality: bool = False,
-    L_lower: int = 0,
+    nside: int,
+    reality: bool,
+    L_lower: int,
 ) -> np.ndarray:
     r"""
     A vectorized function to compute inverse spherical harmonic transform by
@@ -505,11 +505,11 @@ def _compute_inverse_sov_fft_vectorized(
             {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix".
+            if sampling="healpix". Defaults to None.
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Signal on the sphere.
@@ -559,9 +559,9 @@ def _compute_forward_direct(
     sampling: str,
     thetas: np.ndarray,
     weights: np.ndarray,
-    nside: int | None = None,
-    reality: bool = False,
-    L_lower: int = 0,
+    nside: int,
+    reality: bool,
+    L_lower: int,
 ) -> np.ndarray:
     r"""
     Compute forward spherical harmonic transform directly.
@@ -575,11 +575,11 @@ def _compute_forward_direct(
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
         weights: Vector of quadrature weights on the sphere.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix".
+            if sampling="healpix". Defaults to None.
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Spherical harmonic coefficients.
@@ -642,9 +642,9 @@ def _compute_forward_sov(
     sampling: str,
     thetas: np.ndarray,
     weights: np.ndarray,
-    nside: int | None = None,
-    reality: bool = False,
-    L_lower: int = 0,
+    nside: int,
+    reality: bool,
+    L_lower: int,
 ) -> np.ndarray:
     r"""
     Compute forward spherical harmonic transform by separation of variables with a
@@ -659,11 +659,11 @@ def _compute_forward_sov(
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
         weights: Vector of quadrature weights on the sphere.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix".
+            if sampling="healpix". Defaults to None.
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Spherical harmonic coefficients.
@@ -730,9 +730,9 @@ def _compute_forward_sov_fft(
     sampling: str,
     thetas: np.ndarray,
     weights: np.ndarray,
-    nside: int | None = None,
-    reality: bool = False,
-    L_lower: int = 0,
+    nside: int,
+    reality: bool,
+    L_lower: int,
 ) -> np.ndarray:
     r"""
     Compute forward spherical harmonic transform by separation of variables with a
@@ -747,11 +747,11 @@ def _compute_forward_sov_fft(
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
         weights: Vector of quadrature weights on the sphere.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix".
+            if sampling="healpix". Defaults to None.
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Spherical harmonic coefficients.
@@ -838,9 +838,9 @@ def _compute_forward_sov_fft_vectorized(
     sampling: str,
     thetas: np.ndarray,
     weights: np.ndarray,
-    nside: int | None = None,
-    reality: bool = False,
-    L_lower: int = 0,
+    nside: int,
+    reality: bool,
+    L_lower: int,
 ) -> np.ndarray:
     r"""
     A vectorized function to compute forward spherical harmonic transform by
@@ -855,11 +855,11 @@ def _compute_forward_sov_fft_vectorized(
         thetas: Vector of sample positions in :math:`\theta` on the sphere.
         weights: Vector of quadrature weights on the sphere.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix".
+            if sampling="healpix". Defaults to None.
         reality: Whether the signal on the sphere is real. If so,
             conjugate symmetry is exploited to reduce computational costs.
         L_lower: Harmonic lower-bound. Transform will only be computed
-            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`.
+            for :math:`\texttt{L_lower} \leq \ell < \texttt{L}`. Defaults to 0.
 
     Returns:
         Spherical harmonic coefficients.

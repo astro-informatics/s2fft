@@ -21,7 +21,7 @@ from s2fft.utils.quadrature import (
 
 @_partial(_jit, static_argnums=(0, 1, 2))
 def quad_weights_transform(
-    L: int, sampling: str = "mwss", nside: int | None = None
+    L: int, sampling: str = "mwss", nside: int = 0
 ) -> jnp.ndarray:
     r"""
     Compute quadrature weights for :math:`\theta` and :math:`\phi`
@@ -36,7 +36,7 @@ def quad_weights_transform(
         sampling: Sampling scheme. Supported sampling schemes include
             {"mwss", "dh", "gl", "healpix", "cc", "f2"}.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix".
+            if sampling="healpix". Defaults to None.
 
     Raises:
         ValueError: Invalid sampling scheme.

@@ -26,7 +26,7 @@ def quad_weights_transform(
             {"mwss", "dh", "gl", "healpix", "cc", "f2"}.
         spin: Harmonic spin.
         nside: HEALPix Nside resolution parameter. Only required
-            if sampling="healpix".
+            if sampling="healpix". Defaults to None.
 
     Raises:
         ValueError: Invalid sampling scheme.

@@ -45,7 +45,7 @@ def spin_spherical_kernel(
     reality: bool = False,
     sampling: str = "mw",
     nside: int = None,
-    forward: bool = False,
+    forward: bool = True,
     recursion: str = "auto",
 ) -> np.ndarray:
     r"""
@@ -65,6 +65,7 @@ def spin_spherical_kernel(
         nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
+            Defaults to False.
         recursion: Recursion to adopt. Supported recursion schemes include
             {"auto", "price-mcewen", "risbo"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
@@ -179,7 +180,7 @@ def spin_spherical_kernel_jax(
     reality: bool = False,
     sampling: str = "mw",
     nside: int = None,
-    forward: bool = False,
+    forward: bool = True,
     recursion: str = "auto",
 ) -> jnp.ndarray:
     r"""
@@ -199,6 +200,7 @@ def spin_spherical_kernel_jax(
         nside: HEALPix Nside resolution parameter. Only required
             if sampling="healpix".
         forward: Whether to provide forward or inverse shift.
+            Defaults to False.
         recursion: Recursion to adopt. Supported recursion schemes include
             {"auto", "price-mcewen", "risbo"}. Defaults to "auto" which will detect the
             most appropriate recursion given the parameter configuration.
