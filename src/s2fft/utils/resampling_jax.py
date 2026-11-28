@@ -242,6 +242,76 @@ def periodic_extension(
     )
 
 
+@_partial(_jit, static_argnums=(2,))
+def periodic_extension_cc_f1(
+    ftm: jnp.ndarray, spin: int = 0, sampling: str = "cc"
+) -> jnp.ndarray:
+    """Continue longitude Fourier coefficients over a full meridian."""
+    sampling = sampling.lower()
+    if sampling not in ("cc", "f1"):
+        raise ValueError("Meridional continuation only supports cc and f1")
+    n_phi = ftm.shape[-1]
+    modes = jnp.rint(jnp.fft.fftshift(jnp.fft.fftfreq(n_phi) * n_phi)).astype(jnp.int32)
+    parity = (-1.0) ** (modes + spin)
+    reflected = (
+        jnp.flip(ftm, axis=-2)
+        if sampling == "f1"
+        else jnp.flip(ftm[..., 1:-1, :], axis=-2)
+    )
+    return jnp.concatenate(
+        [ftm, reflected * parity.reshape((1,) * (ftm.ndim - 1) + (n_phi,))],
+        axis=-2,
+    )
+
+
+@_partial(_jit, static_argnums=(1,))
+def _upsample_periodic_fourier(
+    f: jnp.ndarray, theta_offset: float = 0.0
+) -> jnp.ndarray:
+    """Double a periodic meridian and evaluate it on a grid starting at zero."""
+    n_theta = f.shape[-2]
+    n_theta_up = 2 * n_theta
+    raw_spectrum = jnp.fft.fft(f, axis=-2, norm="forward")
+    spectrum_up = jnp.zeros(
+        f.shape[:-2] + (n_theta_up, f.shape[-1]), dtype=raw_spectrum.dtype
+    )
+    n_half = n_theta // 2
+    modes = jnp.arange(n_theta)
+    modes = jnp.where(modes < n_half, modes, modes - n_theta)
+    phase = jnp.exp(-1j * modes * theta_offset)
+    spectrum = raw_spectrum * phase.reshape((1,) * (f.ndim - 2) + (n_theta, 1))
+    spectrum_up = spectrum_up.at[..., :n_half, :].set(spectrum[..., :n_half, :])
+    spectrum_up = spectrum_up.at[..., n_theta_up - (n_half - 1) :, :].set(
+        spectrum[..., n_half + 1 :, :]
+    )
+
+    nyquist = raw_spectrum[..., n_half, :]
+    nyquist_minus = 0.5 * nyquist * jnp.exp(1j * n_half * theta_offset)
+    nyquist_plus = 0.5 * nyquist * jnp.exp(-1j * n_half * theta_offset)
+    spectrum_up = spectrum_up.at[..., n_half, :].set(nyquist_plus)
+    spectrum_up = spectrum_up.at[..., n_theta_up - n_half, :].set(nyquist_minus)
+    return jnp.fft.ifft(spectrum_up, axis=-2, norm="forward")
+
+
+@_partial(_jit, static_argnums=(2,))
+def resample_cc_f1_for_analysis(
+    ftm: jnp.ndarray, spin: int, sampling: str
+) -> jnp.ndarray:
+    """Resample CC/F1 Fourier coefficients to denser CC latitude nodes."""
+    sampling = sampling.lower()
+    ftm_ext = periodic_extension_cc_f1(ftm, spin, sampling)
+    if sampling == "cc":
+        theta_offset = 0.0
+        n_dense = 2 * ftm.shape[-2] - 1
+    elif sampling == "f1":
+        theta_offset = jnp.pi / ftm_ext.shape[-2]
+        n_dense = 2 * ftm.shape[-2] + 1
+    else:
+        raise ValueError("Resampling only supports cc and f1")
+    ftm_dense = _upsample_periodic_fourier(ftm_ext, theta_offset)
+    return ftm_dense[..., :n_dense, :]
+
+
 @_partial(_jit, static_argnums=(1, 2))
 def unextend(f_ext: jnp.ndarray, L: int, sampling: str = "mw") -> jnp.ndarray:
     r"""

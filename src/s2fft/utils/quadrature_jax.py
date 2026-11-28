@@ -11,6 +11,10 @@ from s2fft.utils.quadrature import (
 from s2fft.utils.quadrature import (
     quad_weights_cc_theta_only as _quad_weights_cc_theta_only,
 )
+from s2fft.utils.quadrature import quad_weights_f1 as _quad_weights_f1
+from s2fft.utils.quadrature import (
+    quad_weights_f1_theta_only as _quad_weights_f1_theta_only,
+)
 from s2fft.utils.quadrature import (
     quad_weights_f2 as _quad_weights_f2,
 )
@@ -35,7 +39,7 @@ def quad_weights_transform(
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mwss".
+            {"mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mwss".
 
         nside (int, optional): HEALPix Nside resolution parameter.  Only required
             if sampling="healpix".  Defaults to None.
@@ -67,7 +71,10 @@ def quad_weights_transform(
         return quad_weights_hp(nside)
 
     elif sampling.lower() == "cc":
-        return quad_weights_cc(L)
+        return _quad_weights_cc(L, xp=jnp)
+
+    elif sampling.lower() == "f1":
+        return _quad_weights_f1(L, xp=jnp)
 
     elif sampling.lower() == "f2":
         return quad_weights_f2(L)
@@ -88,7 +95,7 @@ def quad_weights(L: int = None, sampling: str = "mw", nside: int = None) -> jnp.
             Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
@@ -119,7 +126,10 @@ def quad_weights(L: int = None, sampling: str = "mw", nside: int = None) -> jnp.
         return quad_weights_hp(nside)
 
     elif sampling.lower() == "cc":
-        return quad_weights_cc(L)
+        return _quad_weights_cc(L, xp=jnp)
+
+    elif sampling.lower() == "f1":
+        return _quad_weights_f1(L, xp=jnp)
 
     elif sampling.lower() == "f2":
         return quad_weights_f2(L)
@@ -454,3 +464,39 @@ def quad_weights_f2_theta_only(L: int) -> jnp.ndarray:
 
     """
     return _quad_weights_f2_theta_only(L, xp=jnp)
+
+
+@_partial(_jit, static_argnums=(0))
+def quad_weights_f1(L: int) -> jnp.ndarray:
+    r"""
+    Compute Fejér's first-rule quadrature weights for :math:`\theta` and
+    :math:`\phi` integration.
+
+    Args:
+        L (int): Harmonic band-limit.
+
+    Returns:
+        jnp.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        as :math:`\phi` varies for given :math:`\theta`).
+
+    """
+    return _quad_weights_f1(L, xp=jnp)
+
+
+@_partial(_jit, static_argnums=(0))
+def quad_weights_f1_theta_only(L: int) -> jnp.ndarray:
+    r"""
+    Compute Fejér's first-rule quadrature weights for :math:`\theta` integration (only).
+
+    Args:
+        L (int): Harmonic band-limit.
+
+    Returns:
+        jnp.ndarray: Weights computed for each :math:`\theta`.
+
+    References:
+       Waldvogel, J. (2006). Fast construction of the Fejer and Clenshaw-Curtis quadrature rules.
+       BIT Numerical Mathematics, 46(1), 195–202. https://doi.org/10.1007/s10543-006-0045-4.
+
+    """
+    return _quad_weights_f1_theta_only(L, xp=jnp)

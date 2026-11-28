@@ -21,7 +21,7 @@ def quad_weights_transform(
         L (int): Harmonic band-limit.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mwss".
+            {"mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mwss".
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
@@ -57,6 +57,9 @@ def quad_weights_transform(
     elif sampling.lower() == "cc":
         return quad_weights_cc(L)
 
+    elif sampling.lower() == "f1":
+        return quad_weights_f1(L)
+
     elif sampling.lower() == "f2":
         return quad_weights_f2(L)
 
@@ -76,7 +79,7 @@ def quad_weights(
             Defaults to None.
 
         sampling (str, optional): Sampling scheme.  Supported sampling schemes include
-            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f2"}.  Defaults to "mw".
+            {"mw", "mwss", "dh", "gl", "healpix", "cc", "f1", "f2"}.  Defaults to "mw".
 
         spin (int, optional): Harmonic spin. Defaults to 0.
 
@@ -105,6 +108,9 @@ def quad_weights(
 
     elif sampling.lower() == "cc":
         return quad_weights_cc(L)
+
+    elif sampling.lower() == "f1":
+        return quad_weights_f1(L)
 
     elif sampling.lower() == "f2":
         return quad_weights_f2(L)
@@ -467,3 +473,51 @@ def quad_weights_f2_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
     weights = xp.fft.irfft(w, n=n_theta + 1)
     # Weight is zero at left boundary / north pole which we assume is excluded from nodes
     return weights[1:]
+
+
+def quad_weights_f1(L: int, xp: ModuleType = np) -> np.ndarray:
+    r"""
+    Compute Fejér's first-rule quadrature weights for :math:`\theta` and
+    :math:`\phi` integration.
+
+    Args:
+        L (int): Harmonic band-limit.
+        xp (module): Array namespace to use for operations. Defaults to NumPy.
+
+    Returns:
+        np.ndarray: Weights computed for each :math:`\theta` (weights are identical
+        as :math:`\phi` varies for given :math:`\theta`).
+
+    """
+    return quad_weights_f1_theta_only(L, xp) * 2 * xp.pi / samples.nphi_equiang(L, "f1")
+
+
+def quad_weights_f1_theta_only(L: int, xp: ModuleType = np) -> np.ndarray:
+    r"""
+    Compute Fejer's first-rule weights on cosine-of-theta nodes.
+
+    The cosine-series coefficients are the integrals of Chebyshev polynomials.
+    Their shifted inverse Fourier transform evaluates the weights in O(L log L).
+
+    Args:
+        L (int): Harmonic band-limit.
+        xp (module): Array namespace to use for operations. Defaults to NumPy.
+
+    Returns:
+        np.ndarray: Weights computed for each :math:`\theta`.
+
+    References:
+       Waldvogel, J. (2006). Fast construction of the Fejer and Clenshaw-Curtis quadrature rules.
+       BIT Numerical Mathematics, 46(1), 195–202. https://doi.org/10.1007/s10543-006-0045-4.
+
+    """
+    n = samples.ntheta(L, "f1")
+    modes = 2 * xp.arange(1, (n + 1) // 2)
+    spectrum = xp.zeros(2 * n, dtype=xp.asarray(1j).dtype)
+    spectrum = xpx.at(spectrum)[0].set(1.0)
+    coeff = -2 / (modes**2 - 1)
+    phase = xp.exp(1j * modes * xp.pi / (2 * n))
+    spectrum = xpx.at(spectrum)[modes].set(coeff * phase / 2)
+    spectrum = xpx.at(spectrum)[2 * n - modes].set(coeff * xp.conj(phase) / 2)
+    weights = (2 / n) * xp.real(xp.fft.ifft(spectrum) * (2 * n))
+    return weights[:n]
